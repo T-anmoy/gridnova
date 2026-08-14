@@ -4,7 +4,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 import Image from "next/image";
 import CTASection from "@/components/CTASection";
 import michaelGomes from "@/public/leadership/michael-gomes.webp";
-import rajaPaul from "@/public/leadership/raja-paul.webp";
+import rajaPaul from "@/public/leadership/raju-paul.webp";
 import srinjayDas from "@/public/leadership/srinjay-das.webp";
 import moloyDas from "@/public/leadership/moloy-das.webp";
 import arunKumar from "@/public/leadership/arun-kumar.webp";
