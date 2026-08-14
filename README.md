@@ -1,0 +1,75 @@
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+## Testing
+
+Run the **full suite** (unit + end-to-end) before considering any change done:
+
+```bash
+npm test
+```
+
+That runs the two layers independently:
+
+```bash
+npm run test:unit    # Vitest + React Testing Library (jsdom) — fast, no server
+npm run test:e2e     # Playwright — builds the app, serves it, drives real Chromium
+```
+
+- **Unit tests** (`tests/unit/`) cover regression-prone pure logic and rendering:
+  the Projects stat-row divider/padding classes (`lib/stat-grid.ts`) and the
+  home leadership grid (single-column on mobile, no orphaned slot).
+- **E2E tests** (`tests/e2e/`) cover the flows that have regressed before or are
+  commercially critical: every public page loads with **zero console errors** and
+  a **footer visible on load**; the **Ask Nova** panel opens, its thread scrolls
+  by both wheel and touch, and a message sends and receives a (mocked) reply;
+  the **typing FAQ bubble** appears and cycles at **both** mobile and desktop
+  widths in one run; header/footer logo and the footer copyright line **scroll to
+  top** on `/` and **navigate** from elsewhere; the **mobile nav** opens and
+  closes via its button and via an outside click; and the **contact form** shows
+  the right validation error for each bad field and refuses to submit.
+
+`npm run test:e2e` is self-contained — Playwright runs `next build` and serves the
+production output on port 3100. Watch mode for unit tests: `npm run test:unit:watch`.
+Interactive E2E runner: `npm run test:e2e:ui`.
+
+> **Clerk keys:** the dashboard is Clerk-protected and its middleware needs a
+> publishable key on every request. The Playwright config falls back to
+> well-formed **test** keys so the public-site E2E suite runs without a real Clerk
+> account; set real `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` in
+> `.env.local` to exercise the dashboard.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# gridnova
