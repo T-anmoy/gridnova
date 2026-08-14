@@ -21,6 +21,7 @@ const SITEMAP = [
 const LEGAL = [
   { label: "Privacy Policy", href: "/privacy" },
   { label: "Terms of Service", href: "/terms" },
+  { label: "Staff Login", href: "/dashboard" },
 ];
 
 export default function Footer() {
@@ -175,12 +176,6 @@ export default function Footer() {
                 Highline Works
               </a>
             </p>
-            <Link
-              href="/dashboard"
-              className="text-white/25 hover:text-white/45 text-xs font-utility transition-colors"
-            >
-              Staff Login
-            </Link>
           </div>
         </div>
       </div>
