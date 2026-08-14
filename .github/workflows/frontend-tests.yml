@@ -1,0 +1,38 @@
+name: Frontend Tests
+
+# Run the unit test suite and a production build on every push and pull request
+# so a broken test OR a build-breaking change fails the check before merge.
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-and-build:
+    name: Vitest + Build
+    runs-on: ubuntu-latest
+
+    env:
+      # Clerk's middleware needs a publishable key at build time on every route.
+      # These are well-formed TEST placeholders so CI can build the public site
+      # without a real Clerk account; override via repo secrets for full builds.
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_Y2xlcmsuZXhhbXBsZS5jb20k' }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY || 'sk_test_ci_placeholder_key_000000000000' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npx vitest run
+
+      - name: Production build
+        run: npm run build

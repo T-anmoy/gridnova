@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Brand palette — Grid Nova Energy */
+  --color-primary: #002868;
+  --color-navy: #091c3c;
+  --color-solar-blue: #2f5daa;
+  --color-gold: #f7a800;
+  --color-surface: #f7f9fc;
+  --color-steel: #e4e8ee;
+  --color-dark: #101827;
+  --color-text: #111827;
+
+  --breakpoint-xs: 420px;
+}
+
+@theme {
+  /* Font families as runtime CSS variables so next/font can override them
+     at the html element level. Do NOT inline — utilities must use var() so
+     the self-hosted font stack (set by next/font's class on <html>) takes effect. */
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "Manrope", sans-serif;
+  --font-utility: "IBM Plex Sans", sans-serif;
+}
+
+:root {
+  --header-h: 88px;
+}
+
+* {
+  box-sizing: border-box;
+  min-width: 0; /* prevents flex/grid children from overflowing */
+}
+
+html {
+  scroll-behavior: auto;
+  overflow-x: hidden;
+}
+
+body {
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  /* safe area for notched devices */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+::selection {
+  background: var(--color-gold);
+  color: var(--color-navy);
+}
+
+/* On-brand keyboard focus indicator — replaces harsh browser default.
+   Follows the element's own border-radius (Chrome 94+, Firefox 88+, Safari 16.4+).
+   Form inputs suppress this via their own outline-none + focus:ring utilities. */
+*:focus-visible {
+  outline: 2.5px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.font-utility {
+  font-family: var(--font-utility);
+}
+
+/* Glass surfaces */
+.glass {
+  background: color-mix(in srgb, white 10%, transparent);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid color-mix(in srgb, white 18%, transparent);
+}
+
+/* Blueprint grid backdrop */
+.blueprint-grid {
+  background-image:
+    linear-gradient(color-mix(in srgb, white 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, white 6%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+.blueprint-grid-dark {
+  background-image:
+    linear-gradient(color-mix(in srgb, black 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, black 5%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Reference tag — engineering drawing style eyebrow */
+.ref-tag {
+  font-family: var(--font-utility);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ref-tag::before {
+  content: "";
+  width: 22px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes kenBurns {
+  from { transform: scale(1); }
+  to   { transform: scale(1.06); }
+}
+.ken-burns {
+  animation: kenBurns 20s ease-in-out infinite alternate;
+}
+
+@keyframes novaPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(247,168,0,0.45); }
+  50%       { box-shadow: 0 0 0 12px rgba(247,168,0,0); }
+}
+.nova-pulse {
+  animation: novaPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes novaDot {
+  0%, 70%, 100% { opacity: 0.3; transform: translateY(0); }
+  35%            { opacity: 1;   transform: translateY(-3px); }
+}
+.nova-typing-dot {
+  animation: novaDot 1.2s ease-in-out infinite;
+}
+
+@keyframes shimmerSlide {
+  from { background-position: -200% center; }
+  to   { background-position: 200% center; }
+}
