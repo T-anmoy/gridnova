@@ -8,13 +8,15 @@ import headerLogo from '@/public/brand/header-logo.png'
 import { formatCurrency, formatDate } from '@/lib/dashboard/utils'
 import {
   normalizeAcceptResponse,
+  validateAcceptResponse,
   isAccepted,
+  isExpired,
   screenForHttpStatus,
   type AcceptView,
   type AcceptScreen,
 } from '@/lib/proposal-accept'
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:8000'
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -23,7 +25,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       <div className="bg-[#091c3c]">
         <div className="mx-auto max-w-[680px] px-6 py-5 flex items-center">
           <span className="inline-flex bg-white/95 rounded-xl px-3 py-1.5 shadow-sm">
-            <Image src={headerLogo} alt="Grid Nova Energy" width={115} height={30} className="h-7 w-auto" priority />
+            <Image src={headerLogo} alt="Grid Nova Energy" width={115} height={30} className="h-7 w-auto" loading="eager" fetchPriority="high" />
           </span>
         </div>
       </div>
@@ -69,9 +71,9 @@ export default function ProposalAcceptPage() {
         return
       }
       const data = await res.json().catch(() => null)
-      const v = normalizeAcceptResponse(data)
+      const v = normalizeAcceptResponse(validateAcceptResponse(data))
       setView(v)
-      setScreen(isAccepted(v) ? 'accepted' : 'ready')
+      setScreen(isAccepted(v) ? 'accepted' : isExpired(v) ? 'expired' : 'ready')
     } catch {
       setScreen('error')
     }
@@ -95,7 +97,7 @@ export default function ProposalAcceptPage() {
       })
       if (res.ok) {
         const data = await res.json().catch(() => null)
-        const v = normalizeAcceptResponse(data)
+        const v = normalizeAcceptResponse(validateAcceptResponse(data))
         setView((prev) => ({ ...(prev ?? v), ...v, acceptedAt: v.acceptedAt ?? new Date().toISOString() }))
         setScreen('accepted')
         return

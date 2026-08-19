@@ -10,8 +10,8 @@ describe("conversionChartData", () => {
   it("scales 0..1 rates to whole-percent numbers", () => {
     expect(
       conversionChartData([
-        { source: "Web", leads: 100, converted: 25, conversion_rate: 0.25 },
-        { source: "Referral", leads: 40, converted: 14, conversion_rate: 0.35 },
+        { source: "Web", total_leads: 100, won_leads: 25, conversion_rate: 0.25 },
+        { source: "Referral", total_leads: 40, won_leads: 14, conversion_rate: 0.35 },
       ]),
     ).toEqual([
       { name: "Web", rate: 25 },
@@ -21,7 +21,7 @@ describe("conversionChartData", () => {
 
   it("treats a null rate as 0 (never NaN)", () => {
     const out = conversionChartData([
-      { source: "Cold", leads: 0, converted: 0, conversion_rate: null },
+      { source: "Cold", total_leads: 0, won_leads: 0, conversion_rate: null },
     ]);
     expect(out).toEqual([{ name: "Cold", rate: 0 }]);
   });
@@ -29,7 +29,7 @@ describe("conversionChartData", () => {
   it("rounds to one decimal place", () => {
     expect(
       conversionChartData([
-        { source: "X", leads: 3, converted: 1, conversion_rate: 0.33333 },
+        { source: "X", total_leads: 3, won_leads: 1, conversion_rate: 0.33333 },
       ]),
     ).toEqual([{ name: "X", rate: 33.3 }]);
   });
@@ -43,8 +43,8 @@ describe("dealSizeChartData", () => {
   it("maps avg and total, coercing nulls to 0", () => {
     expect(
       dealSizeChartData([
-        { tier: "0-3kW", count: 10, avg_deal_size: 120000, total_deal_size: 1200000 },
-        { tier: "3-10kW", count: 2, avg_deal_size: null, total_deal_size: null },
+        { tier: "0-3kW", proposal_count: 10, average_value: 120000, total_value: 1200000 },
+        { tier: "3-10kW", proposal_count: 2, average_value: null, total_value: null },
       ]),
     ).toEqual([
       { name: "0-3kW", avg: 120000, total: 1200000 },
@@ -60,7 +60,7 @@ describe("dealSizeChartData", () => {
 describe("pipelineChartData", () => {
   it("maps leads_created/proposals_won into leads/won", () => {
     const out = pipelineChartData([
-      { week: "not-a-date", leads_created: 12, proposals_won: 3 },
+      { week_start: "not-a-date", leads_created: 12, proposals_won: 3 },
     ]);
     expect(out).toEqual([{ name: "not-a-date", leads: 12, won: 3 }]);
   });

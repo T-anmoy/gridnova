@@ -15,6 +15,25 @@ export class ApiError extends Error {
   }
 }
 
+// Thrown when a response is a valid HTTP 2xx but doesn't match the shape the
+// UI expects (wrong envelope, missing field, wrong type). This exact bug
+// class — a frontend type asserting a shape the backend doesn't actually
+// return — has caused five separate production crashes/silent-wrong-renders
+// in this codebase. Failing loudly here, with the specific field that didn't
+// match, turns the sixth instance into an obvious dev-time error instead of
+// a downstream crash or blank chart.
+export class ApiShapeError extends Error {
+  path: string
+  issues: string
+
+  constructor(path: string, issues: string) {
+    super(`Unexpected response shape from ${path}: ${issues}`)
+    this.name = 'ApiShapeError'
+    this.path = path
+    this.issues = issues
+  }
+}
+
 export type ErrorKind = 'auth' | 'forbidden' | 'rateLimited' | 'server' | 'network' | 'client'
 
 export interface ClassifiedError {
@@ -28,6 +47,13 @@ export interface ClassifiedError {
 
 // Map any thrown error into a classified, display-ready shape.
 export function classifyApiError(error: unknown): ClassifiedError {
+  if (error instanceof ApiShapeError) {
+    // Not a network/permission/server problem — the request succeeded, the
+    // body just didn't match. Never retryable (see isRetryableError below);
+    // the full field-level detail surfaces in the card so it's diagnosable
+    // without opening devtools.
+    return { kind: 'client', status: 0, heading: 'Something went wrong', detail: error.message }
+  }
   const status = error instanceof ApiError ? error.status : 0
   const rawDetail =
     error instanceof ApiError

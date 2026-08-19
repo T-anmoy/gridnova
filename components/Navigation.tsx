@@ -70,7 +70,8 @@ export default function Navigation() {
               width={115}
               height={30}
               className="h-7 md:h-8 w-auto"
-              priority
+              loading="eager"
+              fetchPriority="high"
             />
           </span>
         </Link>

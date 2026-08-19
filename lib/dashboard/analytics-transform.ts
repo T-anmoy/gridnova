@@ -31,8 +31,8 @@ export function dealSizeChartData(rows: DealSizeByTier[] | undefined): DealSizeD
   if (!rows) return []
   return rows.map((r) => ({
     name: r.tier,
-    avg: r.avg_deal_size ?? 0,
-    total: r.total_deal_size ?? 0,
+    avg: r.average_value ?? 0,
+    total: r.total_value ?? 0,
   }))
 }
 
@@ -53,7 +53,7 @@ export function weekLabel(week: string): string {
 export function pipelineChartData(rows: PipelineTrendPoint[] | undefined): PipelineDatum[] {
   if (!rows) return []
   return rows.map((r) => ({
-    name: weekLabel(r.week),
+    name: weekLabel(r.week_start),
     leads: r.leads_created,
     won: r.proposals_won,
   }))

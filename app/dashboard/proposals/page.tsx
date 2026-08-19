@@ -2,8 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Filter, ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react'
-import { useProposals } from '@/lib/dashboard/api-client'
+import { useUser } from '@clerk/nextjs'
+import { useAuth } from '@clerk/nextjs'
+import { Filter, ChevronLeft, ChevronRight, ShieldCheck, Download } from 'lucide-react'
+import { useProposals, downloadProposalsCsv } from '@/lib/dashboard/api-client'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -13,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatCurrency, formatDate } from '@/lib/dashboard/utils'
-import type { ProposalStatus } from '@/lib/dashboard/types'
+import type { ProposalStatus, Role } from '@/lib/dashboard/types'
 
 const STATUS_OPTIONS: ProposalStatus[] = [
   'draft', 'pending_pricing_validation', 'pending_approval', 'revision_requested', 'approved', 'sent',
@@ -35,10 +37,17 @@ const PAGE_SIZE = 50
 
 export default function ProposalsPage() {
   const router = useRouter()
+  const { user } = useUser()
+  const { getToken } = useAuth()
+  const role = user?.publicMetadata?.role as Role | undefined
+
   const [statusFilter, setStatusFilter] = useState<ProposalStatus | ''>('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [page, setPage] = useState(1)
+  const [exporting, setExporting] = useState(false)
+
+  const canExport = role === 'admin' || role === 'management'
 
   const { data, isLoading, error, refetch } = useProposals({
     status: statusFilter || undefined,
@@ -52,11 +61,43 @@ export default function ProposalsPage() {
   const total = data?.total ?? 0
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
+  async function handleExport() {
+    setExporting(true)
+    try {
+      const token = await getToken()
+      if (!token) return
+      await downloadProposalsCsv(
+        {
+          status: statusFilter || undefined,
+          date_from: dateFrom || undefined,
+          date_to: dateTo || undefined,
+        },
+        token
+      )
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="font-display text-2xl font-bold text-[#091c3c]">Proposals</h1>
-        <p className="font-utility text-sm text-[#111827]/50 mt-1">{total} total proposals</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-[#091c3c]">Proposals</h1>
+          <p className="font-utility text-sm text-[#111827]/50 mt-1">{total} total proposals</p>
+        </div>
+        {canExport && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            disabled={exporting}
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            {exporting ? 'Exporting…' : 'Export CSV'}
+          </Button>
+        )}
       </div>
 
       {/* Filters */}

@@ -12,12 +12,6 @@ export default function TermsPage() {
   return (
     <main className="bg-white pt-[calc(var(--header-h)+3rem)] pb-24">
       <div className="mx-auto max-w-[760px] px-6">
-        {/* Draft disclaimer */}
-        <div className="mb-10 rounded-xl border border-[#f7a800]/40 bg-[#f7a800]/8 px-5 py-4 text-sm text-[#111827]/70 leading-relaxed">
-          <strong className="font-semibold text-[#0e2a63]">Note:</strong> This is a draft
-          template and should be reviewed by legal counsel before publication.
-        </div>
-
         <p className="font-utility text-[11px] tracking-[0.18em] text-[#2f5daa]/70 uppercase mb-4">
           Legal
         </p>

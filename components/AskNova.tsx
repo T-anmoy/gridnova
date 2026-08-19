@@ -5,10 +5,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, X, Send } from "lucide-react";
 import Link from "next/link";
 import { ASK_NOVA_FAQ } from "@/lib/ask-nova-faq";
+import { ApiShapeError } from "@/lib/dashboard/api-error";
+import { chatMessageResponseSchema, formatZodError } from "@/lib/dashboard/schemas";
 
 // sessionStorage keys — per-tab, cleared on tab close (matches existing site convention)
 const LEAD_ID_KEY = "nova_lead_id";
 const CUSTOMER_ID_KEY = "nova_customer_id";
+
+// Production kill-switch: set NEXT_PUBLIC_ASK_NOVA_ENABLED=false to disable
+// the live, backend-connected chat and fall back to FAQ-only quick answers
+// (no network call). Enabled by default — only an explicit "false" disables it.
+const ASK_NOVA_ENABLED = process.env.NEXT_PUBLIC_ASK_NOVA_ENABLED !== "false";
 
 const MAX_CHARS = 2_000;
 const WARN_CHARS = 1_800;
@@ -43,6 +50,7 @@ export default function AskNova() {
   const [open, setOpen] = useState(false);
   const [thread, setThread] = useState<ThreadMsg[]>([]);
   const [bubbleVisible, setBubbleVisible] = useState(false);
+  const [footerNear, setFooterNear] = useState(false);
   const [bubbleText, setBubbleText] = useState("");
 
   // ── Real chat state ───────────────────────────────────────────────────────
@@ -126,6 +134,24 @@ export default function AskNova() {
       if (!openRef.current) setBubbleVisible(true);
     }, 3500);
     return () => clearTimeout(t);
+  }, []);
+
+  // ── Suppress the teaser bubble once the footer scrolls into view ──────────
+  // The bubble is fixed bottom-right, so on any page long enough to reach the
+  // footer it would otherwise sit on top of (and intercept taps on) the
+  // footer's own links. rootMargin gives it room to hide slightly before the
+  // footer's top edge actually reaches the bubble's on-screen position, not
+  // only once they're already overlapping.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const footer = document.querySelector("footer");
+    if (!footer) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setFooterNear(entry.isIntersecting),
+      { rootMargin: "0px 0px -140px 0px" },
+    );
+    observer.observe(footer);
+    return () => observer.disconnect();
   }, []);
 
   // ── Bubble typewriter: cycle all questions (both normal and reduced motion) ─
@@ -228,11 +254,15 @@ export default function AskNova() {
         throw new Error(err.detail ?? `Error ${res.status}`);
       }
 
-      const data = (await res.json()) as {
-        reply: string;
-        lead_id: number | null;
-        customer_id: number | null;
-      };
+      const rawData: unknown = await res.json();
+      const parsed = chatMessageResponseSchema.safeParse(rawData);
+      if (!parsed.success) {
+        throw new ApiShapeError(
+          "/api/v1/chat/message",
+          formatZodError(parsed.error),
+        );
+      }
+      const data = parsed.data;
 
       // Persist IDs for conversation continuity
       if (data.lead_id) {
@@ -362,8 +392,9 @@ export default function AskNova() {
               >
                 {thread.length === 0 ? (
                   <p className="text-white/50 text-[13px] font-utility leading-relaxed">
-                    Hi, I&rsquo;m Nova — your solar energy assistant. Type a
-                    question or tap a quick answer below.
+                    {ASK_NOVA_ENABLED
+                      ? "Hi, I’m Nova — your solar energy assistant. Type a question or tap a quick answer below."
+                      : "Hi, I’m Nova. Live chat is offline right now — tap a quick answer below for instant answers to common questions."}
                   </p>
                 ) : (
                   thread.map((m) => {
@@ -489,63 +520,80 @@ export default function AskNova() {
                   </div>
                 </div>
 
-                {/* Text input + send button */}
-                <div className="px-5 pt-2 pb-4">
-                  <div className="flex gap-2 items-end">
-                    <textarea
-                      ref={inputRef}
-                      value={input}
-                      onChange={(e) => {
-                        const val = e.target.value.slice(0, MAX_CHARS);
-                        setInput(val);
-                        // Auto-grow up to ~4 lines
-                        const el = e.target;
-                        el.style.height = "auto";
-                        el.style.height = `${Math.min(el.scrollHeight, 96)}px`;
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          sendRealMessage();
-                        }
-                        // Shift+Enter: browser default (insert newline)
-                      }}
-                      placeholder="Ask a specific question… (Enter to send)"
-                      rows={1}
-                      disabled={sending}
-                      aria-label="Message to Nova"
-                      className="flex-1 min-w-0 resize-none bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-[13px] font-utility text-white/90 placeholder-white/25 focus:outline-none focus:border-[#f7a800]/40 transition-colors leading-snug disabled:opacity-50"
-                      style={{ maxHeight: "96px", overflowY: "auto" }}
-                    />
-                    <button
-                      onClick={sendRealMessage}
-                      disabled={!input.trim() || sending}
-                      aria-label="Send message"
-                      className="h-9 w-9 mb-0.5 shrink-0 rounded-xl bg-[#f7a800] text-[#091c3c] flex items-center justify-center transition-all hover:bg-white active:scale-[0.93] disabled:opacity-35 disabled:cursor-not-allowed"
-                    >
-                      <Send className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
+                {/* Text input + send button — only when live chat is enabled;
+                    the FAQ fallback below never attempts a network call. */}
+                {ASK_NOVA_ENABLED ? (
+                  <div className="px-5 pt-2 pb-4">
+                    <div className="flex gap-2 items-end">
+                      <textarea
+                        ref={inputRef}
+                        value={input}
+                        onChange={(e) => {
+                          const val = e.target.value.slice(0, MAX_CHARS);
+                          setInput(val);
+                          // Auto-grow up to ~4 lines
+                          const el = e.target;
+                          el.style.height = "auto";
+                          el.style.height = `${Math.min(el.scrollHeight, 96)}px`;
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            sendRealMessage();
+                          }
+                          // Shift+Enter: browser default (insert newline)
+                        }}
+                        placeholder="Ask a specific question… (Enter to send)"
+                        rows={1}
+                        disabled={sending}
+                        aria-label="Message to Nova"
+                        className="flex-1 min-w-0 resize-none bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-[13px] font-utility text-white/90 placeholder-white/25 focus:outline-none focus:border-[#f7a800]/40 transition-colors leading-snug disabled:opacity-50"
+                        style={{ maxHeight: "96px", overflowY: "auto" }}
+                      />
+                      <button
+                        onClick={sendRealMessage}
+                        disabled={!input.trim() || sending}
+                        aria-label="Send message"
+                        className="h-9 w-9 mb-0.5 shrink-0 rounded-xl bg-[#f7a800] text-[#091c3c] flex items-center justify-center transition-all hover:bg-white active:scale-[0.93] disabled:opacity-35 disabled:cursor-not-allowed"
+                      >
+                        <Send className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
 
-                  {/* Character countdown — appears when approaching the limit */}
-                  {input.length >= WARN_CHARS && (
-                    <p className="mt-1 text-amber-400/80 text-[11px] font-utility text-right">
-                      {MAX_CHARS - input.length} chars remaining
+                    {/* Character countdown — appears when approaching the limit */}
+                    {input.length >= WARN_CHARS && (
+                      <p className="mt-1 text-amber-400/80 text-[11px] font-utility text-right">
+                        {MAX_CHARS - input.length} chars remaining
+                      </p>
+                    )}
+
+                    <p className="mt-3 text-white/35 text-[11px] font-utility leading-relaxed">
+                      Have something specific in mind?{" "}
+                      <Link
+                        href="/contact"
+                        onClick={() => setOpen(false)}
+                        className="text-[#f7a800] hover:underline"
+                      >
+                        Talk to our team directly
+                      </Link>
+                      .
                     </p>
-                  )}
-
-                  <p className="mt-3 text-white/35 text-[11px] font-utility leading-relaxed">
-                    Have something specific in mind?{" "}
-                    <Link
-                      href="/contact"
-                      onClick={() => setOpen(false)}
-                      className="text-[#f7a800] hover:underline"
-                    >
-                      Talk to our team directly
-                    </Link>
-                    .
-                  </p>
-                </div>
+                  </div>
+                ) : (
+                  <div className="px-5 pt-2 pb-4">
+                    <p className="text-white/35 text-[11px] font-utility leading-relaxed">
+                      Live chat is temporarily offline — browse the quick answers above, or{" "}
+                      <Link
+                        href="/contact"
+                        onClick={() => setOpen(false)}
+                        className="text-[#f7a800] hover:underline"
+                      >
+                        talk to our team directly
+                      </Link>
+                      .
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
@@ -554,7 +602,7 @@ export default function AskNova() {
 
       {/* ── Floating preview bubble ───────────────────────────────────────── */}
       <AnimatePresence>
-        {bubbleVisible && !open && (
+        {bubbleVisible && !open && !footerNear && (
           <motion.button
             key="bubble"
             type="button"
