@@ -1,13 +1,25 @@
 import type { Metadata } from "next";
+import type { StaticImageData } from "next/image";
 import { pageMetadata } from "@/lib/seo";
 import ScrollReveal from "@/components/ScrollReveal";
 import Image from "next/image";
 import CTASection from "@/components/CTASection";
 import michaelGomes from "@/public/leadership/michael-gomes.webp";
+import shouvikBiswas from "@/public/leadership/shouvik-biswas.webp";
 import rajaPaul from "@/public/leadership/raju-paul.webp";
 import srinjayDas from "@/public/leadership/srinjay-das.webp";
 import moloyDas from "@/public/leadership/moloy-das.webp";
 import arunKumar from "@/public/leadership/arun-kumar.webp";
+import narenMukherjee from "@/public/leadership/naren-mukherjee.webp";
+
+type Leader = {
+  name: string;
+  role: string;
+  initials: string;
+  photo: StaticImageData;
+  bio: string;
+  tags?: string[];
+};
 
 export const metadata: Metadata = pageMetadata({
   title: "Leadership",
@@ -16,7 +28,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/leadership",
 });
 
-const LEADERS = [
+const LEADERS: Leader[] = [
   {
     name: "Michael Gomes",
     role: "Managing Partner",
@@ -25,11 +37,19 @@ const LEADERS = [
     bio: "Michael Gomes is an accomplished, dynamic serial entrepreneur and strong visionary with out-of-the-box thinking and a passion for building impactful businesses. A proven go-getter and inspirational leader, he is building a diversified conglomerate and has successfully led large-scale EPC businesses with year-on-year substantial growth. He brings together deep experience across marketing leadership, international relations, digital business, trade, and EPC project execution.",
   },
   {
+    name: "Shouvik Biswas",
+    role: "Partner",
+    initials: "SB",
+    photo: shouvikBiswas,
+    bio: "As Partner at GRID NOVA ENERGY, Shouvik Biswas focuses on strategy, finance and growth, bringing a disciplined commercial and investment perspective to the company. He works closely with the leadership team on capital allocation, project evaluation, financial controls, strategic partnerships and expansion into new markets. His focus is on developing GRID NOVA ENERGY as a professionally managed, financially disciplined and scalable renewable-energy enterprise with strong foundations for long-term growth.",
+  },
+  {
     name: "Raju Paul",
     role: "Partner",
     initials: "RP",
     photo: rajaPaul,
-    bio: "Raju Paul is a seasoned business professional with over 25 years of extensive experience in strategic marketing, business growth and organisational leadership. He holds an MSc in Economics (specialisation in International Business), an MBA, and is an alumnus of the Indian Institute of Management Kolkata (IIM-C), plus an advanced project management certification from IIT Roorkee.",
+    bio: "Mr. Raju Paul is a business strategist with over 25 years of experience translating market insight into structured, executable growth plans — a career that has evolved from strategic marketing into full-spectrum business strategy formation. A certified project management specialist with an advanced credential from IIT Roorkee, and an MBA and MSc in Economics from IIM Calcutta, he pairs rigorous analytical grounding with hands-on delivery discipline. As Grid Nova Energy's business growth strategist, Mr. Paul works closely with the leadership team to align commercial ambition with operational execution, steering expansion into new markets and segments through the same disciplined, results-driven approach that has defined his career.",
+    tags: ["25+ Years Experience", "Project Management Specialist", "Business Growth Strategist"],
   },
   {
     name: "Srinjay Das",
@@ -51,6 +71,14 @@ const LEADERS = [
     initials: "AK",
     photo: arunKumar,
     bio: "Arun Kumar is a dynamic, results-oriented sales professional with over three decades of experience in the solar and renewable energy sector, with a proven record securing utility-scale, commercial, industrial and government solar EPC contracts across India.",
+  },
+  {
+    name: "Naren Mukherjee",
+    role: "Senior Advisor — Solar Power",
+    initials: "NM",
+    photo: narenMukherjee,
+    bio: "Mr. Naren Mukherjee brings 30 years of Information Technology experience across hardware, software and customer engineering support, most recently as Eastern Regional Support Head at Spice Net Ltd. An Electrical Engineer by profession, he steered PCL to India's first ISO 9002 certification for IT support services, and was recognised as Intel Corporation's Best IT Professional of Asia in 1998. Since 2009, he has brought that same engineering discipline to solar power, supervising the installation of more than 25 MWp of solar capacity across India.",
+    tags: ["30+ Years Experience", "25+ MWp Solar Delivered", "Electrical Engineer"],
   },
 ];
 
@@ -110,6 +138,18 @@ export default function LeadershipPage() {
                   <p className="text-[#111827]/70 leading-relaxed text-base md:text-lg">
                     {leader.bio}
                   </p>
+                  {leader.tags && leader.tags.length > 0 && (
+                    <div className="mt-6 flex flex-wrap gap-3">
+                      {leader.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-full bg-[#f7f9fc] border border-[#e4e8ee] px-4 py-2 font-utility text-xs text-[#111827]/70"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
               </ScrollReveal>

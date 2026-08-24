@@ -112,9 +112,11 @@ const EVENT_ICON: Record<string, React.ElementType> = {
   note_added: MessageSquare,
 }
 
-function activityIcon(item: ActivityItem): React.ElementType {
-  if (item.action.startsWith('status_changed_to_')) return ArrowRight
-  return EVENT_ICON[item.action] ?? Activity
+function activityIcon(item: ActivityItem): React.ReactNode {
+  const Icon = item.action.startsWith('status_changed_to_')
+    ? ArrowRight
+    : (EVENT_ICON[item.action] ?? Activity)
+  return <Icon className="h-3.5 w-3.5 text-[#f7a800]" />
 }
 
 function activityLink(item: ActivityItem): string | null {
@@ -128,12 +130,11 @@ function activityLink(item: ActivityItem): string | null {
 // typical activity feed, no separate "#id" link is appended after it; the
 // whole row links through instead, when the entity type supports navigation.
 function ActivityRow({ item }: { item: ActivityItem }) {
-  const Icon = activityIcon(item)
   const link = activityLink(item)
   const body = (
     <>
       <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#f7a800]/10">
-        <Icon className="h-3.5 w-3.5 text-[#f7a800]" />
+        {activityIcon(item)}
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-utility text-sm text-[#111827]/80 leading-snug">{item.description}</p>
