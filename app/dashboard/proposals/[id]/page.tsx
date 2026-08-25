@@ -421,9 +421,13 @@ export default function ProposalDetailPage() {
           <ContentSection title="Warranty & Support" content={content.warranty_support as string} />
           <ContentSection title="Terms & Conditions" content={content.terms_conditions as string} />
 
-          {/* Any other content keys */}
+          {/* Any other content keys — excluding version_note: it's a static
+              string baked in once at draft time ("Draft — not yet reviewed
+              or approved") that never updates as the proposal progresses,
+              so showing it verbatim goes stale/contradictory next to the
+              real, live status badge above. */}
           {Object.entries(content)
-            .filter(([k]) => !['project_overview', 'scope_of_work', 'warranty_support', 'terms_conditions'].includes(k))
+            .filter(([k]) => !['project_overview', 'scope_of_work', 'warranty_support', 'terms_conditions', 'version_note'].includes(k))
             .map(([key, val]) => (
               <ContentSection
                 key={key}

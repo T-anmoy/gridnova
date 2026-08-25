@@ -3,10 +3,12 @@ import { ArrowUpRight } from "lucide-react";
 
 const LEADERS = [
   { name: "Michael Gomes", role: "Managing Partner" },
+  { name: "Shouvik Biswas", role: "Partner" },
   { name: "Raju Paul", role: "Partner" },
   { name: "Srinjay Das", role: "VP — Business" },
   { name: "Moloy Das", role: "GM — Projects" },
   { name: "Arun Kumar", role: "Zonal Sales Manager" },
+  { name: "Naren Mukherjee", role: "Senior Advisor — Solar Power" },
 ];
 
 export default function LeadershipPreview() {
@@ -29,12 +31,18 @@ export default function LeadershipPreview() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-px bg-[#e4e8ee] rounded-2xl overflow-hidden">
-          {LEADERS.map((l) => (
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-px bg-[#e4e8ee] rounded-2xl overflow-hidden">
+          {LEADERS.map((l, idx) => (
             <Link
               href="/leadership"
               key={l.name}
-              className="group bg-white hover:bg-[#f0f4ff] p-4 xs:p-5 sm:p-6 transition-all duration-300"
+              className={`group bg-white hover:bg-[#f0f4ff] p-4 xs:p-5 sm:p-6 transition-all duration-300 ${
+                // 7 leaders isn't a clean multiple of 3 or 6, so the last card
+                // would otherwise sit alone with the grid's gap-color bleeding
+                // through the empty tracks next to it. Stretch it to fill the
+                // row instead of leaving that dead space exposed.
+                idx === LEADERS.length - 1 ? "sm:col-span-3 lg:col-span-6" : ""
+              }`}
             >
               <div className="h-11 w-11 rounded-full bg-gradient-to-br from-[#0e2a63] to-[#2f5daa] flex items-center justify-center text-white font-display text-sm font-semibold group-hover:scale-110 group-hover:shadow-[0_4px_16px_-4px_rgba(14,42,99,0.35)] transition-all duration-300">
                 {l.name.split(" ").map((n) => n[0]).join("")}

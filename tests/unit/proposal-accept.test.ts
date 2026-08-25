@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   normalizeAcceptResponse,
   isAccepted,
+  isExpired,
   screenForHttpStatus,
 } from "@/lib/proposal-accept";
 
@@ -52,6 +53,50 @@ describe("normalizeAcceptResponse", () => {
       totalValue: null, validUntil: null, status: null, acceptedAt: null,
     });
   });
+
+  it("joins the real backend shape: scope as an array of {id, body} sections", () => {
+    const v = normalizeAcceptResponse({
+      proposal_id: 1,
+      version: 1,
+      scope: [
+        { id: "commercial_rooftop_scope", body: "Structural assessment and system design." },
+        { id: "install_note", body: "Installation within 4-6 weeks of signoff." },
+      ],
+      price: 450000,
+      valid_until: "2026-09-14T22:29:43.012373",
+      state: "acceptable",
+      accepted_at: null,
+    });
+    expect(v.scope).toBe(
+      "Structural assessment and system design.\n\nInstallation within 4-6 weeks of signoff."
+    );
+    expect(v.totalValue).toBe(450000);
+    expect(v.status).toBe("acceptable");
+  });
+
+  it("skips sections with no body and returns null scope for an empty array", () => {
+    expect(normalizeAcceptResponse({ scope: [] }).scope).toBeNull();
+    expect(normalizeAcceptResponse({ scope: [{ id: "x", body: null }] }).scope).toBeNull();
+  });
+
+  it("reads the POST accept response's `status` field the same as GET's `state`", () => {
+    const v = normalizeAcceptResponse({
+      status: "accepted",
+      proposal_id: 1,
+      accepted_at: "2026-01-02T00:00:00Z",
+    });
+    expect(v.status).toBe("accepted");
+  });
+});
+
+describe("isExpired", () => {
+  it("is true when the GET response's state is expired", () => {
+    expect(isExpired(normalizeAcceptResponse({ state: "expired" }))).toBe(true);
+  });
+  it("is false for an acceptable or accepted proposal", () => {
+    expect(isExpired(normalizeAcceptResponse({ state: "acceptable" }))).toBe(false);
+    expect(isExpired(normalizeAcceptResponse({ state: "accepted" }))).toBe(false);
+  });
 });
 
 describe("isAccepted", () => {
@@ -70,10 +115,14 @@ describe("screenForHttpStatus", () => {
   it("maps success to ready", () => {
     expect(screenForHttpStatus(200)).toBe("ready");
   });
-  it("maps 404 to notfound, 410 to expired, 409 to accepted (reused token)", () => {
+  it("maps 404 to notfound, 410 and 409 to expired", () => {
+    // The backend's POST accept handler only ever returns 409 for an expired
+    // proposal — accepting an already-accepted proposal is a 200 (idempotent
+    // success with already_accepted: true), never a 409. See
+    // app/api/routes/public_proposals.py::accept_proposal on the backend.
     expect(screenForHttpStatus(404)).toBe("notfound");
     expect(screenForHttpStatus(410)).toBe("expired");
-    expect(screenForHttpStatus(409)).toBe("accepted");
+    expect(screenForHttpStatus(409)).toBe("expired");
   });
   it("maps other errors to error", () => {
     expect(screenForHttpStatus(500)).toBe("error");

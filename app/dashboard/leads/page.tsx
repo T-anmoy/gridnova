@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
-import { Search, Filter } from 'lucide-react'
-import { useLeads } from '@/lib/dashboard/api-client'
+import { useAuth } from '@clerk/nextjs'
+import { Search, Filter, Download } from 'lucide-react'
+import { useLeads, downloadLeadsCsv } from '@/lib/dashboard/api-client'
 import { useDebouncedValue } from '@/lib/dashboard/use-debounced-value'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { Card, CardContent } from '@/components/ui/card'
@@ -46,6 +47,7 @@ const LEAD_SCORES: LeadScore[] = ['high', 'medium', 'low']
 export default function LeadsPage() {
   const router = useRouter()
   const { user } = useUser()
+  const { getToken } = useAuth()
   const role = user?.publicMetadata?.role as Role | undefined
 
   const [stageFilter, setStageFilter] = useState<PipelineStage | ''>('')
@@ -53,8 +55,30 @@ export default function LeadsPage() {
   const [idSearch, setIdSearch] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [exporting, setExporting] = useState(false)
 
   const { data: leads, isLoading, error, refetch } = useLeads()
+
+  const canExport = role === 'admin' || role === 'management'
+
+  async function handleExport() {
+    setExporting(true)
+    try {
+      const token = await getToken()
+      if (!token) return
+      await downloadLeadsCsv(
+        {
+          pipeline_stage: stageFilter || undefined,
+          lead_score: scoreFilter || undefined,
+          date_from: dateFrom || undefined,
+          date_to: dateTo || undefined,
+        },
+        token
+      )
+    } finally {
+      setExporting(false)
+    }
+  }
 
   // Debounce the ID search so typing stays responsive and filtering only runs
   // once the user pauses (300ms) — matters more once search hits the backend.
@@ -80,6 +104,18 @@ export default function LeadsPage() {
             {leads?.length ?? 0} total leads
           </p>
         </div>
+        {canExport && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            disabled={exporting}
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            {exporting ? 'Exporting…' : 'Export CSV'}
+          </Button>
+        )}
       </div>
 
       {/* Filters */}

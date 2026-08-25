@@ -1,7 +1,20 @@
 import { useAuth } from '@clerk/nextjs'
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
-import { ApiError } from './api-error'
+import type { z } from 'zod'
+import { ApiError, ApiShapeError } from './api-error'
+import {
+  formatZodError,
+  overviewStatsSchema,
+  activityFeedResponseSchema,
+  conversionBySourceResponseSchema,
+  dealSizeByTierResponseSchema,
+  repPerformanceResponseSchema,
+  pipelineTrendResponseSchema,
+  leadListResponseSchema,
+  proposalListResponseSchema,
+} from './schemas'
 import type {
+  ActivityItem,
   AnalyticsParams,
   AnalyticsResponse,
   AuditLog,
@@ -13,6 +26,7 @@ import type {
   LeadDetail,
   LeadListParams,
   LeadSummary,
+  OverviewStats,
   PaginatedResponse,
   PipelineTrendPoint,
   ProposalDetail,
@@ -58,7 +72,7 @@ function optimisticProposalUpdate<V>(
   }
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:8000'
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 
 // List views change slowly relative to how often staff navigate between them;
 // a 60s stale window means bouncing Leads ↔ Proposals ↔ Overview doesn't
@@ -68,7 +82,11 @@ const LIST_STALE_TIME = 60_000
 export async function dashboardFetch<T>(
   path: string,
   token: string,
-  options?: RequestInit
+  options?: RequestInit,
+  // Optional runtime shape check. When provided, a 2xx response that doesn't
+  // match throws ApiShapeError identifying exactly which field didn't match,
+  // instead of returning data the caller's type wrongly promises is safe.
+  schema?: z.ZodType<T>
 ): Promise<T> {
   let res: Response
   try {
@@ -97,7 +115,13 @@ export async function dashboardFetch<T>(
     }
     throw new ApiError(res.status, `API error ${res.status}`, detail || res.statusText)
   }
-  return res.json() as Promise<T>
+  const data: unknown = await res.json()
+  if (!schema) return data as T
+  const parsed = schema.safeParse(data)
+  if (!parsed.success) {
+    throw new ApiShapeError(path, formatZodError(parsed.error))
+  }
+  return parsed.data
 }
 
 function buildQS(params: Record<string, string | number | boolean | undefined | null>): string {
@@ -121,7 +145,7 @@ export function useLeads(params?: LeadListParams) {
       const token = await getToken()
       if (!token) throw new Error('Not authenticated')
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
-      return dashboardFetch<LeadSummary[]>(`/api/v1/dashboard/leads${qs}`, token)
+      return dashboardFetch(`/api/v1/dashboard/leads${qs}`, token, undefined, leadListResponseSchema) as Promise<LeadSummary[]>
     },
     staleTime: LIST_STALE_TIME,
   })
@@ -184,7 +208,7 @@ export function useProposals(params?: ProposalListParams) {
       const token = await getToken()
       if (!token) throw new Error('Not authenticated')
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
-      return dashboardFetch<PaginatedResponse<ProposalSummary>>(`/api/v1/dashboard/proposals${qs}`, token)
+      return dashboardFetch(`/api/v1/dashboard/proposals${qs}`, token, undefined, proposalListResponseSchema) as unknown as Promise<PaginatedResponse<ProposalSummary>>
     },
     staleTime: LIST_STALE_TIME,
   })
@@ -248,7 +272,9 @@ export function useConversionBySource(params?: AnalyticsParams) {
       const token = await getToken()
       if (!token) throw new Error('Not authenticated')
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
-      return dashboardFetch<ConversionBySource[]>(`/api/v1/analytics/conversion-by-source${qs}`, token)
+      // Backend wraps the list in an envelope ({ by_source: [...] }), not a bare array.
+      const res = await dashboardFetch(`/api/v1/dashboard/analytics/conversion-by-source${qs}`, token, undefined, conversionBySourceResponseSchema)
+      return res.by_source as ConversionBySource[]
     },
   })
 }
@@ -261,7 +287,9 @@ export function useDealSizeByTier(params?: AnalyticsParams) {
       const token = await getToken()
       if (!token) throw new Error('Not authenticated')
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
-      return dashboardFetch<DealSizeByTier[]>(`/api/v1/analytics/deal-size-by-tier${qs}`, token)
+      // Backend wraps the list in an envelope ({ by_tier: [...] }), not a bare array.
+      const res = await dashboardFetch(`/api/v1/dashboard/analytics/deal-size-by-tier${qs}`, token, undefined, dealSizeByTierResponseSchema)
+      return res.by_tier as DealSizeByTier[]
     },
   })
 }
@@ -274,7 +302,9 @@ export function useRepPerformance(params?: AnalyticsParams) {
       const token = await getToken()
       if (!token) throw new Error('Not authenticated')
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
-      return dashboardFetch<RepPerformance[]>(`/api/v1/analytics/rep-performance${qs}`, token)
+      // Backend wraps the list in an envelope ({ reps: [...] }), not a bare array.
+      const res = await dashboardFetch(`/api/v1/dashboard/analytics/rep-performance${qs}`, token, undefined, repPerformanceResponseSchema)
+      return res.reps as RepPerformance[]
     },
   })
 }
@@ -287,7 +317,9 @@ export function usePipelineTrend(params?: AnalyticsParams) {
       const token = await getToken()
       if (!token) throw new Error('Not authenticated')
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
-      return dashboardFetch<PipelineTrendPoint[]>(`/api/v1/analytics/pipeline-trend${qs}`, token)
+      // Backend wraps the list in an envelope ({ weeks: [...] }), not a bare array.
+      const res = await dashboardFetch(`/api/v1/dashboard/analytics/pipeline-trend${qs}`, token, undefined, pipelineTrendResponseSchema)
+      return res.weeks as PipelineTrendPoint[]
     },
   })
 }
@@ -315,6 +347,110 @@ export function useAuditLog(params?: AuditLogParams) {
       return dashboardFetch<PaginatedResponse<AuditLog>>(`/api/v1/dashboard/audit-log${qs}`, token)
     },
   })
+}
+
+export function useOverviewStats() {
+  const { getToken } = useAuth()
+  return useQuery({
+    queryKey: ['overview-stats'],
+    queryFn: async () => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch('/api/v1/dashboard/overview-stats', token, undefined, overviewStatsSchema) as Promise<OverviewStats>
+    },
+    staleTime: 30_000,
+  })
+}
+
+export function useActivityFeed() {
+  const { getToken } = useAuth()
+  return useQuery({
+    queryKey: ['activity-feed'],
+    queryFn: async () => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      // Backend wraps the list in an envelope ({ items: [...] }), not a bare array.
+      const res = await dashboardFetch('/api/v1/dashboard/activity/recent', token, undefined, activityFeedResponseSchema)
+      return res.items as ActivityItem[]
+    },
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  })
+}
+
+export function useLeadSearch(query: string) {
+  const { getToken } = useAuth()
+  return useQuery({
+    queryKey: ['lead-search', query],
+    queryFn: async () => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      const qs = buildQS({ search: query, page_size: 5 })
+      return dashboardFetch<LeadSummary[]>(`/api/v1/dashboard/leads${qs}`, token)
+    },
+    enabled: query.length > 1,
+    staleTime: 15_000,
+  })
+}
+
+export function useProposalSearch(query: string) {
+  const { getToken } = useAuth()
+  return useQuery({
+    queryKey: ['proposal-search', query],
+    queryFn: async () => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      const qs = buildQS({ search: query, page_size: 5 })
+      return dashboardFetch<PaginatedResponse<ProposalSummary>>(`/api/v1/dashboard/proposals${qs}`, token)
+    },
+    enabled: query.length > 1,
+    staleTime: 15_000,
+  })
+}
+
+function triggerDownload(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+export async function downloadLeadsCsv(params: LeadListParams, token: string): Promise<void> {
+  const qs = buildQS(params as Record<string, string | number | boolean | undefined | null>)
+  let res: Response
+  try {
+    res = await fetch(`${BACKEND_URL}/api/v1/dashboard/leads/export${qs}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  } catch {
+    throw new ApiError(0, 'Network request failed')
+  }
+  if (!res.ok) throw new ApiError(res.status, `Export failed ${res.status}`)
+  const blob = await res.blob()
+  const disposition = res.headers.get('Content-Disposition') ?? ''
+  const filename = disposition.match(/filename="?([^";\n]+)"?/i)?.[1]?.trim() ?? 'leads.csv'
+  triggerDownload(blob, filename)
+}
+
+export async function downloadProposalsCsv(params: ProposalListParams, token: string): Promise<void> {
+  const qs = buildQS(params as Record<string, string | number | boolean | undefined | null>)
+  let res: Response
+  try {
+    res = await fetch(`${BACKEND_URL}/api/v1/dashboard/proposals/export${qs}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  } catch {
+    throw new ApiError(0, 'Network request failed')
+  }
+  if (!res.ok) throw new ApiError(res.status, `Export failed ${res.status}`)
+  const blob = await res.blob()
+  const disposition = res.headers.get('Content-Disposition') ?? ''
+  const filename = disposition.match(/filename="?([^";\n]+)"?/i)?.[1]?.trim() ?? 'proposals.csv'
+  triggerDownload(blob, filename)
 }
 
 // ── Mutation hooks ─────────────────────────────────────────────────────────────

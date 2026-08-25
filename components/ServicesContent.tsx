@@ -17,6 +17,12 @@ const OM_PILLARS = [
   { n: "Regulatory", d: "DISCOM compliance documentation, safety inspection records and warranty claim management." },
 ];
 
+const GOV_PROGRAMMES = [
+  { n: "Government & Institutional Solar", d: "Grid-connected rooftop solar for schools and public institutions, delivered to government programme quality and documentation standards — including 330+ schools electrified for WBREDA." },
+  { n: "Solar Street Lighting", d: "Standalone solar street lighting — pole, module, battery and controller — supplied, installed and commissioned under state and central government rural electrification programmes. 4,800+ units deployed." },
+  { n: "Solar Water Pumps", d: "Solarisation of agricultural pump sets under PM-KUSUM Component C, replacing diesel and grid-dependent irrigation with solar-powered pumping. 2,350+ installations completed." },
+];
+
 const CONSULTING_ITEMS = [
   { n: "01", t: "Feasibility Studies", d: "Solar resource assessment, yield projection, financial modelling and payback analysis using site-specific inputs." },
   { n: "02", t: "Site Assessment", d: "Shadow analysis, structural survey, grid interconnection capacity check and civil condition review." },
@@ -76,24 +82,40 @@ export default function ServicesContent() {
         scrollTrigger: { trigger: ".s03", start: "top 72%", once: true },
       });
 
-      // 04 O&M — header fades, pillars stagger up
-      gsap.fromTo(".s04-header", { opacity: 0, y: 16, immediateRender: false }, {
+      // 04 Government Programmes — header fades, pillars stagger up
+      gsap.fromTo(".s04gov-header", { opacity: 0, y: 16, immediateRender: false }, {
         opacity: 1, y: 0, duration: 0.7, ease: "power3.out",
-        scrollTrigger: { trigger: ".s04", start: "top 72%", once: true },
+        scrollTrigger: { trigger: ".s04gov", start: "top 72%", once: true },
       });
-      gsap.fromTo(".s04-pillar", { opacity: 0, y: 28, immediateRender: false }, {
+      gsap.fromTo(".s04gov-pillar", { opacity: 0, y: 28, immediateRender: false }, {
         opacity: 1, y: 0, duration: 0.65, ease: "power3.out", stagger: 0.1,
-        scrollTrigger: { trigger: ".s04-grid", start: "top 78%", once: true },
+        scrollTrigger: { trigger: ".s04gov-grid", start: "top 78%", once: true },
       });
 
-      // 05 Consulting — intro slides from left, list items stagger up
-      gsap.fromTo(".s05-intro", { opacity: 0, x: -24, immediateRender: false }, {
-        opacity: 1, x: 0, duration: 0.8, ease: "power3.out",
-        scrollTrigger: { trigger: ".s05", start: "top 72%", once: true },
+      // 05 O&M — header fades, pillars stagger up
+      gsap.fromTo(".s05om-header", { opacity: 0, y: 16, immediateRender: false }, {
+        opacity: 1, y: 0, duration: 0.7, ease: "power3.out",
+        scrollTrigger: { trigger: ".s05om", start: "top 72%", once: true },
       });
-      gsap.fromTo(".s05-item", { opacity: 0, y: 16, immediateRender: false }, {
+      gsap.fromTo(".s05om-pillar", { opacity: 0, y: 28, immediateRender: false }, {
+        opacity: 1, y: 0, duration: 0.65, ease: "power3.out", stagger: 0.1,
+        scrollTrigger: { trigger: ".s05om-grid", start: "top 78%", once: true },
+      });
+
+      // 06 Consulting — intro slides from left, list items stagger up
+      gsap.fromTo(".s06-intro", { opacity: 0, x: -24, immediateRender: false }, {
+        opacity: 1, x: 0, duration: 0.8, ease: "power3.out",
+        scrollTrigger: { trigger: ".s06", start: "top 72%", once: true },
+      });
+      gsap.fromTo(".s06-item", { opacity: 0, y: 16, immediateRender: false }, {
         opacity: 1, y: 0, duration: 0.6, ease: "power3.out", stagger: 0.12,
-        scrollTrigger: { trigger: ".s05-list", start: "top 78%", once: true },
+        scrollTrigger: { trigger: ".s06-list", start: "top 78%", once: true },
+      });
+
+      // 07 Looking Ahead — brief fade up
+      gsap.fromTo(".s07-body", { opacity: 0, y: 14, immediateRender: false }, {
+        opacity: 1, y: 0, duration: 0.7, ease: "power3.out",
+        scrollTrigger: { trigger: ".s07", start: "top 80%", once: true },
       });
     }, rootRef);
     return () => ctx.revert();
@@ -110,7 +132,7 @@ export default function ServicesContent() {
             className="sv-h1 font-display text-white font-medium leading-[0.95] text-balance max-w-[14ch]"
             style={{ fontSize: "clamp(1.75rem,8vw,7rem)" }}
           >
-            Five disciplines.<br />One accountable team.
+            Full-lifecycle capability.<br />One accountable team.
           </h1>
           <p className="sv-sub mt-8 text-white/55 max-w-[48ch] leading-relaxed text-lg">
             Grid Nova delivers every service below in-house — not
@@ -118,7 +140,7 @@ export default function ServicesContent() {
             the specific site, client and budget.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
-            {["EPC", "Green Energy", "Grid-Scale", "O&M", "Consulting"].map((s) => (
+            {["EPC", "Green Energy", "Grid-Scale", "Government Programmes", "O&M", "Consulting"].map((s) => (
               <span key={s} className="sv-tag font-utility text-xs text-white/60 border border-white/15 rounded-full px-4 py-1.5">
                 {s}
               </span>
@@ -254,12 +276,43 @@ export default function ServicesContent() {
         </div>
       </section>
 
-      {/* ── 04 O&M — four-pillar grid, no image ── */}
-      <section className="s04 bg-[#0e2a63] py-24 md:py-28 border-t border-white/10">
+      {/* ── 04 Government & Community Programmes — three-pillar grid, no image ── */}
+      <section className="s04gov bg-white py-24 md:py-28 border-t border-[#e4e8ee]">
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
-          <div className="s04-header flex flex-col md:flex-row md:items-end gap-8 md:gap-20 mb-16">
+          <div className="s04gov-header flex flex-col md:flex-row md:items-end gap-8 md:gap-20 mb-16">
             <div className="shrink-0">
-              <span className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase">04 / O&amp;M</span>
+              <span className="font-utility text-[11px] tracking-[0.22em] text-[#2f5daa]/60 uppercase">04 / Government Programmes</span>
+              <h2
+                className="mt-5 font-display text-[#0e2a63] font-semibold leading-[1.0]"
+                style={{ fontSize: "clamp(1.8rem,4.5vw,3rem)" }}
+              >
+                Government &amp;<br />Community Solar
+              </h2>
+            </div>
+            <p className="text-[#111827]/65 leading-relaxed max-w-[48ch] md:pb-1">
+              Grid Nova&rsquo;s branch network has delivered at scale under
+              national and state electrification programmes — work that
+              demands rigorous compliance, documentation and on-ground
+              execution across rural districts.
+            </p>
+          </div>
+          <div className="s04gov-grid grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-[#e4e8ee] rounded-2xl overflow-hidden">
+            {GOV_PROGRAMMES.map((p) => (
+              <div key={p.n} className="s04gov-pillar bg-[#f7f9fc] p-8 md:p-9">
+                <p className="font-display text-[#0e2a63] font-semibold mb-3">{p.n}</p>
+                <p className="text-[#111827]/60 text-sm leading-relaxed">{p.d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 05 O&M — four-pillar grid, no image ── */}
+      <section className="s05om bg-[#0e2a63] py-24 md:py-28 border-t border-white/10">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-10">
+          <div className="s05om-header flex flex-col md:flex-row md:items-end gap-8 md:gap-20 mb-16">
+            <div className="shrink-0">
+              <span className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase">05 / O&amp;M</span>
               <h2
                 className="mt-5 font-display text-white font-semibold leading-[1.0]"
                 style={{ fontSize: "clamp(1.8rem,4.5vw,3rem)" }}
@@ -274,9 +327,9 @@ export default function ServicesContent() {
               inevitability.
             </p>
           </div>
-          <div className="s04-grid grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 rounded-2xl overflow-hidden">
+          <div className="s05om-grid grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 rounded-2xl overflow-hidden">
             {OM_PILLARS.map((p) => (
-              <div key={p.n} className="s04-pillar bg-[#0c2148] p-8 md:p-9">
+              <div key={p.n} className="s05om-pillar bg-[#0c2148] p-8 md:p-9">
                 <p className="font-display text-white font-semibold mb-3">{p.n}</p>
                 <p className="text-white/50 text-sm leading-relaxed">{p.d}</p>
               </div>
@@ -285,12 +338,12 @@ export default function ServicesContent() {
         </div>
       </section>
 
-      {/* ── 05 Consulting — numbered list, light bg ── */}
-      <section className="s05 bg-[#f7f9fc] py-24 md:py-32 border-t border-[#e4e8ee]">
+      {/* ── 06 Consulting — numbered list, light bg ── */}
+      <section className="s06 bg-[#f7f9fc] py-24 md:py-32 border-t border-[#e4e8ee]">
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
           <div className="grid lg:grid-cols-[1fr_1.5fr] gap-16 lg:gap-24 items-start">
-            <div className="s05-intro">
-              <span className="font-utility text-[11px] tracking-[0.22em] text-[#2f5daa]/60 uppercase">05 / Consulting</span>
+            <div className="s06-intro">
+              <span className="font-utility text-[11px] tracking-[0.22em] text-[#2f5daa]/60 uppercase">06 / Consulting</span>
               <h2
                 className="mt-5 font-display text-[#0e2a63] font-semibold leading-[1.05]"
                 style={{ fontSize: "clamp(1.8rem,4.5vw,3rem)" }}
@@ -304,9 +357,9 @@ export default function ServicesContent() {
                 to a project.
               </p>
             </div>
-            <div className="s05-list border-t border-[#e4e8ee]">
+            <div className="s06-list border-t border-[#e4e8ee]">
               {CONSULTING_ITEMS.map((item) => (
-                <div key={item.n} className="s05-item grid md:grid-cols-[56px_1fr] gap-5 py-7 border-b border-[#e4e8ee] items-start">
+                <div key={item.n} className="s06-item grid md:grid-cols-[56px_1fr] gap-5 py-7 border-b border-[#e4e8ee] items-start">
                   <span className="font-display text-[#0e2a63]/20 text-2xl font-bold">{item.n}</span>
                   <div>
                     <p className="font-display text-[#0e2a63] font-semibold">{item.t}</p>
@@ -315,6 +368,23 @@ export default function ServicesContent() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 07 Looking Ahead — brief, honestly-framed forward-looking note ── */}
+      <section className="s07 bg-[#091c3c] py-16 md:py-20 border-t border-white/10">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-10">
+          <div className="s07-body max-w-[70ch]">
+            <span className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase">07 / Looking Ahead</span>
+            <p className="mt-5 text-white/55 leading-relaxed">
+              As India&rsquo;s energy needs evolve, we&rsquo;re developing
+              capability in battery energy storage (BESS), EV charging
+              infrastructure and microgrid solutions — natural extensions of
+              our core solar EPC expertise. These are emerging areas for
+              Grid Nova, not offerings available today, and we&rsquo;ll
+              formally bring them to market as that capability matures.
+            </p>
           </div>
         </div>
       </section>

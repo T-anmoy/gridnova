@@ -19,8 +19,9 @@ describe("LeadershipPreview grid", () => {
     const { container } = render(<LeadershipPreview />);
     const grid = container.querySelector("div.grid")!;
     const cards = Array.from(grid.children);
-    // 5 leaders in the data → 5 cards, and every card has visible content.
-    expect(cards.length).toBe(5);
+    // 7 leaders in the data → 7 cards, and every card has visible content.
+    // (Updated from 6 when Naren Mukherjee was added as Senior Advisor — Solar Power.)
+    expect(cards.length).toBe(7);
     for (const card of cards) {
       expect((card.textContent ?? "").trim().length).toBeGreaterThan(0);
     }

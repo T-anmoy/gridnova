@@ -30,6 +30,7 @@ export interface Customer {
 export interface LeadSummary {
   id: number
   customer_id: number
+  customer_name?: string | null
   pipeline_stage: PipelineStage
   lead_score: LeadScore
   created_at: string
@@ -144,16 +145,16 @@ export interface AnalyticsResponse {
 
 export interface ConversionBySource {
   source: string
-  leads: number
-  converted: number
+  total_leads: number
+  won_leads: number
   conversion_rate: number | null // 0..1
 }
 
 export interface DealSizeByTier {
   tier: string
-  count: number
-  avg_deal_size: number | null
-  total_deal_size: number | null
+  proposal_count: number
+  average_value: number | null
+  total_value: number | null
 }
 
 export interface RepPerformance {
@@ -166,7 +167,7 @@ export interface RepPerformance {
 }
 
 export interface PipelineTrendPoint {
-  week: string // ISO date (week start) or label
+  week_start: string // ISO date (week start) or label
   leads_created: number
   proposals_won: number
 }
@@ -205,6 +206,8 @@ export interface LeadListParams {
   lead_score?: LeadScore
   date_from?: string
   date_to?: string
+  search?: string
+  page_size?: number
 }
 
 export interface ProposalListParams {
@@ -214,6 +217,7 @@ export interface ProposalListParams {
   lead_id?: number
   page?: number
   page_size?: number
+  search?: string
 }
 
 export interface AnalyticsParams {
@@ -229,4 +233,34 @@ export interface AuditLogParams {
   date_to?: string
   page?: number
   page_size?: number
+}
+
+// The backend sends each trend as a bare signed delta (e.g. +2, -1, 0) vs
+// yesterday, not a {delta, direction} object — direction is derived from the
+// sign on the frontend (see TrendBadge in app/dashboard/page.tsx).
+export type StatTrend = number
+
+export interface OverviewStats {
+  new_leads_today: number
+  follow_ups_due: number
+  pending_approval: number
+  pending_manager_signoff: number
+  trends: {
+    new_leads_today: StatTrend
+    follow_ups_due: StatTrend
+    pending_approval: StatTrend
+    pending_manager_signoff: StatTrend
+  }
+}
+
+// Matches the real backend shape (app/api/routes/dashboard.py `recent_activity`) —
+// note there is no `id`; `description` is already a complete, human-readable
+// sentence; `entity_id` is not always numeric (e.g. employee IDs are strings).
+export interface ActivityItem {
+  description: string
+  entity_type: string
+  entity_id: string
+  action: string
+  actor: string | null
+  created_at: string | null
 }

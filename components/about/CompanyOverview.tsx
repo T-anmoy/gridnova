@@ -1,5 +1,5 @@
 const FACTS = [
-  { label: "Headquarters", value: "Kolkata, West Bengal" },
+  { label: "Headquarters", value: "India" },
   { label: "Operating Footprint", value: "West Bengal & Bihar" },
   { label: "Industrial Reference", value: "1.3 MWp — Showa India" },
   { label: "Focus", value: "EPC · Green Energy · Grid-Scale · O&M" },

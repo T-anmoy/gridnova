@@ -4,6 +4,7 @@ const routes = [
   "",
   "about",
   "services",
+  "estimate",
   "industries",
   "projects",
   "technology",
