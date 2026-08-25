@@ -1,3 +1,6 @@
+import Image from "next/image";
+import overviewPhoto from "@/public/images/COMPANY OVERVIEW.webp";
+
 const FACTS = [
   { label: "Headquarters", value: "India" },
   { label: "Operating Footprint", value: "West Bengal & Bihar" },
@@ -33,6 +36,15 @@ export default function CompanyOverview() {
           </div>
 
           <div className="lg:pl-8 lg:border-l border-[#e4e8ee]">
+            <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden mb-8">
+              <Image
+                src={overviewPhoto}
+                alt="Grid Nova technician logging readings from a switchgear panel inside an inverter room"
+                fill
+                sizes="(max-width: 1024px) 100vw, 30vw"
+                className="object-cover object-center"
+              />
+            </div>
             <p className="font-utility text-[11px] tracking-[0.15em] text-[#0e2a63]/50 uppercase mb-6">
               At a Glance
             </p>

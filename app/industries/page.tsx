@@ -42,7 +42,7 @@ export default function IndustriesPage() {
             <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden lg:order-2">
               <Image
                 src={residentialPhoto}
-                alt="Residential rooftop solar installation — Grid Nova Energy"
+                alt="Grid Nova technician showing a homeowner the rooftop solar inverter after installation"
                 fill
                 sizes="(max-width: 1024px) 100vw, 45vw"
                 className="object-cover object-center"
@@ -89,7 +89,7 @@ export default function IndustriesPage() {
             <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden">
               <Image
                 src={commercialPhoto}
-                alt="Commercial rooftop solar installation — Grid Nova Energy"
+                alt="Grid Nova technicians wiring rooftop solar panels across a dense commercial building complex"
                 fill
                 sizes="(max-width: 1024px) 100vw, 45vw"
                 className="object-cover object-center"
@@ -132,7 +132,7 @@ export default function IndustriesPage() {
             <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden lg:order-2">
               <Image
                 src={industrialPhoto}
-                alt="Industrial solar installation — Grid Nova Energy"
+                alt="Grid Nova technicians inspecting an electrical enclosure on an industrial warehouse rooftop solar installation"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover object-center"

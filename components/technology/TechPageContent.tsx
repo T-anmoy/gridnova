@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
-import techPhoto from "@/public/images/TECHNOLOGY & CAPABILITIES.webp";
+import techPhoto from "@/public/images/TECHNOLOGY ENGINEERING.webp";
 import CTASection from "@/components/CTASection";
 
 const STEPS = [
@@ -332,7 +332,7 @@ export default function TechPageContent() {
             <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden">
               <Image
                 src={techPhoto}
-                alt="Grid Nova Energy technology and engineering capabilities"
+                alt="Grid Nova Energy technician testing electrical protection panels with a multimeter inside an inverter room"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover object-center"

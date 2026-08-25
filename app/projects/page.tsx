@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
 import Image from "next/image";
+import coverPhoto from "@/public/images/PROJECTS COVER.webp";
 import showaPhoto from "@/public/images/1.3 MWp SHOWA INDIA.webp";
 import streetLightingPhoto from "@/public/images/STREET LIGHTING.webp";
-import schoolsPhoto from "@/public/images/10KW SCHOOLS.webp";
+import schoolsPhoto from "@/public/images/WBREDA SCHOOLS.webp";
 import pmKusumPhoto from "@/public/images/PM KUSUM.webp";
 import pmSuryaGharPhoto from "@/public/images/PM SURYA GHAR.webp";
 import CountUp from "@/components/CountUp";
@@ -33,8 +34,17 @@ const DISTRICTS = [
 export default function ProjectsPage() {
   return (
     <main>
-      {/* Stats dashboard — data-forward, no standard hero */}
-      <section className="bg-[#091c3c] pt-[calc(var(--header-h)+2.5rem)] pb-0">
+      {/* Stats dashboard — data-forward, cover photo behind */}
+      <section className="relative overflow-hidden pt-[calc(var(--header-h)+2.5rem)] pb-0">
+        <Image
+          src={coverPhoto}
+          alt="Grid Nova engineers reviewing site plans in front of a utility-scale solar array and substation"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center -z-20"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#091c3c]/92 via-[#091c3c]/60 to-[#091c3c] -z-10" />
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
           <p className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase mb-6">
             Project Index — West Bengal &amp; Bihar
@@ -135,7 +145,7 @@ export default function ProjectsPage() {
           statLabel: "10kW schools electrified (WBREDA)",
           description: "Grid electrification of 330+ schools across West Bengal for the West Bengal Renewable Energy Development Agency (WBREDA). Each school received a 10kW grid-connected rooftop system covering design, supply, installation, testing and commissioning, under strict government programme quality and documentation standards.",
           photo: schoolsPhoto,
-          photoAlt: "10kW rooftop solar on school — WBREDA programme, Grid Nova Energy",
+          photoAlt: "Grid Nova technicians installing rooftop solar panels at a WBREDA-programme school as students walk past below",
         },
         {
           id: "agricultural",
@@ -153,7 +163,7 @@ export default function ProjectsPage() {
           statLabel: "Residential systems installed",
           description: "Residential rooftop solar installations under PM Surya Ghar across West Bengal and Bihar. Grid Nova's team and branch network handled the complete customer journey: site survey, system design, DISCOM interconnection application, installation, commissioning and government subsidy documentation. Every customer received a net-metering connection as part of the standard scope.",
           photo: pmSuryaGharPhoto,
-          photoAlt: "PM Surya Ghar residential solar installation — Grid Nova Energy",
+          photoAlt: "Grid Nova technician demonstrating the rooftop solar inverter to a residential customer under PM Surya Ghar",
         },
       ].map((cat, idx) => (
         <section
