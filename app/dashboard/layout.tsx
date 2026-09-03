@@ -12,6 +12,7 @@ import {
   BarChart2,
   UserCog,
   ClipboardList,
+  Bot,
   Menu,
   X,
   LogOut,
@@ -44,6 +45,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart2, roles: ['admin', 'sales', 'management'] },
   { label: 'Employees', href: '/dashboard/employees', icon: UserCog, roles: ['admin'] },
   { label: 'Audit Log', href: '/dashboard/audit-log', icon: ClipboardList, roles: ['admin', 'management'] },
+  { label: 'Agent Control', href: '/dashboard/agents', icon: Bot, roles: ['admin'] },
 ]
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {

@@ -15,6 +15,8 @@ import {
 } from './schemas'
 import type {
   ActivityItem,
+  AgentAuditResponse,
+  AgentId,
   AnalyticsParams,
   AnalyticsResponse,
   AuditLog,
@@ -23,6 +25,7 @@ import type {
   DealSizeByTier,
   DraftProposalResponse,
   Employee,
+  GovernanceAgentsResponse,
   LeadDetail,
   LeadListParams,
   LeadSummary,
@@ -336,6 +339,32 @@ export function useEmployees() {
   })
 }
 
+// ── Agent governance hooks (admin only) ──────────────────────────────────────
+
+export function useGovernanceAgents() {
+  const { getToken } = useAuth()
+  return useQuery({
+    queryKey: ['governance-agents'],
+    queryFn: async () => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<GovernanceAgentsResponse>('/api/v1/governance/agents', token)
+    },
+  })
+}
+
+export function useAgentAudit(agentId: AgentId) {
+  const { getToken } = useAuth()
+  return useQuery({
+    queryKey: ['agent-audit', agentId],
+    queryFn: async () => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<AgentAuditResponse>(`/api/v1/governance/agents/${agentId}/audit`, token)
+    },
+  })
+}
+
 export function useAuditLog(params?: AuditLogParams) {
   const { getToken } = useAuth()
   return useQuery({
@@ -568,6 +597,64 @@ export function useUpdateEmployeeRole() {
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['employees'] })
+    },
+  })
+}
+
+export function useDeactivateEmployee() {
+  const { getToken } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (employeeId: string) => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<{ employee_id: string; is_active: boolean }>(
+        `/api/v1/dashboard/employees/${employeeId}/deactivate`,
+        token,
+        { method: 'PATCH' }
+      )
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['employees'] })
+    },
+  })
+}
+
+export function useReactivateEmployee() {
+  const { getToken } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (employeeId: string) => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<{ employee_id: string; is_active: boolean }>(
+        `/api/v1/dashboard/employees/${employeeId}/reactivate`,
+        token,
+        { method: 'PATCH' }
+      )
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['employees'] })
+    },
+  })
+}
+
+export function useToggleAgent() {
+  const { getToken } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ agentId, enabled }: { agentId: AgentId; enabled: boolean }) => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<{ agent_id: string; enabled: boolean; updated_by: string }>(
+        `/api/v1/governance/agents/${agentId}`,
+        token,
+        { method: 'PATCH', body: JSON.stringify({ enabled }) }
+      )
+    },
+    onSuccess: (_data, variables) => {
+      void qc.invalidateQueries({ queryKey: ['governance-agents'] })
+      void qc.invalidateQueries({ queryKey: ['agent-audit', variables.agentId] })
     },
   })
 }

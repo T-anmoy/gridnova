@@ -177,7 +177,41 @@ export interface Employee {
   name: string
   email: string
   role: Role
+  is_active: boolean
   created_at: string | null
+}
+
+// ── Agent governance ─────────────────────────────────────────────────────────
+
+export type AgentId = 'sales_agent' | 'proposal_agent' | 'memory_agent'
+
+export interface GovernedAgent {
+  id: AgentId
+  name: string
+  enabled: boolean
+  override_source: 'database' | 'env_var'
+  daily_action_limit_per_lead: number
+}
+
+export interface GovernanceAgentsResponse {
+  agents: GovernedAgent[]
+  action_budget: {
+    replies_per_lead_per_24h: number
+    scope: string
+  }
+}
+
+export interface AgentAuditEntry {
+  action: string
+  performed_by: string | null
+  before_value: unknown
+  after_value: unknown
+  created_at: string | null
+}
+
+export interface AgentAuditResponse {
+  agent_id: string
+  items: AgentAuditEntry[]
 }
 
 export interface AuditLog {
