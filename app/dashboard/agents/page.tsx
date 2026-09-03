@@ -7,7 +7,7 @@ import { ShieldOff, Bot } from 'lucide-react'
 import { useGovernanceAgents, useToggleAgent, useAgentAudit } from '@/lib/dashboard/api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { DashboardError } from '@/components/dashboard/DashboardError'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -84,11 +84,11 @@ function AgentCard({
             aria-label={`Toggle ${agent.name}`}
           />
         </div>
-        <CardDescription>
+        <span className="text-sm text-[#111827]/65">
           <Badge variant={agent.enabled ? 'green' : 'gray'} className="text-xs">
             {agent.enabled ? 'Active' : 'Disabled'}
           </Badge>
-        </CardDescription>
+        </span>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
