@@ -52,13 +52,26 @@ export default function ServicesPage() {
                 a system suited to your needs.
               </p>
             </div>
-            <Link
-              href="/estimate"
-              className="shrink-0 inline-flex items-center gap-2 rounded-full bg-[#f7a800] text-[#091c3c] font-utility font-semibold text-sm px-6 py-3.5 hover:bg-[#0e2a63] hover:text-white transition-colors duration-300 active:scale-[0.97] w-fit"
-            >
-              Get Your Solar Estimate
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            <div className="flex flex-col items-start md:items-end gap-3 shrink-0">
+              <Link
+                href="/estimate"
+                className="inline-flex items-center gap-2 rounded-full bg-[#f7a800] text-[#091c3c] font-utility font-semibold text-sm px-6 py-3.5 hover:bg-[#0e2a63] hover:text-white transition-colors duration-300 active:scale-[0.97] w-fit"
+              >
+                Get Your Solar Estimate
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              {/* Additional entry point alongside (not replacing) the estimate
+                  form above — a faster path for a visitor who wants an
+                  instant indicative number before leaving contact details,
+                  rather than a form that only promises human follow-up. */}
+              <Link
+                href="/solar-calculator"
+                className="inline-flex items-center gap-1.5 font-utility text-sm font-semibold text-[#0e2a63] hover:text-[#2f5daa] transition-colors duration-300"
+              >
+                Or try our instant Solar Calculator
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
           </div>
         </section>
 

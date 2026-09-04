@@ -25,6 +25,9 @@ import type {
   DealSizeByTier,
   DraftProposalResponse,
   Employee,
+  Equipment,
+  EquipmentCreateInput,
+  EquipmentListParams,
   GovernanceAgentsResponse,
   LeadDetail,
   LeadListParams,
@@ -361,6 +364,58 @@ export function useAgentAudit(agentId: AgentId) {
       const token = await getToken()
       if (!token) throw new Error('Not authenticated')
       return dashboardFetch<AgentAuditResponse>(`/api/v1/governance/agents/${agentId}/audit`, token)
+    },
+  })
+}
+
+// ── Equipment / SKU master hooks (read: any employee; write: admin only) ────
+
+export function useEquipment(params?: EquipmentListParams) {
+  const { getToken } = useAuth()
+  return useQuery({
+    queryKey: ['equipment', params],
+    queryFn: async () => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
+      const res = await dashboardFetch<{ items: Equipment[] }>(`/api/v1/equipment/${qs}`, token)
+      return res.items
+    },
+  })
+}
+
+export function useCreateEquipment() {
+  const { getToken } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (input: EquipmentCreateInput) => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<Equipment>('/api/v1/equipment/', token, {
+        method: 'POST',
+        body: JSON.stringify(input),
+      })
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['equipment'] })
+    },
+  })
+}
+
+export function useSetEquipmentActive() {
+  const { getToken } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, isActive }: { id: number; isActive: boolean }) => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<Equipment>(`/api/v1/equipment/${id}`, token, {
+        method: 'PATCH',
+        body: JSON.stringify({ is_active: isActive }),
+      })
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['equipment'] })
     },
   })
 }

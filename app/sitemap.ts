@@ -5,6 +5,7 @@ const routes = [
   "about",
   "services",
   "estimate",
+  "solar-calculator",
   "industries",
   "projects",
   "technology",

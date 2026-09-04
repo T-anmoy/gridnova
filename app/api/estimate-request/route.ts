@@ -32,6 +32,18 @@ const FIELD_LABELS: Record<keyof Omit<EstimateRequestBody, "website">, string> =
   connectionPhase: "Connection Phase",
 };
 
+function toFloat(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+  const n = parseFloat(value);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+function toInt(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+  const n = parseInt(value, 10);
+  return Number.isFinite(n) ? n : undefined;
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -148,6 +160,43 @@ export async function POST(request: Request) {
           error: "We couldn't send your request right now. Please call us directly.",
         },
         { status: 502 }
+      );
+    }
+
+    // Best-effort mirror into the backend so this becomes a real Lead in the
+    // ops dashboard. The backend isn't deployed anywhere yet, and even once it
+    // is, this must never affect what the customer sees — the Resend send
+    // above already determined success. Same graceful-degradation shape as
+    // AskNova.tsx and the dashboard API client: isolated try/catch, a short
+    // timeout so an unreachable/slow backend can't delay this response, and a
+    // server-side log on failure instead of surfacing anything to the caller.
+    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+    try {
+      await fetch(`${apiBase}/api/v1/public/estimate-request`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          customer_type: customerType,
+          state: body.state || undefined,
+          // The backend has one `city` field; the form collects a combined
+          // "City / PIN Code" field with no separate PIN — passing it through
+          // as-is is the closest honest mapping available.
+          city: body.cityOrPin || undefined,
+          average_bill: toFloat(body.averageMonthlyBill),
+          roof_type: body.roofType || undefined,
+          roof_area: toFloat(body.roofAreaSqFt),
+          floors: toInt(body.floors),
+          connection_phase: body.connectionPhase || undefined,
+        }),
+        signal: AbortSignal.timeout(5000),
+      });
+    } catch (backendErr) {
+      console.error(
+        "Backend estimate-request mirror failed (non-fatal — customer's email already sent):",
+        backendErr
       );
     }
 

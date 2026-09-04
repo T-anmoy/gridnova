@@ -1,4 +1,34 @@
-export type Role = 'admin' | 'sales' | 'management' | 'engineer'
+export type Role = 'admin' | 'sales' | 'management' | 'engineer' | 'subcontractor'
+
+// ── Equipment / SKU master ───────────────────────────────────────────────────
+
+export type EquipmentCategory = 'module' | 'inverter' | 'structure' | 'bos_component'
+
+export interface Equipment {
+  id: number
+  category: EquipmentCategory
+  brand: string
+  model_name: string
+  specification: string | null
+  is_dcr_compliant: boolean
+  procurement_price_inr: number | null
+  is_active: boolean
+  created_at: string | null
+}
+
+export interface EquipmentListParams {
+  category?: EquipmentCategory
+  is_active?: boolean
+}
+
+export interface EquipmentCreateInput {
+  category: EquipmentCategory
+  brand: string
+  model_name: string
+  specification?: string
+  is_dcr_compliant?: boolean
+  procurement_price_inr?: number
+}
 
 export type PipelineStage =
   | 'new'

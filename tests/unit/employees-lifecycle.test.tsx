@@ -56,6 +56,12 @@ beforeEach(() => {
     error: null,
     refetch: vi.fn(),
   })
+  // jsdom doesn't implement pointer-capture or scrollIntoView, which Radix
+  // Select's trigger relies on when opened.
+  Element.prototype.hasPointerCapture = vi.fn().mockReturnValue(false)
+  Element.prototype.setPointerCapture = vi.fn()
+  Element.prototype.releasePointerCapture = vi.fn()
+  Element.prototype.scrollIntoView = vi.fn()
 })
 
 describe('EmployeesPage — deactivate/reactivate', () => {
@@ -117,5 +123,46 @@ describe('EmployeesPage — deactivate/reactivate', () => {
     await waitFor(() =>
       expect(toastError).toHaveBeenCalledWith('Cannot deactivate the last remaining active Admin.')
     )
+  })
+
+  it('offers Subcontractor as a role option, using the exact backend enum string', async () => {
+    const user = userEvent.setup()
+    render(<EmployeesPage />)
+
+    const roleTriggers = screen.getAllByRole('combobox')
+    await user.click(roleTriggers[0])
+    const option = await screen.findByRole('option', { name: 'subcontractor' })
+    expect(option).toBeInTheDocument()
+
+    mockUpdateRoleMutateAsync.mockResolvedValue({
+      employee_id: 'emp-sales-1', role: 'subcontractor', clerk_synced: true, local_mirror: true,
+    })
+    await user.click(option)
+    await user.click(screen.getByRole('button', { name: /^confirm$/i }))
+
+    await waitFor(() =>
+      expect(mockUpdateRoleMutateAsync).toHaveBeenCalledWith({ employeeId: 'emp-sales-1', role: 'subcontractor' })
+    )
+  })
+})
+
+describe('EmployeesPage — DOM validity (real, unmocked component tree)', () => {
+  it('does not produce invalid-nesting DOM warnings with active/inactive rows, or with either dialog open', async () => {
+    const user = userEvent.setup()
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(<EmployeesPage />)
+    await user.click(screen.getAllByRole('combobox')[0])
+    const option = await screen.findByRole('option', { name: 'management' })
+    await user.click(option)
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /^cancel$/i }))
+
+    await user.click(screen.getByRole('button', { name: /deactivate/i }))
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+
+    const nestingWarnings = spy.mock.calls.filter((args) => String(args[0]).includes('cannot be a descendant of'))
+    spy.mockRestore()
+    expect(nestingWarnings).toEqual([])
   })
 })
