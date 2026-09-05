@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { pageMetadata } from "@/lib/seo";
 import ContactForm from "./ContactForm";
-import { Phone, Globe, MapPin, Mail } from "lucide-react";
+import { Phone, Globe, MapPin, Mail, ArrowRight, Calendar } from "lucide-react";
 
 export const metadata: Metadata = pageMetadata({
   title: "Contact Us",
@@ -116,8 +117,41 @@ export default function ContactPage() {
             </div>
           </div>
 
-          {/* Form column — client component for animated states */}
-          <ContactForm />
+          {/* Booking (primary) + form (secondary) column */}
+          <div>
+            <div className="rounded-2xl border border-[#e4e8ee] bg-white p-7 md:p-9">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f7a800]/10">
+                <Calendar className="h-5 w-5 text-[#f7a800]" />
+              </div>
+              <h2 className="mt-4 font-display text-[#0e2a63] text-xl font-semibold">
+                Book a call with a Solar Advisor
+              </h2>
+              <p className="mt-2 text-[#111827]/60 leading-relaxed">
+                30 minutes, no pressure. Pick a time that works and we&rsquo;ll call you —
+                the fastest way to get a real person on the line.
+              </p>
+              <Link
+                href={{ pathname: "/book-a-call", query: { source: "contact" } }}
+                className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#f7a800] text-[#091c3c] font-utility font-semibold text-sm px-6 py-3.5 hover:bg-[#0e2a63] hover:text-white transition-colors duration-300 active:scale-[0.97]"
+              >
+                Book a Call
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+
+            <div className="mt-8 flex items-center gap-4">
+              <div className="h-px flex-1 bg-[#e4e8ee]" />
+              <p className="font-utility text-xs text-[#111827]/40 uppercase tracking-wider">
+                Prefer to write instead?
+              </p>
+              <div className="h-px flex-1 bg-[#e4e8ee]" />
+            </div>
+
+            <div className="mt-8">
+              {/* Client component for animated states */}
+              <ContactForm />
+            </div>
+          </div>
         </div>
       </div>
     </main>

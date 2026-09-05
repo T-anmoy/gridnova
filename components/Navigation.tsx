@@ -57,10 +57,17 @@ export default function Navigation() {
           maxWidth: scrolled ? 980 : 1180,
           paddingTop: scrolled ? 8 : 14,
           paddingBottom: scrolled ? 8 : 14,
+          // A confident, near-solid navy regardless of what's behind it — the
+          // site's own other glass surface (Hero's stats panel) sits at 0.80;
+          // this previously sat at 0.42/0.72, which read as flat grey over
+          // the light bg-[#f7f9fc] most non-homepage pages open with.
+          backgroundColor: scrolled ? "rgba(9,28,60,0.94)" : "rgba(9,28,60,0.86)",
+          boxShadow: scrolled
+            ? "0 8px 32px -8px rgba(9,28,60,0.35)"
+            : "0 4px 20px -8px rgba(9,28,60,0.15)",
         }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="glass relative z-20 w-full rounded-full flex items-center justify-between px-5 md:px-7 shadow-[0_8px_32px_-8px_rgba(9,28,60,0.25)]"
-        style={{ backgroundColor: scrolled ? "rgba(9,28,60,0.72)" : "rgba(9,28,60,0.42)" }}
+        className="glass relative z-20 w-full rounded-full flex items-center justify-between px-5 md:px-7"
       >
         <Link href="/" onClick={(e) => handleNavClick(e, "/")} className="flex items-center shrink-0 active:scale-[0.97] transition-transform">
           <span className="bg-white/95 rounded-xl px-2.5 py-1 inline-flex items-center shadow-sm">
@@ -106,12 +113,22 @@ export default function Navigation() {
           })}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          {/* Both CTAs share the nav links' lg: breakpoint (not the old
+              single-button's md:) — two buttons need more room than one, and
+              this keeps one consistent "full nav appears together" threshold
+              instead of the previous md/lg split. */}
           <Link
-            href="/contact"
-            className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-[#f7a800] text-[#091c3c] text-[13px] font-utility font-semibold px-4 py-2 hover:bg-white transition-colors duration-200 active:scale-[0.97]"
+            href="/book-a-call"
+            className="hidden lg:inline-flex items-center gap-1.5 rounded-full border border-white/25 text-white text-[13px] font-utility font-semibold px-4 py-2 hover:bg-white/10 hover:border-white/40 transition-colors duration-200 active:scale-[0.97]"
           >
-            Get a Quote
+            Book a Call
+          </Link>
+          <Link
+            href="/solar-calculator"
+            className="hidden lg:inline-flex items-center gap-1.5 rounded-full bg-[#f7a800] text-[#091c3c] text-[13px] font-utility font-semibold px-4 py-2 hover:bg-white transition-colors duration-200 active:scale-[0.97]"
+          >
+            Get Instant Estimate
             <ArrowUpRight className="h-3.5 w-3.5" />
           </Link>
           <button
@@ -164,14 +181,23 @@ export default function Navigation() {
                 </Link>
               ))}
             </nav>
-            <Link
-              href="/contact"
-              onClick={() => setOpen(false)}
-              className="mt-5 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#f7a800] text-[#091c3c] text-sm font-utility font-semibold px-4 py-3 active:scale-[0.97] transition-transform"
-            >
-              Get a Quote
-              <ArrowUpRight className="h-4 w-4" />
-            </Link>
+            <div className="mt-5 flex flex-col gap-2.5">
+              <Link
+                href="/solar-calculator"
+                onClick={() => setOpen(false)}
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#f7a800] text-[#091c3c] text-sm font-utility font-semibold px-4 py-3 active:scale-[0.97] transition-transform"
+              >
+                Get Instant Estimate
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/book-a-call"
+                onClick={() => setOpen(false)}
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-white/25 text-white text-sm font-utility font-semibold px-4 py-3 active:scale-[0.97] transition-transform"
+              >
+                Book a Call
+              </Link>
+            </div>
           </motion.div>
           </>
         )}

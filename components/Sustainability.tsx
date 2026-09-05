@@ -1,7 +1,10 @@
+import ScrollReveal from "@/components/ScrollReveal";
+
 export default function Sustainability() {
   return (
     <section className="relative bg-gradient-to-br from-[#091c3c] to-[#0e2a63] py-24 md:py-28">
       <div className="mx-auto max-w-[1280px] px-6 md:px-10">
+        <ScrollReveal>
         <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-10 items-center">
           <div>
             <span className="ref-tag text-[#f7a800]">Sustainability &amp; Impact</span>
@@ -20,6 +23,7 @@ export default function Sustainability() {
             infrastructure for the next generation.
           </p>
         </div>
+        </ScrollReveal>
       </div>
     </section>
   );

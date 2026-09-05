@@ -5,6 +5,23 @@ import SolarCalculator from '@/app/solar-calculator/SolarCalculator'
 
 beforeEach(() => {
   window.scrollTo = vi.fn()
+  // The estimate reveal now counts up via CountUp (gsap, ~2s tween) instead
+  // of appearing instantly. This suite is about the calculator's own
+  // behaviour (correct totals, correct wiring) — not CountUp's animation
+  // timing, which has its own dedicated coverage in count-up.test.tsx — so
+  // reduced-motion is stubbed on here to keep asserting final values
+  // immediately, exercising the same real "skip the animation" code path a
+  // user with that OS preference gets.
+  window.matchMedia = ((query: string) => ({
+    matches: query.includes('prefers-reduced-motion'),
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  })) as unknown as typeof window.matchMedia
 })
 
 afterEach(() => {
@@ -26,7 +43,7 @@ async function fillStepB(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('SolarCalculator — full flow with the pricing endpoint mocked', () => {
-  it('shows the indicative estimate and framing, then creates a Lead on capture', async () => {
+  it('shows the indicative estimate and framing, then offers "Book a Free Site Visit" carrying the result forward', async () => {
     const fetchMock = vi.fn<typeof fetch>().mockImplementation(async (url) => {
       if (String(url).includes('/api/v1/pricing/estimate')) {
         return new Response(
@@ -37,9 +54,6 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
           }),
           { status: 200 }
         )
-      }
-      if (String(url).includes('/api/configurator-lead')) {
-        return new Response(JSON.stringify({ success: true }), { status: 200 })
       }
       throw new Error(`Unexpected fetch to ${url}`)
     })
@@ -59,10 +73,46 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
       expect.objectContaining({ method: 'POST' })
     )
 
-    await user.click(screen.getByRole('button', { name: /^continue$/i }))
+    // Primary CTA is now a booking link, not a "Continue" button — and it
+    // carries the estimate's own output forward as query-string context.
+    const bookLink = screen.getByRole('link', { name: /book a free site visit/i })
+    const href = bookLink.getAttribute('href')!
+    expect(href).toContain('/book-a-call')
+    expect(href).toContain('estimatedTotal=264585')
+    expect(href).toContain('sizingMethod=bill')
+    expect(href).toContain('sizingValue=3500')
+    expect(href).toContain('source=calculator')
+    expect(screen.queryByRole('button', { name: /^continue$/i })).not.toBeInTheDocument()
+  })
+
+  it('never lets the pricing call stall the estimate step — degrades to a friendly message, and the capture step still creates a real Lead', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockImplementation(async (url) => {
+      if (String(url).includes('/api/v1/pricing/estimate')) {
+        throw new TypeError('fetch failed')
+      }
+      if (String(url).includes('/api/configurator-lead')) {
+        return new Response(JSON.stringify({ success: true }), { status: 200 })
+      }
+      throw new Error(`Unexpected fetch to ${url}`)
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const user = userEvent.setup()
+    render(<SolarCalculator />)
+
+    await fillStepA(user)
+    await fillStepB(user)
+
+    await screen.findByText(/we.ll calculate your estimate and follow up personally/i)
+    // Never stuck — Continue is still there (no result to book a visit
+    // around) and takes the visitor onward to manual capture instead.
+    const continueButton = screen.getByRole('button', { name: /^continue$/i })
+    expect(continueButton).toBeEnabled()
+
+    await user.click(continueButton)
     await screen.findByText(/step 4 of 4/i)
 
-    // Step D — capture, which must trigger real Lead creation.
+    // Step D — capture, which must still trigger real Lead creation.
     await user.type(screen.getByLabelText(/your name/i), 'Ravi Sharma')
     await user.type(screen.getByLabelText(/email address/i), 'ravi@example.com')
     await user.type(screen.getByLabelText(/phone number/i), '9876543210')
@@ -81,33 +131,8 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
       state: 'West Bengal',
       city: 'Kolkata',
       averageMonthlyBill: '3500',
-      indicativeTotalInr: 264585,
     })
 
     await screen.findByText(/thank you, ravi/i)
-  })
-
-  it('never lets the pricing call stall the estimate step — degrades to a friendly message and stays usable', async () => {
-    const fetchMock = vi.fn(async (url: string) => {
-      if (String(url).includes('/api/v1/pricing/estimate')) {
-        throw new TypeError('fetch failed')
-      }
-      return new Response(JSON.stringify({ success: true }), { status: 200 })
-    })
-    vi.stubGlobal('fetch', fetchMock)
-
-    const user = userEvent.setup()
-    render(<SolarCalculator />)
-
-    await fillStepA(user)
-    await fillStepB(user)
-
-    await screen.findByText(/we.ll calculate your estimate and follow up personally/i)
-    // Never stuck — Continue is still there and takes the visitor onward.
-    const continueButton = screen.getByRole('button', { name: /^continue$/i })
-    expect(continueButton).toBeEnabled()
-
-    await user.click(continueButton)
-    await screen.findByText(/step 4 of 4/i)
   })
 })

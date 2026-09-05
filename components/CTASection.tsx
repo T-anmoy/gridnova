@@ -30,14 +30,20 @@ export default function CTASection() {
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </MagneticButton>
-          <a
-            href="tel:+919874774440"
+          <Link
+            href="/book-a-call"
             className="inline-flex items-center gap-2 rounded-full border border-white/25 text-white font-utility text-sm px-6 py-3.5 hover:bg-white/10 hover:border-white/40 transition-colors duration-300 active:scale-[0.97]"
           >
-            <Phone className="h-3.5 w-3.5" />
-            +91 98747 74440
-          </a>
+            Book a Call
+          </Link>
         </div>
+        <a
+          href="tel:+919874774440"
+          className="mt-6 inline-flex items-center gap-1.5 text-white/40 hover:text-white/70 font-utility text-xs transition-colors duration-300"
+        >
+          <Phone className="h-3 w-3" />
+          Or call +91 98747 74440 directly
+        </a>
       </div>
       </ScrollReveal>
     </section>

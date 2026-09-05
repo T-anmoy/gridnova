@@ -4,20 +4,24 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+// Optional leading non-digit run (e.g. "₹") is preserved as a prefix so this
+// still works for currency-formatted values like "₹2,71,626", not just the
+// trailing-suffix values ("4,800+") this was originally written for.
 function parse(raw: string) {
-  const m = raw.match(/^([\d,\.]+)(.*)/);
-  const numStr = m?.[1]?.replace(/,/g, "") ?? "0";
+  const m = raw.match(/^(\D*)([\d,\.]+)(.*)/);
+  const numStr = m?.[2]?.replace(/,/g, "") ?? "0";
   return {
+    prefix: m?.[1] ?? "",
     num: parseFloat(numStr),
-    suffix: m?.[2] ?? "",
+    suffix: m?.[3] ?? "",
     isFloat: numStr.includes("."),
-    hasComma: !!m?.[1]?.includes(","),
+    hasComma: !!m?.[2]?.includes(","),
   };
 }
 
 export default function CountUp({ value, className }: { value: string; className?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const { num, suffix, isFloat, hasComma } = parse(value);
+  const { prefix, num, suffix, isFloat, hasComma } = parse(value);
 
   useEffect(() => {
     if (!ref.current) return;
@@ -33,17 +37,21 @@ export default function CountUp({ value, className }: { value: string; className
         scrollTrigger: { trigger: ref.current, start: "top 85%", once: true },
         onUpdate() {
           if (!ref.current) return;
+          // en-IN grouping (2,71,626) to match formatINR elsewhere on the
+          // site — the default-locale toLocaleString() would render 3-digit
+          // Western grouping (271,626) instead, visibly wrong mid-count and
+          // on the final frame alike.
           const n = isFloat
             ? obj.val.toFixed(1)
             : hasComma
-            ? Math.round(obj.val).toLocaleString()
+            ? Math.round(obj.val).toLocaleString("en-IN")
             : Math.round(obj.val).toString();
-          ref.current.textContent = n + suffix;
+          ref.current.textContent = prefix + n + suffix;
         },
       });
     });
     return () => ctx.revert();
-  }, [num, suffix, isFloat, hasComma]);
+  }, [num, prefix, suffix, isFloat, hasComma]);
 
   return (
     <span ref={ref} className={className}>

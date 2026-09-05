@@ -8,6 +8,7 @@ import schoolsPhoto from "@/public/images/WBREDA SCHOOLS.webp";
 import pmKusumPhoto from "@/public/images/PM KUSUM.webp";
 import pmSuryaGharPhoto from "@/public/images/PM SURYA GHAR.webp";
 import CountUp from "@/components/CountUp";
+import ScrollReveal from "@/components/ScrollReveal";
 import Link from "next/link";
 import { MapPin, ArrowRight } from "lucide-react";
 import { statCellClass } from "@/lib/stat-grid";
@@ -82,6 +83,7 @@ export default function ProjectsPage() {
             <span className="h-px w-8 bg-[#f7a800]" />
             <span className="font-utility text-[11px] tracking-[0.22em] text-[#111827]/40 uppercase">Featured Case Study</span>
           </div>
+          <ScrollReveal>
           <div className="grid lg:grid-cols-[1fr_0.7fr] gap-10 items-stretch">
             <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden">
               <Image
@@ -124,6 +126,7 @@ export default function ProjectsPage() {
               </Link>
             </div>
           </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -171,6 +174,7 @@ export default function ProjectsPage() {
           className={`py-16 md:py-20 border-b border-[#e4e8ee] ${idx % 2 === 0 ? "bg-[#f7f9fc]" : "bg-white"}`}
         >
           <div className="mx-auto max-w-[1280px] px-6 md:px-10">
+            <ScrollReveal x={idx % 2 !== 0 ? 24 : -24} y={0}>
             <div className="grid lg:grid-cols-[1fr_0.85fr] gap-12 lg:gap-20 items-center">
               <div className={idx % 2 !== 0 ? "lg:order-2" : ""}>
                 <span className="font-utility text-[11px] tracking-[0.22em] text-[#2f5daa]/60 uppercase">{cat.label}</span>
@@ -190,6 +194,7 @@ export default function ProjectsPage() {
                 />
               </div>
             </div>
+            </ScrollReveal>
           </div>
         </section>
       ))}
@@ -197,6 +202,7 @@ export default function ProjectsPage() {
       {/* Districts covered */}
       <section className="bg-[#0e2a63] py-16 md:py-20">
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
+          <ScrollReveal>
           <div className="flex flex-col md:flex-row md:items-end gap-8 mb-10">
             <div>
               <p className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase mb-3">Geographic Footprint</p>
@@ -220,6 +226,7 @@ export default function ProjectsPage() {
               + additional districts
             </span>
           </div>
+          </ScrollReveal>
         </div>
       </section>
     </main>

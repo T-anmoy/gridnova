@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 
@@ -203,6 +204,18 @@ export default function EstimateForm() {
           We&rsquo;ve received your details. Our team will get back to you
           within 48 business hours with your personalised estimate.
         </p>
+        <div className="mt-6 pt-6 border-t border-[#e4e8ee]">
+          <p className="text-[#111827]/50 text-sm">
+            Don&rsquo;t want to wait?{" "}
+            <Link
+              href={{ pathname: "/book-a-call", query: { source: "estimate" } }}
+              className="text-[#0e2a63] font-semibold hover:text-[#2f5daa] transition-colors inline-flex items-center gap-1"
+            >
+              Book a call now instead
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </p>
+        </div>
       </motion.div>
     );
   }

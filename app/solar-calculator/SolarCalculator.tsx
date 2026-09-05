@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, AlertCircle, CheckCircle2, Zap, Cpu, HardHat, Wrench } from "lucide-react";
+import { ArrowLeft, ArrowRight, AlertCircle, CheckCircle2, Zap } from "lucide-react";
 import {
   TextField,
   SelectField,
@@ -18,11 +20,20 @@ import {
   roofLabelToEngineKey,
   CONNECTION_PHASES,
   roofAreaToSizeKw,
-  formatINR,
   validateEmail,
   validatePhone,
   validateName,
 } from "./lib";
+import StaticEstimateReveal from "./StaticEstimateReveal";
+
+// CountUp (inside EstimateReveal) pulls in gsap + ScrollTrigger — kept out of
+// this page's initial JS via next/dynamic, since most visitors haven't
+// reached a result yet. Wrapped in our own <Suspense> below (rather than
+// dynamic()'s `loading` option) so the fallback can show the real resolved
+// total/categories instead of a hardcoded placeholder — same markup, just
+// without the count-up animation, so there's no layout shift and no wrong
+// numbers flashing while this chunk loads in.
+const EstimateReveal = dynamic(() => import("./EstimateReveal"));
 
 const STEP_NAMES = ["Basics", "Sizing", "Your Estimate", "Get In Touch"];
 const TOTAL_STEPS = STEP_NAMES.length;
@@ -34,12 +45,6 @@ interface EstimateResult {
 
 type EstimateStatus = "idle" | "loading" | "success" | "error";
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
-
-const CATEGORY_ICON: Record<string, React.ElementType> = {
-  Equipment: Cpu,
-  Installation: HardHat,
-  Other: Wrench,
-};
 
 export default function SolarCalculator() {
   const [step, setStep] = useState(0);
@@ -347,32 +352,13 @@ export default function SolarCalculator() {
             )}
 
             {estimateStatus === "success" && estimateResult && (
-              <div>
-                <div className="rounded-2xl bg-[#0e2a63] p-8 text-center">
-                  <p className="font-utility text-xs text-white/50 uppercase tracking-[0.12em]">
-                    Indicative System Cost
-                  </p>
-                  <p className="mt-2 font-display text-white text-4xl md:text-5xl font-semibold">
-                    {formatINR(estimateResult.total)}
-                  </p>
-                </div>
-                <div className="mt-5 grid grid-cols-3 gap-3">
-                  {Object.entries(estimateResult.categories).map(([label, value]) => {
-                    const Icon = CATEGORY_ICON[label] ?? Wrench;
-                    return (
-                      <div key={label} className="rounded-xl border border-[#e4e8ee] p-4 text-center">
-                        <Icon className="h-4 w-4 text-[#2f5daa] mx-auto" />
-                        <p className="mt-2 font-utility text-xs text-[#111827]/50">{label}</p>
-                        <p className="font-utility text-sm font-semibold text-[#0e2a63]">{formatINR(value)}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-                <p className="mt-5 text-[#111827]/50 text-xs font-utility leading-relaxed">
-                  This is an indicative estimate only, not a final quote. Actual pricing depends on a
-                  site assessment by our engineering team.
-                </p>
-              </div>
+              <Suspense
+                fallback={
+                  <StaticEstimateReveal total={estimateResult.total} categories={estimateResult.categories} />
+                }
+              >
+                <EstimateReveal total={estimateResult.total} categories={estimateResult.categories} />
+              </Suspense>
             )}
 
             {estimateStatus === "error" && (
@@ -474,7 +460,27 @@ export default function SolarCalculator() {
             <ArrowRight className="h-4 w-4" />
           </button>
         )}
-        {step === 2 && (
+        {step === 2 && estimateStatus === "success" && estimateResult ? (
+          // Once a real result is shown, the primary path becomes booking a
+          // site visit — carrying the calculator's own output forward as
+          // read-only context (see BookingContextSummary on /book-a-call)
+          // rather than making the visitor re-explain themselves.
+          <Link
+            href={{
+              pathname: "/book-a-call",
+              query: {
+                estimatedTotal: String(estimateResult.total),
+                sizingMethod,
+                sizingValue: sizingMethod === "bill" ? averageMonthlyBill : roofAreaSqFt,
+                source: "calculator",
+              },
+            }}
+            className="inline-flex items-center gap-2 rounded-full bg-[#0e2a63] text-white font-utility font-semibold text-sm px-6 py-3.5 hover:bg-[#2f5daa] transition-colors duration-300 active:scale-[0.97]"
+          >
+            Book a Free Site Visit
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        ) : step === 2 ? (
           <button
             type="button"
             onClick={goNext}
@@ -484,7 +490,7 @@ export default function SolarCalculator() {
             Continue
             <ArrowRight className="h-4 w-4" />
           </button>
-        )}
+        ) : null}
         {step === 3 && (
           <motion.button
             type="button"
