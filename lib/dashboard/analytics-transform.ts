@@ -3,6 +3,7 @@ import type {
   DealSizeByTier,
   PipelineTrendPoint,
 } from './types'
+import { IST_TIME_ZONE } from './utils'
 
 // Pure data-shaping for the Recharts series on the Analytics page. Kept out of
 // the component so the mapping (null handling, percentage scaling, week labels)
@@ -47,7 +48,7 @@ export interface PipelineDatum {
 export function weekLabel(week: string): string {
   const d = new Date(week)
   if (Number.isNaN(d.getTime())) return week
-  return new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short' }).format(d)
+  return new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short', timeZone: IST_TIME_ZONE }).format(d)
 }
 
 export function pipelineChartData(rows: PipelineTrendPoint[] | undefined): PipelineDatum[] {

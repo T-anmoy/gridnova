@@ -19,7 +19,7 @@ import { useOverviewStats, useActivityFeed } from '@/lib/dashboard/api-client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DashboardError } from '@/components/dashboard/DashboardError'
-import { formatTimeAgo } from '@/lib/dashboard/utils'
+import { formatTimeAgo, formatLongDate, getISTHour } from '@/lib/dashboard/utils'
 import type { ActivityItem, StatTrend, Role } from '@/lib/dashboard/types'
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
@@ -225,7 +225,7 @@ export default function DashboardOverview() {
           Good {getGreeting()}, {user?.firstName ?? 'there'}
         </h1>
         <p className="font-utility text-sm text-[#111827]/50 mt-1">
-          {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          {formatLongDate()}
         </p>
       </div>
 
@@ -289,7 +289,7 @@ export default function DashboardOverview() {
 }
 
 function getGreeting() {
-  const hour = new Date().getHours()
+  const hour = getISTHour()
   if (hour < 12) return 'morning'
   if (hour < 17) return 'afternoon'
   return 'evening'
