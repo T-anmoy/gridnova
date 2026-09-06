@@ -135,6 +135,25 @@ export const chatMessageResponseSchema = z.object({
   customer_id: z.number().nullable(),
 })
 
+// /book-a-call's public booking endpoints.
+const bookingSlotSchema = z.object({
+  scheduled_at: z.string(),
+  label: z.string(),
+})
+export const bookingAvailabilityResponseSchema = z.object({
+  duration_minutes: z.number(),
+  days_ahead: z.number(),
+  slots: z.array(bookingSlotSchema),
+})
+export const bookingCreateResponseSchema = z.object({
+  success: z.boolean(),
+  lead_id: z.number(),
+  meeting_id: z.number(),
+  scheduled_at: z.string(),
+  duration_minutes: z.number(),
+  meet_link: z.string().nullable().optional(),
+})
+
 // Formats a ZodError into a single-line, field-specific message — e.g.
 // "trends.new_leads_today: Invalid input: expected number, received string"
 // — so a shape mismatch is diagnosable from the thrown error alone.

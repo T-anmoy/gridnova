@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Phone } from "lucide-react";
 import { pageMetadata } from "@/lib/seo";
 import BookingContextSummary from "./BookingContextSummary";
+import BookingWidget from "./BookingWidget";
 
 export const metadata: Metadata = pageMetadata({
   title: "Book a Call",
@@ -50,13 +51,34 @@ export default async function BookACallPage({
           source={asString(params.source)}
         />
 
-        {/* Booking widget lands here in Phase 2 — placement-only checkpoint for now. */}
-        <div className="bg-white rounded-2xl border border-[#e4e8ee] p-10 md:p-14 text-center min-h-[420px] flex flex-col items-center justify-center">
-          <p className="font-display text-[#0e2a63] text-lg font-semibold">
-            Booking widget coming in the next phase
+        <BookingWidget
+          estimatedTotal={asString(params.estimatedTotal)}
+          sizingMethod={asString(params.sizingMethod)}
+          sizingValue={asString(params.sizingValue)}
+          source={asString(params.source)}
+        />
+
+        <div className="mt-8 flex items-center gap-4">
+          <div className="h-px flex-1 bg-[#e4e8ee]" />
+          <p className="font-utility text-xs text-[#111827]/40 uppercase tracking-wider">
+            Prefer to talk right now?
           </p>
-          <p className="mt-2 text-[#111827]/50 text-sm max-w-[42ch]">
-            This page is wired and ready — the interactive date/time picker is built next.
+          <div className="h-px flex-1 bg-[#e4e8ee]" />
+        </div>
+
+        <div className="mt-8 rounded-2xl border border-[#e4e8ee] bg-white p-8 md:p-10 text-center">
+          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[#f7a800]/10">
+            <Phone className="h-5 w-5 text-[#f7a800]" />
+          </div>
+          <a
+            href="tel:+919874774440"
+            className="mt-5 inline-flex items-center gap-2.5 font-display text-[#0e2a63] font-bold hover:text-[#2f5daa] transition-colors duration-300 active:scale-[0.97]"
+            style={{ fontSize: "clamp(1.6rem,5vw,2.25rem)" }}
+          >
+            +91 98747 74440
+          </a>
+          <p className="mt-3 text-[#111827]/50 text-sm">
+            Mon&ndash;Sat, 9am&ndash;7pm IST &mdash; no form, no waiting.
           </p>
         </div>
       </div>
