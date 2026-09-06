@@ -8,10 +8,19 @@ interface ConfiguratorLeadBody {
   email: string;
   state?: string;
   city?: string;
+  pinCode?: string;
+  discom?: string;
+  sizingMethod?: string;
   averageMonthlyBill?: string;
+  monthlyUnits?: string;
   roofAreaSqFt?: string;
-  roofType?: string;
   connectionPhase?: string;
+  tier?: string;
+  roofType?: string;
+  floors?: string;
+  accessDifficulty?: string;
+  shading?: string;
+  subsidyInterest?: "yes" | "no";
   indicativeTotalInr?: number;
   website?: string; // honeypot — real users never fill this
 }
@@ -87,10 +96,19 @@ export async function POST(request: Request) {
     ["Email", email],
     ["State", body.state],
     ["City", body.city],
+    ["PIN Code", body.pinCode],
+    ["DISCOM", body.discom],
+    ["Sizing Method", body.sizingMethod],
     ["Average Monthly Bill", body.averageMonthlyBill],
+    ["Average Monthly Units (kWh)", body.monthlyUnits],
     ["Roof Area (sq ft)", body.roofAreaSqFt],
-    ["Roof Type", body.roofType],
     ["Connection Phase", body.connectionPhase],
+    ["Equipment Tier", body.tier],
+    ["Roof Type", body.roofType],
+    ["Number of Floors", body.floors],
+    ["Site Access Difficulty", body.accessDifficulty],
+    ["Shading Condition", body.shading],
+    ["Interested in PM Surya Ghar Subsidy", body.subsidyInterest === "yes" ? "Yes" : body.subsidyInterest === "no" ? "No" : undefined],
     [
       "Indicative Estimate Shown",
       body.indicativeTotalInr != null ? `₹${body.indicativeTotalInr.toLocaleString("en-IN")}` : undefined,

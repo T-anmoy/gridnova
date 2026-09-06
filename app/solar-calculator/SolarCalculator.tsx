@@ -9,20 +9,34 @@ import {
   TextField,
   SelectField,
   ToggleGroup,
+  YesNoToggle,
   SectionHeading,
 } from "@/app/proposal/new/formPrimitives";
+import FileUploadSlot from "@/app/proposal/new/FileUploadSlot";
 import { STATES } from "@/app/proposal/new/types";
 import {
   type CustomerType,
   type SizingMethod,
+  type InstantEstimateResult,
   toSegment,
+  sizingMethodToEngineKey,
   ROOF_TYPE_LABELS,
   roofLabelToEngineKey,
   CONNECTION_PHASES,
+  connectionPhaseToEngineKey,
+  TIER_LABELS,
+  tierLabelToEngineKey,
+  tierEngineKeyToLabel,
+  ACCESS_DIFFICULTY_LABELS,
+  accessDifficultyLabelToEngineKey,
+  SHADING_LABELS,
+  shadingLabelToEngineKey,
+  discomsForState,
   roofAreaToSizeKw,
   validateEmail,
   validatePhone,
   validateName,
+  validatePinCode,
 } from "./lib";
 import StaticEstimateReveal from "./StaticEstimateReveal";
 
@@ -30,18 +44,13 @@ import StaticEstimateReveal from "./StaticEstimateReveal";
 // this page's initial JS via next/dynamic, since most visitors haven't
 // reached a result yet. Wrapped in our own <Suspense> below (rather than
 // dynamic()'s `loading` option) so the fallback can show the real resolved
-// total/categories instead of a hardcoded placeholder — same markup, just
-// without the count-up animation, so there's no layout shift and no wrong
-// numbers flashing while this chunk loads in.
+// breakdown instead of a hardcoded placeholder — same markup, just without
+// the count-up animation, so there's no layout shift and no wrong numbers
+// flashing while this chunk loads in.
 const EstimateReveal = dynamic(() => import("./EstimateReveal"));
 
-const STEP_NAMES = ["Basics", "Sizing", "Your Estimate", "Get In Touch"];
+const STEP_NAMES = ["Basics", "Sizing", "Site Details", "Your Estimate", "Get In Touch"];
 const TOTAL_STEPS = STEP_NAMES.length;
-
-interface EstimateResult {
-  total: number;
-  categories: Record<string, number>;
-}
 
 type EstimateStatus = "idle" | "loading" | "success" | "error";
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
@@ -53,19 +62,32 @@ export default function SolarCalculator() {
   const [customerType, setCustomerType] = useState<CustomerType>("residential");
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
+  const [pinCode, setPinCode] = useState("");
+  const [discom, setDiscom] = useState("");
+  const [pinTouched, setPinTouched] = useState(false);
 
   // Step B — Sizing
   const [sizingMethod, setSizingMethod] = useState<SizingMethod>("bill");
   const [averageMonthlyBill, setAverageMonthlyBill] = useState("");
+  const [monthlyUnits, setMonthlyUnits] = useState("");
   const [roofAreaSqFt, setRoofAreaSqFt] = useState("");
-  const [roofTypeLabel, setRoofTypeLabel] = useState("");
   const [connectionPhase, setConnectionPhase] = useState("");
+  const [tierLabel, setTierLabel] = useState(TIER_LABELS[0]); // "Good"
 
-  // Step C — Instant Estimate
+  // Step C — Site Details
+  const [roofTypeLabel, setRoofTypeLabel] = useState("");
+  const [floors, setFloors] = useState("1");
+  const [accessDifficultyLabel, setAccessDifficultyLabel] = useState("");
+  const [shadingLabel, setShadingLabel] = useState("");
+  const [subsidyInterest, setSubsidyInterest] = useState<"yes" | "no">("yes");
+  const [billFiles, setBillFiles] = useState<File[]>([]);
+  const [roofPhotoFiles, setRoofPhotoFiles] = useState<File[]>([]);
+
+  // Step D — Instant Estimate
   const [estimateStatus, setEstimateStatus] = useState<EstimateStatus>("idle");
-  const [estimateResult, setEstimateResult] = useState<EstimateResult | null>(null);
+  const [estimateResult, setEstimateResult] = useState<InstantEstimateResult | null>(null);
 
-  // Step D — Capture
+  // Step E — Capture
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -77,31 +99,47 @@ export default function SolarCalculator() {
   const nameError = touched.fullName ? validateName(fullName) : undefined;
   const phoneError = touched.phone ? validatePhone(phone) : undefined;
   const emailError = touched.email ? validateEmail(email) : undefined;
+  const pinError = pinTouched ? validatePinCode(pinCode) : undefined;
 
-  // Fetch the indicative estimate the moment Step C is reached. Public,
-  // unauthenticated call straight to the backend — same direct-fetch pattern
-  // AskNova.tsx already uses for its own public endpoint, no Clerk token
-  // involved since there's nothing to authenticate here.
+  function handleStateChange(value: string) {
+    setState(value);
+    setDiscom(""); // last state's DISCOM choice may not apply to the new state
+  }
+
+  // Fetch the indicative estimate the moment the results step is reached.
+  // Public, unauthenticated call straight to the backend — same direct-fetch
+  // pattern AskNova.tsx already uses for its own public endpoint, no Clerk
+  // token involved since there's nothing to authenticate here.
   useEffect(() => {
-    if (step !== 2 || estimateStatus !== "idle") return;
+    if (step !== 3 || estimateStatus !== "idle") return;
 
     async function fetchEstimate() {
       setEstimateStatus("loading");
       try {
         const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-        const sizing =
+        const sizingValue: Record<string, number> =
           sizingMethod === "bill"
             ? { monthly_bill_inr: parseFloat(averageMonthlyBill) }
-            : { size_kw: roofAreaToSizeKw(parseFloat(roofAreaSqFt)) };
+            : sizingMethod === "units"
+              ? { monthly_units_kwh: parseFloat(monthlyUnits) }
+              : { usable_roof_area_sqft: parseFloat(roofAreaSqFt) };
 
-        const res = await fetch(`${apiBase}/api/v1/pricing/estimate`, {
+        const res = await fetch(`${apiBase}/api/v1/pricing/instant-estimate`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             segment: toSegment(customerType),
             state,
+            sizing_method: sizingMethodToEngineKey(sizingMethod),
+            ...sizingValue,
+            connection_phase: connectionPhaseToEngineKey(connectionPhase),
+            tier: tierLabelToEngineKey(tierLabel),
             roof_type: roofLabelToEngineKey(roofTypeLabel),
-            ...sizing,
+            floors: floors ? parseInt(floors, 10) : undefined,
+            shading: shadingLabelToEngineKey(shadingLabel),
+            access_difficulty: accessDifficultyLabelToEngineKey(accessDifficultyLabel),
+            is_remote: false,
+            is_housing_society: customerType === "society",
           }),
           signal: AbortSignal.timeout(6000),
         });
@@ -109,11 +147,31 @@ export default function SolarCalculator() {
         if (!res.ok) throw new Error(`Pricing endpoint returned ${res.status}`);
 
         const data = await res.json();
-        if (typeof data.total_inr !== "number" || typeof data.categories !== "object") {
+        if (
+          typeof data.recommended_size_kw !== "number" ||
+          typeof data.base_cost !== "number" ||
+          typeof data.subtotal_before_tax !== "number" ||
+          typeof data.is_indicative_range !== "boolean"
+        ) {
           throw new Error("Unexpected pricing response shape");
         }
 
-        setEstimateResult({ total: data.total_inr, categories: data.categories });
+        setEstimateResult({
+          recommendedSizeKw: data.recommended_size_kw,
+          tierLabel: tierEngineKeyToLabel(data.tier),
+          baseCost: data.base_cost,
+          tierCost: data.tier_cost,
+          accessDifficultyAdder: data.adders?.access_difficulty ?? 0,
+          componentBreakdown: data.component_breakdown ?? {},
+          subtotalBeforeTax: data.subtotal_before_tax,
+          gstAmount: data.gst_amount,
+          subsidyInr: data.subsidy_inr ?? 0,
+          netCost: data.net_cost,
+          isIndicativeRange: data.is_indicative_range,
+          netCostRangeMin: data.net_cost_range_min,
+          netCostRangeMax: data.net_cost_range_max,
+          note: data.note,
+        });
         setEstimateStatus("success");
       } catch {
         // Never let an unreachable/slow pricing endpoint strand the visitor —
@@ -137,11 +195,16 @@ export default function SolarCalculator() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  const step0Valid = !!state && !!city.trim();
+  const step0Valid = !!state && !!city.trim() && !validatePinCode(pinCode);
   const step1Valid =
-    sizingMethod === "bill"
+    (sizingMethod === "bill"
       ? !!averageMonthlyBill && Number(averageMonthlyBill) > 0
-      : !!roofAreaSqFt && Number(roofAreaSqFt) > 0;
+      : sizingMethod === "units"
+        ? !!monthlyUnits && Number(monthlyUnits) > 0
+        : !!roofAreaSqFt && Number(roofAreaSqFt) > 0) && !!connectionPhase;
+  // Site Details is entirely optional/never-blocking, per design — every
+  // field here has a sensible backend fallback when omitted.
+  const step2Valid = true;
 
   async function handleSubmit() {
     if (honeypot) return; // silent bot rejection
@@ -168,11 +231,20 @@ export default function SolarCalculator() {
           email,
           state,
           city,
+          pinCode,
+          discom: discom || undefined,
+          sizingMethod,
           averageMonthlyBill: sizingMethod === "bill" ? averageMonthlyBill : undefined,
+          monthlyUnits: sizingMethod === "units" ? monthlyUnits : undefined,
           roofAreaSqFt: sizingMethod === "roof_area" ? roofAreaSqFt : undefined,
-          roofType: roofTypeLabel || undefined,
           connectionPhase: connectionPhase || undefined,
-          indicativeTotalInr: estimateResult?.total,
+          tier: tierLabel,
+          roofType: roofTypeLabel || undefined,
+          floors: floors || undefined,
+          accessDifficulty: accessDifficultyLabel || undefined,
+          shading: shadingLabel || undefined,
+          subsidyInterest,
+          indicativeTotalInr: estimateResult?.netCost ?? estimateResult?.netCostRangeMax ?? undefined,
           website: honeypot,
         }),
       });
@@ -270,7 +342,7 @@ export default function SolarCalculator() {
                 id="sc-state"
                 label="State"
                 value={state}
-                onChange={setState}
+                onChange={handleStateChange}
                 options={STATES}
                 placeholder="Select state…"
               />
@@ -280,6 +352,27 @@ export default function SolarCalculator() {
                 value={city}
                 onChange={setCity}
                 placeholder="Kolkata"
+              />
+            </div>
+            <div className="grid sm:grid-cols-2 gap-5">
+              <TextField
+                id="sc-pin"
+                label="PIN Code"
+                value={pinCode}
+                onChange={(v) => setPinCode(v.replace(/\D/g, "").slice(0, 6))}
+                onBlur={() => setPinTouched(true)}
+                error={pinError}
+                placeholder="700001"
+                inputMode="numeric"
+              />
+              <SelectField
+                id="sc-discom"
+                label="DISCOM / Electricity Board"
+                value={discom}
+                onChange={setDiscom}
+                options={discomsForState(state)}
+                optional
+                placeholder="Select DISCOM…"
               />
             </div>
           </div>
@@ -294,9 +387,10 @@ export default function SolarCalculator() {
               onChange={setSizingMethod}
               options={[
                 ["bill", "By Monthly Bill"],
+                ["units", "By Monthly Units"],
                 ["roof_area", "By Roof Area"],
               ]}
-              note="Not sure which? Your monthly electricity bill usually gives the more accurate estimate."
+              note="Not sure which? Your monthly electricity consumption (in units/kWh) usually gives the most accurate estimate."
             />
             {sizingMethod === "bill" ? (
               <TextField
@@ -307,16 +401,56 @@ export default function SolarCalculator() {
                 placeholder="3500"
                 inputMode="numeric"
               />
-            ) : (
+            ) : sizingMethod === "units" ? (
               <TextField
-                id="sc-roof-area"
-                label="Available Roof Area (sq ft)"
-                value={roofAreaSqFt}
-                onChange={setRoofAreaSqFt}
-                placeholder="800"
+                id="sc-units"
+                label="Average Monthly Consumption (units / kWh)"
+                value={monthlyUnits}
+                onChange={setMonthlyUnits}
+                placeholder="450"
                 inputMode="numeric"
               />
+            ) : (
+              <div>
+                <TextField
+                  id="sc-roof-area"
+                  label="Available Roof Area (sq ft)"
+                  value={roofAreaSqFt}
+                  onChange={setRoofAreaSqFt}
+                  placeholder="800"
+                  inputMode="numeric"
+                />
+                {!!roofAreaSqFt && Number(roofAreaSqFt) > 0 && (
+                  <p className="mt-1.5 text-[#111827]/45 text-xs font-utility">
+                    &asymp; {roofAreaToSizeKw(Number(roofAreaSqFt))} kW indicative capacity
+                  </p>
+                )}
+              </div>
             )}
+            <div className="grid sm:grid-cols-2 gap-5">
+              <SelectField
+                id="sc-phase"
+                label="Connection Phase"
+                value={connectionPhase}
+                onChange={setConnectionPhase}
+                options={CONNECTION_PHASES}
+                placeholder="Select connection phase…"
+              />
+              <div>
+                <ToggleGroup
+                  label="Equipment Tier"
+                  value={tierLabel}
+                  onChange={setTierLabel}
+                  options={TIER_LABELS.map((l) => [l, l] as [string, string])}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="space-y-6">
+            <SectionHeading>Tell us about the site</SectionHeading>
             <div className="grid sm:grid-cols-2 gap-5">
               <SelectField
                 id="sc-roof-type"
@@ -327,20 +461,72 @@ export default function SolarCalculator() {
                 optional
                 placeholder="Select roof type…"
               />
-              <SelectField
-                id="sc-phase"
-                label="Connection Phase"
-                value={connectionPhase}
-                onChange={setConnectionPhase}
-                options={CONNECTION_PHASES}
+              <TextField
+                id="sc-floors"
+                label="Number of Floors"
+                value={floors}
+                onChange={(v) => setFloors(v.replace(/\D/g, ""))}
                 optional
-                placeholder="Select connection phase…"
+                placeholder="1"
+                inputMode="numeric"
+              />
+            </div>
+            <div className="grid sm:grid-cols-2 gap-5">
+              <SelectField
+                id="sc-access"
+                label="Site Access Difficulty"
+                value={accessDifficultyLabel}
+                onChange={setAccessDifficultyLabel}
+                options={ACCESS_DIFFICULTY_LABELS}
+                optional
+                placeholder="Select access difficulty…"
+              />
+              <SelectField
+                id="sc-shading"
+                label="Shading Condition"
+                value={shadingLabel}
+                onChange={setShadingLabel}
+                options={SHADING_LABELS}
+                optional
+                placeholder="Select shading condition…"
+              />
+            </div>
+            <YesNoToggle
+              label="Interested in the PM Surya Ghar subsidy?"
+              value={subsidyInterest}
+              onChange={setSubsidyInterest}
+              note="A residential rooftop system may qualify for a central government subsidy — we'll factor this into your estimate below."
+            />
+            <div className="grid sm:grid-cols-2 gap-5">
+              <FileUploadSlot
+                id="sc-bill-upload"
+                label="Electricity Bill"
+                helperText="Helps our team verify your consumption — a photo or PDF is fine."
+                accept=".pdf,.jpg,.jpeg,.png"
+                acceptedTypesLabel="PDF, JPG, PNG"
+                maxSizeMB={10}
+                maxFiles={1}
+                files={billFiles}
+                onChange={setBillFiles}
+                optional
+              />
+              <FileUploadSlot
+                id="sc-roof-photo-upload"
+                label="Roof Photo"
+                helperText="A quick photo of your roof gives our team useful context."
+                accept=".jpg,.jpeg,.png"
+                acceptedTypesLabel="JPG, PNG"
+                maxSizeMB={10}
+                maxFiles={3}
+                files={roofPhotoFiles}
+                onChange={setRoofPhotoFiles}
+                optional
               />
             </div>
           </div>
         )}
 
-        {step === 2 && (
+        {step === 3 && (
           <div className="space-y-6">
             <SectionHeading>Your instant estimate</SectionHeading>
 
@@ -352,12 +538,8 @@ export default function SolarCalculator() {
             )}
 
             {estimateStatus === "success" && estimateResult && (
-              <Suspense
-                fallback={
-                  <StaticEstimateReveal total={estimateResult.total} categories={estimateResult.categories} />
-                }
-              >
-                <EstimateReveal total={estimateResult.total} categories={estimateResult.categories} />
+              <Suspense fallback={<StaticEstimateReveal result={estimateResult} />}>
+                <EstimateReveal result={estimateResult} />
               </Suspense>
             )}
 
@@ -376,7 +558,7 @@ export default function SolarCalculator() {
           </div>
         )}
 
-        {step === 3 && (
+        {step === 4 && (
           <div className="space-y-6">
             <SectionHeading>Get in touch</SectionHeading>
             <p className="text-[#111827]/50 text-sm font-utility -mt-4">
@@ -460,7 +642,18 @@ export default function SolarCalculator() {
             <ArrowRight className="h-4 w-4" />
           </button>
         )}
-        {step === 2 && estimateStatus === "success" && estimateResult ? (
+        {step === 2 && (
+          <button
+            type="button"
+            onClick={goNext}
+            disabled={!step2Valid}
+            className="inline-flex items-center gap-2 rounded-full bg-[#0e2a63] text-white font-utility font-semibold text-sm px-6 py-3.5 hover:bg-[#2f5daa] transition-colors duration-300 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Next
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        )}
+        {step === 3 && estimateStatus === "success" && estimateResult ? (
           // Once a real result is shown, the primary path becomes booking a
           // site visit — carrying the calculator's own output forward as
           // read-only context (see BookingContextSummary on /book-a-call)
@@ -469,9 +662,10 @@ export default function SolarCalculator() {
             href={{
               pathname: "/book-a-call",
               query: {
-                estimatedTotal: String(estimateResult.total),
+                estimatedTotal: String(estimateResult.netCost ?? estimateResult.netCostRangeMax ?? ""),
                 sizingMethod,
-                sizingValue: sizingMethod === "bill" ? averageMonthlyBill : roofAreaSqFt,
+                sizingValue:
+                  sizingMethod === "bill" ? averageMonthlyBill : sizingMethod === "units" ? monthlyUnits : roofAreaSqFt,
                 source: "calculator",
               },
             }}
@@ -480,7 +674,7 @@ export default function SolarCalculator() {
             Book a Free Site Visit
             <ArrowRight className="h-4 w-4" />
           </Link>
-        ) : step === 2 ? (
+        ) : step === 3 ? (
           <button
             type="button"
             onClick={goNext}
@@ -491,7 +685,7 @@ export default function SolarCalculator() {
             <ArrowRight className="h-4 w-4" />
           </button>
         ) : null}
-        {step === 3 && (
+        {step === 4 && (
           <motion.button
             type="button"
             onClick={() => void handleSubmit()}

@@ -1,7 +1,7 @@
 "use client";
 
 import { TextField, TextAreaField, SelectField } from "../formPrimitives";
-import { STATES, DISCOMS, SITE_TYPES, SHADING_CONDITIONS } from "../types";
+import { STATES, SITE_TYPES, SHADING_CONDITIONS, discomsForState } from "../types";
 import type { ProposalFormValues } from "../types";
 import type { FieldErrors } from "../validation";
 
@@ -72,8 +72,8 @@ export default function Step2InstallationSite({ values, errors, set, touch }: Pr
         <SelectField
           id="discom"
           label="DISCOM / Electricity Board"
-          placeholder="Select DISCOM…"
-          options={DISCOMS}
+          placeholder={values.state ? "Select DISCOM…" : "Select a state first…"}
+          options={discomsForState(values.state)}
           value={values.discom}
           onChange={(v) => set("discom", v)}
           onBlur={() => touch("discom")}

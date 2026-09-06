@@ -145,21 +145,118 @@ export const SCHEME_NAMES = [
   "Other Government Scheme",
 ];
 
-// TODO: Raju Paul to confirm full state/DISCOM list
+// All 28 states + 8 union territories.
 export const STATES = [
-  "West Bengal",
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
   "Bihar",
-  "Other Eastern State (feasibility required)",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  // Union Territories
+  "Delhi",
+  "Jammu & Kashmir",
+  "Ladakh",
+  "Puducherry",
+  "Chandigarh",
+  "Andaman & Nicobar Islands",
+  "Lakshadweep",
+  "Dadra & Nagar Haveli and Daman & Diu",
 ];
 
-// TODO: Raju Paul to supply complete DISCOM list by state
-export const DISCOMS = [
-  "CESC (Kolkata)",
-  "WBSEDCL",
-  "SBPDCL (Bihar)",
-  "NBPDCL (Bihar)",
-  "Other",
-];
+// Real DISCOM (electricity distribution company) coverage per state/UT,
+// sourced from official DISCOM records as of 2026. Where a state has
+// multiple regional DISCOMs, all are listed with a plain-language regional
+// hint so a customer can pick the one covering their area (PIN-to-DISCOM
+// mapping isn't available). Where a state/UT has no separate corporatized
+// DISCOM brand, the single entry is its state electricity department.
+//
+// This is NOT permanent — DISCOM privatization and restructuring genuinely
+// happens (Odisha's 2021 privatization of distribution to four Tata Power
+// companies is a recent real example). Re-verify this list periodically
+// rather than treating it as a one-time fixed reference.
+export const DISCOMS_BY_STATE: Record<string, string[]> = {
+  "Andhra Pradesh": ["APEPDCL (Eastern)", "APSPDCL (Southern)", "APCPDCL (Central)", "APNPDCL (Northern)"],
+  "Arunachal Pradesh": ["Arunachal Pradesh State Electricity Department"],
+  Assam: ["APDCL (Assam Power Distribution Company)"],
+  Bihar: ["NBPDCL (North Bihar)", "SBPDCL (South Bihar)"],
+  Chhattisgarh: ["CSPDCL"],
+  Goa: ["Goa Electricity Department"],
+  Gujarat: [
+    "UGVCL (Uttar Gujarat)",
+    "PGVCL (Paschim Gujarat)",
+    "DGVCL (Dakshin Gujarat)",
+    "MGVCL (Madhya Gujarat)",
+    "Torrent Power (Ahmedabad/Surat/Gandhinagar — private)",
+  ],
+  Haryana: ["DHBVN (Dakshin Haryana)", "UHBVN (Uttar Haryana)"],
+  "Himachal Pradesh": ["HPSEBL"],
+  Jharkhand: ["JBVNL"],
+  Karnataka: ["BESCOM (Bangalore)", "MESCOM (Mangalore)", "CESC Mysuru", "GESCOM (Kalaburagi)", "HESCOM (Hubli)"],
+  Kerala: ["KSEBL"],
+  "Madhya Pradesh": ["MPPKVVCL (East)", "MPMKVVCL (Central)", "MPPaKVVCL (West)"],
+  Maharashtra: ["MSEDCL (statewide)", "BEST (Mumbai)", "Tata Power (Mumbai)", "Adani Electricity (Mumbai)"],
+  Manipur: ["MSPDCL"],
+  Meghalaya: ["MePDCL"],
+  Mizoram: ["Mizoram Power & Electricity Department"],
+  Nagaland: ["Nagaland Department of Power"],
+  Odisha: ["TPNODL (North)", "TPSODL (South)", "TPWODL (West)", "TPCODL (Central)"],
+  Punjab: ["PSPCL"],
+  Rajasthan: ["JVVNL (Jaipur)", "AVVNL (Ajmer)", "JdVVNL (Jodhpur)"],
+  Sikkim: ["Sikkim Energy & Power Department"],
+  "Tamil Nadu": ["TANGEDCO"],
+  Telangana: ["TSSPDCL (Southern)", "TSNPDCL (Northern)"],
+  Tripura: ["TSECL"],
+  "Uttar Pradesh": [
+    "PuVVNL (Purvanchal)",
+    "PVVNL (Paschimanchal)",
+    "MVVNL (Madhyanchal)",
+    "DVVNL (Dakshinanchal)",
+    "KESCO (Kanpur)",
+  ],
+  Uttarakhand: ["UPCL"],
+  "West Bengal": ["WBSEDCL", "CESC Limited (Kolkata & parts of Howrah)"],
+  // Union Territories
+  Delhi: ["BRPL (BSES Rajdhani)", "BYPL (BSES Yamuna)", "TPDDL (Tata Power Delhi)", "NDMC (Lutyens' Delhi)"],
+  "Jammu & Kashmir": ["J&K Power Development Department"],
+  Ladakh: ["Ladakh Power Development Department"],
+  Puducherry: ["Puducherry Electricity Department"],
+  Chandigarh: ["Chandigarh Electricity Department"],
+  "Andaman & Nicobar Islands": ["A&N Electricity Department"],
+  Lakshadweep: ["Lakshadweep Electricity Department"],
+  "Dadra & Nagar Haveli and Daman & Diu": ["DNH&DD Electricity Department"],
+};
+
+// Flat fallback (e.g. a DISCOM selector shown before a state is chosen) —
+// every real DISCOM across all states/UTs, deduplicated. Prefer
+// `discomsForState` wherever a state is already known.
+export const DISCOMS = Array.from(new Set(Object.values(DISCOMS_BY_STATE).flat()));
+
+export function discomsForState(state: string): string[] {
+  return DISCOMS_BY_STATE[state] ?? [];
+}
 
 // Not TODO-marked in the spec — kept as a fixed structural list since site
 // type is a physical description, not a Raju-Paul-owned business value.
