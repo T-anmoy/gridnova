@@ -54,7 +54,13 @@ export default function Navigation() {
       <motion.div
         initial={false}
         animate={{
-          maxWidth: scrolled ? 980 : 1180,
+          // Real content need (logo + 8 nav links at their restored, generous
+          // padding + 2 CTA buttons) measures ~1183px. The full nav now only
+          // ever renders at xl: (1280px+), where the header's own outer
+          // padding already leaves ~1232px of real room — these caps mostly
+          // matter at very wide viewports, so they're set with genuine
+          // margin above the content need rather than a hairline fit.
+          maxWidth: scrolled ? 1220 : 1260,
           paddingTop: scrolled ? 8 : 14,
           paddingBottom: scrolled ? 8 : 14,
           // A confident, near-solid navy regardless of what's behind it — the
@@ -83,8 +89,12 @@ export default function Navigation() {
           </span>
         </Link>
 
+        {/* Full horizontal nav — genuine desktop only (xl: / 1280px+). Below
+            that, even at a tablet width like 1024px (iPad Pro portrait),
+            8 links + 2 CTAs never had comfortable room; the hamburger/drawer
+            now covers both phone and tablet instead of forcing a cramped fit. */}
         <nav
-          className="hidden lg:flex items-center gap-1"
+          className="hidden xl:flex items-center gap-1"
           onMouseLeave={() => setHovered(null)}
         >
           {NAV_LINKS.map((link) => {
@@ -96,7 +106,7 @@ export default function Navigation() {
                 href={link.href}
                 onMouseEnter={() => setHovered(link.href)}
                 onClick={(e) => handleNavClick(e, link.href)}
-                className={`relative px-3.5 py-2 rounded text-[13px] font-utility transition-colors duration-200 active:scale-[0.97] ${
+                className={`relative px-3.5 py-2 rounded text-[13px] font-utility transition-colors duration-300 active:scale-[0.97] ${
                   isActive ? "text-white" : "text-white/75 hover:text-white"
                 }`}
               >
@@ -114,29 +124,38 @@ export default function Navigation() {
         </nav>
 
         <div className="flex items-center gap-2">
-          {/* Both CTAs share the nav links' lg: breakpoint (not the old
-              single-button's md:) — two buttons need more room than one, and
-              this keeps one consistent "full nav appears together" threshold
-              instead of the previous md/lg split. */}
+          {/* "Book a Call" (secondary) only appears once the full nav does —
+              at tablet widths it lives in the drawer alongside the rest of
+              the nav, one tap away rather than competing for header space. */}
           <Link
             href="/book-a-call"
-            className="hidden lg:inline-flex items-center gap-1.5 rounded-full border border-white/25 text-white text-[13px] font-utility font-semibold px-4 py-2 hover:bg-white/10 hover:border-white/40 transition-colors duration-200 active:scale-[0.97]"
+            className="hidden xl:inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border border-white/25 text-white text-[13px] font-utility font-semibold px-4 py-2 hover:bg-white/10 hover:border-white/40 transition-colors duration-300 active:scale-[0.97]"
           >
             Book a Call
           </Link>
+          {/* "Get Instant Estimate" (primary) is the one thing worth keeping
+              visible even when the rest of the nav collapses — it's the
+              site's main conversion action, and a tablet visitor shouldn't
+              have to open a drawer to reach it. Visible from md: (768px)
+              all the way through desktop; only the breakpoint differs from
+              "Book a Call" above, same element otherwise. */}
           <Link
             href="/solar-calculator"
-            className="hidden lg:inline-flex items-center gap-1.5 rounded-full bg-[#f7a800] text-[#091c3c] text-[13px] font-utility font-semibold px-4 py-2 hover:bg-white transition-colors duration-200 active:scale-[0.97]"
+            className="hidden md:inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full bg-[#f7a800] text-[#091c3c] text-[13px] font-utility font-semibold px-4 py-2 hover:bg-white transition-colors duration-300 active:scale-[0.97]"
           >
             Get Instant Estimate
             <ArrowUpRight className="h-3.5 w-3.5" />
           </Link>
+          {/* Tablet gets a slightly larger, hover-aware tap target than
+              phone — a real button, not a bare icon borrowed unchanged from
+              the mobile layout (tablets are often used with a trackpad, e.g.
+              iPad + Magic Keyboard, where hover feedback actually registers). */}
           <button
             aria-label={open ? "Close menu" : "Open menu"}
             onClick={() => setOpen((v) => !v)}
-            className="lg:hidden flex items-center justify-center h-11 w-11 rounded-full text-white active:scale-[0.97] transition-transform"
+            className="xl:hidden flex items-center justify-center h-11 w-11 md:h-12 md:w-12 rounded-full text-white hover:bg-white/10 active:scale-[0.97] transition-all duration-300"
           >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {open ? <X className="h-5 w-5 md:h-6 md:w-6" /> : <Menu className="h-5 w-5 md:h-6 md:w-6" />}
           </button>
         </div>
       </motion.div>
@@ -153,7 +172,7 @@ export default function Navigation() {
               transition={{ duration: 0.25 }}
               onClick={() => setOpen(false)}
               aria-hidden="true"
-              className="fixed inset-0 z-10 lg:hidden bg-[#040e28]/40"
+              className="fixed inset-0 z-10 xl:hidden bg-[#040e28]/40"
             />
           <motion.div
             key="nav-panel"
@@ -161,7 +180,11 @@ export default function Navigation() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="glass fixed top-[84px] left-3 right-3 xs:left-4 xs:right-4 z-20 rounded-3xl p-5 xs:p-6 lg:hidden overflow-y-auto"
+            // Below md: a full-bleed mobile sheet (left-3/right-3). From
+            // md: up (tablet), it becomes a fixed-width card anchored to the
+            // right edge instead — a proper dropdown panel appropriate for a
+            // wider screen, not a phone sheet stretched edge to edge.
+            className="glass fixed top-[84px] left-3 right-3 xs:left-4 xs:right-4 md:left-auto md:right-6 md:w-[400px] z-20 rounded-3xl p-5 xs:p-6 md:p-6 xl:hidden overflow-y-auto shadow-[0_28px_70px_-14px_rgba(4,14,40,0.65)]"
             style={{ backgroundColor: "rgba(9,28,60,0.92)", maxHeight: "calc(100dvh - 100px)" }}
           >
             <nav className="flex flex-col divide-y divide-white/10">
