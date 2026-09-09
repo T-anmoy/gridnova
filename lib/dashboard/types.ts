@@ -63,6 +63,7 @@ export interface LeadSummary {
   customer_name?: string | null
   pipeline_stage: PipelineStage
   lead_score: LeadScore
+  source: string
   created_at: string
 }
 
@@ -295,6 +296,31 @@ export interface AuditLogParams {
   employee_id?: string
   date_from?: string
   date_to?: string
+  page?: number
+  page_size?: number
+}
+
+export interface MeetingSummary {
+  id: number
+  lead_id: number
+  employee_id: string
+  employee_name: string | null
+  // Deliberately its own shape, not the Customer type used elsewhere — the
+  // meetings endpoint returns {id, name, email, phone}, not Customer's
+  // {id, name, company, email}.
+  customer: {
+    id: number
+    name: string
+    email: string
+    phone: string | null
+  } | null
+  scheduled_at: string
+  duration_minutes: number
+  status: 'scheduled' | 'cancelled' | 'completed'
+  meet_link: string | null
+}
+
+export interface MeetingListParams {
   page?: number
   page_size?: number
 }

@@ -14,6 +14,7 @@ import {
   ClipboardList,
   Bot,
   Package,
+  CalendarClock,
   Menu,
   X,
   LogOut,
@@ -42,6 +43,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: 'Overview', href: '/dashboard', icon: LayoutDashboard, roles: 'all' },
   { label: 'Leads', href: '/dashboard/leads', icon: Users, roles: 'all' },
+  { label: 'Meetings', href: '/dashboard/meetings', icon: CalendarClock, roles: ['admin', 'sales', 'management'] },
   { label: 'Proposals', href: '/dashboard/proposals', icon: FileText, roles: ['admin', 'sales', 'management', 'engineer'], badge: true },
   { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart2, roles: ['admin', 'sales', 'management'] },
   { label: 'Employees', href: '/dashboard/employees', icon: UserCog, roles: ['admin'] },

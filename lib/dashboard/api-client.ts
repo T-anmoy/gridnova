@@ -12,6 +12,7 @@ import {
   pipelineTrendResponseSchema,
   leadListResponseSchema,
   proposalListResponseSchema,
+  meetingListResponseSchema,
 } from './schemas'
 import type {
   ActivityItem,
@@ -32,6 +33,8 @@ import type {
   LeadDetail,
   LeadListParams,
   LeadSummary,
+  MeetingListParams,
+  MeetingSummary,
   OverviewStats,
   PaginatedResponse,
   PipelineTrendPoint,
@@ -429,6 +432,19 @@ export function useAuditLog(params?: AuditLogParams) {
       if (!token) throw new Error('Not authenticated')
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
       return dashboardFetch<PaginatedResponse<AuditLog>>(`/api/v1/dashboard/audit-log${qs}`, token)
+    },
+  })
+}
+
+export function useMeetings(params?: MeetingListParams) {
+  const { getToken } = useAuth()
+  return useQuery({
+    queryKey: ['meetings', params],
+    queryFn: async () => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
+      return dashboardFetch(`/api/v1/dashboard/meetings${qs}`, token, undefined, meetingListResponseSchema) as unknown as Promise<PaginatedResponse<MeetingSummary>>
     },
   })
 }

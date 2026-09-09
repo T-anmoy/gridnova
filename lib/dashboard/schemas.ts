@@ -78,9 +78,34 @@ const leadSummarySchema = z.object({
   customer_name: z.string().nullable().optional(),
   pipeline_stage: z.string(),
   lead_score: z.string(),
+  source: z.string(),
   created_at: z.string(),
 })
 export const leadListResponseSchema = z.array(leadSummarySchema)
+
+const meetingCustomerSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  email: z.string(),
+  phone: z.string().nullable(),
+})
+const meetingSummarySchema = z.object({
+  id: z.number(),
+  lead_id: z.number(),
+  employee_id: z.string(),
+  employee_name: z.string().nullable(),
+  customer: meetingCustomerSchema.nullable(),
+  scheduled_at: z.string(),
+  duration_minutes: z.number(),
+  status: z.string(),
+  meet_link: z.string().nullable().optional(),
+})
+export const meetingListResponseSchema = z.object({
+  items: z.array(meetingSummarySchema),
+  page: z.number(),
+  page_size: z.number(),
+  total: z.number(),
+})
 
 // Common to both the full staff view and the pricing-stripped Engineer view —
 // the fields unique to either variant are intentionally left unvalidated.
@@ -152,6 +177,15 @@ export const bookingCreateResponseSchema = z.object({
   scheduled_at: z.string(),
   duration_minutes: z.number(),
   meet_link: z.string().nullable().optional(),
+})
+// The 409 body's `detail` on a slot conflict — already names the exact
+// requested time and carries freshly-computed nearby alternatives, so the
+// frontend can show both directly instead of re-deriving them.
+export const bookingConflictDetailSchema = z.object({
+  code: z.literal("slot_unavailable"),
+  message: z.string(),
+  requested_slot: z.string(),
+  alternatives: z.array(bookingSlotSchema),
 })
 
 // Formats a ZodError into a single-line, field-specific message — e.g.
