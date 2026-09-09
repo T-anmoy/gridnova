@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import BookACallPage from "@/app/book-a-call/page";
 import BookingWidget from "@/app/book-a-call/BookingWidget";
@@ -182,6 +182,44 @@ describe("BookingWidget — ask-then-confirm flow", () => {
     expect(screen.getByRole("combobox")).toHaveTextContent(ASK.timeLabel);
   });
 
+  it("crosses out an already-taken slot as soon as a date is picked, and it cannot be selected", async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(jsonResponse(AVAILABILITY_WITHOUT_EXACT));
+    const user = userEvent.setup();
+    render(<BookingWidget />);
+
+    // Availability is fetched the moment a date is picked — before the time
+    // selector is even opened, not deferred until "Check availability".
+    fireEvent.change(screen.getByLabelText("Date"), { target: { value: ASK.dateStr } });
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+    expect(fetch).toHaveBeenCalledWith(expect.stringContaining("/api/v1/public/booking/availability"));
+
+    await user.click(screen.getByRole("combobox"));
+
+    // ASK.timeLabel is deliberately absent from AVAILABILITY_WITHOUT_EXACT —
+    // a known-taken slot on this date — so it must render visibly struck
+    // through and disabled, not just silently missing.
+    const takenOption = await screen.findByRole("option", { name: ASK.timeLabel });
+    expect(takenOption).toHaveAttribute("data-disabled");
+    expect(takenOption).toHaveAttribute("aria-disabled", "true");
+
+    // A disabled Radix option doesn't fire onValueChange — clicking it must
+    // not select it (not "selectable, then rejected on submit").
+    await user.click(takenOption);
+    await user.keyboard("{Escape}");
+    expect(screen.getByRole("combobox")).not.toHaveTextContent(ASK.timeLabel);
+    expect(screen.getByRole("combobox")).toHaveTextContent("Select a time");
+
+    await user.click(screen.getByRole("combobox"));
+
+    // A genuinely open time on the same date is unaffected — still fully
+    // selectable, not swept up in the cross-out.
+    const openLabel = to12HourLabel(istParts(NEARBY_INSTANTS[0]).timeStr);
+    const openOption = screen.getByRole("option", { name: openLabel });
+    expect(openOption).not.toHaveAttribute("data-disabled");
+    await user.click(openOption);
+    expect(screen.getByRole("combobox")).toHaveTextContent(openLabel);
+  });
+
   it("validates that both a date and time are provided before checking", async () => {
     const user = userEvent.setup();
     render(<BookingWidget />);
@@ -212,7 +250,12 @@ describe("BookingWidget — ask-then-confirm flow", () => {
   });
 
   it("no exact match shows a warm message with nearby alternatives, not an error", async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(jsonResponse(AVAILABILITY_WITHOUT_EXACT));
+    // The date-pick's own cross-out fetch fails here (a real network hiccup),
+    // so nothing gets pre-emptively disabled and the ask-submit's own check —
+    // a fresh fetch — is what actually discovers there's no exact match.
+    (global.fetch as ReturnType<typeof vi.fn>)
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+      .mockResolvedValue(jsonResponse(AVAILABILITY_WITHOUT_EXACT));
     const user = userEvent.setup();
     render(<BookingWidget />);
 
@@ -239,7 +282,12 @@ describe("BookingWidget — ask-then-confirm flow", () => {
   });
 
   it("selecting a nearby alternative proceeds to the contact form with that time", async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(jsonResponse(AVAILABILITY_WITHOUT_EXACT));
+    // Same reasoning as the "no exact match" case above — the date-pick
+    // fetch fails, so the exact ask time stays selectable and the alternatives
+    // path is reached via the ask-submit's own (fresh) check.
+    (global.fetch as ReturnType<typeof vi.fn>)
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+      .mockResolvedValue(jsonResponse(AVAILABILITY_WITHOUT_EXACT));
     const user = userEvent.setup();
     render(<BookingWidget />);
 
@@ -254,7 +302,9 @@ describe("BookingWidget — ask-then-confirm flow", () => {
   });
 
   it("'Try a different time' returns to the ask prompt", async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(jsonResponse(AVAILABILITY_WITHOUT_EXACT));
+    (global.fetch as ReturnType<typeof vi.fn>)
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+      .mockResolvedValue(jsonResponse(AVAILABILITY_WITHOUT_EXACT));
     const user = userEvent.setup();
     render(<BookingWidget />);
 
@@ -330,7 +380,10 @@ describe("BookingWidget — ask-then-confirm flow", () => {
     });
   });
 
-  it("on a 409 slot-taken submit, re-checks and offers fresh nearby alternatives", async () => {
+  it("on a 409 whose detail is missing the real conflict shape, falls back to a fresh re-check", async () => {
+    // Exercises the defensive fallback only — a real backend 409 always
+    // carries requested_slot + alternatives (see the test below), so this
+    // covers an unexpected/malformed detail shape, not the normal case.
     const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
     fetchMock
       .mockResolvedValueOnce(jsonResponse(AVAILABILITY_WITH_EXACT)) // initial ask-check
@@ -350,6 +403,46 @@ describe("BookingWidget — ask-then-confirm flow", () => {
     expect(fetch).toHaveBeenCalledTimes(3);
     const altGroup = screen.getByRole("group", { name: /nearby available times/i });
     expect(altGroup.querySelectorAll("button").length).toBeGreaterThan(0);
+  });
+
+  it("on a real 409 conflict, names the exact requested time and shows the backend's own alternatives directly", async () => {
+    const conflictMessage = `The ${ASK.label} slot is no longer available — it was just taken. Please pick another time.`;
+    const conflictAlternatives = slotsAround(...NEARBY_INSTANTS);
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(AVAILABILITY_WITH_EXACT)) // initial ask-check
+      .mockResolvedValueOnce(
+        jsonResponse(
+          {
+            detail: {
+              code: "slot_unavailable",
+              message: conflictMessage,
+              requested_slot: EXACT_SLOT_ISO,
+              alternatives: conflictAlternatives,
+            },
+          },
+          409,
+        ),
+      ); // booking submit fails with the real, full conflict payload
+    const user = userEvent.setup();
+    render(<BookingWidget />);
+
+    await askFor(user, ASK.dateStr, ASK.timeLabel);
+    await user.type(await screen.findByLabelText("Name"), "Asha Roy");
+    await user.type(screen.getByLabelText("Email"), "asha@example.com");
+    await user.click(screen.getByRole("button", { name: /confirm booking/i }));
+
+    // The specific backend message naming the exact time — not the generic fallback copy.
+    expect(await screen.findByText(conflictMessage)).toBeInTheDocument();
+    // No third fetch — the alternatives came straight from the 409 body itself,
+    // computed fresh by the backend at the moment of conflict.
+    expect(fetch).toHaveBeenCalledTimes(2);
+    const altGroup = screen.getByRole("group", { name: /nearby available times/i });
+    expect(altGroup.querySelectorAll("button")).toHaveLength(conflictAlternatives.length);
+    // The form's typed details survive the conflict — the visitor isn't made to re-enter them.
+    await user.click(altGroup.querySelectorAll("button")[0] as HTMLElement);
+    expect(await screen.findByLabelText("Name")).toHaveValue("Asha Roy");
+    expect(screen.getByLabelText("Email")).toHaveValue("asha@example.com");
   });
 
   it("shows a generic, distinct error state for other failures without losing form input", async () => {

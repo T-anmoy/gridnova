@@ -100,7 +100,7 @@ export default function LeadDetailPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => router.back()}>
             <ArrowLeft className="mr-1 h-4 w-4" /> Back
@@ -209,7 +209,7 @@ export default function LeadDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3 max-h-80 overflow-y-auto">
+                <div className="space-y-3 max-h-80 overflow-y-auto" data-lenis-prevent>
                   {lead.messages.map((msg, i) => (
                     <div key={i} className={`flex flex-col gap-1 ${msg.role === 'customer' ? 'items-start' : 'items-end'}`}>
                       <div className="flex items-center gap-1.5">

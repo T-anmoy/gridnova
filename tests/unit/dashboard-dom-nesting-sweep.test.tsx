@@ -149,7 +149,7 @@ describe('Overview — DOM validity', () => {
 })
 
 const LEAD_SUMMARY: LeadSummary = {
-  id: 1, customer_id: 1, customer_name: 'Ravi Sharma', pipeline_stage: 'qualified', lead_score: 'high', created_at: '2026-01-01T00:00:00Z',
+  id: 1, customer_id: 1, customer_name: 'Ravi Sharma', pipeline_stage: 'qualified', lead_score: 'high', source: 'website_chat', created_at: '2026-01-01T00:00:00Z',
 }
 
 describe('Leads (list) — DOM validity', () => {
