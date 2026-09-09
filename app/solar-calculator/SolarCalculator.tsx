@@ -24,9 +24,6 @@ import {
   roofLabelToEngineKey,
   CONNECTION_PHASES,
   connectionPhaseToEngineKey,
-  TIER_LABELS,
-  tierLabelToEngineKey,
-  tierEngineKeyToLabel,
   ACCESS_DIFFICULTY_LABELS,
   accessDifficultyLabelToEngineKey,
   SHADING_LABELS,
@@ -72,7 +69,6 @@ export default function SolarCalculator() {
   const [monthlyUnits, setMonthlyUnits] = useState("");
   const [roofAreaSqFt, setRoofAreaSqFt] = useState("");
   const [connectionPhase, setConnectionPhase] = useState("");
-  const [tierLabel, setTierLabel] = useState(TIER_LABELS[0]); // "Good"
 
   // Step C — Site Details
   const [roofTypeLabel, setRoofTypeLabel] = useState("");
@@ -133,7 +129,6 @@ export default function SolarCalculator() {
             sizing_method: sizingMethodToEngineKey(sizingMethod),
             ...sizingValue,
             connection_phase: connectionPhaseToEngineKey(connectionPhase),
-            tier: tierLabelToEngineKey(tierLabel),
             roof_type: roofLabelToEngineKey(roofTypeLabel),
             floors: floors ? parseInt(floors, 10) : undefined,
             shading: shadingLabelToEngineKey(shadingLabel),
@@ -158,9 +153,7 @@ export default function SolarCalculator() {
 
         setEstimateResult({
           recommendedSizeKw: data.recommended_size_kw,
-          tierLabel: tierEngineKeyToLabel(data.tier),
           baseCost: data.base_cost,
-          tierCost: data.tier_cost,
           accessDifficultyAdder: data.adders?.access_difficulty ?? 0,
           componentBreakdown: data.component_breakdown ?? {},
           subtotalBeforeTax: data.subtotal_before_tax,
@@ -238,7 +231,6 @@ export default function SolarCalculator() {
           monthlyUnits: sizingMethod === "units" ? monthlyUnits : undefined,
           roofAreaSqFt: sizingMethod === "roof_area" ? roofAreaSqFt : undefined,
           connectionPhase: connectionPhase || undefined,
-          tier: tierLabel,
           roofType: roofTypeLabel || undefined,
           floors: floors || undefined,
           accessDifficulty: accessDifficultyLabel || undefined,
@@ -427,24 +419,14 @@ export default function SolarCalculator() {
                 )}
               </div>
             )}
-            <div className="grid sm:grid-cols-2 gap-5">
-              <SelectField
-                id="sc-phase"
-                label="Connection Phase"
-                value={connectionPhase}
-                onChange={setConnectionPhase}
-                options={CONNECTION_PHASES}
-                placeholder="Select connection phase…"
-              />
-              <div>
-                <ToggleGroup
-                  label="Equipment Tier"
-                  value={tierLabel}
-                  onChange={setTierLabel}
-                  options={TIER_LABELS.map((l) => [l, l] as [string, string])}
-                />
-              </div>
-            </div>
+            <SelectField
+              id="sc-phase"
+              label="Connection Phase"
+              value={connectionPhase}
+              onChange={setConnectionPhase}
+              options={CONNECTION_PHASES}
+              placeholder="Select connection phase…"
+            />
           </div>
         )}
 

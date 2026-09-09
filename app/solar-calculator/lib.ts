@@ -8,9 +8,7 @@
 // components work with idiomatic field names.
 export interface InstantEstimateResult {
   recommendedSizeKw: number;
-  tierLabel: string;
   baseCost: number;
-  tierCost: number;
   accessDifficultyAdder: number;
   componentBreakdown: Record<string, number>;
   subtotalBeforeTax: number;
@@ -93,24 +91,10 @@ export function connectionPhaseToEngineKey(label: string): string | undefined {
   }
 }
 
-// Equipment-quality tier — the backend's real, closed vocabulary
-// (app/pricing/engine.py's KNOWN_TIERS: good/better/best). Unlike the
-// proposal wizard's own EQUIPMENT_TIERS placeholder (Standard/Premium/As
-// recommended — a different, TODO-flagged concept awaiting Raju Paul), these
-// three names are the real values the engine accepts; only their price
-// multipliers (1.0/1.10/1.25) are still placeholder numbers.
-const TIERS: [key: string, label: string][] = [
-  ["good", "Good"],
-  ["better", "Better"],
-  ["best", "Best"],
-];
-export const TIER_LABELS = TIERS.map(([, label]) => label);
-export function tierLabelToEngineKey(label: string): string {
-  return TIERS.find(([, l]) => l === label)?.[0] ?? "good";
-}
-export function tierEngineKeyToLabel(key: string): string {
-  return TIERS.find(([k]) => k === key)?.[1] ?? "Good";
-}
+// Equipment tier is not a customer-supplied choice on this public path — the
+// backend always prices at its fixed best tier (see instant_estimate.py's
+// FIXED_PUBLIC_TIER) and no longer accepts or returns a tier at all. Every
+// Grid Nova installation uses the same top-quality equipment as standard.
 
 // Site-access difficulty — new to the calculator, no prior UI precedent (see
 // app/pricing/engine.py's PLACEHOLDER_ACCESS_DIFFICULTY_MODIFIER: this is

@@ -15,7 +15,6 @@ interface ConfiguratorLeadBody {
   monthlyUnits?: string;
   roofAreaSqFt?: string;
   connectionPhase?: string;
-  tier?: string;
   roofType?: string;
   floors?: string;
   accessDifficulty?: string;
@@ -103,7 +102,6 @@ export async function POST(request: Request) {
     ["Average Monthly Units (kWh)", body.monthlyUnits],
     ["Roof Area (sq ft)", body.roofAreaSqFt],
     ["Connection Phase", body.connectionPhase],
-    ["Equipment Tier", body.tier],
     ["Roof Type", body.roofType],
     ["Number of Floors", body.floors],
     ["Site Access Difficulty", body.accessDifficulty],

@@ -29,12 +29,13 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
+// tier and tier_cost no longer exist in the response — the public path
+// always prices at the fixed best tier server-side, and base_cost is the
+// one real (already tier-inclusive) number.
 const INSTANT_ESTIMATE_BODY = {
   recommended_size_kw: 4.5,
   sizing_detail: { consumption_based_kw: 4.5, area_based_kw: null, phase_capped: false },
-  tier: 'good',
   base_cost: 259875.0,
-  tier_cost: 259875.0,
   adders: { access_difficulty: 0.0 },
   component_breakdown: {
     equipment: 0.0,
@@ -112,9 +113,17 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
       sizing_method: 'by_bill',
       monthly_bill_inr: 3500,
       connection_phase: 'single_phase',
-      tier: 'good',
       is_housing_society: false,
     })
+    // Tier is not a customer-supplied choice on this path any more.
+    expect(sentBody).not.toHaveProperty('tier')
+
+    // No upsell framing — a confident statement instead of a Good/Better/Best choice.
+    expect(screen.getByText(/best-quality equipment as standard/i)).toBeInTheDocument()
+    expect(screen.queryByText(/equipment tier/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^good$/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^better$/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^best$/i })).not.toBeInTheDocument()
 
     // Primary CTA is now a booking link, not a "Continue" button — and it
     // carries the estimate's own net cost forward as query-string context.
@@ -269,7 +278,7 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
     expect(sentBody).toMatchObject({ sizing_method: 'by_units', monthly_units_kwh: 450 })
   })
 
-  it('sends the Site Details fields (roof type, floors, access, shading, tier) through to the pricing call', async () => {
+  it('sends the Site Details fields (roof type, floors, access, shading) through to the pricing call', async () => {
     const fetchMock = vi.fn<typeof fetch>().mockImplementation(async (url) => {
       if (String(url).includes('/api/v1/pricing/instant-estimate')) {
         return new Response(JSON.stringify(INSTANT_ESTIMATE_BODY), { status: 200 })
@@ -282,10 +291,8 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
     render(<SolarCalculator />)
     await fillStepA(user)
 
-    // Tier lives in the Sizing step, alongside connection phase.
     await user.type(screen.getByLabelText(/average monthly electricity bill/i), '3500')
     await user.selectOptions(screen.getByLabelText(/connection phase/i), 'Single Phase')
-    await user.click(screen.getByRole('button', { name: /^better$/i }))
     await user.click(screen.getByRole('button', { name: /^next$/i }))
     await screen.findByText(/step 3 of 5/i)
 
@@ -298,10 +305,25 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
     await waitFor(() => expect(fetchMock).toHaveBeenCalled())
     const sentBody = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string)
     expect(sentBody).toMatchObject({
-      tier: 'better',
       roof_type: 'rcc',
       access_difficulty: 'easy',
       shading: 'significant',
     })
+    expect(sentBody).not.toHaveProperty('tier')
+  })
+
+  it('never renders an equipment tier selector anywhere in the flow', async () => {
+    vi.stubGlobal('fetch', vi.fn())
+    const user = userEvent.setup()
+    render(<SolarCalculator />)
+    await fillStepA(user)
+
+    await user.type(screen.getByLabelText(/average monthly electricity bill/i), '3500')
+    await user.selectOptions(screen.getByLabelText(/connection phase/i), 'Single Phase')
+
+    expect(screen.queryByText(/equipment tier/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^good$/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^better$/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^best$/i })).not.toBeInTheDocument()
   })
 })

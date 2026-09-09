@@ -38,11 +38,40 @@ function scoreVariant(score: LeadScore) {
   return 'gray'
 }
 
+// Matches the backend's LeadSource enum (app/memory/models.py) — chat,
+// estimate-form, and booking-originated leads each get a distinct color so
+// they read apart from each other at a glance, not lumped together.
+const SOURCE_LABEL: Record<string, string> = {
+  website_chat: 'Chat',
+  website_estimate_form: 'Estimate Form',
+  website_booking: 'Booking',
+  whatsapp: 'WhatsApp',
+  instagram: 'Instagram',
+  cold_call: 'Cold Call',
+  referral: 'Referral',
+  other: 'Other',
+}
+
+function sourceBadgeVariant(source: string) {
+  const map: Record<string, string> = {
+    website_chat: 'blue',
+    website_estimate_form: 'navy',
+    website_booking: 'gold',
+    whatsapp: 'green',
+    instagram: 'orange',
+    cold_call: 'gray',
+    referral: 'secondary',
+  }
+  return (map[source] ?? 'outline') as 'blue' | 'navy' | 'gold' | 'green' | 'orange' | 'gray' | 'secondary' | 'outline'
+}
+
 const PIPELINE_STAGES: PipelineStage[] = [
   'new', 'qualifying', 'qualified', 'proposal_draft', 'proposal_sent', 'negotiation', 'won', 'lost',
 ]
 
 const LEAD_SCORES: LeadScore[] = ['high', 'medium', 'low']
+
+const LEAD_SOURCES = Object.keys(SOURCE_LABEL)
 
 export default function LeadsPage() {
   const router = useRouter()
@@ -52,6 +81,7 @@ export default function LeadsPage() {
 
   const [stageFilter, setStageFilter] = useState<PipelineStage | ''>('')
   const [scoreFilter, setScoreFilter] = useState<LeadScore | ''>('')
+  const [sourceFilter, setSourceFilter] = useState('')
   const [idSearch, setIdSearch] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -87,6 +117,7 @@ export default function LeadsPage() {
   const filtered = (leads ?? []).filter((l: LeadSummary) => {
     if (stageFilter && l.pipeline_stage !== stageFilter) return false
     if (scoreFilter && l.lead_score !== scoreFilter) return false
+    if (sourceFilter && l.source !== sourceFilter) return false
     if (debouncedIdSearch && !String(l.id).includes(debouncedIdSearch)) return false
     if (dateFrom && l.created_at < dateFrom) return false
     if (dateTo && l.created_at > dateTo + 'T23:59:59') return false
@@ -161,13 +192,25 @@ export default function LeadsPage() {
             )}
             <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-36" title="From date" />
             <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-36" title="To date" />
-            {(stageFilter || scoreFilter || idSearch || dateFrom || dateTo) && (
+            <Select value={sourceFilter} onValueChange={setSourceFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All sources</SelectItem>
+                {LEAD_SOURCES.map((s) => (
+                  <SelectItem key={s} value={s}>{SOURCE_LABEL[s]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {(stageFilter || scoreFilter || sourceFilter || idSearch || dateFrom || dateTo) && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
                   setStageFilter('')
                   setScoreFilter('')
+                  setSourceFilter('')
                   setIdSearch('')
                   setDateFrom('')
                   setDateTo('')
@@ -191,6 +234,7 @@ export default function LeadsPage() {
                 <TableHead>Pipeline Stage</TableHead>
                 {!isEngineer && <TableHead>Lead Score</TableHead>}
                 {isEngineer && <TableHead>Stage Details</TableHead>}
+                <TableHead>Source</TableHead>
                 <TableHead>Created</TableHead>
                 {!isEngineer && <TableHead>Actions</TableHead>}
               </TableRow>
@@ -202,6 +246,7 @@ export default function LeadsPage() {
                       <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                       <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-7 w-28" /></TableCell>
                     </TableRow>
@@ -209,7 +254,7 @@ export default function LeadsPage() {
                 : filtered.length === 0
                 ? (
                     <TableRow>
-                      <TableCell colSpan={isEngineer ? 4 : 5} className="text-center py-12 font-utility text-[#111827]/40">
+                      <TableCell colSpan={isEngineer ? 5 : 6} className="text-center py-12 font-utility text-[#111827]/40">
                         No leads found
                       </TableCell>
                     </TableRow>
@@ -234,6 +279,11 @@ export default function LeadsPage() {
                         </TableCell>
                       )}
                       {isEngineer && <TableCell className="font-utility text-sm text-[#111827]/60">—</TableCell>}
+                      <TableCell>
+                        <Badge variant={sourceBadgeVariant(lead.source)}>
+                          {SOURCE_LABEL[lead.source] ?? lead.source}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="font-utility text-sm text-[#111827]/60">{formatDate(lead.created_at)}</TableCell>
                       {!isEngineer && (
                         <TableCell onClick={(e) => e.stopPropagation()}>

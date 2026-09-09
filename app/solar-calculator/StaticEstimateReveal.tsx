@@ -1,4 +1,4 @@
-import { Cpu, HardHat, Wrench, Building2, ClipboardCheck } from "lucide-react";
+import { Cpu, HardHat, Wrench, Building2, ClipboardCheck, CheckCircle2 } from "lucide-react";
 import { formatINR, type InstantEstimateResult } from "./lib";
 
 const CATEGORY_ICON: Record<string, React.ElementType> = {
@@ -43,9 +43,7 @@ function Row({ label, value, emphasis }: { label: string; value: string; emphasi
 export default function StaticEstimateReveal({ result }: { result: InstantEstimateResult }) {
   const {
     recommendedSizeKw,
-    tierLabel,
     baseCost,
-    tierCost,
     accessDifficultyAdder,
     componentBreakdown,
     subtotalBeforeTax,
@@ -76,7 +74,15 @@ export default function StaticEstimateReveal({ result }: { result: InstantEstima
           </p>
         )}
         <p className="mt-3 font-utility text-xs text-white/60">
-          Recommended System Size: {recommendedSizeKw} kW &middot; {tierLabel} Tier
+          Recommended System Size: {recommendedSizeKw} kW
+        </p>
+      </div>
+
+      <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] px-4 py-3.5">
+        <CheckCircle2 className="h-4 w-4 text-[#2f5daa] shrink-0 mt-0.5" aria-hidden="true" />
+        <p className="text-sm text-[#111827]/70 font-utility leading-relaxed">
+          You&rsquo;ll get our best-quality equipment as standard — every Grid Nova
+          installation uses the same top-tier panels and inverters.
         </p>
       </div>
 
@@ -87,8 +93,7 @@ export default function StaticEstimateReveal({ result }: { result: InstantEstima
       )}
 
       <div className="mt-5 rounded-xl border border-[#e4e8ee] divide-y divide-[#e4e8ee]">
-        <Row label="Base Cost" value={formatINR(baseCost)} />
-        <Row label={`${tierLabel} Tier Cost`} value={formatINR(tierCost)} />
+        <Row label="Equipment & Installation Cost" value={formatINR(baseCost)} />
         {accessDifficultyAdder > 0 && (
           <Row label="Access Difficulty Adder" value={formatINR(accessDifficultyAdder)} />
         )}
@@ -99,7 +104,7 @@ export default function StaticEstimateReveal({ result }: { result: InstantEstima
       </div>
 
       <p className="mt-5 font-utility text-xs text-[#111827]/50">
-        What&rsquo;s included in the tier cost above
+        What&rsquo;s included in the cost above
       </p>
       <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-3">
         {Object.entries(componentBreakdown).map(([key, value]) => {
