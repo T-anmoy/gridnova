@@ -239,7 +239,7 @@ export default function EquipmentPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold text-[#091c3c]">Equipment Master</h1>
           <p className="font-utility text-sm text-[#111827]/50 mt-1">

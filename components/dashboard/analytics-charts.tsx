@@ -3,6 +3,14 @@
 // All Recharts-dependent chart rendering for the Analytics page lives here so
 // it can be loaded via next/dynamic — keeping the ~400KB chart library out of
 // the initial JS for staff who land on other dashboard pages first.
+//
+// Every Bar/Line below sets isAnimationActive={false} — with it left on,
+// recharts 3.10.1's growth animation silently fails against this app's React
+// 19.2.4 (a documented recharts/React-19.2 incompatibility in the animation
+// engine: https://github.com/recharts/recharts/issues/6857), leaving every
+// shape's own inner render permanently empty — axes and legend draw, but no
+// bar or line ever appears, in dev AND production, at any viewport width.
+// Disabling the animation bypasses the broken code path entirely.
 
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartTooltip, ResponsiveContainer,
@@ -43,7 +51,7 @@ export function FunnelChart({ data }: { data: { name: string; value: number }[] 
             <XAxis dataKey="name" tick={CHART_AXIS_TICK} />
             <YAxis tick={CHART_AXIS_TICK} />
             <RechartTooltip contentStyle={CHART_TOOLTIP_STYLE} />
-            <Bar dataKey="value" fill="#f7a800" radius={[4, 4, 0, 0]} name="Count" />
+            <Bar dataKey="value" fill="#f7a800" radius={[4, 4, 0, 0]} name="Count" isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
@@ -117,7 +125,7 @@ export function ReportingSections({ params }: { params: AnalyticsParams }) {
               <XAxis dataKey="name" tick={CHART_AXIS_TICK} />
               <YAxis unit="%" tick={CHART_AXIS_TICK} />
               <RechartTooltip contentStyle={CHART_TOOLTIP_STYLE} formatter={(value) => [`${Number(value)}%`, 'Conversion']} />
-              <Bar dataKey="rate" fill="#f7a800" radius={[4, 4, 0, 0]} name="Conversion rate" />
+              <Bar dataKey="rate" fill="#f7a800" radius={[4, 4, 0, 0]} name="Conversion rate" isAnimationActive={false} />
             </BarChart>
           </ResponsiveContainer>
         </ChartFrame>
@@ -136,8 +144,8 @@ export function ReportingSections({ params }: { params: AnalyticsParams }) {
               <YAxis tick={CHART_AXIS_TICK} />
               <RechartTooltip contentStyle={CHART_TOOLTIP_STYLE} formatter={(value) => formatCurrency(Number(value))} />
               <Legend wrapperStyle={{ fontFamily: 'IBM Plex Sans', fontSize: 12 }} />
-              <Bar dataKey="avg" fill="#f7a800" radius={[4, 4, 0, 0]} name="Avg deal size" />
-              <Bar dataKey="total" fill="#0e2a63" radius={[4, 4, 0, 0]} name="Total deal size" />
+              <Bar dataKey="avg" fill="#f7a800" radius={[4, 4, 0, 0]} name="Avg deal size" isAnimationActive={false} />
+              <Bar dataKey="total" fill="#0e2a63" radius={[4, 4, 0, 0]} name="Total deal size" isAnimationActive={false} />
             </BarChart>
           </ResponsiveContainer>
         </ChartFrame>
@@ -157,8 +165,8 @@ export function ReportingSections({ params }: { params: AnalyticsParams }) {
             <YAxis tick={CHART_AXIS_TICK} allowDecimals={false} />
             <RechartTooltip contentStyle={CHART_TOOLTIP_STYLE} />
             <Legend wrapperStyle={{ fontFamily: 'IBM Plex Sans', fontSize: 12 }} />
-            <Line type="monotone" dataKey="leads" stroke="#0e2a63" strokeWidth={2} dot={false} name="Leads created" />
-            <Line type="monotone" dataKey="won" stroke="#f7a800" strokeWidth={2} dot={false} name="Proposals won" />
+            <Line type="monotone" dataKey="leads" stroke="#0e2a63" strokeWidth={2} dot={false} name="Leads created" isAnimationActive={false} />
+            <Line type="monotone" dataKey="won" stroke="#f7a800" strokeWidth={2} dot={false} name="Proposals won" isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
       </ChartFrame>
