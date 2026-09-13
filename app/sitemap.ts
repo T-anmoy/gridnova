@@ -6,6 +6,7 @@ const routes = [
   "services",
   "estimate",
   "solar-calculator",
+  "book-a-call",
   "industries",
   "projects",
   "technology",

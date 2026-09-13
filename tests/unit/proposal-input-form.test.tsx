@@ -22,6 +22,7 @@ async function fillStep1(user: ReturnType<typeof userEvent.setup>, { withScheme 
   await user.type(screen.getByLabelText(/full name/i), "Ravi Sharma");
   await user.type(screen.getByLabelText(/contact number/i), "9874774440");
   await user.type(screen.getByLabelText(/email address/i), "ravi@example.com");
+  await user.type(screen.getByLabelText(/lead id/i), "1042");
   await user.selectOptions(screen.getByLabelText(/project type/i), "Rooftop Solar");
   if (withScheme) {
     await user.click(screen.getByRole("button", { name: "Yes" }));
@@ -132,17 +133,10 @@ describe("ProposalInputForm", () => {
     expect(dcrYesButton).toBeDisabled();
   });
 
-  it("shows the confirmation screen after a successful submission, then resets on Start Another Assessment", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 201,
-      json: async () => ({ success: true, message: "Received — backend integration pending" }),
-    });
-    vi.stubGlobal("fetch", fetchMock);
-
-    const user = userEvent.setup();
-    render(<ProposalInputForm />);
-
+  // Fills every step and reaches Step 5 with a bill + a site photo attached,
+  // ready for the final submit click — shared by the tests below that only
+  // differ in how the backend responds.
+  async function reachSubmit(user: ReturnType<typeof userEvent.setup>) {
     await fillStep1(user);
     await goToStep2(user);
     await fillStep2(user);
@@ -155,15 +149,109 @@ describe("ProposalInputForm", () => {
     const photoInput = document.getElementById("sitePhotos") as HTMLInputElement;
     await user.upload(billInput, makeFile("bill.pdf", "application/pdf"));
     await user.upload(photoInput, makeFile("roof.jpg", "image/jpeg"));
+  }
 
+  it("sends the real file as multipart form data, not JSON, after a successful create", async () => {
+    const fetchMock = vi.fn();
+    fetchMock
+      .mockResolvedValueOnce({ ok: true, status: 201, json: async () => ({ success: true, inputs_id: 501 }) })
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ success: true, data: { id: 501 } }) });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const user = userEvent.setup();
+    render(<ProposalInputForm />);
+    await reachSubmit(user);
     await user.click(screen.getByRole("button", { name: /submit for review/i }));
 
     await screen.findByText(/assessment submitted for review/i);
-    expect(fetchMock).toHaveBeenCalledWith(
+
+    // Call 1: the structured create, as JSON.
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
       "/api/proposal-inputs",
-      expect.objectContaining({ method: "POST" })
+      expect.objectContaining({ method: "POST", headers: { "Content-Type": "application/json" } })
     );
 
+    // Call 2: the real file, as multipart FormData against the created row —
+    // never JSON.stringify'd, never discarded.
+    const [uploadUrl, uploadInit] = fetchMock.mock.calls[1];
+    expect(uploadUrl).toBe("/api/proposal-inputs/501/upload");
+    expect(uploadInit.body).toBeInstanceOf(FormData);
+    const sentFile = uploadInit.body.get("file") as File;
+    expect(sentFile.name).toBe("bill.pdf");
+    expect(uploadInit.body.get("target")).toBe("document");
+    expect(uploadInit.body.get("document_type")).toBe("electricity_bill");
+
+    // Exactly one upload call — the site photo has no real target yet, and
+    // must not be silently forced into the wrong one.
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(screen.getByText(/1 document uploaded successfully/i)).toBeInTheDocument();
+    expect(screen.getByText(/installation-photo upload isn.t wired up yet/i)).toBeInTheDocument();
+  });
+
+  it("shows an honest failure — not a false success — when the backend reports storage isn't configured", async () => {
+    const fetchMock = vi.fn();
+    fetchMock
+      .mockResolvedValueOnce({ ok: true, status: 201, json: async () => ({ success: true, inputs_id: 501 }) })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        json: async () => ({
+          success: false,
+          code: "storage_not_configured",
+          error: "File storage isn't connected yet — this file was NOT saved. The rest of the assessment was submitted.",
+        }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const user = userEvent.setup();
+    render(<ProposalInputForm />);
+    await reachSubmit(user);
+    await user.click(screen.getByRole("button", { name: /submit for review/i }));
+
+    // The assessment record itself still succeeded — this isn't a submit failure.
+    await screen.findByText(/assessment submitted for review/i);
+    expect(screen.getByText(/1 document could not be saved/i)).toBeInTheDocument();
+    expect(screen.getByText(/file storage isn.t connected yet/i)).toBeInTheDocument();
+    expect(screen.queryByText(/1 document.*uploaded successfully/i)).not.toBeInTheDocument();
+  });
+
+  it("shows the real backend error and stays on the form when create fails (e.g. not signed in)", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      json: async () => ({
+        success: false,
+        code: "not_authenticated",
+        error: "Please sign in as a Grid Nova staff member before submitting this assessment.",
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const user = userEvent.setup();
+    render(<ProposalInputForm />);
+    await reachSubmit(user);
+    await user.click(screen.getByRole("button", { name: /submit for review/i }));
+
+    await screen.findByText(/please sign in as a grid nova staff member/i);
+    // Never a false success, and no upload attempted without a real inputs_id.
+    expect(screen.queryByText(/assessment submitted for review/i)).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("resets fully via Start Another Assessment after a successful submission", async () => {
+    const fetchMock = vi.fn();
+    fetchMock
+      .mockResolvedValueOnce({ ok: true, status: 201, json: async () => ({ success: true, inputs_id: 501 }) })
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ success: true, data: { id: 501 } }) });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const user = userEvent.setup();
+    render(<ProposalInputForm />);
+    await reachSubmit(user);
+    await user.click(screen.getByRole("button", { name: /submit for review/i }));
+
+    await screen.findByText(/assessment submitted for review/i);
     await user.click(screen.getByRole("button", { name: /start another assessment/i }));
 
     await screen.findByText(/step 1 of 5/i);

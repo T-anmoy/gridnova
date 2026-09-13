@@ -1,15 +1,21 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
+import { mapProposalInputsToBackend } from "@/app/proposal/new/backend-mapping";
+import type { ProposalFormValues } from "@/app/proposal/new/types";
 
-// Placeholder Route Handler for the sales-team site-assessment wizard
-// (app/proposal/new). Accepts and validates the structured form fields,
-// logs them for visibility, and confirms receipt — it does not yet persist
-// anything, send any notification, or touch the Python backend.
-//
-// TODO: wire to FastAPI backend once deployed. Once a real endpoint exists,
-// this handler should forward the validated payload there (and handle file
-// uploads separately, per the form's own note that documents are not sent
-// in this initial JSON POST).
+// Real Route Handler for the sales-team site-assessment wizard
+// (app/proposal/new): validates the submitted fields, maps them onto the
+// real backend's ProposalInputsCreate contract (grid-nova-ai-backend's
+// app/api/routes/proposal_inputs.py — see backend-mapping.ts for the enum
+// correspondence), and forwards the request with the caller's own Clerk
+// session token — the backend's create endpoint is employee-authenticated,
+// the same as every dashboard write. File bytes are NOT sent here: the
+// backend only accepts uploads against an already-created ProposalInputs
+// row, so the client uploads each file separately once this call returns a
+// real `inputs_id` (see app/api/proposal-inputs/[id]/upload/route.ts).
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 // Required fields mirror app/proposal/new/validation.ts's STEP_FIELDS —
 // keep the two in sync if the form's required-field set changes.
@@ -24,7 +30,7 @@ const proposalInputSchema = z.object({
   projectType: z.string().min(1, "Project type is required"),
   linkedToGovtScheme: z.string(),
   schemeName: z.string().optional().default(""),
-  referenceLeadId: z.string().optional().default(""),
+  referenceLeadId: z.string().min(1, "Lead ID is required"),
 
   // Step 2 — Installation Site
   state: z.string().min(1, "State is required"),
@@ -93,15 +99,51 @@ export async function POST(request: Request) {
     );
   }
 
-  const { website: _website, ...submission } = parsed.data;
+  const { website: _website, ...values } = parsed.data;
   void _website;
 
-  // No persistence or backend call yet — this is a placeholder that confirms
-  // receipt so the frontend wizard works end-to-end before FastAPI is wired.
-  console.log("New proposal site-assessment submission:", submission);
+  const mapped = mapProposalInputsToBackend(values as ProposalFormValues);
+  if (!mapped.ok) {
+    return NextResponse.json({ success: false, error: mapped.error }, { status: 422 });
+  }
 
-  return NextResponse.json(
-    { success: true, message: "Received — backend integration pending" },
-    { status: 201 }
-  );
+  const session = await auth();
+  const token = await session.getToken();
+  if (!token) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Please sign in as a Grid Nova staff member before submitting this assessment.",
+        code: "not_authenticated",
+      },
+      { status: 401 }
+    );
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/api/v1/proposal-inputs/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify(mapped.body),
+      signal: AbortSignal.timeout(10_000),
+    });
+  } catch {
+    return NextResponse.json(
+      { success: false, error: "Could not reach the backend. Please try again." },
+      { status: 502 }
+    );
+  }
+
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    const detail =
+      typeof data?.detail === "string" ? data.detail : data?.detail ? JSON.stringify(data.detail) : null;
+    return NextResponse.json(
+      { success: false, error: detail || `Backend error ${res.status}` },
+      { status: res.status }
+    );
+  }
+
+  return NextResponse.json({ success: true, inputs_id: data.id }, { status: 201 });
 }

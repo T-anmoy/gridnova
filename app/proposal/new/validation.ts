@@ -38,12 +38,31 @@ function validateNumber(value: string, message: string): string | undefined {
   return undefined;
 }
 
+// The real backend (POST /api/v1/proposal-inputs/) requires an existing
+// Lead's numeric id — this assessment attaches to a real Lead row, it isn't a
+// standalone record. Accepts a bare number or one with a non-digit prefix
+// (e.g. "LEAD-1042") and extracts the digits, since that's the format staff
+// are likely to type from a dashboard lead's URL or display id.
+export function parseLeadId(value: string): number | null {
+  const digits = value.trim().replace(/\D/g, "");
+  if (!digits) return null;
+  const n = Number(digits);
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+
+function validateLeadId(value: string): string | undefined {
+  if (!value.trim()) return "Lead ID is required";
+  if (parseLeadId(value) === null) return "Enter a valid Lead ID (e.g. 1042)";
+  return undefined;
+}
+
 // Validators for every field that carries an asterisk in the spec. Fields
 // absent from this map are optional — Next/Submit never blocks on them.
 const VALIDATORS: Partial<Record<keyof ProposalFormValues, (v: ProposalFormValues) => string | undefined>> = {
   fullName: (v) => required(v.fullName, "Full name is required"),
   contactNumber: (v) => validatePhone(v.contactNumber),
   email: (v) => validateEmail(v.email),
+  referenceLeadId: (v) => validateLeadId(v.referenceLeadId),
   projectType: (v) => required(v.projectType, "Select a project type"),
 
   state: (v) => required(v.state, "Select a state"),
@@ -62,7 +81,7 @@ const VALIDATORS: Partial<Record<keyof ProposalFormValues, (v: ProposalFormValue
 // used both to scope per-step validation and to know which step to jump
 // back to when a cross-step submit validation fails.
 export const STEP_FIELDS: (keyof ProposalFormValues)[][] = [
-  ["fullName", "contactNumber", "email", "projectType"],
+  ["fullName", "contactNumber", "email", "referenceLeadId", "projectType"],
   ["state", "districtCity", "pinCode", "discom", "siteType", "siteAreaSqFt"],
   ["avgMonthlyBill", "connectionPhase", "primaryObjective"],
   [],

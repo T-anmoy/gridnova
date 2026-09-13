@@ -15,7 +15,12 @@ afterEach(() => cleanup());
 // reduced-motion preference), same as a real browser with the OS setting
 // off, so animation code paths run in tests unless a test explicitly
 // overrides this for a reduced-motion-specific case.
-if (!window.matchMedia) {
+// Guarded on `typeof window` (not just `!window.matchMedia`) because a Node-
+// environment test file (`// @vitest-environment node`, used for Route
+// Handler tests that need real undici Request/FormData behavior) has no
+// `window` at all — this setup file runs for every test file regardless of
+// its own environment override.
+if (typeof window !== "undefined" && !window.matchMedia) {
   window.matchMedia = ((query: string) => ({
     matches: false,
     media: query,

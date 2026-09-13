@@ -65,11 +65,12 @@ export default function Step1CustomerProject({ values, errors, set, touch }: Pro
             />
             <TextField
               id="referenceLeadId"
-              label="Reference / Lead ID"
-              optional
-              placeholder="e.g. LEAD-1042"
+              label="Lead ID"
+              placeholder="e.g. 1042"
               value={values.referenceLeadId}
               onChange={(v) => set("referenceLeadId", v)}
+              onBlur={() => touch("referenceLeadId")}
+              error={errors.referenceLeadId}
             />
           </div>
 

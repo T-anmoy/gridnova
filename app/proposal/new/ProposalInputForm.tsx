@@ -20,6 +20,56 @@ import { STEP_FIELDS, isStepValid, validateAll, validateStep, type FieldErrors }
 
 type Status = "idle" | "submitting" | "success" | "error";
 
+// Maps each document-style ProposalFiles bucket onto the real backend's
+// free-text document_type (target="document" — see grid-nova-ai-backend's
+// app/api/routes/proposal_inputs.py). Deliberately excludes sitePhotos: the
+// backend's installation_photo_refs isn't an open bucket like document_refs
+// — it requires each photo tagged to one of 7 fixed site-survey categories
+// (INSTALLATION_PHOTO_SLOTS), which this form's single "Site Photographs"
+// upload has no way to determine. Wiring that needs its own UI (7 labeled
+// slots, not one bucket) — a real follow-up, not something to fake here by
+// guessing a slot.
+const DOCUMENT_UPLOAD_FIELDS: { field: keyof ProposalFiles; documentType: string }[] = [
+  { field: "electricityBills", documentType: "electricity_bill" },
+  { field: "sitePlan", documentType: "site_plan" },
+  { field: "govtSchemeRegistration", documentType: "govt_scheme_registration" },
+  { field: "otherDocuments", documentType: "other" },
+];
+
+interface UploadOutcome {
+  fileName: string;
+  ok: boolean;
+  error?: string;
+  storageNotConfigured?: boolean;
+}
+
+async function uploadOneFile(
+  inputsId: number,
+  file: File,
+  documentType: string
+): Promise<UploadOutcome> {
+  const form = new FormData();
+  form.set("file", file);
+  form.set("target", "document");
+  form.set("document_type", documentType);
+
+  try {
+    const res = await fetch(`/api/proposal-inputs/${inputsId}/upload`, { method: "POST", body: form });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data?.success) {
+      return {
+        fileName: file.name,
+        ok: false,
+        error: data?.error || `Upload failed (${res.status})`,
+        storageNotConfigured: data?.code === "storage_not_configured",
+      };
+    }
+    return { fileName: file.name, ok: true };
+  } catch {
+    return { fileName: file.name, ok: false, error: "Network error during upload." };
+  }
+}
+
 export default function ProposalInputForm() {
   const [currentStep, setCurrentStep] = useState(0);
   const [values, setValues] = useState<ProposalFormValues>(DEFAULT_VALUES);
@@ -31,7 +81,9 @@ export default function ProposalInputForm() {
 
   const [status, setStatus] = useState<Status>("idle");
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [softBackend, setSoftBackend] = useState(false);
+  const [uploadFailures, setUploadFailures] = useState<UploadOutcome[]>([]);
+  const [uploadedCount, setUploadedCount] = useState(0);
+  const [sitePhotoCount, setSitePhotoCount] = useState(0);
 
   const dcrAutoSet = values.linkedToGovtScheme === "yes";
 
@@ -103,22 +155,16 @@ export default function ProposalInputForm() {
 
     setStatus("submitting");
     setSubmitError(null);
+    setUploadFailures([]);
+    setUploadedCount(0);
 
+    let inputsId: number;
     try {
       const res = await fetch("/api/proposal-inputs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...values, website: honeypot }),
       });
-
-      // The backend Route Handler is a placeholder pending FastAPI wiring —
-      // a 501 there is a valid, expected response, not a failure.
-      if (res.status === 501) {
-        setSoftBackend(true);
-        setStatus("success");
-        return;
-      }
-
       const data = await res.json().catch(() => null);
 
       if (!res.ok || !data?.success) {
@@ -126,12 +172,30 @@ export default function ProposalInputForm() {
         setSubmitError(data?.error || "Something went wrong. Please try again.");
         return;
       }
-
-      setStatus("success");
+      inputsId = data.inputs_id;
     } catch {
       setStatus("error");
       setSubmitError("Something went wrong. Please try again.");
+      return;
     }
+
+    // The assessment record itself is now real and saved — everything past
+    // this point is file uploads against it. A file failing (e.g. storage
+    // isn't configured yet) never re-opens or invalidates that record; it's
+    // reported honestly in the success state instead, never swallowed into a
+    // blanket "success".
+    setSitePhotoCount(files.sitePhotos.length);
+    const uploadTasks: Promise<UploadOutcome>[] = [];
+    for (const { field, documentType } of DOCUMENT_UPLOAD_FIELDS) {
+      for (const file of files[field]) {
+        uploadTasks.push(uploadOneFile(inputsId, file, documentType));
+      }
+    }
+    const outcomes = await Promise.all(uploadTasks);
+    setUploadedCount(outcomes.filter((o) => o.ok).length);
+    setUploadFailures(outcomes.filter((o) => !o.ok));
+
+    setStatus("success");
   }
 
   function handleReset() {
@@ -144,7 +208,9 @@ export default function ProposalInputForm() {
     setHoneypot("");
     setStatus("idle");
     setSubmitError(null);
-    setSoftBackend(false);
+    setUploadFailures([]);
+    setUploadedCount(0);
+    setSitePhotoCount(0);
   }
 
   const visibleErrors: FieldErrors = {};
@@ -170,16 +236,40 @@ export default function ProposalInputForm() {
           Assessment Submitted for Review
         </h2>
         <p className="mt-3 text-[#111827]/65 leading-relaxed max-w-[52ch] mx-auto">
-          {softBackend ? (
-            "We received your submission — our backend is being connected shortly. A member of the Grid Nova team will follow up once it's live."
-          ) : (
-            <>
-              The site assessment for {values.fullName || "this customer"} has
-              been submitted. A member of the Grid Nova team will review this
-              and proceed with generating a proposal.
-            </>
+          The site assessment for {values.fullName || "this customer"} has
+          been submitted. A member of the Grid Nova team will review this
+          and proceed with generating a proposal.
+          {uploadedCount > 0 && (
+            <> {uploadedCount} document{uploadedCount === 1 ? "" : "s"} uploaded successfully.</>
           )}
         </p>
+
+        {uploadFailures.length > 0 && (
+          <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5 text-left max-w-[52ch] mx-auto">
+            <p className="text-amber-800 text-sm font-utility font-semibold">
+              {uploadFailures.length} document{uploadFailures.length === 1 ? "" : "s"} could not be saved
+            </p>
+            <ul className="mt-1.5 space-y-0.5">
+              {uploadFailures.map((f) => (
+                <li key={f.fileName} className="text-amber-700 text-xs font-utility">
+                  &ldquo;{f.fileName}&rdquo; — {f.storageNotConfigured ? "file storage isn't connected yet" : f.error}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-amber-700 text-xs font-utility">
+              The assessment itself was saved — a Grid Nova team member will follow up to collect these files another way.
+            </p>
+          </div>
+        )}
+
+        {sitePhotoCount > 0 && (
+          <p className="mt-4 text-[#111827]/50 text-xs font-utility max-w-[52ch] mx-auto">
+            Note: the {sitePhotoCount} site photograph{sitePhotoCount === 1 ? "" : "s"} you attached
+            {sitePhotoCount === 1 ? " wasn&rsquo;t" : " weren&rsquo;t"} uploaded — installation-photo upload isn&rsquo;t wired up yet.
+            A team member will contact you to collect these separately.
+          </p>
+        )}
+
         <button
           type="button"
           onClick={handleReset}
