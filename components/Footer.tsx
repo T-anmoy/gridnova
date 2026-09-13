@@ -107,7 +107,7 @@ export default function Footer() {
 
           <div>
             <p className="font-utility text-[11px] tracking-[0.15em] text-white/40 uppercase mb-5">
-              Head Office
+              Kolkata Office
             </p>
             <ul className="space-y-3.5 text-white/60 text-sm">
               <li className="flex gap-2.5">
@@ -122,10 +122,32 @@ export default function Footer() {
                   700107, West Bengal, India
                 </a>
               </li>
+              <li className="flex gap-2.5">
+                <MapPin className="h-4 w-4 shrink-0 mt-0.5 text-[#f7a800]" />
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=C%2FO+Parbati+Bhawan%2C+West+Ram+Krishna+Nagar%2C+New+Bypass+Road%2C+Opposite+Metro+Pillar+No.+81%2C+New+Jaganpura%2C+Patna%2C+Bihar+800027"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors"
+                >
+                  <span className="block text-white/40 text-[10px] uppercase tracking-[0.1em] mb-1">
+                    Patna Office
+                  </span>
+                  C/O Parbati Bhawan, West Ram Krishna Nagar, New Bypass
+                  Road, Opposite Metro Pillar No. 81, P.O.- New Jaganpura,
+                  Patna – 800027, Bihar
+                </a>
+              </li>
               <li className="flex gap-2.5 items-center">
                 <Phone className="h-4 w-4 shrink-0 text-[#f7a800]" />
                 <a href="tel:+919874774440" className="hover:text-white transition-colors">
                   +91 98747 74440
+                </a>
+              </li>
+              <li className="flex gap-2.5 items-center">
+                <Phone className="h-4 w-4 shrink-0 text-[#f7a800]" />
+                <a href="tel:+919199576535" className="hover:text-white transition-colors">
+                  +91 91995 76535
                 </a>
               </li>
               <li className="flex gap-2.5 items-center">

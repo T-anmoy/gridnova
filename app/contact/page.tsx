@@ -35,7 +35,7 @@ export default function ContactPage() {
           <div className="space-y-10">
             <div>
               <p className="font-utility text-[11px] tracking-[0.22em] text-[#111827]/40 uppercase mb-6">
-                Head Office
+                Kolkata Office
               </p>
               <ul className="space-y-5">
                 <li className="flex gap-3.5 text-[#111827]/70 leading-relaxed">
@@ -43,6 +43,17 @@ export default function ContactPage() {
                   <span>
                     Plot No. 83, Kasba Industrial Estate, Phase II<br />
                     Kolkata – 700107, West Bengal, India
+                  </span>
+                </li>
+                <li className="flex gap-3.5 text-[#111827]/70 leading-relaxed">
+                  <MapPin className="h-5 w-5 text-[#f7a800] shrink-0 mt-0.5" />
+                  <span>
+                    <span className="block font-utility text-[11px] tracking-[0.15em] text-[#111827]/40 uppercase mb-1">
+                      Patna Office
+                    </span>
+                    C/O Parbati Bhawan, West Ram Krishna Nagar, New Bypass Road,<br />
+                    Opposite Metro Pillar No. 81, P.O.- New Jaganpura,<br />
+                    Patna – 800027, Bihar
                   </span>
                 </li>
                 <li className="flex gap-3.5 items-center">
@@ -91,7 +102,7 @@ export default function ContactPage() {
                   style={{ border: 0 }}
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  title="Grid Nova Energy — Head Office"
+                  title="Grid Nova Energy — Kolkata Office"
                 />
               </div>
             </div>

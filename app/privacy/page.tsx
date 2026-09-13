@@ -26,8 +26,10 @@ export default function PrivacyPage() {
             <h2 className="font-display text-[#0e2a63] text-xl font-semibold mb-3">1. Who We Are</h2>
             <p>
               Grid Nova Energy (&ldquo;we&rdquo;, &ldquo;our&rdquo;, &ldquo;the Company&rdquo;) is a renewable energy
-              company registered in India, with its head office at Plot No. 83, Kasba Industrial
-              Estate, Phase II, Kolkata – 700107, West Bengal. We operate the website
+              company registered in India, with its Kolkata office at Plot No. 83, Kasba Industrial
+              Estate, Phase II, Kolkata – 700107, West Bengal, and its Patna office at C/O Parbati
+              Bhawan, West Ram Krishna Nagar, New Bypass Road, Opposite Metro Pillar No. 81, P.O.-
+              New Jaganpura, Patna – 800027, Bihar. We operate the website
               www.gridnova.in (&ldquo;the Site&rdquo;).
             </p>
           </section>

@@ -80,6 +80,16 @@ const POSTAL_ADDRESS = {
   addressCountry: "IN",
 };
 
+const PATNA_POSTAL_ADDRESS = {
+  "@type": "PostalAddress",
+  streetAddress:
+    "C/O Parbati Bhawan, West Ram Krishna Nagar, New Bypass Road, Opposite Metro Pillar No. 81, P.O.- New Jaganpura",
+  addressLocality: "Patna",
+  addressRegion: "Bihar",
+  postalCode: "800027",
+  addressCountry: "IN",
+};
+
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
@@ -104,8 +114,8 @@ const organizationSchema = {
 const localBusinessSchema = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
-  "@id": `${SITE_URL}/#localbusiness`,
-  name: "Grid Nova Energy",
+  "@id": `${SITE_URL}/#localbusiness-kolkata`,
+  name: "Grid Nova Energy — Kolkata Office",
   image: `${SITE_URL}${OG_IMAGE.url}`,
   url: SITE_URL,
   telephone: "+91-9874774440",
@@ -120,6 +130,22 @@ const localBusinessSchema = {
   areaServed: ["West Bengal", "Bihar", "India"],
 };
 
+// LocalBusiness schema — the Patna office. No geo coordinates are set (none
+// were provided for this location, unlike Kolkata's) rather than guessing.
+const patnaLocalBusinessSchema = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "@id": `${SITE_URL}/#localbusiness-patna`,
+  name: "Grid Nova Energy — Patna Office",
+  image: `${SITE_URL}${OG_IMAGE.url}`,
+  url: SITE_URL,
+  telephone: "+91-9199576535",
+  email: "info@gridnova.in",
+  priceRange: "$$",
+  address: PATNA_POSTAL_ADDRESS,
+  areaServed: ["Bihar", "India"],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -131,6 +157,7 @@ export default function RootLayout({
       <head>
         <JsonLd data={organizationSchema} />
         <JsonLd data={localBusinessSchema} />
+        <JsonLd data={patnaLocalBusinessSchema} />
       </head>
       <body>
         <GlobalLoader />
