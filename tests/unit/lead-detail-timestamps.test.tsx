@@ -41,6 +41,10 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/dashboard/api-client", () => ({
   useLead: () => ({ data: MOCK_LEAD, isLoading: false, error: null, refetch: vi.fn() }),
   useDraftProposal: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useChangeLeadStage: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useReassignLead: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUpdateLeadFields: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useAssignableEmployees: () => ({ data: [], isLoading: false }),
 }));
 
 describe("LeadDetailPage — conversation/timeline timestamps (the actual reported bug)", () => {

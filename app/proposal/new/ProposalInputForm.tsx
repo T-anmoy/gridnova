@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 import Step1CustomerProject from "./steps/Step1CustomerProject";
@@ -70,9 +70,46 @@ async function uploadOneFile(
   }
 }
 
-export default function ProposalInputForm() {
+interface ProposalInputFormProps {
+  // Present when the wizard is opened from a lead's dashboard detail page
+  // (`/proposal/new?leadId=…`) — pre-fills and locks the Lead ID field, and
+  // pre-fills name/email from that lead where the wizard has a matching
+  // field (the backend's lead detail has no phone field, so contact number
+  // is never pre-filled here).
+  initialLeadId?: string;
+}
+
+export default function ProposalInputForm({ initialLeadId }: ProposalInputFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [values, setValues] = useState<ProposalFormValues>(DEFAULT_VALUES);
+  const [values, setValues] = useState<ProposalFormValues>(() =>
+    initialLeadId ? { ...DEFAULT_VALUES, referenceLeadId: initialLeadId } : DEFAULT_VALUES
+  );
+  const leadIdLocked = !!initialLeadId;
+
+  // Best-effort pre-fill from the linked lead — never blocks the form if it
+  // fails (the field stays editable and empty, exactly as if no leadId had
+  // been passed at all).
+  useEffect(() => {
+    if (!initialLeadId) return;
+    let cancelled = false;
+    fetch(`/api/proposal-inputs/lead/${initialLeadId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.success) return;
+        setValues((v) => ({
+          ...v,
+          fullName: v.fullName || data.full_name || "",
+          email: v.email || data.email || "",
+          contactNumber: v.contactNumber || data.phone || "",
+        }));
+      })
+      .catch(() => {
+        /* honest silent failure — the field stays blank and editable */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [initialLeadId]);
   const [files, setFiles] = useState<ProposalFiles>(DEFAULT_FILES);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof ProposalFormValues, boolean>>>({});
@@ -363,7 +400,7 @@ export default function ProposalInputForm() {
         transition={{ duration: 0.25, ease: "easeOut" }}
       >
         {currentStep === 0 && (
-          <Step1CustomerProject values={values} errors={visibleErrors} set={set} touch={touch} />
+          <Step1CustomerProject values={values} errors={visibleErrors} set={set} touch={touch} leadIdLocked={leadIdLocked} />
         )}
         {currentStep === 1 && (
           <Step2InstallationSite values={values} errors={visibleErrors} set={set} touch={touch} />

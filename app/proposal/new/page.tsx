@@ -8,7 +8,15 @@ export const metadata: Metadata = pageMetadata({
   path: "/proposal/new",
 });
 
-export default function ProposalNewPage() {
+export default async function ProposalNewPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const params = await searchParams;
+  const asString = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
+  const leadId = asString(params.leadId);
+
   return (
     <main className="bg-[#f7f9fc] min-h-[100svh]">
       <div className="mx-auto max-w-[900px] px-6 md:px-10 pt-[calc(var(--header-h)+3rem)] pb-20 md:pb-28">
@@ -32,7 +40,7 @@ export default function ProposalNewPage() {
           </p>
         </div>
 
-        <ProposalInputForm />
+        <ProposalInputForm initialLeadId={leadId} />
       </div>
     </main>
   );

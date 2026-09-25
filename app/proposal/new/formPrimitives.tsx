@@ -78,7 +78,8 @@ export function TextField({
   placeholder,
   type = "text",
   inputMode,
-}: FieldBaseProps & { type?: string; inputMode?: "text" | "numeric" | "tel" | "email" }) {
+  disabled,
+}: FieldBaseProps & { type?: string; inputMode?: "text" | "numeric" | "tel" | "email"; disabled?: boolean }) {
   const [focused, setFocused] = useState(false);
   return (
     <div>
@@ -90,6 +91,7 @@ export function TextField({
         inputMode={inputMode}
         placeholder={placeholder}
         value={value}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => setFocused(true)}
         onBlur={() => {
@@ -98,7 +100,7 @@ export function TextField({
         }}
         animate={{ scale: focused ? 1.005 : 1 }}
         transition={{ duration: 0.1 }}
-        className={inputClass(!!error)}
+        className={`${inputClass(!!error)} ${disabled ? "cursor-not-allowed opacity-70" : ""}`}
       />
     </div>
   );

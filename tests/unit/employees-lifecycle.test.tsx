@@ -146,6 +146,23 @@ describe('EmployeesPage — deactivate/reactivate', () => {
   })
 })
 
+describe('EmployeesPage — Calendar connected column', () => {
+  it('shows Connected/Not connected per the real google_calendar_connected field', () => {
+    mockUseEmployees.mockReturnValue({
+      data: [
+        { ...ACTIVE_EMPLOYEE, google_calendar_connected: true },
+        { ...INACTIVE_EMPLOYEE, google_calendar_connected: false },
+      ],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    })
+    render(<EmployeesPage />)
+    expect(screen.getByText('Connected')).toBeInTheDocument()
+    expect(screen.getByText('Not connected')).toBeInTheDocument()
+  })
+})
+
 describe('EmployeesPage — DOM validity (real, unmocked component tree)', () => {
   it('does not produce invalid-nesting DOM warnings with active/inactive rows, or with either dialog open', async () => {
     const user = userEvent.setup()

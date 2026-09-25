@@ -27,7 +27,7 @@ export default function Step5Documents({ files, setFile, schemeSelected, showDoc
         label="Electricity Bill (last 3 months)"
         accept=".pdf,.jpg,.jpeg,.png"
         acceptedTypesLabel="PDF, JPG, PNG"
-        maxSizeMB={5}
+        maxSizeMB={10}
         maxFiles={3}
         files={files.electricityBills}
         onChange={(v) => setFile("electricityBills", v)}

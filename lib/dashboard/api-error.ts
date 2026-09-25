@@ -6,12 +6,20 @@ export class ApiError extends Error {
   status: number
   /** Server-provided detail (parsed from the response body when available). */
   detail?: string
+  /**
+   * The raw `{ detail: {...} }` object when the backend sends a structured
+   * error body (e.g. POST /proposals/{id}/send's 409 `placeholder_content`)
+   * instead of a plain string — callers that need the structured fields
+   * (not just a friendly message) read this instead of re-parsing `.detail`.
+   */
+  structuredDetail?: Record<string, unknown>
 
-  constructor(status: number, message: string, detail?: string) {
+  constructor(status: number, message: string, detail?: string, structuredDetail?: Record<string, unknown>) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.detail = detail
+    this.structuredDetail = structuredDetail
   }
 }
 

@@ -27,6 +27,7 @@ describe("normalizeAcceptResponse", () => {
       validUntil: "2026-03-01",
       status: "pending",
       acceptedAt: null,
+      pdfAvailable: false,
     });
   });
 
@@ -51,6 +52,7 @@ describe("normalizeAcceptResponse", () => {
     expect(v).toEqual({
       id: null, customerName: null, company: null, scope: null,
       totalValue: null, validUntil: null, status: null, acceptedAt: null,
+      pdfAvailable: false,
     });
   });
 
@@ -77,6 +79,12 @@ describe("normalizeAcceptResponse", () => {
   it("skips sections with no body and returns null scope for an empty array", () => {
     expect(normalizeAcceptResponse({ scope: [] }).scope).toBeNull();
     expect(normalizeAcceptResponse({ scope: [{ id: "x", body: null }] }).scope).toBeNull();
+  });
+
+  it("only reports the PDF available when the backend says pdf_available is exactly true", () => {
+    expect(normalizeAcceptResponse({ pdf_available: true }).pdfAvailable).toBe(true);
+    expect(normalizeAcceptResponse({ pdf_available: false }).pdfAvailable).toBe(false);
+    expect(normalizeAcceptResponse({}).pdfAvailable).toBe(false);
   });
 
   it("reads the POST accept response's `status` field the same as GET's `state`", () => {

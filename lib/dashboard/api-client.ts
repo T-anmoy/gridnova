@@ -16,34 +16,49 @@ import {
 } from './schemas'
 import type {
   ActivityItem,
+  AdjustPricingResponse,
   AgentAuditResponse,
+  AssignableEmployee,
   AgentId,
   AnalyticsParams,
   AnalyticsResponse,
   AuditLog,
   AuditLogParams,
   ConversionBySource,
+  CreateLeadInput,
+  CreateLeadResponse,
   DealSizeByTier,
   DraftProposalResponse,
   Employee,
+  EmployeeMe,
   Equipment,
   EquipmentCreateInput,
   EquipmentListParams,
   GovernanceAgentsResponse,
   LeadDetail,
   LeadListParams,
+  LeadReassignResponse,
+  LeadStageChangeResponse,
   LeadSummary,
   MeetingListParams,
   MeetingSummary,
   OverviewStats,
   PaginatedResponse,
+  PipelineStage,
   PipelineTrendPoint,
   ProposalDetail,
+  ProposalInputDetail,
+  ProposalInputFileUrlResponse,
+  ProposalInputSummary,
   ProposalListParams,
+  ProposalPdfResponse,
   ProposalStatus,
   ProposalSummary,
   RepPerformance,
+  ReviewProposalInputResponse,
   Role,
+  SendProposalResponse,
+  UpdateLeadFieldsResponse,
 } from './types'
 
 interface OptimisticCtx {
@@ -115,14 +130,26 @@ export async function dashboardFetch<T>(
     // Prefer a structured { detail } body (FastAPI style), else raw text.
     const body = await res.text().catch(() => '')
     let detail = body
+    let structuredDetail: Record<string, unknown> | undefined
     try {
       const parsed = JSON.parse(body) as { detail?: unknown; message?: unknown }
       const d = parsed.detail ?? parsed.message
-      if (typeof d === 'string' && d) detail = d
+      if (typeof d === 'string' && d) {
+        detail = d
+      } else if (d && typeof d === 'object') {
+        // Structured detail (e.g. { code, message, ... }) — never stringify
+        // the raw object into the display message (that renders as
+        // "[object Object]"); prefer its own `message` field, and keep the
+        // full object on the error for callers that need the structured
+        // fields (see ApiError.structuredDetail).
+        structuredDetail = d as Record<string, unknown>
+        const msg = (d as Record<string, unknown>).message
+        detail = typeof msg === 'string' ? msg : res.statusText
+      }
     } catch {
       /* not JSON — keep raw text */
     }
-    throw new ApiError(res.status, `API error ${res.status}`, detail || res.statusText)
+    throw new ApiError(res.status, `API error ${res.status}`, detail || res.statusText, structuredDetail)
   }
   const data: unknown = await res.json()
   if (!schema) return data as T
@@ -209,6 +236,85 @@ export function useLead(id: number) {
   })
 }
 
+export function useChangeLeadStage() {
+  const { getToken } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ leadId, stage, reason }: { leadId: number; stage: PipelineStage; reason?: string | null }) => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<LeadStageChangeResponse>(
+        `/api/v1/dashboard/leads/${leadId}/stage`,
+        token,
+        { method: 'PATCH', body: JSON.stringify({ stage, reason: reason ?? null }) }
+      )
+    },
+    onSuccess: (_data, vars) => {
+      void qc.invalidateQueries({ queryKey: ['lead', vars.leadId] })
+      void qc.invalidateQueries({ queryKey: ['leads'] })
+    },
+  })
+}
+
+export function useReassignLead() {
+  const { getToken } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ leadId, employeeId }: { leadId: number; employeeId: string }) => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<LeadReassignResponse>(
+        `/api/v1/dashboard/leads/${leadId}/assign`,
+        token,
+        { method: 'PATCH', body: JSON.stringify({ employee_id: employeeId }) }
+      )
+    },
+    onSuccess: (_data, vars) => {
+      void qc.invalidateQueries({ queryKey: ['lead', vars.leadId] })
+      void qc.invalidateQueries({ queryKey: ['leads'] })
+    },
+  })
+}
+
+export function useCreateLead() {
+  const { getToken } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (input: CreateLeadInput) => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<CreateLeadResponse>(
+        '/api/v1/dashboard/leads',
+        token,
+        { method: 'POST', body: JSON.stringify(input) }
+      )
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['leads'] })
+    },
+  })
+}
+
+export function useUpdateLeadFields() {
+  const { getToken } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ leadId, fields }: { leadId: number; fields: Record<string, unknown> }) => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<UpdateLeadFieldsResponse>(
+        `/api/v1/dashboard/leads/${leadId}/fields`,
+        token,
+        { method: 'PATCH', body: JSON.stringify(fields) }
+      )
+    },
+    onSuccess: (_data, vars) => {
+      void qc.invalidateQueries({ queryKey: ['lead', vars.leadId] })
+      void qc.invalidateQueries({ queryKey: ['leads'] })
+    },
+  })
+}
+
 export function useProposals(params?: ProposalListParams) {
   const { getToken } = useAuth()
   return useQuery({
@@ -243,18 +349,26 @@ export function useProposalPdf(id: number, enabled: boolean) {
     queryFn: async () => {
       const token = await getToken()
       if (!token) throw new Error('Not authenticated')
-      return dashboardFetch<{ pdf_url?: string; status?: string; proposal_id: number }>(
-        `/api/v1/dashboard/proposals/${id}/pdf`,
-        token
-      )
+      return dashboardFetch<ProposalPdfResponse>(`/api/v1/dashboard/proposals/${id}/pdf`, token)
     },
     enabled: enabled && !!id,
     refetchInterval: (query) => {
+      // Stop polling once the PDF is ready, or on a terminal error (409
+      // pdf_location_unknown / 503 storage_not_configured) — neither
+      // resolves itself by retrying every 5s.
+      if (query.state.error) return false
       const data = query.state.data
       if (data && 'pdf_url' in data && data.pdf_url) return false
       return 5000
     },
+    retry: false,
   })
+}
+
+// On-demand signed PDF link for an already-sent proposal — fetched fresh on
+// click (never on page load, never cached), since the link is short-lived.
+export async function fetchProposalPdf(id: number, token: string): Promise<ProposalPdfResponse> {
+  return dashboardFetch(`/api/v1/dashboard/proposals/${id}/pdf`, token)
 }
 
 export function useAnalytics(params?: AnalyticsParams) {
@@ -333,7 +447,7 @@ export function usePipelineTrend(params?: AnalyticsParams) {
   })
 }
 
-export function useEmployees() {
+export function useEmployees(options?: { enabled?: boolean }) {
   const { getToken } = useAuth()
   return useQuery({
     queryKey: ['employees'],
@@ -341,6 +455,51 @@ export function useEmployees() {
       const token = await getToken()
       if (!token) throw new Error('Not authenticated')
       return dashboardFetch<Employee[]>('/api/v1/dashboard/employees', token)
+    },
+    enabled: options?.enabled ?? true,
+  })
+}
+
+// GET /employees/assignable (admin + management) — the reassign picker's
+// real data source. Unlike GET /employees, this is not admin-only.
+export function useAssignableEmployees(options?: { enabled?: boolean }) {
+  const { getToken } = useAuth()
+  return useQuery({
+    queryKey: ['employees-assignable'],
+    queryFn: async () => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<AssignableEmployee[]>('/api/v1/dashboard/employees/assignable', token)
+    },
+    enabled: options?.enabled ?? true,
+  })
+}
+
+// The signed-in employee's own record — role comes from the login token
+// (the source of truth for permission checks), plus calendar-connect status.
+export function useEmployeeMe() {
+  const { getToken } = useAuth()
+  return useQuery({
+    queryKey: ['employee-me'],
+    queryFn: async () => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<EmployeeMe>('/api/v1/dashboard/employees/me', token)
+    },
+  })
+}
+
+export function useConnectCalendar() {
+  const { getToken } = useAuth()
+  return useMutation({
+    mutationFn: async () => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<{ authorization_url: string }>(
+        '/api/v1/dashboard/employees/me/calendar/connect',
+        token,
+        { method: 'POST' }
+      )
     },
   })
 }
@@ -434,6 +593,80 @@ export function useAuditLog(params?: AuditLogParams) {
       return dashboardFetch<PaginatedResponse<AuditLog>>(`/api/v1/dashboard/audit-log${qs}`, token)
     },
   })
+}
+
+// ── Site assessments (proposal-inputs) ───────────────────────────────────────
+
+export function useProposalInputs(params?: { status?: string; page?: number; page_size?: number }) {
+  const { getToken } = useAuth()
+  return useQuery({
+    queryKey: ['proposal-inputs', params],
+    queryFn: async () => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
+      return dashboardFetch<{ items: ProposalInputSummary[]; page: number; page_size: number; total: number }>(
+        `/api/v1/proposal-inputs/${qs}`,
+        token
+      )
+    },
+    staleTime: LIST_STALE_TIME,
+  })
+}
+
+export function useProposalInput(id: number) {
+  const { getToken } = useAuth()
+  return useQuery({
+    queryKey: ['proposal-input', id],
+    queryFn: async () => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<ProposalInputDetail>(`/api/v1/proposal-inputs/${id}`, token)
+    },
+    enabled: !!id,
+  })
+}
+
+export function useReviewProposalInput() {
+  const { getToken } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      inputId,
+      status,
+      internalNotes,
+      rejectionReason,
+    }: {
+      inputId: number
+      status: 'under_review' | 'approved_for_proposal' | 'rejected'
+      internalNotes?: string
+      rejectionReason?: string
+    }) => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<ReviewProposalInputResponse>(
+        `/api/v1/proposal-inputs/${inputId}/review`,
+        token,
+        // rejection_reason is the real field name — a field named `reason`
+        // is silently ignored by the backend.
+        { method: 'PATCH', body: JSON.stringify({ status, internal_notes: internalNotes, rejection_reason: rejectionReason }) }
+      )
+    },
+    onSuccess: (_data, vars) => {
+      void qc.invalidateQueries({ queryKey: ['proposal-input', vars.inputId] })
+      void qc.invalidateQueries({ queryKey: ['proposal-inputs'] })
+    },
+  })
+}
+
+// Signed download URLs expire — this is a plain fetch (not a cached query) so
+// every click gets a fresh one, never a stale cached link.
+export async function fetchProposalInputFileUrl(
+  inputId: number,
+  fileRef: string,
+  token: string
+): Promise<ProposalInputFileUrlResponse> {
+  return dashboardFetch(`/api/v1/proposal-inputs/${inputId}/files/${fileRef}`, token)
 }
 
 export function useMeetings(params?: MeetingListParams) {
@@ -623,13 +856,36 @@ export function useSendProposal() {
     mutationFn: async (proposalId: number) => {
       const token = await getToken()
       if (!token) throw new Error('Not authenticated')
-      return dashboardFetch<{ status: string; proposal_id: number }>(
+      return dashboardFetch<SendProposalResponse>(
         `/api/v1/dashboard/proposals/${proposalId}/send`,
         token,
         { method: 'POST' }
       )
     },
     ...optimisticProposalUpdate<number>(qc, (id) => id, 'sent'),
+  })
+}
+
+export function useAdjustPricing() {
+  const { getToken } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ proposalId, newValue, reason }: { proposalId: number; newValue: number; reason: string }) => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<AdjustPricingResponse>(
+        `/api/v1/dashboard/proposals/${proposalId}/adjust-pricing`,
+        token,
+        { method: 'PATCH', body: JSON.stringify({ new_value: newValue, reason }) }
+      )
+    },
+    // The pricing section content is rewritten server-side — a full refetch
+    // (not an optimistic patch) is the only honest way to show the real
+    // updated content, per the contract note on this endpoint.
+    onSuccess: (_data, vars) => {
+      void qc.invalidateQueries({ queryKey: ['proposal', vars.proposalId] })
+      void qc.invalidateQueries({ queryKey: ['proposals'] })
+    },
   })
 }
 

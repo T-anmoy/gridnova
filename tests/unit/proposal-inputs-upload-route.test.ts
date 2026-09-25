@@ -97,6 +97,25 @@ describe("POST /api/proposal-inputs/[id]/upload", () => {
     expect(data.error).toMatch(/not saved/i);
   });
 
+  it("passes through the real 413 oversized-file error with its exact message", async () => {
+    mockAuth.mockResolvedValue({ getToken: async () => "real-clerk-jwt" });
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ detail: "File exceeds the 10MB limit." }), { status: 413 })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { POST } = await import("@/app/api/proposal-inputs/[id]/upload/route");
+    const res = await POST(
+      makeUploadRequest(new File(["x"], "bill.pdf", { type: "application/pdf" })),
+      ctxFor("501")
+    );
+
+    expect(res.status).toBe(413);
+    const data = await res.json();
+    expect(data.success).toBe(false);
+    expect(data.error).toBe("File exceeds the 10MB limit.");
+  });
+
   it("passes through other real backend errors (e.g. unsupported file type) honestly", async () => {
     mockAuth.mockResolvedValue({ getToken: async () => "real-clerk-jwt" });
     const fetchMock = vi.fn().mockResolvedValue(

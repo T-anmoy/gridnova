@@ -24,6 +24,7 @@ export interface AcceptView {
   validUntil: string | null
   status: string | null
   acceptedAt: string | null
+  pdfAvailable: boolean
 }
 
 export interface ScopeSection {
@@ -49,6 +50,7 @@ export interface RawAccept {
   scope_summary?: string | null
   scope_of_work?: string | null
   content?: { scope_of_work?: string | null } | null
+  pdf_available?: boolean | null
 }
 
 function firstDefined<T>(...vals: (T | null | undefined)[]): T | null {
@@ -97,6 +99,7 @@ export function normalizeAcceptResponse(raw: RawAccept | null | undefined): Acce
     validUntil: firstDefined(r.valid_until, r.validity),
     status: firstDefined(r.status, r.state),
     acceptedAt: firstDefined(r.accepted_at),
+    pdfAvailable: r.pdf_available === true,
   }
 }
 

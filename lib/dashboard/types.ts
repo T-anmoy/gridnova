@@ -65,6 +65,23 @@ export interface LeadSummary {
   lead_score: LeadScore
   source: string
   created_at: string
+  assigned_employee_id?: string | null
+  project_reference_id?: string | null
+}
+
+export interface ProjectRecord {
+  id: number
+  reference_id: string
+  project_type: string | null
+  project_family: string | null
+  state: string | null
+  location: string | null
+  capacity_kw: number | null
+  roof_type: string | null
+  monthly_electricity_bill: number | null
+  budget: number | null
+  timeline: string | null
+  created_at: string | null
 }
 
 export interface LeadDetail {
@@ -73,6 +90,8 @@ export interface LeadDetail {
   pipeline_stage: PipelineStage
   lead_score: LeadScore | null
   collected_fields: Record<string, unknown> | null
+  assigned_employee_id?: string | null
+  project?: ProjectRecord | null
   proposals: Array<{
     id: number
     version: number
@@ -91,6 +110,72 @@ export interface LeadDetail {
   }>
 }
 
+// PATCH /leads/{id}/stage
+export type LeadAssignmentFilter = 'me' | 'unassigned' | 'any'
+
+export interface LeadStageChangeInput {
+  leadId: number
+  stage: PipelineStage
+  reason?: string | null
+}
+
+export interface LeadStageChangeResponse {
+  lead_id: number
+  previous_stage: PipelineStage
+  pipeline_stage: PipelineStage
+  reason: string | null
+}
+
+// PATCH /leads/{id}/assign — admin/management only
+export interface LeadReassignInput {
+  leadId: number
+  employeeId: string
+}
+
+export interface LeadReassignResponse {
+  lead_id: number
+  previous_assigned_employee_id: string | null
+  assigned_employee_id: string
+}
+
+// POST /leads — staff-entered manual lead
+export type LeadSource = 'whatsapp' | 'cold_call' | 'referral' | 'other'
+export type ManualProjectType = 'rooftop' | 'ground_mounted' | 'solar_pump'
+
+export interface CreateLeadInput {
+  name: string
+  phone?: string
+  email?: string
+  source: LeadSource
+  location?: string
+  project_type?: ManualProjectType
+  capacity_kw?: number
+  monthly_electricity_bill?: number
+  notes?: string
+}
+
+export interface CreateLeadResponse {
+  lead_id: number
+  customer_id: number
+  customer_matched_existing: boolean
+  project_id: number
+  project_reference_id: string
+  source: string
+  pipeline_stage: PipelineStage
+  lead_score: LeadScore
+  assigned_employee_id: string | null
+  is_qualified: boolean
+  missing_fields: string[]
+}
+
+// PATCH /leads/{id}/fields — qualification fields editor
+export interface UpdateLeadFieldsResponse {
+  lead_id: number
+  collected_fields: Record<string, unknown>
+  is_qualified: boolean
+  missing_fields: string[]
+}
+
 export interface ProposalVersion {
   id: number
   version: number
@@ -106,7 +191,18 @@ export interface ProposalSummary {
   status: ProposalStatus
   total_value: number | null
   requires_manager_signoff: boolean
+  // Raw storage address — never open/render this directly (won't resolve).
+  // Use `pdf_available` to decide whether to show a download control, and
+  // fetch a fresh signed link from GET /proposals/{id}/pdf on click.
   pdf_url: string | null
+  pdf_available?: boolean
+  // See the identical note on ProposalDetail — accept_url is the real link,
+  // accept_path is the backend's own API path and must never be linked.
+  accept_url?: string | null
+  accept_path?: string | null
+  accepted_at?: string | null
+  has_placeholder_content?: boolean
+  placeholder_sections?: string[]
   date_created: string | null
   date_sent: string | null
   lead: {
@@ -134,12 +230,23 @@ export interface ProposalDetail {
   total_value: number | null
   requires_manager_signoff: boolean
   revision_reason: string | null
+  // Raw storage address — never open/render this directly (won't resolve).
+  // Use `pdf_available` to decide whether to show a download control, and
+  // fetch a fresh signed link from GET /proposals/{id}/pdf on click.
   pdf_url: string | null
+  pdf_available?: boolean
   date_created: string | null
   date_sent: string | null
   // Customer accept-link status (populated once the proposal is sent).
+  // `accept_url` (Prompt 02c, backend-confirmed) is the real full website URL
+  // — always use it. `accept_path` is the backend's own API path
+  // (`/api/v1/proposals/accept/{token}`) and must never be rendered or
+  // linked directly; it's only present here so the schema tolerates it.
   accept_url?: string | null
+  accept_path?: string | null
   accepted_at?: string | null
+  has_placeholder_content?: boolean
+  placeholder_sections?: string[]
   customer: Customer | null
   lead: {
     id: number
@@ -147,6 +254,61 @@ export interface ProposalDetail {
     lead_score: LeadScore
   } | null
   versions: ProposalVersion[]
+}
+
+// PATCH /proposals/{id}/adjust-pricing — verified against the real backend
+// source (Prompt 03b). Who: admin and sales (`can_adjust_pricing`) — never
+// management. Sales is further scoped by the Sales rule (own/unassigned).
+export interface AdjustPricingInput {
+  proposalId: number
+  newValue: number
+  reason: string
+}
+
+export interface AdjustPricingResponse {
+  status: 'pricing_adjusted'
+  proposal_id: number
+  total_value: number
+  requires_manager_signoff: boolean
+  reason: string
+}
+
+// POST /proposals/{id}/send (200)
+export type CustomerEmailSkippedReason =
+  | 'email_not_configured'
+  | 'no_customer'
+  | 'no_customer_email'
+  | 'placeholder_customer_email'
+  | 'no_accept_link'
+  | 'send_failed'
+
+export interface SendProposalResponse {
+  status: string
+  proposal_id: number
+  customer_email_sent: boolean
+  customer_email_skipped_reason: CustomerEmailSkippedReason | null
+}
+
+// POST /proposals/{id}/send — 409 structured detail (placeholder content)
+export interface PlaceholderContentDetail {
+  code: 'placeholder_content'
+  message: string
+  placeholder_sections: string[]
+  missing_total_value: boolean
+}
+
+// GET /proposals/{id}/pdf
+export interface ProposalPdfResponse {
+  pdf_url?: string
+  status?: 'pdf_pending'
+  proposal_id: number
+  expires_at?: string
+}
+
+export interface ApiErrorDetail {
+  code: string
+  message: string
+  [key: string]: unknown
 }
 
 export interface PaginatedResponse<T> {
@@ -210,6 +372,37 @@ export interface Employee {
   role: Role
   is_active: boolean
   created_at: string | null
+  google_calendar_connected?: boolean
+}
+
+// GET /employees/assignable — admin + management, trimmed for the reassign
+// picker (no email/status noise the picker doesn't need).
+export interface AssignableEmployee {
+  id: string
+  name: string
+  role: Role
+}
+
+// GET /employees/me
+export interface EmployeeMe {
+  id: string
+  role: Role
+  is_active: boolean
+  google_calendar_connected: boolean
+}
+
+export type CalendarErrorReason =
+  | 'invalid_state'
+  | 'access_denied'
+  | 'consent_failed'
+  | 'missing_code'
+  | 'not_configured'
+  | 'exchange_failed'
+  | 'employee_not_found'
+
+// POST /employees/me/calendar/connect
+export interface CalendarConnectResponse {
+  authorization_url: string
 }
 
 // ── Agent governance ─────────────────────────────────────────────────────────
@@ -273,6 +466,9 @@ export interface LeadListParams {
   date_to?: string
   search?: string
   page_size?: number
+  // Sales-scoping filter (Prompt 02b): 'any' means own + unassigned for
+  // Sales specifically — any other role sending a non-empty value gets a 422.
+  assigned?: LeadAssignmentFilter
 }
 
 export interface ProposalListParams {
@@ -353,4 +549,113 @@ export interface ActivityItem {
   action: string
   actor: string | null
   created_at: string | null
+}
+
+// ── Site assessments (proposal-inputs) ───────────────────────────────────────
+
+export type ProposalInputStatus = 'submitted' | 'under_review' | 'approved_for_proposal' | 'rejected'
+
+export interface ProposalInputFile {
+  file_ref: string
+  target: 'document' | 'installation_photo' | 'staff_signature' | 'customer_signature'
+  filename: string
+  document_type?: string | null
+  photo_slot?: string | null
+}
+
+export interface ProposalInputSummary {
+  id: number
+  lead_id: number
+  status: ProposalInputStatus
+  customer_type: string
+  project_family: string
+  state: string
+  district: string
+  created_at: string | null
+}
+
+// Fields beyond the summary mirror this form's own submit shape
+// (app/proposal/new/backend-mapping.ts). `gst_number` / `internal_notes` are
+// omitted entirely for the Engineer role — always optional here, never
+// rendered as an empty label when absent.
+export interface ProposalInputDetail extends ProposalInputSummary {
+  organisation_name?: string | null
+  gst_number?: string | null
+  scheme_linked: boolean
+  scheme_name: string | null
+  pin_code: string
+  full_address?: string | null
+  discom?: string | null
+  consumer_number?: string | null
+  site_type: string
+  roof_area_sqft?: number | null
+  floors?: number | null
+  shading_condition?: string | null
+  structural_notes?: string | null
+  avg_monthly_bill_inr?: number | null
+  avg_monthly_units_kwh?: number | null
+  peak_load_kw?: number | null
+  connection_phase?: string | null
+  desired_output_kw?: number | null
+  load_notes?: string | null
+  connection_type: string
+  net_metering_required: boolean
+  dcr_panels_required: boolean
+  ev_charging: boolean
+  battery_storage: boolean
+  equipment_tier?: string | null
+  additional_requirements?: string | null
+  internal_notes?: string | null
+  files: ProposalInputFile[]
+  lead_fields_filled?: Record<string, unknown>
+  rejection_reason?: string | null
+}
+
+export interface ProposalInputListParams {
+  status?: ProposalInputStatus
+  page?: number
+  page_size?: number
+}
+
+// PATCH /proposal-inputs/{id}/review — verified against the real backend
+// source (Prompt 03b). Who: admin and sales (`can_manage_proposal_inputs`).
+// Reject reason MUST be sent as `rejection_reason` — a field named `reason`
+// is silently ignored by the backend. Setting status back to `submitted` is
+// a 422.
+export interface ReviewProposalInputInput {
+  inputId: number
+  status: 'under_review' | 'approved_for_proposal' | 'rejected'
+  internalNotes?: string
+  rejectionReason?: string
+}
+
+// Only present when the review sets status to approved_for_proposal.
+export type ProposalDraftOutcome =
+  | { triggered: true; proposal_id: number; version: number }
+  | { triggered: false; reason: string; missing_fields?: string[] }
+
+// The response is the full serialized site assessment (same shape as
+// GET /proposal-inputs/{id}) plus `proposal_draft` on approval — there are
+// no top-level draft_proposal_id/missing_fields/draft_error fields.
+export interface ReviewProposalInputResponse extends ProposalInputDetail {
+  proposal_draft?: ProposalDraftOutcome
+}
+
+// GET /proposal-inputs/{id}/files/{file_ref}
+export interface ProposalInputFileUrlResponse {
+  url: string
+  expires_at: string
+  filename: string
+  file_ref: string
+  target: string
+}
+
+// GET /api/v1/dashboard/leads/{id} — trimmed for the site-assessment wizard's
+// pre-fill (name/phone/email), fetched via a dedicated server route since the
+// wizard page has no ClerkProvider for client-side dashboard hooks.
+export interface LeadPrefillResponse {
+  lead_id: number
+  full_name: string | null
+  phone: string | null
+  email: string | null
 }

@@ -8,13 +8,17 @@ const mockUseUser = vi.fn()
 vi.mock('@clerk/nextjs', () => ({ useUser: () => mockUseUser() }))
 
 const pushMock = vi.fn()
+const replaceMock = vi.fn()
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: pushMock, replace: vi.fn(), back: vi.fn(), forward: vi.fn(), prefetch: vi.fn() }),
+  useRouter: () => ({ push: pushMock, replace: replaceMock, back: vi.fn(), forward: vi.fn(), prefetch: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
 }))
 
 const mockUseMeetings = vi.fn()
 vi.mock('@/lib/dashboard/api-client', () => ({
   useMeetings: (params: unknown) => mockUseMeetings(params),
+  useEmployeeMe: () => ({ data: { id: 'me', role: 'admin', is_active: true, google_calendar_connected: false }, isLoading: false }),
+  useConnectCalendar: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }))
 
 const MEETING: MeetingSummary = {

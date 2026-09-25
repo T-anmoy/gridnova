@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { toast } from 'sonner'
-import { ShieldOff } from 'lucide-react'
+import { CalendarCheck2, ShieldOff } from 'lucide-react'
 import { useEmployees, useUpdateEmployeeRole, useDeactivateEmployee, useReactivateEmployee } from '@/lib/dashboard/api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { DashboardError } from '@/components/dashboard/DashboardError'
@@ -104,6 +104,7 @@ export default function EmployeesPage() {
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Calendar</TableHead>
                 <TableHead>Date Added</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -112,7 +113,7 @@ export default function EmployeesPage() {
               {isLoading
                 ? Array.from({ length: 4 }).map((_, i) => (
                     <TableRow key={i}>
-                      {Array.from({ length: 6 }).map((_, j) => (
+                      {Array.from({ length: 7 }).map((_, j) => (
                         <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
                       ))}
                     </TableRow>
@@ -141,6 +142,15 @@ export default function EmployeesPage() {
                         <Badge variant={emp.is_active ? 'green' : 'gray'} className="text-xs">
                           {emp.is_active ? 'Active' : 'Inactive'}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {emp.google_calendar_connected ? (
+                          <span className="inline-flex items-center gap-1 text-green-700 text-xs font-utility">
+                            <CalendarCheck2 className="h-3.5 w-3.5" /> Connected
+                          </span>
+                        ) : (
+                          <span className="text-xs font-utility text-[#111827]/40">Not connected</span>
+                        )}
                       </TableCell>
                       <TableCell className="font-utility text-sm text-[#111827]/60">{formatDate(emp.created_at)}</TableCell>
                       <TableCell className="text-right">

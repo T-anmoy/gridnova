@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
-import { CheckCircle2, Clock, FileX2, Loader2, ShieldCheck } from 'lucide-react'
+import { CheckCircle2, Clock, Download, FileX2, Loader2, ShieldCheck } from 'lucide-react'
 import headerLogo from '@/public/brand/header-logo.png'
 import { formatCurrency, formatDate } from '@/lib/dashboard/utils'
 import {
@@ -211,6 +211,14 @@ export default function ProposalAcceptPage() {
               <span className="font-display text-lg font-bold text-[#091c3c]">{formatCurrency(view.totalValue)}</span>
             </div>
           )}
+          {view?.pdfAvailable && (
+            <a
+              href={`${BACKEND_URL}/api/v1/public/proposals/${token}/pdf`}
+              className="mt-6 w-full inline-flex items-center justify-center gap-2 rounded-full border border-[#e4e8ee] text-[#0e2a63] font-utility font-semibold text-sm px-6 py-3 hover:bg-[#f7f9fc] transition-colors"
+            >
+              <Download className="h-4 w-4" /> Download proposal (PDF)
+            </a>
+          )}
           <p className="mt-6 font-utility text-xs text-[#111827]/40">
             Questions? Email{' '}
             <a href="mailto:info@gridnova.in" className="text-[#0e2a63] font-medium hover:underline">
@@ -278,6 +286,14 @@ export default function ProposalAcceptPage() {
         <p className="mt-3 font-utility text-xs text-[#111827]/40 text-center">
           By accepting, you confirm you’d like to proceed with this proposal.
         </p>
+        {view?.pdfAvailable && (
+          <a
+            href={`${BACKEND_URL}/api/v1/public/proposals/${token}/pdf`}
+            className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-full border border-[#e4e8ee] text-[#0e2a63] font-utility font-semibold text-sm px-6 py-3 hover:bg-[#f7f9fc] transition-colors"
+          >
+            <Download className="h-4 w-4" /> Download proposal (PDF)
+          </a>
+        )}
       </Card>
     </Shell>
   )

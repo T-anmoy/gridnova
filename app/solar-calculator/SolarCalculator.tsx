@@ -12,7 +12,6 @@ import {
   YesNoToggle,
   SectionHeading,
 } from "@/app/proposal/new/formPrimitives";
-import FileUploadSlot from "@/app/proposal/new/FileUploadSlot";
 import { STATES } from "@/app/proposal/new/types";
 import {
   type CustomerType,
@@ -76,8 +75,6 @@ export default function SolarCalculator() {
   const [accessDifficultyLabel, setAccessDifficultyLabel] = useState("");
   const [shadingLabel, setShadingLabel] = useState("");
   const [subsidyInterest, setSubsidyInterest] = useState<"yes" | "no">("yes");
-  const [billFiles, setBillFiles] = useState<File[]>([]);
-  const [roofPhotoFiles, setRoofPhotoFiles] = useState<File[]>([]);
 
   // Step D — Instant Estimate
   const [estimateStatus, setEstimateStatus] = useState<EstimateStatus>("idle");
@@ -479,32 +476,18 @@ export default function SolarCalculator() {
               onChange={setSubsidyInterest}
               note="A residential rooftop system may qualify for a central government subsidy — we'll factor this into your estimate below."
             />
-            <div className="grid sm:grid-cols-2 gap-5">
-              <FileUploadSlot
-                id="sc-bill-upload"
-                label="Electricity Bill"
-                helperText="Helps our team verify your consumption — a photo or PDF is fine."
-                accept=".pdf,.jpg,.jpeg,.png"
-                acceptedTypesLabel="PDF, JPG, PNG"
-                maxSizeMB={10}
-                maxFiles={1}
-                files={billFiles}
-                onChange={setBillFiles}
-                optional
-              />
-              <FileUploadSlot
-                id="sc-roof-photo-upload"
-                label="Roof Photo"
-                helperText="A quick photo of your roof gives our team useful context."
-                accept=".jpg,.jpeg,.png"
-                acceptedTypesLabel="JPG, PNG"
-                maxSizeMB={10}
-                maxFiles={3}
-                files={roofPhotoFiles}
-                onChange={setRoofPhotoFiles}
-                optional
-              />
-            </div>
+            <p className="text-[#111827]/50 text-xs font-utility leading-relaxed rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] px-4 py-3.5">
+              You can share your electricity bill or roof photos with our team after submitting —
+              WhatsApp us at{" "}
+              <a href="tel:+919874774440" className="text-[#0e2a63] font-medium hover:underline">
+                +91 98747 74440
+              </a>{" "}
+              or email{" "}
+              <a href="mailto:info@gridnova.in" className="text-[#0e2a63] font-medium hover:underline">
+                info@gridnova.in
+              </a>
+              .
+            </p>
           </div>
         )}
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { mirrorToBackend } from "@/lib/backend-mirror";
 
 interface ConfiguratorLeadBody {
   customerType: "residential" | "society";
@@ -156,38 +157,31 @@ export async function POST(request: Request) {
       );
     }
 
-    // Best-effort mirror into the backend, exactly the same discipline as
-    // app/api/estimate-request/route.ts: isolated try/catch, a short timeout
-    // so an unreachable/slow backend can't delay this response, and a
-    // server-side log on failure instead of surfacing anything to the caller.
-    // Reuses the same backend endpoint /estimate already mirrors to — its
-    // accepted fields already cover everything this configurator collects,
-    // so no new backend Lead-creation endpoint was needed.
-    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-    try {
-      await fetch(`${apiBase}/api/v1/public/estimate-request`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          phone,
-          customer_type: customerType,
-          state: body.state || undefined,
-          city: body.city || undefined,
-          average_bill: toFloat(body.averageMonthlyBill),
-          roof_type: body.roofType || undefined,
-          roof_area: toFloat(body.roofAreaSqFt),
-          connection_phase: body.connectionPhase || undefined,
-        }),
-        signal: AbortSignal.timeout(5000),
-      });
-    } catch (backendErr) {
-      console.error(
-        "Backend Solar Calculator lead mirror failed (non-fatal — customer's email already sent):",
-        backendErr
-      );
-    }
+    // Best-effort mirror into the backend, same discipline as
+    // app/api/estimate-request/route.ts (via the shared mirrorToBackend
+    // helper): internal-key/customer-IP headers when configured, a short
+    // timeout, and a server-side log on a non-2xx or network failure instead
+    // of surfacing anything to the caller. Reuses the same backend endpoint
+    // /estimate already mirrors to — its accepted fields already cover
+    // everything this configurator collects, so no new backend
+    // Lead-creation endpoint was needed.
+    await mirrorToBackend(
+      "/api/v1/public/estimate-request",
+      {
+        name,
+        email,
+        phone,
+        customer_type: customerType,
+        state: body.state || undefined,
+        city: body.city || undefined,
+        average_bill: toFloat(body.averageMonthlyBill),
+        roof_type: body.roofType || undefined,
+        roof_area: toFloat(body.roofAreaSqFt),
+        connection_phase: body.connectionPhase || undefined,
+      },
+      request,
+      "Solar Calculator lead"
+    );
 
     return NextResponse.json({ success: true });
   } catch (err) {

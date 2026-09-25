@@ -124,6 +124,54 @@ describe('POST /api/estimate-request — backend mirror graceful degradation', (
     expect(options.signal.aborted).toBe(false)
   })
 
+  it('sends X-Internal-Key and X-Customer-IP when INTERNAL_API_KEY is configured', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'http://127.0.0.1:8000')
+    vi.stubEnv('INTERNAL_API_KEY', 'secret-key')
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { POST } = await import('@/app/api/estimate-request/route')
+    const req = new Request('http://localhost/api/estimate-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '203.0.113.5' },
+      body: JSON.stringify(VALID_FORM_BODY),
+    })
+    const res = await POST(req)
+
+    expect(res.status).toBe(200)
+    const [, options] = fetchMock.mock.calls[0]
+    expect(options.headers['X-Internal-Key']).toBe('secret-key')
+    expect(options.headers['X-Customer-IP']).toBe('203.0.113.5')
+  })
+
+  it('omits the internal-key/customer-IP headers when INTERNAL_API_KEY is unset', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'http://127.0.0.1:8000')
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { POST } = await import('@/app/api/estimate-request/route')
+    const res = await POST(makeRequest(VALID_FORM_BODY))
+
+    expect(res.status).toBe(200)
+    const [, options] = fetchMock.mock.calls[0]
+    expect(options.headers['X-Internal-Key']).toBeUndefined()
+    expect(options.headers['X-Customer-IP']).toBeUndefined()
+  })
+
+  it('still returns success to the customer when the backend mirror responds 429 (rate limited)', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'http://127.0.0.1:8000')
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ detail: 'rate limited' }), { status: 429 })))
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const { POST } = await import('@/app/api/estimate-request/route')
+    const res = await POST(makeRequest(VALID_FORM_BODY))
+
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ success: true })
+    // The dropped CRM lead is now visible in server logs, not just silently lost.
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Backend estimate-request mirror returned 429'))
+  })
+
   it('does not attempt the backend mirror at all when the honeypot is filled', async () => {
     vi.stubEnv('NEXT_PUBLIC_API_URL', 'http://127.0.0.1:8000')
     const fetchMock = vi.fn()

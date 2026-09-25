@@ -18,6 +18,7 @@ vi.mock('next/navigation', () => ({
 const mockUseLeads = vi.fn()
 vi.mock('@/lib/dashboard/api-client', () => ({
   useLeads: () => mockUseLeads(),
+  useCreateLead: () => ({ mutateAsync: vi.fn(), isPending: false }),
   downloadLeadsCsv: vi.fn(),
 }))
 
@@ -65,11 +66,11 @@ describe('LeadsPage — Source column', () => {
     expect(screen.getByText('#1')).toBeInTheDocument()
     expect(screen.getByText('#2')).toBeInTheDocument()
 
-    // Stage, Score, then Source — the three filter comboboxes in DOM order
-    // (none carry an accessible name, matching the existing Leads/Equipment
-    // filter convention).
+    // Assignment filter (admin sees this too, Prompt 03b), Stage, Score,
+    // then Source — the filter comboboxes in DOM order (none but the
+    // assignment one carry an accessible name).
     const combos = screen.getAllByRole('combobox')
-    await user.click(combos[2])
+    await user.click(combos[3])
     await user.click(await screen.findByRole('option', { name: 'Booking' }))
 
     expect(screen.queryByText('#1')).not.toBeInTheDocument()

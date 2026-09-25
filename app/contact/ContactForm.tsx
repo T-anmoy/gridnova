@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, AlertCircle } from "lucide-react";
+import { ArrowRight, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 
 type Field = "name" | "email" | "phone" | "interest" | "message";
+type SubmitStatus = "idle" | "submitting" | "success" | "error";
 
 const INTERESTS = [
   "Residential Rooftop",
@@ -107,6 +108,8 @@ export default function ContactForm() {
   const [focused, setFocused] = useState<Field | null>(null);
   // Honeypot: invisible to real users, bots fill it, submission silently rejected
   const [honeypot, setHoneypot] = useState("");
+  const [status, setStatus] = useState<SubmitStatus>("idle");
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Update value; re-validate immediately if the field has been touched before
   function set(field: Field, value: string) {
@@ -125,7 +128,7 @@ export default function ContactForm() {
     setErrors((e) => ({ ...e, [field]: err }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     // Silently reject if honeypot is filled (bot submission)
@@ -143,27 +146,60 @@ export default function ContactForm() {
       return;
     }
 
-    // Transparent mailto: fallback — opens user's email client with pre-filled message.
-    // NOTE: True lead-quality control (rate limiting, server-side validation, spam filtering)
-    // requires wiring this form to a real backend API route (e.g. via Resend, SendGrid, or
-    // a Next.js /api/contact handler) rather than the client-side mailto: handoff here.
-    const subject = `Solar Enquiry from ${values.name}${values.interest ? ` — ${values.interest}` : ""}`;
-    const body = [
-      `Name: ${values.name}`,
-      `Email: ${values.email}`,
-      values.phone ? `Phone: ${values.phone}` : null,
-      values.interest ? `Interest: ${values.interest}` : null,
-      "",
-      `Message:\n${values.message}`,
-    ]
-      .filter(Boolean)
-      .join("\n");
+    setStatus("submitting");
+    setSubmitError(null);
 
-    window.location.href = `mailto:info@gridnova.in?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: values.name,
+          email: values.email,
+          phone: values.phone || undefined,
+          interest: values.interest || undefined,
+          message: values.message,
+          website: honeypot,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || !data?.success) {
+        setStatus("error");
+        setSubmitError(
+          data?.error || "We couldn't send your message right now. Please call or email us directly."
+        );
+        return;
+      }
+
+      setStatus("success");
+    } catch {
+      setStatus("error");
+      setSubmitError("We couldn't reach our server. Please call or email us directly.");
+    }
   }
 
   // Only show errors for fields the visitor has already interacted with
   const visible = (field: Field) => (touched[field] ? errors[field] : undefined);
+
+  if (status === "success") {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="bg-white rounded-2xl border border-[#e4e8ee] p-7 md:p-9 text-center"
+      >
+        <div className="mx-auto h-14 w-14 rounded-full bg-[#f7a800]/10 flex items-center justify-center">
+          <CheckCircle2 className="h-7 w-7 text-[#f7a800]" />
+        </div>
+        <h2 className="mt-6 font-display text-[#0e2a63] text-xl font-semibold">Message sent</h2>
+        <p className="mt-3 text-[#111827]/65 leading-relaxed max-w-[42ch] mx-auto">
+          Thanks, {values.name || "there"} — we&rsquo;ve received your message and a member of our team will get back to you shortly.
+        </p>
+      </motion.div>
+    );
+  }
 
   return (
     <form
@@ -286,18 +322,45 @@ export default function ContactForm() {
         />
       </div>
 
+      <AnimatePresence>
+        {status === "error" && submitError && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 font-utility"
+          >
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+            <span>
+              {submitError} You can also call{" "}
+              <a href="tel:+919874774440" className="font-semibold underline">+91 98747 74440</a>{" "}
+              or email{" "}
+              <a href="mailto:info@gridnova.in" className="font-semibold underline">info@gridnova.in</a>.
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="flex items-center justify-between gap-4 pt-2">
         <p className="text-[#111827]/40 text-xs font-utility leading-snug max-w-[32ch]">
-          Submitting opens your email client — no data is sent without your
-          review.
+          We typically respond within one business day.
         </p>
         <motion.button
           type="submit"
+          disabled={status === "submitting"}
           whileTap={{ scale: 0.97 }}
-          className="shrink-0 inline-flex items-center gap-2 rounded-full bg-[#0e2a63] text-white font-utility font-semibold text-sm px-6 py-3.5 hover:bg-[#2f5daa] transition-colors duration-300"
+          className="shrink-0 inline-flex items-center gap-2 rounded-full bg-[#0e2a63] text-white font-utility font-semibold text-sm px-6 py-3.5 hover:bg-[#2f5daa] transition-colors duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          Send Message
-          <ArrowRight className="h-4 w-4" />
+          {status === "submitting" ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" /> Sending…
+            </>
+          ) : (
+            <>
+              Send Message
+              <ArrowRight className="h-4 w-4" />
+            </>
+          )}
         </motion.button>
       </div>
     </form>

@@ -6,13 +6,22 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 // instead of this app's own branded sign-in page. A predicate function (vs.
 // a glob string) avoids any ambiguity between path-to-regexp glob syntax and
 // regex lookahead syntax for this exclusion.
-const isDashboardRoute = createRouteMatcher((req) => {
+//
+// `/proposal/new` is the internal sales-team site-assessment wizard — it was
+// previously reachable by anyone with the link. It gets the same Clerk
+// protection as the dashboard (same unauthenticated redirect), unlike
+// `/proposal/accept/[token]`, which stays public — that's the customer-facing
+// accept page and must never require staff sign-in.
+const isProtectedRoute = createRouteMatcher((req) => {
   const path = req.nextUrl.pathname
-  return (path === '/dashboard' || path.startsWith('/dashboard/')) && !path.startsWith('/dashboard/sign-in')
+  if (path === '/dashboard' || path.startsWith('/dashboard/')) {
+    return !path.startsWith('/dashboard/sign-in')
+  }
+  return path === '/proposal/new'
 })
 
 export default clerkMiddleware(async (auth, req) => {
-  if (isDashboardRoute(req)) {
+  if (isProtectedRoute(req)) {
     await auth.protect({ unauthenticatedUrl: new URL('/dashboard/sign-in', req.url).toString() })
   }
 })

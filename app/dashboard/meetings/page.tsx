@@ -1,20 +1,69 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
-import { ChevronLeft, ChevronRight, ShieldOff } from 'lucide-react'
-import { useMeetings } from '@/lib/dashboard/api-client'
+import { toast } from 'sonner'
+import { CalendarCheck2, ChevronLeft, ChevronRight, ShieldOff } from 'lucide-react'
+import { useMeetings, useEmployeeMe, useConnectCalendar } from '@/lib/dashboard/api-client'
+import { ApiError } from '@/lib/dashboard/api-error'
 import { DashboardError } from '@/components/dashboard/DashboardError'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDatetime } from '@/lib/dashboard/utils'
-import type { MeetingSummary, Role } from '@/lib/dashboard/types'
+import type { CalendarErrorReason, MeetingSummary, Role } from '@/lib/dashboard/types'
 
 const PAGE_SIZE = 50
+
+const CALENDAR_ERROR_MESSAGES: Record<CalendarErrorReason, string> = {
+  invalid_state: 'The connection request expired or was tampered with — please try connecting again.',
+  access_denied: 'Google Calendar access was denied.',
+  consent_failed: 'Google Calendar consent could not be completed.',
+  missing_code: 'Google didn’t return an authorization code — please try again.',
+  not_configured: 'Google Calendar integration isn’t configured for this environment yet.',
+  exchange_failed: 'Could not complete the connection with Google — please try again.',
+  employee_not_found: 'Your employee record could not be matched — contact an admin.',
+}
+
+function CalendarStatusCard() {
+  const { data: me, isLoading } = useEmployeeMe()
+  const connectMutation = useConnectCalendar()
+
+  async function handleConnect() {
+    try {
+      const result = await connectMutation.mutateAsync()
+      window.location.href = result.authorization_url
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.detail || err.message : 'Failed to start calendar connection')
+    }
+  }
+
+  return (
+    <Card className="mb-4">
+      <CardContent className="pt-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <CalendarCheck2 className={`h-5 w-5 ${me?.google_calendar_connected ? 'text-green-600' : 'text-[#111827]/30'}`} />
+          <div>
+            <p className="font-utility text-sm font-medium text-[#091c3c]">
+              {isLoading ? 'Checking calendar status…' : me?.google_calendar_connected ? 'Google Calendar connected' : 'Google Calendar not connected'}
+            </p>
+            <p className="font-utility text-xs text-[#111827]/50 mt-0.5">
+              Book a Call availability comes from connected calendars — if none are connected, the public booking widget shows no slots.
+            </p>
+          </div>
+        </div>
+        {!isLoading && !me?.google_calendar_connected && (
+          <Button size="sm" onClick={() => void handleConnect()} disabled={connectMutation.isPending}>
+            {connectMutation.isPending ? 'Connecting…' : 'Connect Google Calendar'}
+          </Button>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
 
 function statusBadgeVariant(status: MeetingSummary['status']) {
   const map: Record<MeetingSummary['status'], 'blue' | 'green' | 'gray'> = {
@@ -27,10 +76,27 @@ function statusBadgeVariant(status: MeetingSummary['status']) {
 
 export default function MeetingsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user } = useUser()
   const role = user?.publicMetadata?.role as Role | undefined
 
   const [page, setPage] = useState(1)
+
+  // Google's OAuth redirect lands back here with `?calendar=connected` or
+  // `?calendar=error&reason=…` — surface it once, then clean the query
+  // string so a refresh doesn't re-show the same toast.
+  useEffect(() => {
+    const calendar = searchParams.get('calendar')
+    if (!calendar) return
+    if (calendar === 'connected') {
+      toast.success('Google Calendar connected')
+    } else if (calendar === 'error') {
+      const reason = searchParams.get('reason') as CalendarErrorReason | null
+      toast.error((reason && CALENDAR_ERROR_MESSAGES[reason]) || 'Could not connect Google Calendar')
+    }
+    router.replace('/dashboard/meetings')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const { data, isLoading, error, refetch } = useMeetings({ page, page_size: PAGE_SIZE })
 
@@ -59,6 +125,8 @@ export default function MeetingsPage() {
         <h1 className="font-display text-2xl font-bold text-[#091c3c]">Meetings</h1>
         <p className="font-utility text-sm text-[#111827]/50 mt-1">{total} total meetings</p>
       </div>
+
+      <CalendarStatusCard />
 
       {error ? (
         <DashboardError error={error} onRetry={() => void refetch()} />

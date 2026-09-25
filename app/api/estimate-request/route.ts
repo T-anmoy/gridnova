@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { mirrorToBackend } from "@/lib/backend-mirror";
 
 type CustomerType = "residential" | "society";
 
@@ -164,41 +165,31 @@ export async function POST(request: Request) {
     }
 
     // Best-effort mirror into the backend so this becomes a real Lead in the
-    // ops dashboard. The backend isn't deployed anywhere yet, and even once it
-    // is, this must never affect what the customer sees — the Resend send
-    // above already determined success. Same graceful-degradation shape as
-    // AskNova.tsx and the dashboard API client: isolated try/catch, a short
-    // timeout so an unreachable/slow backend can't delay this response, and a
-    // server-side log on failure instead of surfacing anything to the caller.
-    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-    try {
-      await fetch(`${apiBase}/api/v1/public/estimate-request`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          phone,
-          customer_type: customerType,
-          state: body.state || undefined,
-          // The backend has one `city` field; the form collects a combined
-          // "City / PIN Code" field with no separate PIN — passing it through
-          // as-is is the closest honest mapping available.
-          city: body.cityOrPin || undefined,
-          average_bill: toFloat(body.averageMonthlyBill),
-          roof_type: body.roofType || undefined,
-          roof_area: toFloat(body.roofAreaSqFt),
-          floors: toInt(body.floors),
-          connection_phase: body.connectionPhase || undefined,
-        }),
-        signal: AbortSignal.timeout(5000),
-      });
-    } catch (backendErr) {
-      console.error(
-        "Backend estimate-request mirror failed (non-fatal — customer's email already sent):",
-        backendErr
-      );
-    }
+    // ops dashboard. This must never affect what the customer sees — the
+    // Resend send above already determined success. mirrorToBackend handles
+    // the internal-key/customer-IP headers, the timeout, and logging a
+    // non-2xx or network failure without surfacing anything to the caller.
+    await mirrorToBackend(
+      "/api/v1/public/estimate-request",
+      {
+        name,
+        email,
+        phone,
+        customer_type: customerType,
+        state: body.state || undefined,
+        // The backend has one `city` field; the form collects a combined
+        // "City / PIN Code" field with no separate PIN — passing it through
+        // as-is is the closest honest mapping available.
+        city: body.cityOrPin || undefined,
+        average_bill: toFloat(body.averageMonthlyBill),
+        roof_type: body.roofType || undefined,
+        roof_area: toFloat(body.roofAreaSqFt),
+        floors: toInt(body.floors),
+        connection_phase: body.connectionPhase || undefined,
+      },
+      request,
+      "estimate-request"
+    );
 
     return NextResponse.json({ success: true });
   } catch (err) {

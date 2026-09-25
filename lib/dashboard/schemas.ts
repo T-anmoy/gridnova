@@ -80,6 +80,8 @@ const leadSummarySchema = z.object({
   lead_score: z.string(),
   source: z.string(),
   created_at: z.string(),
+  assigned_employee_id: z.string().nullable().optional(),
+  project_reference_id: z.string().nullable().optional(),
 })
 export const leadListResponseSchema = z.array(leadSummarySchema)
 
@@ -114,6 +116,11 @@ const proposalSummarySchema = z.object({
   lead_id: z.number(),
   version: z.number(),
   status: z.string(),
+  // accept_url (Prompt 02c) is the real full website accept link — always
+  // use it. accept_path is the backend's own API path and must never be
+  // rendered/linked; declared here only so a real response isn't rejected.
+  accept_url: z.string().nullable().optional(),
+  accept_path: z.string().nullable().optional(),
 }).passthrough()
 
 export function paginatedResponseSchema<T extends z.ZodTypeAny>(item: T) {
@@ -151,6 +158,7 @@ export const proposalAcceptResponseSchema = z.object({
   scope_of_work: z.string().nullable().optional(),
   content: z.object({ scope_of_work: z.string().nullable().optional() }).nullable().optional(),
   already_accepted: z.boolean().optional(),
+  pdf_available: z.boolean().optional(),
 })
 
 // Ask Nova's chat endpoint.

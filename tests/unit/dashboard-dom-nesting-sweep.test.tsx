@@ -52,6 +52,12 @@ const mockUseRequestRevision = vi.fn()
 const mockUseSendProposal = vi.fn()
 const mockUseAnalytics = vi.fn()
 const mockUseAuditLog = vi.fn()
+const mockUseCreateLead = vi.fn()
+const mockUseChangeLeadStage = vi.fn()
+const mockUseReassignLead = vi.fn()
+const mockUseUpdateLeadFields = vi.fn()
+const mockUseAssignableEmployees = vi.fn()
+const mockUseAdjustPricing = vi.fn()
 
 vi.mock('@/lib/dashboard/api-client', () => ({
   useOverviewStats: () => mockUseOverviewStats(),
@@ -70,6 +76,13 @@ vi.mock('@/lib/dashboard/api-client', () => ({
   useSendProposal: () => mockUseSendProposal(),
   useAnalytics: () => mockUseAnalytics(),
   useAuditLog: () => mockUseAuditLog(),
+  useCreateLead: () => mockUseCreateLead(),
+  useChangeLeadStage: () => mockUseChangeLeadStage(),
+  useReassignLead: () => mockUseReassignLead(),
+  useUpdateLeadFields: () => mockUseUpdateLeadFields(),
+  useAssignableEmployees: () => mockUseAssignableEmployees(),
+  useAdjustPricing: () => mockUseAdjustPricing(),
+  fetchProposalPdf: vi.fn(),
 }))
 
 // Analytics lazily loads recharts via next/dynamic — stub it out so this
@@ -95,6 +108,12 @@ beforeEach(() => {
   mockUseRequestRevision.mockReturnValue(idleMutation)
   mockUseSendProposal.mockReturnValue(idleMutation)
   mockUseProposalPdf.mockReturnValue({ data: undefined })
+  mockUseCreateLead.mockReturnValue(idleMutation)
+  mockUseChangeLeadStage.mockReturnValue(idleMutation)
+  mockUseReassignLead.mockReturnValue(idleMutation)
+  mockUseUpdateLeadFields.mockReturnValue(idleMutation)
+  mockUseAssignableEmployees.mockReturnValue({ data: [], isLoading: false })
+  mockUseAdjustPricing.mockReturnValue(idleMutation)
 })
 
 const OVERVIEW_STATS: OverviewStats = {

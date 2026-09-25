@@ -10,9 +10,10 @@ interface Props {
   errors: FieldErrors;
   set: <K extends keyof ProposalFormValues>(field: K, value: ProposalFormValues[K]) => void;
   touch: (field: keyof ProposalFormValues) => void;
+  leadIdLocked?: boolean;
 }
 
-export default function Step1CustomerProject({ values, errors, set, touch }: Props) {
+export default function Step1CustomerProject({ values, errors, set, touch, leadIdLocked }: Props) {
   const isOrganisation = values.customerType === "organisation";
 
   return (
@@ -63,15 +64,23 @@ export default function Step1CustomerProject({ values, errors, set, touch }: Pro
               onBlur={() => touch("contactNumber")}
               error={errors.contactNumber}
             />
-            <TextField
-              id="referenceLeadId"
-              label="Lead ID"
-              placeholder="e.g. 1042"
-              value={values.referenceLeadId}
-              onChange={(v) => set("referenceLeadId", v)}
-              onBlur={() => touch("referenceLeadId")}
-              error={errors.referenceLeadId}
-            />
+            <div>
+              <TextField
+                id="referenceLeadId"
+                label="Lead ID"
+                placeholder="e.g. 1042"
+                value={values.referenceLeadId}
+                onChange={(v) => set("referenceLeadId", v)}
+                onBlur={() => touch("referenceLeadId")}
+                error={errors.referenceLeadId}
+                disabled={leadIdLocked}
+              />
+              {leadIdLocked && (
+                <p className="mt-1.5 text-[#111827]/40 text-xs font-utility">
+                  Locked — opened from this lead&rsquo;s dashboard page.
+                </p>
+              )}
+            </div>
           </div>
 
           {isOrganisation && (

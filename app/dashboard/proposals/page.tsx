@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
 import { useAuth } from '@clerk/nextjs'
-import { Filter, ChevronLeft, ChevronRight, ShieldCheck, Download } from 'lucide-react'
+import { Filter, ChevronLeft, ChevronRight, ShieldCheck, Download, CheckCircle, Clock } from 'lucide-react'
 import { useProposals, downloadProposalsCsv } from '@/lib/dashboard/api-client'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { Card, CardContent } from '@/components/ui/card'
@@ -157,6 +157,7 @@ export default function ProposalsPage() {
                   <TableHead>Status</TableHead>
                   <TableHead>Value</TableHead>
                   <TableHead>Sign-Off</TableHead>
+                  <TableHead>Accepted</TableHead>
                   <TableHead>Created</TableHead>
                 </TableRow>
               </TableHeader>
@@ -164,7 +165,7 @@ export default function ProposalsPage() {
                 {isLoading
                   ? Array.from({ length: 5 }).map((_, i) => (
                       <TableRow key={i}>
-                        {Array.from({ length: 8 }).map((_, j) => (
+                        {Array.from({ length: 9 }).map((_, j) => (
                           <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
                         ))}
                       </TableRow>
@@ -172,7 +173,7 @@ export default function ProposalsPage() {
                   : items.length === 0
                   ? (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center py-12 font-utility text-[#111827]/40">
+                        <TableCell colSpan={9} className="text-center py-12 font-utility text-[#111827]/40">
                           No proposals found
                         </TableCell>
                       </TableRow>
@@ -194,6 +195,15 @@ export default function ProposalsPage() {
                         <TableCell>
                           {p.requires_manager_signoff && (
                             <ShieldCheck className="h-4 w-4 text-amber-500" aria-label="Manager sign-off required" />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {p.status === 'sent' && (
+                            p.accepted_at ? (
+                              <CheckCircle className="h-4 w-4 text-green-600" aria-label="Accepted" />
+                            ) : (
+                              <Clock className="h-4 w-4 text-[#111827]/25" aria-label="Awaiting acceptance" />
+                            )
                           )}
                         </TableCell>
                         <TableCell className="font-utility text-sm text-[#111827]/60">{formatDate(p.date_created)}</TableCell>
