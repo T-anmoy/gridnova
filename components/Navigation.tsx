@@ -3,21 +3,25 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { Menu, X, ArrowUpRight } from "lucide-react";
-import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import Link from "@/components/i18n/Link";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import headerLogo from "@/public/brand/header-logo.png";
 import { scrollToTop } from "@/lib/lenis";
+import { useMessages } from "@/lib/i18n/client";
+import { useBarePathname } from "@/lib/i18n/navigation";
 
-const NAV_LINKS = [
-  { label: "About", href: "/about" },
-  { label: "Services", href: "/services" },
-  { label: "Industries", href: "/industries" },
-  { label: "Projects", href: "/projects" },
-  { label: "Technology", href: "/technology" },
-  { label: "Leadership", href: "/leadership" },
-  { label: "Sustainability", href: "/sustainability" },
-  { label: "Careers", href: "/careers" },
+// Labels come from messages (nav.links.<key>); order and hrefs live here.
+type NavKey = "about" | "services" | "industries" | "projects" | "technology" | "leadership" | "sustainability" | "careers";
+const NAV_LINKS: { key: NavKey; href: string }[] = [
+  { key: "about", href: "/about" },
+  { key: "services", href: "/services" },
+  { key: "industries", href: "/industries" },
+  { key: "projects", href: "/projects" },
+  { key: "technology", href: "/technology" },
+  { key: "leadership", href: "/leadership" },
+  { key: "sustainability", href: "/sustainability" },
+  { key: "careers", href: "/careers" },
 ];
 
 export default function Navigation() {
@@ -25,7 +29,9 @@ export default function Navigation() {
   const [open, setOpen] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
   const { scrollY } = useScroll();
-  const pathname = usePathname();
+  // Locale-free path, so `/hi/about` still marks "About" active.
+  const pathname = useBarePathname();
+  const t = useMessages("nav");
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setScrolled(latest > 24);
@@ -54,13 +60,12 @@ export default function Navigation() {
       <motion.div
         initial={false}
         animate={{
-          // Real content need (logo + 8 nav links at their restored, generous
-          // padding + 2 CTA buttons) measures ~1183px. The full nav now only
-          // ever renders at xl: (1280px+), where the header's own outer
-          // padding already leaves ~1232px of real room — these caps mostly
-          // matter at very wide viewports, so they're set with genuine
-          // margin above the content need rather than a hairline fit.
-          maxWidth: scrolled ? 1220 : 1260,
+          // Real content need (logo + 8 nav links + language switcher +
+          // primary CTA) is kept under the ~1232px of room the header has at
+          // xl: (1280px). "Book a Call" joins the bar from 2xl: (1536px), where
+          // the wider cap below gives it space; below that it lives in the
+          // drawer. Hindi/Bengali labels were measured at xl: too.
+          maxWidth: scrolled ? 1340 : 1400,
           paddingTop: scrolled ? 8 : 14,
           paddingBottom: scrolled ? 8 : 14,
           // A confident, near-solid navy regardless of what's behind it — the
@@ -94,7 +99,7 @@ export default function Navigation() {
             8 links + 2 CTAs never had comfortable room; the hamburger/drawer
             now covers both phone and tablet instead of forcing a cramped fit. */}
         <nav
-          className="hidden xl:flex items-center gap-1"
+          className="hidden xl:flex items-center"
           onMouseLeave={() => setHovered(null)}
         >
           {NAV_LINKS.map((link) => {
@@ -106,15 +111,15 @@ export default function Navigation() {
                 href={link.href}
                 onMouseEnter={() => setHovered(link.href)}
                 onClick={(e) => handleNavClick(e, link.href)}
-                className={`relative px-3.5 py-2 rounded text-[13px] font-utility transition-colors duration-300 active:scale-[0.97] ${
+                className={`relative whitespace-nowrap px-2.5 2xl:px-3.5 py-2 rounded text-[13px] font-utility transition-colors duration-300 active:scale-[0.97] ${
                   isActive ? "text-white" : "text-white/75 hover:text-white"
                 }`}
               >
-                {link.label}
+                {t.links[link.key]}
                 {showIndicator && (
                   <motion.span
                     layoutId="nav-underline"
-                    className="absolute left-3.5 right-3.5 bottom-1 h-px bg-[#f7a800]"
+                    className="absolute left-2.5 right-2.5 2xl:left-3.5 2xl:right-3.5 bottom-1 h-px bg-[#f7a800]"
                     transition={{ type: "spring", stiffness: 500, damping: 35 }}
                   />
                 )}
@@ -124,14 +129,17 @@ export default function Navigation() {
         </nav>
 
         <div className="flex items-center gap-2">
-          {/* "Book a Call" (secondary) only appears once the full nav does —
-              at tablet widths it lives in the drawer alongside the rest of
-              the nav, one tap away rather than competing for header space. */}
+          {/* Compact switcher in the bar from sm: up; phones get the full-name
+              version inside the drawer instead (the bar has no room at 375px). */}
+          <LanguageSwitcher className="hidden sm:inline-flex shrink-0" />
+          {/* "Book a Call" (secondary) only appears on wide desktops —
+              below 2xl: it lives in the drawer alongside the rest of the
+              nav, one tap away rather than competing for header space. */}
           <Link
             href="/book-a-call"
-            className="hidden xl:inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border border-white/25 text-white text-[13px] font-utility font-semibold px-4 py-2 hover:bg-white/10 hover:border-white/40 transition-colors duration-300 active:scale-[0.97]"
+            className="hidden 2xl:inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border border-white/25 text-white text-[13px] font-utility font-semibold px-4 py-2 hover:bg-white/10 hover:border-white/40 transition-colors duration-300 active:scale-[0.97]"
           >
-            Book a Call
+            {t.bookCall}
           </Link>
           {/* "Get Instant Estimate" (primary) is the one thing worth keeping
               visible even when the rest of the nav collapses — it's the
@@ -143,7 +151,7 @@ export default function Navigation() {
             href="/solar-calculator"
             className="hidden md:inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full bg-[#f7a800] text-[#091c3c] text-[13px] font-utility font-semibold px-4 py-2 hover:bg-white transition-colors duration-300 active:scale-[0.97]"
           >
-            Get Instant Estimate
+            {t.estimate}
             <ArrowUpRight className="h-3.5 w-3.5" />
           </Link>
           {/* Tablet gets a slightly larger, hover-aware tap target than
@@ -151,7 +159,7 @@ export default function Navigation() {
               the mobile layout (tablets are often used with a trackpad, e.g.
               iPad + Magic Keyboard, where hover feedback actually registers). */}
           <button
-            aria-label={open ? "Close menu" : "Open menu"}
+            aria-label={open ? t.closeMenu : t.openMenu}
             onClick={() => setOpen((v) => !v)}
             className="xl:hidden flex items-center justify-center h-11 w-11 md:h-12 md:w-12 rounded-full text-white hover:bg-white/10 active:scale-[0.97] transition-all duration-300"
           >
@@ -199,7 +207,7 @@ export default function Navigation() {
                       : "text-white"
                   }`}
                 >
-                  {link.label}
+                  {t.links[link.key]}
                   <ArrowUpRight className="h-4 w-4 text-white/40" />
                 </Link>
               ))}
@@ -210,7 +218,7 @@ export default function Navigation() {
                 onClick={() => setOpen(false)}
                 className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#f7a800] text-[#091c3c] text-sm font-utility font-semibold px-4 py-3 active:scale-[0.97] transition-transform"
               >
-                Get Instant Estimate
+                {t.estimate}
                 <ArrowUpRight className="h-4 w-4" />
               </Link>
               <Link
@@ -218,8 +226,12 @@ export default function Navigation() {
                 onClick={() => setOpen(false)}
                 className="inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-white/25 text-white text-sm font-utility font-semibold px-4 py-3 active:scale-[0.97] transition-transform"
               >
-                Book a Call
+                {t.bookCall}
               </Link>
+            </div>
+            <div className="mt-5 pt-5 border-t border-white/10 flex items-center justify-between gap-3">
+              <span className="text-white/50 text-xs font-utility">{t.language}</span>
+              <LanguageSwitcher size="md" onSwitch={() => setOpen(false)} />
             </div>
           </motion.div>
           </>

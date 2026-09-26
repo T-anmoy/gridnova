@@ -1,15 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import BookACallPage from "@/app/book-a-call/page";
-import BookingWidget from "@/app/book-a-call/BookingWidget";
+import BookACallPage from "@/app/(site)/[lang]/book-a-call/page";
+import BookingWidget from "@/app/(site)/[lang]/book-a-call/BookingWidget";
+import { EN_PARAMS, withI18n } from "./helpers/i18n";
 
 // BookACallPage is an async server component (`searchParams: Promise<...>`).
 // Resolving it once and rendering the returned element is the same shape
 // Next.js itself uses at request time — no server-only APIs are touched here,
 // so this is a faithful render, not a workaround.
 async function renderPage(query: Record<string, string> = {}) {
-  const element = await BookACallPage({ searchParams: Promise.resolve(query) });
+  const element = await BookACallPage({ ...EN_PARAMS, searchParams: Promise.resolve(query) });
   render(element);
 }
 
@@ -133,14 +134,14 @@ describe("BookACallPage — direct call section", () => {
 
 describe("BookingWidget — ask-then-confirm flow", () => {
   it("does not fetch availability until the visitor asks for a time", async () => {
-    render(<BookingWidget />);
+    render(withI18n(<BookingWidget />));
     expect(screen.getByText("When works best for you?")).toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalled();
   });
 
   it("offers only real 30-minute-increment times within business hours, not free-form entry", async () => {
     const user = userEvent.setup();
-    render(<BookingWidget />);
+    render(withI18n(<BookingWidget />));
 
     // No native time input exists any more — the control is a real listbox.
     expect(document.querySelector('input[type="time"]')).not.toBeInTheDocument();
@@ -159,7 +160,7 @@ describe("BookingWidget — ask-then-confirm flow", () => {
 
   it("selecting a time option updates the trigger's displayed value", async () => {
     const user = userEvent.setup();
-    render(<BookingWidget />);
+    render(withI18n(<BookingWidget />));
 
     await user.click(screen.getByRole("combobox"));
     await user.click(screen.getByRole("option", { name: "11:30 AM" }));
@@ -170,7 +171,7 @@ describe("BookingWidget — ask-then-confirm flow", () => {
   it("is keyboard-operable: opens and selects a time without a mouse", async () => {
     const user = userEvent.setup();
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(jsonResponse(AVAILABILITY_WITH_EXACT));
-    render(<BookingWidget />);
+    render(withI18n(<BookingWidget />));
 
     const trigger = screen.getByRole("combobox");
     trigger.focus();
@@ -185,7 +186,7 @@ describe("BookingWidget — ask-then-confirm flow", () => {
   it("crosses out an already-taken slot as soon as a date is picked, and it cannot be selected", async () => {
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(jsonResponse(AVAILABILITY_WITHOUT_EXACT));
     const user = userEvent.setup();
-    render(<BookingWidget />);
+    render(withI18n(<BookingWidget />));
 
     // Availability is fetched the moment a date is picked — before the time
     // selector is even opened, not deferred until "Check availability".
@@ -222,7 +223,7 @@ describe("BookingWidget — ask-then-confirm flow", () => {
 
   it("validates that both a date and time are provided before checking", async () => {
     const user = userEvent.setup();
-    render(<BookingWidget />);
+    render(withI18n(<BookingWidget />));
     await user.click(screen.getByRole("button", { name: /check availability/i }));
     expect(await screen.findByText(/please pick both a date and a time/i)).toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalled();
@@ -230,7 +231,7 @@ describe("BookingWidget — ask-then-confirm flow", () => {
 
   it("rejects a time in the past without a network call", async () => {
     const user = userEvent.setup();
-    render(<BookingWidget />);
+    render(withI18n(<BookingWidget />));
     await askFor(user, "2020-01-01", "10:00 AM");
     expect(await screen.findByText(/pick a time in the future/i)).toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalled();
@@ -239,7 +240,7 @@ describe("BookingWidget — ask-then-confirm flow", () => {
   it("an exact-match ask goes straight to the contact form", async () => {
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(jsonResponse(AVAILABILITY_WITH_EXACT));
     const user = userEvent.setup();
-    render(<BookingWidget />);
+    render(withI18n(<BookingWidget />));
 
     await askFor(user, ASK.dateStr, ASK.timeLabel);
 
@@ -257,7 +258,7 @@ describe("BookingWidget — ask-then-confirm flow", () => {
       .mockRejectedValueOnce(new TypeError("Failed to fetch"))
       .mockResolvedValue(jsonResponse(AVAILABILITY_WITHOUT_EXACT));
     const user = userEvent.setup();
-    render(<BookingWidget />);
+    render(withI18n(<BookingWidget />));
 
     await askFor(user, ASK.dateStr, ASK.timeLabel);
 
@@ -274,7 +275,7 @@ describe("BookingWidget — ask-then-confirm flow", () => {
       jsonResponse({ duration_minutes: 30, days_ahead: 14, slots: [] }),
     );
     const user = userEvent.setup();
-    render(<BookingWidget />);
+    render(withI18n(<BookingWidget />));
 
     await askFor(user, ASK.dateStr, ASK.timeLabel);
 
@@ -289,7 +290,7 @@ describe("BookingWidget — ask-then-confirm flow", () => {
       .mockRejectedValueOnce(new TypeError("Failed to fetch"))
       .mockResolvedValue(jsonResponse(AVAILABILITY_WITHOUT_EXACT));
     const user = userEvent.setup();
-    render(<BookingWidget />);
+    render(withI18n(<BookingWidget />));
 
     await askFor(user, ASK.dateStr, ASK.timeLabel);
     const altGroup = await screen.findByRole("group", { name: /nearby available times/i });
@@ -306,7 +307,7 @@ describe("BookingWidget — ask-then-confirm flow", () => {
       .mockRejectedValueOnce(new TypeError("Failed to fetch"))
       .mockResolvedValue(jsonResponse(AVAILABILITY_WITHOUT_EXACT));
     const user = userEvent.setup();
-    render(<BookingWidget />);
+    render(withI18n(<BookingWidget />));
 
     await askFor(user, ASK.dateStr, ASK.timeLabel);
     await screen.findByText(/nearby options/i);
@@ -319,7 +320,7 @@ describe("BookingWidget — ask-then-confirm flow", () => {
   it("shows a distinct load-error state with retry when the check fails", async () => {
     (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new TypeError("Failed to fetch"));
     const user = userEvent.setup();
-    render(<BookingWidget />);
+    render(withI18n(<BookingWidget />));
 
     await askFor(user, ASK.dateStr, ASK.timeLabel);
 
@@ -330,7 +331,7 @@ describe("BookingWidget — ask-then-confirm flow", () => {
   it("blocks submission and shows validation errors for an empty name / invalid email", async () => {
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(jsonResponse(AVAILABILITY_WITH_EXACT));
     const user = userEvent.setup();
-    render(<BookingWidget />);
+    render(withI18n(<BookingWidget />));
 
     await askFor(user, ASK.dateStr, ASK.timeLabel);
     await screen.findByLabelText("Email");
@@ -358,7 +359,7 @@ describe("BookingWidget — ask-then-confirm flow", () => {
         }),
       );
     const user = userEvent.setup();
-    render(<BookingWidget estimatedTotal="250000" sizingMethod="bill" sizingValue="4000" source="calculator" />);
+    render(withI18n(<BookingWidget estimatedTotal="250000" sizingMethod="bill" sizingValue="4000" source="calculator" />));
 
     await askFor(user, ASK.dateStr, ASK.timeLabel);
     await user.type(await screen.findByLabelText("Name"), "Asha Roy");
@@ -392,7 +393,7 @@ describe("BookingWidget — ask-then-confirm flow", () => {
       ) // booking submit fails
       .mockResolvedValueOnce(jsonResponse(AVAILABILITY_WITHOUT_EXACT)); // re-check after 409
     const user = userEvent.setup();
-    render(<BookingWidget />);
+    render(withI18n(<BookingWidget />));
 
     await askFor(user, ASK.dateStr, ASK.timeLabel);
     await user.type(await screen.findByLabelText("Name"), "Asha Roy");
@@ -425,7 +426,7 @@ describe("BookingWidget — ask-then-confirm flow", () => {
         ),
       ); // booking submit fails with the real, full conflict payload
     const user = userEvent.setup();
-    render(<BookingWidget />);
+    render(withI18n(<BookingWidget />));
 
     await askFor(user, ASK.dateStr, ASK.timeLabel);
     await user.type(await screen.findByLabelText("Name"), "Asha Roy");
@@ -451,7 +452,7 @@ describe("BookingWidget — ask-then-confirm flow", () => {
       .mockResolvedValueOnce(jsonResponse(AVAILABILITY_WITH_EXACT))
       .mockResolvedValueOnce(jsonResponse({ detail: "Internal server error" }, 500));
     const user = userEvent.setup();
-    render(<BookingWidget />);
+    render(withI18n(<BookingWidget />));
 
     await askFor(user, ASK.dateStr, ASK.timeLabel);
     await user.type(await screen.findByLabelText("Name"), "Asha Roy");

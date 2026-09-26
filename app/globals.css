@@ -15,16 +15,27 @@
 }
 
 @theme {
-  /* Font families as runtime CSS variables so next/font can override them
-     at the html element level. Do NOT inline — utilities must use var() so
-     the self-hosted font stack (set by next/font's class on <html>) takes effect. */
-  --font-display: "Space Grotesk", sans-serif;
-  --font-body: "Manrope", sans-serif;
-  --font-utility: "IBM Plex Sans", sans-serif;
+  /* Font families as runtime CSS variables built from the next/font faces set
+     on <html> (lib/fonts.ts). Do NOT inline — utilities must use var() so the
+     self-hosted stack takes effect. `--font-script` is the Devanagari/Bengali
+     face on hi/bn pages (unset elsewhere): the browser falls back to it per
+     glyph, so Latin text and Western digits keep the brand faces. */
+  --font-display: var(--font-display-face, "Space Grotesk"), var(--font-script, sans-serif), sans-serif;
+  --font-body: var(--font-body-face, "Manrope"), var(--font-script, sans-serif), sans-serif;
+  --font-utility: var(--font-utility-face, "IBM Plex Sans"), var(--font-script, sans-serif), sans-serif;
 }
 
 :root {
   --header-h: 88px;
+
+  /* Script-aware typography tokens. Latin defaults here; Indic overrides in
+     the [data-script] block below. Devanagari and Bengali hang vowel signs
+     above the headline and join letters with a top bar, so they need
+     more line-height, and any letter-spacing or case transform breaks conjuncts. */
+  --heading-tracking: -0.02em;
+  --eyebrow-tracking: 0.18em;
+  --eyebrow-transform: uppercase;
+  --eyebrow-size: 0.7rem;
 }
 
 * {
@@ -62,7 +73,7 @@ body {
 
 h1, h2, h3, h4 {
   font-family: var(--font-display);
-  letter-spacing: -0.02em;
+  letter-spacing: var(--heading-tracking);
 }
 
 .font-utility {
@@ -95,9 +106,9 @@ h1, h2, h3, h4 {
 /* Reference tag — engineering drawing style eyebrow */
 .ref-tag {
   font-family: var(--font-utility);
-  font-size: 0.7rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  font-size: var(--eyebrow-size);
+  letter-spacing: var(--eyebrow-tracking);
+  text-transform: var(--eyebrow-transform);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -109,6 +120,111 @@ h1, h2, h3, h4 {
   height: 1px;
   background: currentColor;
   opacity: 0.6;
+}
+
+/* ── Indic scripts (hi / bn) ─────────────────────────────────────────────
+   Set on <html data-script> by the site layout. These rules are unlayered,
+   so they win over Tailwind's layered utilities without !important. */
+html[data-script="devanagari"],
+html[data-script="bengali"] {
+  --heading-tracking: 0;
+  --eyebrow-tracking: 0;
+  --eyebrow-transform: none;
+  --eyebrow-size: 0.8rem;
+}
+
+html[data-script="devanagari"] body,
+html[data-script="bengali"] body {
+  line-height: 1.7;
+}
+
+/* No positive or negative tracking, no forced capitals, anywhere. */
+html[data-script="devanagari"] [class*="tracking-"],
+html[data-script="bengali"] [class*="tracking-"] {
+  letter-spacing: 0;
+}
+html[data-script="devanagari"] .uppercase,
+html[data-script="bengali"] .uppercase {
+  text-transform: none;
+}
+
+/* Tight Latin display leading (0.95–1.1) clips vowel signs above the top
+   bar. Headings get room; body copy set with leading-snug/tight too. */
+html[data-script="devanagari"] :is(h1, h2, h3, h4, .font-display),
+html[data-script="bengali"] :is(h1, h2, h3, h4, .font-display) {
+  line-height: 1.35;
+}
+html[data-script="devanagari"] :is(p, li, dd, dt, span, label, a, button)[class*="leading-"],
+html[data-script="bengali"] :is(p, li, dd, dt, span, label, a, button)[class*="leading-"] {
+  line-height: 1.65;
+}
+
+/* Clip-reveal headline lines (Hero): the overflow-hidden mask gets a little
+   room below the baseline so descenders (g, y) aren't shaved off; the negative
+   margin keeps the headline's line spacing exactly as designed. */
+.clip-line {
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+
+/* Indic scripts also need room above for matras that rise over the top bar. */
+html[data-script="devanagari"] .clip-line,
+html[data-script="bengali"] .clip-line {
+  padding-block: 0.12em;
+}
+
+/* ── Button system ────────────────────────────────────────────────────────
+   One set of buttons for the public site: primary (gold), secondary
+   (outline) and text (inline link). Add `.on-dark` to any ancestor on a navy
+   surface so hover states and outlines invert correctly. Motion (magnetic,
+   press-scale) stays in the components. */
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    font-family: var(--font-utility);
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25;
+    padding: 0.875rem 1.5rem;
+    text-align: center;
+    /* Keep the natural width (never squeezed by the global min-width: 0 in a
+       flex row) but cap it at the container, wrapping the label inside the
+       button on very narrow screens instead of spilling past its edge. */
+    flex-shrink: 0;
+    max-width: 100%;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s, transform 0.15s;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--color-gold); color: var(--color-navy); }
+  .btn-primary:hover { background: #0e2a63; color: #fff; }
+  .on-dark .btn-primary:hover { background: #fff; color: var(--color-navy); }
+  .btn-secondary { border: 1px solid #d5dbe4; color: #0e2a63; background: transparent; }
+  .btn-secondary:hover { background: var(--color-surface); border-color: #0e2a63; }
+  .on-dark .btn-secondary { border-color: color-mix(in srgb, white 30%, transparent); color: #fff; }
+  .on-dark .btn-secondary:hover { background: color-mix(in srgb, white 10%, transparent); border-color: color-mix(in srgb, white 55%, transparent); }
+  .btn-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-family: var(--font-utility);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #0e2a63;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, currentColor 30%, transparent);
+    text-underline-offset: 4px;
+    transition: color 0.3s, text-decoration-color 0.3s;
+  }
+  .btn-text:hover { color: #2f5daa; text-decoration-color: currentColor; }
+  .on-dark .btn-text { color: var(--color-gold); }
+  .on-dark .btn-text:hover { color: #ffd27a; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+  /* Buttons that are shown but not live yet ("Opening soon"). */
+  .btn[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; pointer-events: none; }
 }
 
 .text-balance {

@@ -5,24 +5,26 @@ import { getImageProps } from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { gsap } from "gsap";
 import { ArrowRight } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/i18n/Link";
 import CountUp from "./CountUp";
 import MagneticButton from "./MagneticButton";
+import type { Messages } from "@/lib/i18n/types";
 
-const STATS = [
-  { num: "4,800+", label: "Street lamps installed" },
-  { num: "330+", label: "10kW WBREDA schools" },
-  { num: "2,350+", label: "Solar pumps — PM-KUSUM" },
-  { num: "1,200+", label: "Residential — PM Surya Ghar" },
-] as const;
+// Figures stay in Western digits in every locale; labels are translated.
+const STAT_VALUES = ["4,800+", "330+", "2,350+", "1,200+"] as const;
 
-export default function Hero() {
+export default function Hero({ t }: { t: Messages["home"]["hero"] }) {
+  const STATS = STAT_VALUES.map((num, i) => ({ num, label: t.stats[i] }));
+  // Each locale defines its own line breaks (home.hero.headline) so every
+  // line fits its clip-reveal mask; the last line carries the gold gradient.
+  const lines = t.headline;
+  const last = lines.length - 1;
   // Art-directed hero — one image downloads per device width
   const {
     props: { srcSet: desktopSrcSet },
   } = getImageProps({
     src: "/hero/hero-desktop.webp",
-    alt: "Grid Nova Energy engineers walking a utility-scale solar installation at sunset",
+    alt: t.imageAlt,
     fill: true,
     priority: true,
     sizes: "100vw",
@@ -32,7 +34,7 @@ export default function Hero() {
     props: mobileImgProps,
   } = getImageProps({
     src: "/hero/hero-mobile.webp",
-    alt: "Grid Nova Energy engineers walking a utility-scale solar installation at sunset",
+    alt: t.imageAlt,
     fill: true,
     priority: true,
     sizes: "100vw",
@@ -73,7 +75,7 @@ export default function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-[100svh] w-full overflow-hidden flex items-center"
+      className="on-dark relative min-h-[100svh] w-full overflow-hidden flex items-center"
     >
       {/* ── Parallax container (Framer y-transform only) ── */}
       <motion.div
@@ -94,7 +96,7 @@ export default function Hero() {
               {/* img spread carries fill styles + mobile srcSet from getImageProps */}
               <img
                 {...mobileImgProps}
-                alt="Grid Nova Energy engineers walking a utility-scale solar installation at sunset"
+                alt={t.imageAlt}
                 className="object-cover object-[center_28%] md:object-center"
               />
             </picture>
@@ -115,45 +117,44 @@ export default function Hero() {
         <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-12 items-end">
           <div>
             <span className="hero-eyebrow ref-tag text-[#f7a800]">
-              Eco-Energy Initiative — Since Inception
+              {t.eyebrow}
             </span>
             <h1
               className="mt-6 font-display text-white leading-[0.98] font-medium"
               style={{ fontSize: "clamp(2rem,13vw,3.5rem)" }}
             >
-              <span className="overflow-hidden block">
-                <span className="hero-line block">Engineering</span>
-              </span>
-              <span className="overflow-hidden block">
-                <span className="hero-line block">India&rsquo;s Clean</span>
-              </span>
-              <span className="overflow-hidden block">
-                <span className="hero-line block text-transparent bg-clip-text bg-gradient-to-r from-[#f7a800] to-[#fde68a] [filter:drop-shadow(0_2px_16px_rgba(9,28,60,0.9))]">
-                  Energy Grid.
+              {lines.map((line, i) => (
+                <span key={i} className="clip-line overflow-hidden block">
+                  <span
+                    className={
+                      i === last
+                        ? "hero-line block text-transparent bg-clip-text bg-gradient-to-r from-[#f7a800] to-[#fde68a] [filter:drop-shadow(0_2px_16px_rgba(9,28,60,0.9))]"
+                        : "hero-line block"
+                    }
+                  >
+                    {line}
+                  </span>
                 </span>
-              </span>
+              ))}
             </h1>
             <p className="hero-sub mt-8 max-w-[46ch] text-white/85 text-base md:text-lg leading-relaxed [text-shadow:0_1px_8px_rgba(9,28,60,0.6)]">
-              Grid Nova Energy designs, procures and constructs solar
-              infrastructure for residential, commercial, industrial and
-              government clients — engineered for performance over the full
-              lifecycle, not just the day it&rsquo;s switched on.
+              {t.sub}
             </p>
             <div className="mt-10 flex flex-wrap items-center gap-4">
               <MagneticButton>
                 <Link
                   href="/contact"
-                  className="hero-cta group inline-flex items-center gap-2 rounded-full bg-[#f7a800] text-[#091c3c] font-utility font-semibold text-sm px-6 py-3.5 hover:bg-white transition-colors duration-300 active:scale-[0.97]"
+                  className="hero-cta group btn btn-primary"
                 >
-                  Start a Project
+                  {t.primary}
                   <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
               </MagneticButton>
               <Link
                 href="/projects"
-                className="hero-cta inline-flex items-center gap-2 rounded-full border border-white/30 text-white font-utility text-sm px-6 py-3.5 hover:bg-white/12 hover:border-white/50 transition-all duration-300 active:scale-[0.97]"
+                className="hero-cta btn btn-secondary"
               >
-                View Our Work
+                {t.secondary}
               </Link>
             </div>
           </div>
@@ -162,7 +163,7 @@ export default function Hero() {
             className="hero-panel glass rounded-3xl p-6 md:p-7"
             style={{ backgroundColor: "rgba(4,14,40,0.80)" }}
           >
-            <p className="ref-tag text-white/50">The Grid Nova Team&rsquo;s Track Record</p>
+            <p className="ref-tag text-white/50">{t.statsTitle}</p>
             <div className="mt-5 grid grid-cols-2 gap-x-6 xs:gap-x-8 gap-y-5">
               {STATS.map(({ num, label }) => (
                 <div key={label}>
@@ -174,8 +175,7 @@ export default function Hero() {
               ))}
             </div>
             <p className="mt-4 text-white/45 text-[11px] font-utility leading-snug">
-              Delivered by Grid Nova&rsquo;s team and branch network across West
-              Bengal &amp; Bihar.
+              {t.statsNote}
             </p>
           </div>
         </div>

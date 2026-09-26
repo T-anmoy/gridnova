@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { localeRouting } from '@/lib/i18n/routing'
 
 // The sign-in route itself must stay excluded from protection — it's the
 // page unauthenticated users are sent to, and the matcher previously
@@ -23,7 +24,11 @@ const isProtectedRoute = createRouteMatcher((req) => {
 export default clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) {
     await auth.protect({ unauthenticatedUrl: new URL('/dashboard/sign-in', req.url).toString() })
+    return
   }
+  // Public site only: `/dashboard`, `/proposal` and `/api` are left untouched
+  // (English, unprefixed) by localeRouting itself.
+  return localeRouting(req)
 })
 
 export const config = {

@@ -1,0 +1,1536 @@
+{
+  "_review_status": "source",
+  "_note": "English is the source text. hi.json and bn.json must keep exactly the same keys.",
+  "meta": {
+    "site": {
+      "title": "Grid Nova Energy | Engineering India's Clean Energy Future",
+      "description": "Grid Nova Energy designs, engineers and delivers solar EPC, rooftop, utility-scale and O&M solutions across India — precision engineering for a decarbonised grid.",
+      "ogDescription": "Solar EPC, rooftop, utility-scale and O&M solutions engineered for performance across India.",
+      "twitterDescription": "Engineering India's clean energy future.",
+      "keywords": [
+        "Grid Nova Energy",
+        "Solar EPC India",
+        "Green Energy Projects",
+        "Utility Scale Solar",
+        "PM Surya Ghar",
+        "PM Kusum",
+        "Renewable Energy West Bengal"
+      ]
+    },
+    "pages": {
+      "home": {
+        "title": "Grid Nova Energy | Engineering India's Clean Energy Future",
+        "description": "Grid Nova Energy delivers solar EPC, rooftop solar, utility-scale and O&M solutions across India — 4,800+ street lamps, 330+ schools, 2,350+ PM-KUSUM pumps commissioned."
+      },
+      "about": {
+        "title": "About Us",
+        "description": "Grid Nova Energy designs, develops and implements solar power systems across India — engineering excellence, integrity and lifecycle performance since inception."
+      },
+      "services": {
+        "title": "Solar Services",
+        "description": "Grid Nova Energy delivers solar EPC, rooftop and ground-mounted solar, government & institutional solar, street lighting, water pumps, O&M and energy consulting — engineered for lifetime performance across India."
+      },
+      "industries": {
+        "title": "Industries We Serve",
+        "description": "Grid Nova Energy delivers solar EPC and O&M solutions for residential, commercial, industrial and government clients across India."
+      },
+      "technology": {
+        "title": "Technology & Capabilities",
+        "description": "The engineering process behind every Grid Nova Energy installation — from feasibility to long-term O&M, built on certified components and MNRE-compliant design."
+      },
+      "projects": {
+        "title": "Projects",
+        "description": "Grid Nova Energy project index — street lighting, institutional electrification, agricultural pumps, residential and industrial solar EPC across West Bengal and Bihar."
+      },
+      "leadership": {
+        "title": "Leadership",
+        "description": "Meet the Grid Nova Energy leadership team — decades of EPC experience, project management and renewable energy expertise."
+      },
+      "sustainability": {
+        "title": "Sustainability & Impact",
+        "description": "How Grid Nova Energy contributes to reducing greenhouse gas emissions and building a more energy-secure India — project by project."
+      },
+      "contact": {
+        "title": "Contact Us",
+        "description": "Reach Grid Nova Energy — solar EPC enquiries, site assessments and project discussions. Kolkata, West Bengal."
+      },
+      "estimate": {
+        "title": "Get Your Solar Estimate",
+        "description": "Tell us about your home or housing society and Grid Nova Energy's team will follow up to discuss a solar system suited to your site."
+      },
+      "calculator": {
+        "title": "Solar Calculator — Instant Estimate",
+        "description": "Answer a few quick questions about your home or housing society and get an instant, indicative solar system estimate from Grid Nova Energy."
+      },
+      "booking": {
+        "title": "Book a Call",
+        "description": "Talk to a Grid Nova Energy Solar Advisor — 30 minutes, no pressure. Pick a time that works and we'll call you."
+      },
+      "careers": {
+        "title": "Careers & Associates",
+        "description": "Work with Grid Nova Energy — join the team, or become a Grid Nova Associate and earn commission by introducing solar customers. No joining fee, no deposit."
+      }
+    }
+  },
+  "common": {
+    "languageLabel": "Choose language"
+  },
+  "nav": {
+    "home": "Home",
+    "links": {
+      "about": "About",
+      "services": "Services",
+      "industries": "Industries",
+      "projects": "Projects",
+      "technology": "Technology",
+      "leadership": "Leadership",
+      "sustainability": "Sustainability",
+      "careers": "Careers & Associates"
+    },
+    "routes": {
+      "/about": "About",
+      "/services": "Services",
+      "/industries": "Industries",
+      "/projects": "Projects",
+      "/technology": "Technology",
+      "/leadership": "Leadership",
+      "/sustainability": "Sustainability",
+      "/careers": "Careers & Associates",
+      "/contact": "Contact",
+      "/privacy": "Privacy Policy",
+      "/terms": "Terms of Use",
+      "/associate-terms": "Associate Network Terms",
+      "/commission-policy": "Commission & Payout Policy",
+      "/payment-policy": "Customer Payment Policy"
+    },
+    "bookCall": "Book a Call",
+    "estimate": "Get Instant Estimate",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "language": "Language"
+  },
+  "footer": {
+    "homeLabel": "Grid Nova Energy — home",
+    "tagline": "Eco-Energy Initiative — delivering India’s clean energy future through expertise, innovation and a relentless commitment to quality.",
+    "serviceLine": "Solar EPC · Green Energy Projects · Grid-Scale Solar · O&M · Consulting",
+    "language": "Language",
+    "sitemap": "Sitemap",
+    "legal": "Legal",
+    "legalLinks": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Use",
+      "associateTerms": "Associate Network Terms",
+      "commissionPolicy": "Commission & Payout Policy",
+      "paymentPolicy": "Customer Payment Policy",
+      "staffLogin": "Staff Login"
+    },
+    "kolkataOffice": "Kolkata Office",
+    "patnaOffice": "Patna Office",
+    "mapTitle": "Grid Nova Energy office location",
+    "copyright": "Grid Nova Energy. All rights reserved.",
+    "credit": "Designed & engineered by"
+  },
+  "draftNotice": {
+    "text": "This translation is a machine draft that has not yet been reviewed by a native speaker. The English version is the authoritative text.",
+    "readInEnglish": "Read in English"
+  },
+  "nova": {
+    "title": "Ask Nova",
+    "subtitle": "Solar energy assistant",
+    "open": "Open Ask Nova quick answers",
+    "close": "Close Ask Nova",
+    "conversationLabel": "Conversation with Nova",
+    "greeting": "Hi, I’m Nova — your solar energy assistant. Type a question or tap a quick answer below.",
+    "greetingOffline": "Hi, I’m Nova. Live chat is offline right now — tap a quick answer below for instant answers to common questions.",
+    "typing": "Nova is typing",
+    "error": "Having a little trouble right now — try again in a moment, or reach our team directly.",
+    "reachTeam": "Reach our team →",
+    "quickAnswers": "Quick answers",
+    "placeholder": "Ask a specific question… (Enter to send)",
+    "inputLabel": "Message to Nova",
+    "send": "Send message",
+    "charsRemaining": "{count} chars remaining",
+    "specificPrefix": "Have something specific in mind?",
+    "specificLink": "Talk to our team directly",
+    "specificSuffix": ".",
+    "offlinePrefix": "Live chat is temporarily offline — browse the quick answers above, or",
+    "offlineLink": "talk to our team directly",
+    "offlineSuffix": ".",
+    "bubbleLabel": "Ask Nova a quick question",
+    "bubbleTap": "Tap for the answer →",
+    "faq": [
+      {
+        "q": "What services does Grid Nova Energy offer?",
+        "a": "We offer five core services: Solar EPC (end-to-end engineering, procurement and construction), Green Energy Projects for residential, commercial and industrial clients, Grid-Scale Solar Infrastructure for utility-scale plants, Operation & Maintenance, and Energy Consulting including feasibility studies and full DISCOM support."
+      },
+      {
+        "q": "Do you help with PM Surya Ghar subsidy paperwork?",
+        "a": "Yes — our residential scope includes full PM Surya Ghar subsidy documentation, net-metering DISCOM applications, structural load assessment, and long-term performance support."
+      },
+      {
+        "q": "Do you install solar pumps under PM-KUSUM?",
+        "a": "Yes. Agricultural solar pumps deployed under the Prime Minister's Kisan Urja Suraksha evam Utthaan Mahabhiyan (PM-KUSUM) scheme are part of our government & institutional delivery."
+      },
+      {
+        "q": "What industries do you serve?",
+        "a": "Four segments: Residential (homeowners & housing societies), Commercial (offices, hospitals, hotels, campuses), Industrial (manufacturing & processing facilities), and Government & Institutional (schools, municipal infrastructure, public-sector facilities)."
+      },
+      {
+        "q": "Do you offer maintenance after installation?",
+        "a": "Yes — every system includes preventive and corrective Operation & Maintenance to protect performance for the life of the installation. Our commitment doesn't end at commissioning."
+      },
+      {
+        "q": "What's Grid Nova Energy's track record?",
+        "a": "Our leadership team and affiliated branches have collectively delivered 4,800+ street lamps, 330+ 10kW WBREDA schools, 2,350+ PM-KUSUM solar pumps, and 1,200+ PM Surya Ghar residential installations across West Bengal and Bihar."
+      }
+    ]
+  },
+  "industries": {
+    "title": "Four markets.",
+    "titleAccent": "One standard.",
+    "residential": {
+      "label": "Residential",
+      "alt": "Grid Nova technician showing a homeowner the rooftop solar inverter after installation",
+      "heading": "Energy independence for homeowners and housing societies.",
+      "body": "We design and install rooftop solar systems for individual homeowners and multi-unit housing societies seeking to reduce electricity bills and gain independence from grid tariff volatility. Our residential scope includes full PM Surya Ghar subsidy documentation, net-metering DISCOM application and post-installation performance support.",
+      "points": [
+        "PM Surya Ghar subsidy handling",
+        "Net-metering DISCOM application",
+        "Structural load assessment",
+        "Long-term performance support"
+      ]
+    },
+    "commercial": {
+      "label": "Commercial",
+      "alt": "Grid Nova technicians wiring rooftop solar panels across a dense commercial building complex",
+      "heading": "Reducing operating costs for offices, hospitals and institutions.",
+      "body": "Commercial buildings typically run high daytime loads that align closely with peak solar generation hours — making rooftop and carport solar installations financially compelling within 3–5 year payback windows. We handle the full process from energy audit and system design through procurement, installation and ongoing O&M.",
+      "body2": "Clients include office campuses, hospitals, hotels and educational institutions across West Bengal and beyond."
+    },
+    "industrial": {
+      "label": "Industrial",
+      "alt": "Grid Nova technicians inspecting an electrical enclosure on an industrial warehouse rooftop solar installation",
+      "heading": "Reducing energy costs and improving sustainability metrics.",
+      "body": "Manufacturing plants, warehouses and processing facilities carry high, consistent power loads — exactly the profile where large rooftop or ground-mount solar delivers maximum financial return. We work directly with plant engineering teams to minimise production disruption during installation and ensure the system integrates cleanly with existing power management infrastructure.",
+      "body2": "The 1.3 MWp EPC project delivered by Grid Nova’s team and branch network for Showa India in Faridabad is the clearest demonstration of that industrial execution capability — a full-scale delivery managed across design, procurement, construction and commissioning phases.",
+      "link": "See the Showa India case study"
+    },
+    "government": {
+      "label": "Government & Institutional",
+      "heading": "Public projects aligned with national renewable energy targets.",
+      "body": "Grid Nova’s team and branch network brings extensive experience executing projects under national government solar programmes — including the electrification of 330+ 10kW schools for WBREDA, 2,350+ agricultural pump installations under PM-KUSUM, and 4,800+ solar street lamps across rural districts. Government projects demand rigorous compliance documentation, transparent procurement and proven execution capacity. We have the track record.",
+      "footnote": "Delivered by Grid Nova’s team and branch network across West Bengal & Bihar.",
+      "stats": [
+        {
+          "n": "330+",
+          "l": "10kW schools electrified"
+        },
+        {
+          "n": "2,350+",
+          "l": "PM-KUSUM pumps"
+        },
+        {
+          "n": "4,800+",
+          "l": "Street lamps"
+        }
+      ]
+    }
+  },
+  "projects": {
+    "coverAlt": "Grid Nova engineers reviewing site plans in front of a utility-scale solar array and substation",
+    "eyebrow": "Project Index — West Bengal & Bihar",
+    "title": "Execution at scale, across every segment.",
+    "stats": [
+      "Street lamps installed",
+      "10kW WBREDA schools",
+      "PM-KUSUM solar pumps",
+      "Residential — PM Surya Ghar"
+    ],
+    "footnote": "Delivered by Grid Nova’s team and branch network across West Bengal & Bihar.",
+    "featured": {
+      "label": "Featured Case Study",
+      "alt": "1.3 MWp industrial rooftop solar array, Showa India, Faridabad",
+      "title": "1.3 MWp Solar EPC",
+      "location": "Showa India, Faridabad, Haryana",
+      "body": "A full-scale industrial solar EPC project delivered by Grid Nova’s team and branch network for Showa India in Faridabad. Scope covered the complete project lifecycle: initial site assessment, shadow and structural analysis, electrical system design, procurement of modules, inverters and balance-of-system, full installation and commissioning, and handover documentation package.",
+      "body2": "This project demonstrates the capacity of Grid Nova’s team and branch network to manage large-scale, performance-critical industrial solar installations with full accountability from design to handover.",
+      "cta": "Discuss a similar project"
+    },
+    "categories": [
+      {
+        "id": "street-lighting",
+        "label": "Street Lighting",
+        "statLabel": "Solar street lamps installed",
+        "description": "Solar-powered street lighting deployed across rural districts in West Bengal and Bihar under state and central government electrification programmes. Each installation covers supply, installation and commissioning of the complete lamp assembly, including pole, module, battery and controller.",
+        "photoAlt": "Solar street lighting installation — Grid Nova Energy"
+      },
+      {
+        "id": "institutional",
+        "label": "Institutional — Schools",
+        "statLabel": "10kW schools electrified (WBREDA)",
+        "description": "Grid electrification of 330+ schools across West Bengal for the West Bengal Renewable Energy Development Agency (WBREDA). Each school received a 10kW grid-connected rooftop system covering design, supply, installation, testing and commissioning, under strict government programme quality and documentation standards.",
+        "photoAlt": "Grid Nova technicians installing rooftop solar panels at a WBREDA-programme school as students walk past below"
+      },
+      {
+        "id": "agricultural",
+        "label": "Agricultural — PM Kusum",
+        "statLabel": "Solar pumps installed",
+        "description": "Solarisation of agricultural pump sets across West Bengal and Bihar under PM Kusum Component C. Each installation provides farmers with a solar-powered water pumping system replacing diesel or grid power, reducing operating costs and enabling more reliable irrigation. Grid Nova's team and branch network managed procurement, installation and commissioning for each site.",
+        "photoAlt": "PM Kusum solar pump installation — Grid Nova Energy"
+      },
+      {
+        "id": "residential",
+        "label": "Residential — PM Surya Ghar",
+        "statLabel": "Residential systems installed",
+        "description": "Residential rooftop solar installations under PM Surya Ghar across West Bengal and Bihar. Grid Nova's team and branch network handled the complete customer journey: site survey, system design, DISCOM interconnection application, installation, commissioning and government subsidy documentation. Every customer received a net-metering connection as part of the standard scope.",
+        "photoAlt": "Grid Nova technician demonstrating the rooftop solar inverter to a residential customer under PM Surya Ghar"
+      }
+    ],
+    "districts": {
+      "eyebrow": "Geographic Footprint",
+      "title": "Districts covered",
+      "body": "Our operational footprint spans West Bengal and Bihar, with projects in districts across rural and semi-urban areas.",
+      "names": [
+        "Patna",
+        "Jehanabad",
+        "Purnia",
+        "Katihar",
+        "Nawada",
+        "Seohar",
+        "Hooghly",
+        "Burdwan",
+        "Malda",
+        "Midnapore",
+        "Barasat",
+        "Kolkata"
+      ],
+      "more": "+ additional districts"
+    }
+  },
+  "leaders": {
+    "michael-gomes": {
+      "role": "Managing Partner",
+      "bio": "Michael Gomes is an accomplished, dynamic serial entrepreneur and strong visionary with out-of-the-box thinking and a passion for building impactful businesses. A proven go-getter and inspirational leader, he is building a diversified conglomerate and has successfully led large-scale EPC businesses with year-on-year substantial growth. He brings together deep experience across marketing leadership, international relations, digital business, trade, and EPC project execution."
+    },
+    "shouvik-biswas": {
+      "role": "Partner",
+      "bio": "As Partner at GRID NOVA ENERGY, Shouvik Biswas focuses on strategy, finance and growth, bringing a disciplined commercial and investment perspective to the company. He works closely with the leadership team on capital allocation, project evaluation, financial controls, strategic partnerships and expansion into new markets. His focus is on developing GRID NOVA ENERGY as a professionally managed, financially disciplined and scalable renewable-energy enterprise with strong foundations for long-term growth."
+    },
+    "raju-paul": {
+      "role": "Partner",
+      "bio": "Mr. Raju Paul is a business strategist with over 25 years of experience translating market insight into structured, executable growth plans — a career that has evolved from strategic marketing into full-spectrum business strategy formation. A certified project management specialist with an advanced credential from IIT Roorkee, and an MBA and MSc in Economics from IIM Calcutta, he pairs rigorous analytical grounding with hands-on delivery discipline. As Grid Nova Energy's business growth strategist, Mr. Paul works closely with the leadership team to align commercial ambition with operational execution, steering expansion into new markets and segments through the same disciplined, results-driven approach that has defined his career.",
+      "tags": [
+        "25+ Years Experience",
+        "Project Management Specialist",
+        "Business Growth Strategist"
+      ]
+    },
+    "srinjay-das": {
+      "role": "Vice President, Business",
+      "bio": "Srinjay Das is a veteran professional with strong analytical and technical abilities and 25+ years of experience in international business and managing key accounts. His competency in EPC, project management and construction management is a core organisational asset, backed by exceptional negotiation skills and deep knowledge of the Indian market."
+    },
+    "moloy-das": {
+      "role": "General Manager, Projects",
+      "bio": "A seasoned graduate engineer with 20 years of experience in planning and project management, Moloy Das has executed large-scale infrastructure, turnkey mechanical and solar energy projects across India — the operational backbone of Grid Nova's project delivery engine."
+    },
+    "arun-kumar": {
+      "role": "Zonal Sales Manager",
+      "bio": "Arun Kumar is a dynamic, results-oriented sales professional with over three decades of experience in the solar and renewable energy sector, with a proven record securing utility-scale, commercial, industrial and government solar EPC contracts across India."
+    },
+    "naren-mukherjee": {
+      "role": "Senior Advisor — Solar Power",
+      "bio": "Mr. Naren Mukherjee brings 30 years of Information Technology experience across hardware, software and customer engineering support, most recently as Eastern Regional Support Head at Spice Net Ltd. An Electrical Engineer by profession, he steered PCL to India's first ISO 9002 certification for IT support services, and was recognised as Intel Corporation's Best IT Professional of Asia in 1998. Since 2009, he has brought that same engineering discipline to solar power, supervising the installation of more than 25 MWp of solar capacity across India.",
+      "tags": [
+        "30+ Years Experience",
+        "25+ MWp Solar Delivered",
+        "Electrical Engineer"
+      ]
+    }
+  },
+  "leadershipPage": {
+    "title": "The team behind the projects.",
+    "intro": "Grid Nova Energy is led by professionals who have spent decades in EPC delivery, project management and renewable energy sales across India. These are the people accountable for every project we execute.",
+    "photoAlt": "{name}, {role} at Grid Nova Energy"
+  },
+  "sustainabilityPage": {
+    "quote": "“Every installation is a long-term contribution to a more energy-secure India.”",
+    "intro": "Grid Nova Energy actively works to reduce greenhouse gas emissions and dependence on fossil fuels across India. Each project supports cleaner air for communities, lower operating costs for clients, and measurable progress toward the country’s national and global renewable energy commitments.",
+    "impactEyebrow": "Documented Impact",
+    "impactTitle": "What we’ve actually delivered.",
+    "impactBody": "We report only what we can document. These are the installation figures from completed and commissioned projects across West Bengal and Bihar.",
+    "impact": [
+      {
+        "label": "Solar street lamps",
+        "note": "Replacing kerosene and diesel-powered lighting in rural communities"
+      },
+      {
+        "label": "10kW schools electrified",
+        "note": "Clean power for education under the WBREDA programme"
+      },
+      {
+        "label": "Agricultural pumps",
+        "note": "Farmers freed from diesel costs and fuel availability risk"
+      },
+      {
+        "label": "Residential installations",
+        "note": "Households generating their own clean power"
+      }
+    ],
+    "footnote": "Delivered by Grid Nova’s team and branch network across West Bengal & Bihar.",
+    "beliefTitle": "We view each project as infrastructure, not a transaction.",
+    "beliefBody": "The solar systems we install will generate clean power for 25 years or more. The decisions made during design, procurement and installation — component quality, structural integrity, protection coordination — determine whether that 25-year promise is kept or quietly broken within the first decade.",
+    "beliefBody2": "We engineer projects as long-term energy infrastructure, not as short-cycle installations optimised for installation day metrics. Every commissioning test, every warranty decision, every procurement specification reflects that position.",
+    "commitmentTitle": "Our commitment to India’s clean energy future.",
+    "commitmentBody": "India’s national renewable energy targets are ambitious, and meeting them requires execution at volume across every segment — residential, commercial, industrial and government. Grid Nova Energy positions itself as the delivery partner that can execute at that volume without compromising on the engineering standards that determine whether those targets translate to actual, sustained clean generation.",
+    "commitmentBody2": "We do not view sustainability as a communications exercise. We view it as the primary measure of whether a solar installation was worth building in the first place.",
+    "cta": "See our project track record"
+  },
+  "about": {
+    "hero": {
+      "eyebrow": "Company Profile",
+      "title": "Built to engineer India’s clean energy grid —",
+      "titleAccent": "project by project.",
+      "body": "Grid Nova Energy designs, develops and implements solar power systems for residential, commercial, industrial and institutional clients — combining technical expertise, quality engineering and a customer-centric approach across every engagement.",
+      "alt": "Grid Nova Energy team on site"
+    },
+    "overview": {
+      "eyebrow": "Company Overview",
+      "dropCap": "G",
+      "lead": "rid Nova Energy is a renewable energy company focused on delivering reliable, cost-effective and sustainable solar energy solutions. Founded with the objective of accelerating India’s transition to clean energy, the company designs, develops and implements solar power systems for residential, commercial, industrial and institutional clients.",
+      "body": "By combining technical expertise, quality engineering and a customer-centric approach, Grid Nova Energy aims to be a trusted, long-term partner in India’s growing renewable energy ecosystem — measured not by a single installation, but by decades of sustained performance.",
+      "alt": "Grid Nova technician logging readings from a switchgear panel inside an inverter room",
+      "glance": "At a Glance",
+      "facts": [
+        {
+          "label": "Headquarters",
+          "value": "India"
+        },
+        {
+          "label": "Operating Footprint",
+          "value": "West Bengal & Bihar"
+        },
+        {
+          "label": "Industrial Reference",
+          "value": "1.3 MWp — Showa India"
+        },
+        {
+          "label": "Focus",
+          "value": "EPC · Green Energy · Grid-Scale · O&M"
+        }
+      ]
+    },
+    "advantage": {
+      "eyebrow": "Competitive Advantage",
+      "title": "Why clients build with Grid Nova.",
+      "items": [
+        {
+          "title": "Experienced Leadership",
+          "copy": "Strong domain expertise and proven project execution capability across large-scale EPC delivery."
+        },
+        {
+          "title": "Customized Solutions",
+          "copy": "Solar systems precisely tailored to each client’s energy requirements and budget constraints."
+        },
+        {
+          "title": "Vendor Partnerships",
+          "copy": "Robust relationships ensuring consistent quality, timely procurement and cost-effective delivery."
+        },
+        {
+          "title": "Lifecycle Focus",
+          "copy": "End-to-end accountability for sustained output over the system’s life — not just initial installation."
+        }
+      ]
+    },
+    "values": {
+      "eyebrow": "Core Values",
+      "title": "The standard behind every project.",
+      "items": [
+        {
+          "title": "Sustainability",
+          "copy": "Commitment to environmental responsibility and clean energy in every project we undertake."
+        },
+        {
+          "title": "Integrity",
+          "copy": "Transparent business practices and ethical conduct at all levels of the organization."
+        },
+        {
+          "title": "Quality",
+          "copy": "Strict adherence to high technical and safety standards from design through commissioning."
+        },
+        {
+          "title": "Innovation",
+          "copy": "Continuous improvement through emerging technologies and smarter, data-driven solutions."
+        },
+        {
+          "title": "Customer Focus",
+          "copy": "Long-term partnerships built on trust, transparency and measurable performance outcomes."
+        }
+      ]
+    },
+    "capabilities": {
+      "eyebrow": "Technology & Capabilities",
+      "title": "Engineering standards, not shortcuts.",
+      "alt": "Inverter room and balance-of-system electrical equipment",
+      "items": [
+        "High-efficiency solar PV modules sourced from reputed, certified manufacturers.",
+        "Advanced inverters and balance-of-system components meeting international benchmarks.",
+        "System design optimized using industry-standard engineering software tools.",
+        "Full compliance with MNRE guidelines, DISCOM interconnection requirements and safety standards."
+      ]
+    }
+  },
+  "cta": {
+    "eyebrow": "Let’s Build",
+    "title": "Ready to engineer your energy future?",
+    "body": "Talk to our engineering team about feasibility, system design and full DISCOM support — from first site visit to commissioning.",
+    "primary": "Request a Consultation",
+    "secondary": "Book a Call",
+    "call": "Or call +91 98747 74440 directly"
+  },
+  "technology": {
+    "title": "Engineering standards, not shortcuts.",
+    "intro": "Every Grid Nova project follows the same six-stage engineering process — documented, supervised and signed off at each transition.",
+    "stepLabel": "Step",
+    "steps": [
+      {
+        "title": "Feasibility Analysis",
+        "navLabel": "Feasibility",
+        "body": "Before any design work begins, we assess the site on every relevant dimension: solar irradiance data, shadow-casting obstructions, structural condition of the mounting surface, proximity to the grid interconnection point, and financial inputs for payback modelling. A feasibility study that misses one of these dimensions can invalidate a project post-construction."
+      },
+      {
+        "title": "System Design",
+        "navLabel": "System Design",
+        "body": "We develop the complete electrical design package: module layout optimised for available surface area and shadow avoidance, string grouping, inverter selection, DC cable sizing and routing, AC switchgear specification, single-line diagram and protection coordination. All designs are developed using industry-standard engineering simulation software to validate yield projections against actual site inputs."
+      },
+      {
+        "title": "Procurement",
+        "navLabel": "Procurement",
+        "body": "We source high-efficiency solar PV modules from reputed, certified manufacturers with proven performance data and bankable warranties. Inverters, mounting structures, cables, protection devices and balance-of-system components are procured against pre-agreed specifications — no substitutions without client sign-off. Robust vendor relationships ensure consistent quality and timely supply, even on multi-site government programmes."
+      },
+      {
+        "title": "Construction",
+        "navLabel": "Construction",
+        "body": "Civil works, mounting structure installation, module racking, wiring and conduit installation are all executed to documented quality standards. Our site teams are supervised by experienced project engineers who enforce compliance with both our internal standards and applicable electrical safety regulations. Progress is documented photographically at every major milestone."
+      },
+      {
+        "title": "Commissioning",
+        "navLabel": "Commissioning",
+        "body": "Before handover, every system undergoes a structured commissioning protocol: insulation resistance tests, IV curve checks on each string, inverter functional testing, protection relay verification and DISCOM synchronisation check. Systems are only handed over with a complete test report and operating manual. We don't commission against a deadline — we commission against a standard."
+      },
+      {
+        "title": "Operation & Maintenance",
+        "navLabel": "O&M",
+        "body": "Commissioning is the beginning, not the end. We offer structured O&M programmes that include scheduled preventive maintenance, corrective fault response, thermographic inspection, string performance analysis and yield reporting. Degradation is tracked against modelled projections, and any underperformance is investigated and addressed — not noted and ignored."
+      }
+    ],
+    "standardsTitle": "Built to certified standards.",
+    "standards": [
+      "High-efficiency solar PV modules sourced from certified manufacturers with BIS/IEC certifications.",
+      "Advanced inverters meeting international performance benchmarks and DISCOM interconnection requirements.",
+      "System design validated using industry-standard engineering software tools for yield simulation and shadow analysis.",
+      "Full compliance with MNRE guidelines, Central Electricity Authority regulations and applicable state DISCOM interconnection standards."
+    ],
+    "standardsAlt": "Grid Nova Energy technician testing electrical protection panels with a multimeter inside an inverter room"
+  },
+  "services": {
+    "intro": {
+      "eyebrow": "Our Capabilities",
+      "title": "Full-lifecycle capability.",
+      "title2": "One accountable team.",
+      "body": "Grid Nova delivers every service below in-house — not subcontracted, not templated. Each engagement is engineered for the specific site, client and budget.",
+      "tags": [
+        "EPC",
+        "Green Energy",
+        "Grid-Scale",
+        "Government Programmes",
+        "O&M",
+        "Consulting"
+      ]
+    },
+    "epc": {
+      "label": "01 / EPC",
+      "title": "Solar EPC Services",
+      "body": "We manage the full Engineering, Procurement and Construction lifecycle for grid-connected and off-grid solar power plants. From initial site survey through system design, equipment sourcing, civil works, module installation, cabling, inverter commissioning and DISCOM grid synchronisation — every activity sits under one accountable contract.",
+      "body2": "Our EPC scope includes technical due diligence, shadow analysis, structural loading assessment, protection relay coordination, and documentation packages for state electricity regulatory body approvals. We do not begin construction until the design is signed off in full.",
+      "cta": "Discuss an EPC project",
+      "alt": "Grid Nova Energy Solar EPC — large-scale installation"
+    },
+    "green": {
+      "label": "02 / Green Energy",
+      "title": "Green Energy Projects",
+      "alt": "Green Energy Project — distributed solar installation, Grid Nova Energy",
+      "body": "We design and install solar systems precisely matched to each building’s load profile, roof geometry, structural capacity and grid-interconnection point. Residential, commercial and industrial profiles each demand different engineering assumptions — we model every one specifically.",
+      "body2": "Our delivery includes net-metering applications, DISCOM approval management, roof waterproofing assessment and post-installation performance monitoring. We handle PM Surya Ghar subsidy documentation for eligible residential customers — a process that requires careful coordination between the installer, DISCOM and the national portal."
+    },
+    "gridScale": {
+      "label": "03 / Grid-Scale",
+      "title": "Grid-Scale Solar Infrastructure",
+      "alt": "Utility-scale ground-mounted solar farm — Grid Nova Energy",
+      "body": "For large ground-mounted installations, we provide design and execution support covering land suitability, irradiance modelling, single-line diagram development, inverter and transformer specification, substation design, grid evacuation planning and full project management through commissioning.",
+      "body2": "Grid Nova’s team and branch network has delivered projects aligned with PM-KUSUM component C — 2,350+ solar pump installations across rural districts in Bihar and West Bengal — representing large-scale rural deployment capability under government programme constraints."
+    },
+    "government": {
+      "label": "04 / Government Programmes",
+      "title": "Government &",
+      "title2": "Community Solar",
+      "body": "Grid Nova’s branch network has delivered at scale under national and state electrification programmes — work that demands rigorous compliance, documentation and on-ground execution across rural districts.",
+      "items": [
+        {
+          "n": "Government & Institutional Solar",
+          "d": "Grid-connected rooftop solar for schools and public institutions, delivered to government programme quality and documentation standards — including 330+ schools electrified for WBREDA."
+        },
+        {
+          "n": "Solar Street Lighting",
+          "d": "Standalone solar street lighting — pole, module, battery and controller — supplied, installed and commissioned under state and central government rural electrification programmes. 4,800+ units deployed."
+        },
+        {
+          "n": "Solar Water Pumps",
+          "d": "Solarisation of agricultural pump sets under PM-KUSUM Component C, replacing diesel and grid-dependent irrigation with solar-powered pumping. 2,350+ installations completed."
+        }
+      ]
+    },
+    "om": {
+      "label": "05 / O&M",
+      "title": "Operation &",
+      "title2": "Maintenance",
+      "body": "A solar system performs precisely as well as it is maintained. Our O&M programmes are structured around the principle that annual yield degradation is a management problem, not an inevitability.",
+      "items": [
+        {
+          "n": "Preventive",
+          "d": "Scheduled cleaning, thermographic inspection, string performance checks and inverter health monitoring."
+        },
+        {
+          "n": "Corrective",
+          "d": "Fault diagnosis, component replacement and root-cause documentation within defined response windows."
+        },
+        {
+          "n": "Performance",
+          "d": "Yield analysis against modelled generation, PR ratio tracking and degradation benchmarking."
+        },
+        {
+          "n": "Regulatory",
+          "d": "DISCOM compliance documentation, safety inspection records and warranty claim management."
+        }
+      ]
+    },
+    "consulting": {
+      "label": "06 / Consulting",
+      "title": "Energy Consulting",
+      "body": "Not every client needs a full EPC contract from day one. Our consulting scope is available as a standalone engagement for clients who need rigorous technical input before committing to a project.",
+      "items": [
+        {
+          "t": "Feasibility Studies",
+          "d": "Solar resource assessment, yield projection, financial modelling and payback analysis using site-specific inputs."
+        },
+        {
+          "t": "Site Assessment",
+          "d": "Shadow analysis, structural survey, grid interconnection capacity check and civil condition review."
+        },
+        {
+          "t": "System Design",
+          "d": "Full electrical design package: module string layout, inverter selection, single-line diagram and protection coordination."
+        },
+        {
+          "t": "Regulatory Support",
+          "d": "DISCOM interconnection applications, net-metering documentation, MNRE subsidy processing and state nodal agency coordination."
+        }
+      ]
+    },
+    "ahead": {
+      "label": "07 / Looking Ahead",
+      "body": "As India’s energy needs evolve, we’re developing capability in battery energy storage (BESS), EV charging infrastructure and microgrid solutions — natural extensions of our core solar EPC expertise. These are emerging areas for Grid Nova, not offerings available today, and we’ll formally bring them to market as that capability matures."
+    },
+    "cross": {
+      "title": "Considering rooftop or ground-mounted solar?",
+      "body": "Tell us about your site and our team will follow up to discuss a system suited to your needs.",
+      "estimate": "Get Your Solar Estimate",
+      "calculator": "Or try our instant Solar Calculator"
+    }
+  },
+  "notFound": {
+    "eyebrow": "Error 404",
+    "title": "This page is off-grid.",
+    "body": "The URL you’re looking for doesn’t exist. Head back to the homepage or get in touch directly.",
+    "home": "Back to Home",
+    "contact": "Contact Us"
+  },
+  "contact": {
+    "title": "Let’s start with a conversation.",
+    "intro": "Tell us about your project — a site assessment, a feasibility question, or a full EPC enquiry. We’ll respond with the right person, not a templated reply.",
+    "kolkataOffice": "Kolkata Office",
+    "patnaOffice": "Patna Office",
+    "location": "Location",
+    "mapTitle": "Grid Nova Energy — Kolkata Office",
+    "expectTitle": "What to expect",
+    "expect": [
+      "We respond to all enquiries within one business day.",
+      "Initial consultations are at no cost.",
+      "You’ll speak with a project engineer, not a call centre."
+    ],
+    "bookTitle": "Book a call with a Solar Advisor",
+    "bookBody": "30 minutes, no pressure. Pick a time that works and we’ll call you — the fastest way to get a real person on the line.",
+    "bookCta": "Book a Call",
+    "writeInstead": "Prefer to write instead?",
+    "form": {
+      "name": "Your Name",
+      "namePlaceholder": "Ravi Sharma",
+      "email": "Email Address",
+      "phone": "Phone (optional)",
+      "interest": "What are you looking for?",
+      "interestPlaceholder": "Select a service…",
+      "interests": [
+        "Residential Rooftop",
+        "Commercial Rooftop",
+        "Industrial Solar EPC",
+        "Grid-Scale Solar Infrastructure",
+        "Government / PM Kusum",
+        "O&M Services",
+        "Energy Consulting",
+        "Other"
+      ],
+      "message": "Your Message",
+      "messagePlaceholder": "Describe your site, capacity requirement, or question…",
+      "errors": {
+        "nameRequired": "Name is required",
+        "nameShort": "Name must be at least 2 characters",
+        "nameInvalid": "Enter a valid name",
+        "emailRequired": "Email is required",
+        "emailInvalid": "Enter a valid email address",
+        "phoneInvalid": "Enter a valid 10-digit mobile number",
+        "interestRequired": "Please select a service",
+        "messageRequired": "Message is required",
+        "messageShort": "Please write at least 20 characters"
+      },
+      "sendFailed": "We couldn't send your message right now. Please call or email us directly.",
+      "networkFailed": "We couldn't reach our server. Please call or email us directly.",
+      "alsoCall": "You can also call",
+      "orEmail": "or email",
+      "successTitle": "Message sent",
+      "successBody": "Thanks, {name} — we’ve received your message and a member of our team will get back to you shortly.",
+      "successFallbackName": "there",
+      "responseNote": "We typically respond within one business day.",
+      "sending": "Sending…",
+      "submit": "Send Message"
+    }
+  },
+  "estimate": {
+    "eyebrow": "Solar Estimate",
+    "title": "Get Your Solar Estimate",
+    "intro": "Share a few details about your site and our engineering team will get in touch to discuss a solar system suited to your needs.",
+    "whatsapp": "Speak to a Solar Advisor on WhatsApp",
+    "form": {
+      "enquiringAs": "I’m enquiring as a",
+      "residential": "Residential",
+      "society": "Housing Society",
+      "residentialHint": "Tell us about your home's roof and electricity usage — we'll follow up to discuss a system suited to your household.",
+      "societyHint": "Tell us about your society's roof and common-area or per-unit electricity usage — we'll follow up to discuss options for a shared or per-unit system.",
+      "name": "Your Name",
+      "namePlaceholder": "Ravi Sharma",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "optional": "(optional)",
+      "state": "State",
+      "statePlaceholder": "West Bengal",
+      "city": "City / PIN Code",
+      "cityPlaceholder": "Kolkata — 700107",
+      "bill": "Average Monthly Electricity Bill (₹)",
+      "serviceArea": "Currently serving West Bengal and Bihar. Other eastern states considered based on feasibility.",
+      "roofType": "Roof Type",
+      "roofTypePlaceholder": "Select roof type…",
+      "roofTypes": [
+        "RCC / Concrete Flat Roof",
+        "Sloped Roof (Tin / Tile / Metal)",
+        "Ground-Mounted / Open Land",
+        "Not Sure"
+      ],
+      "phase": "Connection Phase",
+      "phasePlaceholder": "Select connection phase…",
+      "phases": [
+        "Single Phase",
+        "Three Phase",
+        "Not Sure"
+      ],
+      "roofArea": "Roof Area (sq ft)",
+      "floors": "Number of Floors",
+      "errors": {
+        "nameRequired": "Name is required",
+        "nameShort": "Name must be at least 2 characters",
+        "nameInvalid": "Enter a valid name",
+        "emailRequired": "Email is required",
+        "emailInvalid": "Enter a valid email address",
+        "phoneRequired": "Phone number is required",
+        "phoneInvalid": "Enter a valid 10-digit mobile number"
+      },
+      "failed": "Something went wrong. Please try again or call us directly.",
+      "successTitle": "Thank you, {name}.",
+      "successBody": "We’ve received your details. Our team will get back to you within 48 business hours with your personalised estimate.",
+      "dontWait": "Don’t want to wait?",
+      "bookInstead": "Book a call now instead",
+      "noPrice": "No price is calculated here — a member of our team will follow up with you directly.",
+      "sending": "Sending…",
+      "submit": "Get My Estimate"
+    }
+  },
+  "calculatorPage": {
+    "eyebrow": "Solar Calculator",
+    "title": "Get an Instant Solar Estimate",
+    "intro": "Answer a few quick questions and see an indicative system cost right away — then leave your details for a full estimate from our team.",
+    "whatsapp": "Speak to a Solar Advisor on WhatsApp"
+  },
+  "calculator": {
+    "stepNames": [
+      "Basics",
+      "Sizing",
+      "Site Details",
+      "Your Estimate",
+      "Get In Touch"
+    ],
+    "stepOf": "Step {step} of {total} — {name}",
+    "optional": "(optional)",
+    "yes": "Yes",
+    "no": "No",
+    "orEmail": "or email",
+    "next": "Next",
+    "back": "Back",
+    "continue": "Continue",
+    "sending": "Sending…",
+    "failed": "Something went wrong. Please try again or call us directly.",
+    "successTitle": "Thank you, {name}.",
+    "successBody": "We’ve received your details. Our team will get back to you within 48 business hours to walk through your estimate in detail.",
+    "basics": {
+      "heading": "Tell us about your project",
+      "enquiringAs": "I'm enquiring as a",
+      "residential": "Residential",
+      "society": "Housing Society",
+      "state": "State",
+      "statePlaceholder": "Select state…",
+      "city": "City",
+      "cityPlaceholder": "Kolkata",
+      "pin": "PIN Code",
+      "discom": "DISCOM / Electricity Board",
+      "discomPlaceholder": "Select DISCOM…"
+    },
+    "sizing": {
+      "heading": "Size your system",
+      "method": "How would you like to size this?",
+      "byBill": "By Monthly Bill",
+      "byUnits": "By Monthly Units",
+      "byRoof": "By Roof Area",
+      "note": "Not sure which? Your monthly electricity consumption (in units/kWh) usually gives the most accurate estimate.",
+      "bill": "Average Monthly Electricity Bill (₹)",
+      "units": "Average Monthly Consumption (units / kWh)",
+      "roofArea": "Available Roof Area (sq ft)",
+      "roofAreaHint": "≈ {kw} kW indicative capacity",
+      "phase": "Connection Phase",
+      "phasePlaceholder": "Select connection phase…",
+      "phases": [
+        "Single Phase",
+        "Three Phase",
+        "Not Sure"
+      ]
+    },
+    "site": {
+      "heading": "Tell us about the site",
+      "roofType": "Roof Type",
+      "roofTypePlaceholder": "Select roof type…",
+      "roofTypes": [
+        "RCC / Concrete Flat Roof",
+        "Sloped Roof — Tin",
+        "Sloped Roof — Metal Sheet",
+        "Asbestos Sheet Roof",
+        "Not Sure"
+      ],
+      "floors": "Number of Floors",
+      "access": "Site Access Difficulty",
+      "accessPlaceholder": "Select access difficulty…",
+      "accessLevels": [
+        "Easy — ground floor or good vehicle/crane access",
+        "Moderate — some stairs or a narrow approach",
+        "Difficult — stairs-only, tight lane, no crane access"
+      ],
+      "shading": "Shading Condition",
+      "shadingPlaceholder": "Select shading condition…",
+      "shadingLevels": [
+        "No shading",
+        "Partial shading (morning)",
+        "Partial shading (evening)",
+        "Heavy shading",
+        "Significant shading / many obstructions"
+      ],
+      "subsidy": "Interested in the PM Surya Ghar subsidy?",
+      "subsidyNote": "A residential rooftop system may qualify for a central government subsidy — we'll factor this into your estimate below.",
+      "shareDocs": "You can share your electricity bill or roof photos with our team after submitting — WhatsApp us at"
+    },
+    "result": {
+      "heading": "Your instant estimate",
+      "loading": "Calculating your estimate…",
+      "errorTitle": "We’ll calculate your estimate and follow up personally.",
+      "errorBody": "Our instant calculator is briefly unavailable, but your details below will still reach our team so we can prepare your estimate directly.",
+      "bookVisit": "Book a Free Site Visit"
+    },
+    "contact": {
+      "heading": "Get in touch",
+      "intro": "Share your contact details and our team will follow up with your full estimate.",
+      "name": "Your Name",
+      "namePlaceholder": "Ravi Sharma",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "submit": "Get My Full Estimate"
+    },
+    "reveal": {
+      "netRange": "Indicative Net Cost Range",
+      "net": "Indicative Net Cost",
+      "size": "Recommended System Size:",
+      "equipmentNote": "You’ll get our best-quality equipment as standard — every Grid Nova installation uses the same top-tier panels and inverters.",
+      "base": "Equipment & Installation Cost",
+      "accessAdder": "Access Difficulty Adder",
+      "subtotal": "Subtotal (before tax)",
+      "gst": "GST",
+      "subsidy": "PM Surya Ghar Subsidy",
+      "netRow": "Net Cost",
+      "included": "What’s included in the cost above",
+      "disclaimer": "This is an indicative estimate only, not a final quote. Actual pricing depends on a site assessment by our engineering team.",
+      "categories": {
+        "equipment": "Equipment",
+        "installation": "Installation",
+        "balance_of_system": "Balance of System",
+        "civil": "Civil Work",
+        "regulatory": "Regulatory & Liaison"
+      }
+    },
+    "errors": {
+      "pinRequired": "PIN code is required",
+      "pinInvalid": "Enter a valid 6-digit PIN code",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Enter a valid email address",
+      "phoneRequired": "Phone number is required",
+      "phoneInvalid": "Enter a valid 10-digit mobile number",
+      "nameRequired": "Name is required",
+      "nameShort": "Name must be at least 2 characters",
+      "nameInvalid": "Enter a valid name"
+    },
+    "stateNames": {
+      "Andhra Pradesh": "Andhra Pradesh",
+      "Arunachal Pradesh": "Arunachal Pradesh",
+      "Assam": "Assam",
+      "Bihar": "Bihar",
+      "Chhattisgarh": "Chhattisgarh",
+      "Goa": "Goa",
+      "Gujarat": "Gujarat",
+      "Haryana": "Haryana",
+      "Himachal Pradesh": "Himachal Pradesh",
+      "Jharkhand": "Jharkhand",
+      "Karnataka": "Karnataka",
+      "Kerala": "Kerala",
+      "Madhya Pradesh": "Madhya Pradesh",
+      "Maharashtra": "Maharashtra",
+      "Manipur": "Manipur",
+      "Meghalaya": "Meghalaya",
+      "Mizoram": "Mizoram",
+      "Nagaland": "Nagaland",
+      "Odisha": "Odisha",
+      "Punjab": "Punjab",
+      "Rajasthan": "Rajasthan",
+      "Sikkim": "Sikkim",
+      "Tamil Nadu": "Tamil Nadu",
+      "Telangana": "Telangana",
+      "Tripura": "Tripura",
+      "Uttar Pradesh": "Uttar Pradesh",
+      "Uttarakhand": "Uttarakhand",
+      "West Bengal": "West Bengal",
+      "Delhi": "Delhi",
+      "Jammu & Kashmir": "Jammu & Kashmir",
+      "Ladakh": "Ladakh",
+      "Puducherry": "Puducherry",
+      "Chandigarh": "Chandigarh",
+      "Andaman & Nicobar Islands": "Andaman & Nicobar Islands",
+      "Lakshadweep": "Lakshadweep",
+      "Dadra & Nagar Haveli and Daman & Diu": "Dadra & Nagar Haveli and Daman & Diu"
+    }
+  },
+  "bookingPage": {
+    "eyebrow": "Book a Call",
+    "title": "Talk to a Solar Advisor",
+    "intro": "30 minutes, no pressure. Pick a time that works and we’ll call you.",
+    "whatsapp": "Speak to a Solar Advisor on WhatsApp",
+    "talkNow": "Prefer to talk right now?",
+    "hours": "Mon–Sat, 9am–7pm IST — no form, no waiting."
+  },
+  "booking": {
+    "am": "AM",
+    "pm": "PM",
+    "whenTitle": "When works best for you?",
+    "date": "Date",
+    "time": "Time",
+    "timePlaceholder": "Select a time",
+    "check": "Check availability",
+    "askHint": "Pick a date and time — we’ll check it against real availability instantly.",
+    "checking": "Checking availability…",
+    "checkFailed": "Couldn't check availability right now.",
+    "loadErrorTitle": "Couldn’t check availability",
+    "loadErrorBody": "Give it another try, or use WhatsApp/call below — a Solar Advisor is standing by.",
+    "tryAgain": "Try again",
+    "changeTime": "Change time",
+    "noSlots": "No open slots in the next couple of weeks — call or WhatsApp us below and we’ll find a time that works.",
+    "slotTaken": "That time was just booked by someone else — here are a few nearby options:",
+    "noExactMatch": "That exact time isn't open, but here are a few nearby options:",
+    "nearbyLabel": "Nearby available times",
+    "tryDifferent": "Try a different time",
+    "booking": "Booking",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "optional": "(optional)",
+    "submitting": "Booking…",
+    "confirm": "Confirm booking",
+    "submitFailed": "Something went wrong submitting your booking.",
+    "bookedFor": "You’re booked for {slot}",
+    "advisorWillCall": "A Grid Nova Solar Advisor will call you at that time.",
+    "walkThroughPrefix": "We’ll walk through your",
+    "walkThroughSuffix": "indicative estimate together.",
+    "videoLink": "Video call link",
+    "errors": {
+      "pickBoth": "Please pick both a date and a time.",
+      "invalid": "That doesn't look like a valid date and time.",
+      "past": "Please pick a time in the future.",
+      "name": "Please enter your name.",
+      "email": "Please enter a valid email address.",
+      "phone": "Please enter a valid phone number."
+    },
+    "summary": {
+      "carried": "Carried forward from {source}",
+      "fallbackSource": "your earlier estimate",
+      "indicative": "indicative estimate",
+      "billValue": "₹{value}/month bill",
+      "roofValue": "{value} sq ft roof area",
+      "sources": {
+        "calculator": "Solar Calculator",
+        "estimate": "Estimate Form",
+        "header": "site navigation",
+        "contact": "Contact page",
+        "homepage": "homepage"
+      }
+    }
+  },
+  "home": {
+    "hero": {
+      "imageAlt": "Grid Nova Energy engineers walking a utility-scale solar installation at sunset",
+      "eyebrow": "Solar EPC — Kolkata & Patna",
+      "headline": [
+        "Engineering",
+        "India’s Clean",
+        "Energy Grid."
+      ],
+      "sub": "Grid Nova Energy designs, procures and constructs solar infrastructure for residential, commercial, industrial and government clients — engineered for performance over the full lifecycle, not just the day it’s switched on.",
+      "primary": "Start a Project",
+      "secondary": "View Our Work",
+      "statsTitle": "The Grid Nova Team’s Track Record",
+      "stats": [
+        "Street lamps installed",
+        "10kW WBREDA schools",
+        "Solar pumps — PM-KUSUM",
+        "Residential — PM Surya Ghar"
+      ],
+      "statsNote": "Delivered by Grid Nova’s team and branch network across West Bengal & Bihar."
+    },
+    "services": {
+      "eyebrow": "What We Deliver",
+      "title": "Seven services. Each one with work to show for it.",
+      "intro": "From a single rooftop to a district of street lights — one engineering team, accountable for every stage.",
+      "link": "How we do it",
+      "rows": [
+        {
+          "id": "rooftop",
+          "title": "Rooftop solar for homes & societies",
+          "copy": "Sized to your roof and your bill, with the PM Surya Ghar subsidy paperwork and the DISCOM net-meter application handled for you.",
+          "proof": "1,200+ PM Surya Ghar homes",
+          "alt": "Grid Nova technician installing a rooftop solar system on a residential terrace"
+        },
+        {
+          "id": "epc",
+          "title": "Solar EPC for business & industry",
+          "copy": "Engineering, procurement and construction under one contract — from site survey to grid synchronisation.",
+          "proof": "1.3 MWp for Showa India, Faridabad",
+          "alt": "Large ground-mounted solar EPC site under construction"
+        },
+        {
+          "id": "schools",
+          "title": "Solar for schools & public buildings",
+          "copy": "Grid-connected rooftop systems built to government programme quality and paperwork standards.",
+          "proof": "330+ WBREDA schools, 10kW each",
+          "alt": "Rooftop solar on a WBREDA-programme school with students below"
+        },
+        {
+          "id": "street-lighting",
+          "title": "Solar street lighting",
+          "copy": "Pole, module, battery and controller — supplied, installed and commissioned for rural roads.",
+          "proof": "4,800+ street lamps",
+          "alt": "Solar street lights along a village road at dusk"
+        },
+        {
+          "id": "solar-pumps",
+          "title": "Solar water pumps",
+          "copy": "Farm pump sets moved off diesel and grid power under PM-KUSUM Component C.",
+          "proof": "2,350+ PM-KUSUM pumps",
+          "alt": "Solar-powered irrigation pump in a green field"
+        },
+        {
+          "id": "om",
+          "title": "Operation & maintenance",
+          "copy": "Cleaning, inspection, fault response and yield reporting, so the system keeps its output year after year.",
+          "proof": "",
+          "alt": "Grid Nova engineers checking panels inside an inverter room"
+        },
+        {
+          "id": "consulting",
+          "title": "Energy consulting",
+          "copy": "Feasibility, site assessment, system design and DISCOM paperwork — before you commit to a project.",
+          "proof": "",
+          "alt": "Grid Nova technician testing protection panels with a multimeter"
+        }
+      ]
+    },
+    "markets": {
+      "eyebrow": "Who We Serve",
+      "title": "Four kinds of customer. One engineering standard.",
+      "link": "More about each market",
+      "panels": [
+        {
+          "id": "residential",
+          "title": "Residential",
+          "copy": "Homeowners and housing societies cutting their electricity bills.",
+          "proof": "1,200+ PM Surya Ghar homes",
+          "alt": "Grid Nova technician showing a homeowner the rooftop solar inverter"
+        },
+        {
+          "id": "commercial",
+          "title": "Commercial",
+          "copy": "Offices, hospitals, hotels and campuses with high daytime power use.",
+          "proof": "",
+          "alt": "Grid Nova technicians wiring rooftop solar on a commercial building"
+        },
+        {
+          "id": "industrial",
+          "title": "Industrial",
+          "copy": "Factories and warehouses with steady, heavy power demand.",
+          "proof": "1.3 MWp — Showa India",
+          "alt": "Grid Nova technicians on an industrial warehouse rooftop solar installation"
+        },
+        {
+          "id": "government",
+          "title": "Government & Institutional",
+          "copy": "Schools, street lighting and farm pumps under state and central programmes.",
+          "proof": "330+ schools · 4,800+ street lamps",
+          "alt": "Solar street lights along a village road at dusk"
+        }
+      ]
+    },
+    "journey": {
+      "eyebrow": "How Your Rooftop Project Works",
+      "title": "From your first call to your subsidy — eight steps.",
+      "intro": "This is the path every rooftop system follows with us. You will always know which step you are on.",
+      "stepLabel": "Step {n}",
+      "steps": [
+        {
+          "id": "enquiry",
+          "title": "Enquiry",
+          "body": "You call, message or fill in a form. We ask about your roof and your electricity bill."
+        },
+        {
+          "id": "survey",
+          "title": "Site survey",
+          "body": "Our engineer visits, checks the roof, shade and wiring, and takes photographs."
+        },
+        {
+          "id": "proposal",
+          "title": "Proposal",
+          "body": "You receive a written proposal with the system size, equipment and price."
+        },
+        {
+          "id": "agreement",
+          "title": "Agreement",
+          "body": "You accept the proposal and sign the agreement, including any agreement the scheme requires."
+        },
+        {
+          "id": "installation",
+          "title": "Installation",
+          "body": "Our team installs the panels, inverter and wiring, and records every serial number."
+        },
+        {
+          "id": "inspection",
+          "title": "DISCOM inspection & net meter",
+          "body": "Your electricity company inspects the system and fits the net meter."
+        },
+        {
+          "id": "commissioning",
+          "title": "Commissioning",
+          "body": "We test the system, switch it on and hand over the test report and manual."
+        },
+        {
+          "id": "subsidy",
+          "title": "Subsidy",
+          "body": "If you applied under PM Surya Ghar, we follow up the subsidy on the national portal until it is credited."
+        }
+      ],
+      "note": "The subsidy is paid by the Government. Its approval, amount and timing are decided by the scheme, not by Grid Nova.",
+      "cta": "Start with step one"
+    },
+    "mission": {
+      "eyebrow": "Why We Exist",
+      "title": "Clean, dependable power — engineered for its whole life.",
+      "body": "Grid Nova Energy designs, builds and maintains solar systems for homes, businesses, industry and government. We judge our work by how a system performs for 25 years or more, not by how it looks on the day it is switched on.",
+      "impact": "Every system we install replaces diesel or grid power with sunlight. We report only the figures we can document.",
+      "alt": "Grid Nova engineers reviewing plans on a utility-scale solar site",
+      "visionLabel": "Vision",
+      "vision": "To lead in innovative solar solutions that build energy security and long-term value for clients and communities across India.",
+      "missionLabel": "Mission",
+      "mission": "Deliver efficient, affordable solar power that lowers client costs and carbon footprint through proven technology and engineering excellence."
+    },
+    "projects": {
+      "eyebrow": "Recent Work",
+      "title": "Four projects, four kinds of site.",
+      "link": "Full project index",
+      "items": [
+        {
+          "id": "showa",
+          "title": "1.3 MWp Solar EPC",
+          "place": "Showa India, Faridabad",
+          "stat": "1.3 MWp",
+          "alt": "1.3 MWp industrial solar array, Showa India, Faridabad"
+        },
+        {
+          "id": "agricultural",
+          "title": "Agricultural solar pumps",
+          "place": "PM-KUSUM · West Bengal & Bihar",
+          "stat": "2,350+",
+          "alt": "PM-KUSUM solar pump installation"
+        },
+        {
+          "id": "institutional",
+          "title": "School rooftops",
+          "place": "WBREDA · West Bengal",
+          "stat": "330+",
+          "alt": "Rooftop solar on a WBREDA-programme school"
+        },
+        {
+          "id": "street-lighting",
+          "title": "Solar street lighting",
+          "place": "Rural West Bengal & Bihar",
+          "stat": "4,800+",
+          "alt": "Solar street lighting on a village road"
+        }
+      ],
+      "districtsLabel": "Districts covered",
+      "footnote": "Delivered by Grid Nova’s team and branch network across West Bengal & Bihar."
+    },
+    "leadership": {
+      "eyebrow": "Leadership",
+      "title": "Decades of EPC experience, one accountable team.",
+      "link": "Meet the full team"
+    },
+    "associate": {
+      "eyebrow": "Grow with Grid Nova",
+      "title": "Know people who want solar? Become a Grid Nova Associate.",
+      "body": "Introduce customers in your area, help them through the process, and earn commission on every payment that reaches Grid Nova’s bank account.",
+      "points": [
+        "No joining fee, no deposit",
+        "Two programmes: Associate and Preferred Associate",
+        "A Grid Nova ID card anyone can verify"
+      ],
+      "cta": "How the programme works"
+    }
+  },
+  "careers": {
+    "pendingLabel": "Pending confirmation by Grid Nova",
+    "hero": {
+      "eyebrow": "Careers & Associates",
+      "title": "Two ways to work with Grid Nova.",
+      "intro": "Join our team as an employee, or work on your own account as a Grid Nova Associate — introducing solar customers in your area and earning commission.",
+      "associateTitle": "Become an Associate",
+      "associateBody": "Independent work, your own hours. Introduce customers, help them through the process, and earn on every verified payment.",
+      "associateCta": "See the Associate programme",
+      "careersTitle": "Join the team",
+      "careersBody": "Engineering, project management and sales roles across West Bengal and Bihar.",
+      "careersCta": "See careers"
+    },
+    "programme": {
+      "eyebrow": "Associate Programme",
+      "title": "No fee. No deposit. Paid on verified payments.",
+      "noFee": "Grid Nova does not charge any registration fee, joining fee or security deposit. If anyone asks you for money to join, report it to us.",
+      "programmes": [
+        {
+          "id": "associate",
+          "name": "Associate",
+          "tagline": "For individuals who know people who want solar.",
+          "points": [
+            "Sales Associate — find and introduce customers, collect their information and documents, and hand them to Grid Nova. Grid Nova does the site assessment, proposal, installation and completion.",
+            "Execution Associate — also manage the project stages Grid Nova assigns to you: site assessment, document collection, installation coordination, recording the installed equipment, and follow-up to completion.",
+            "You choose one when you register; Grid Nova approves it."
+          ]
+        },
+        {
+          "id": "preferred",
+          "name": "Preferred Associate",
+          "tagline": "For established people appointed to a territory.",
+          "points": [
+            "Appointed to a territory and level: State Head (at most two per state), District Head (one per district) or Block Associate.",
+            "Introduce customers and carry out the project stages assigned to you, to the same standards as an Execution Associate.",
+            "Support the Associates in your territory and recommend new applicants — Grid Nova makes the final decision.",
+            "Earn commission on your own customers plus a territory commission on verified business in your territory."
+          ]
+        }
+      ],
+      "eligibilityTitle": "Who can apply",
+      "eligibility": [
+        "You are at least 18 years old and live in India.",
+        "You have a valid PAN.",
+        "You have a bank account in your own name.",
+        "You agree to a verification phone call before approval."
+      ],
+      "docsTitle": "Documents you will need",
+      "docs": [
+        "A recent photograph",
+        "Aadhaar — a masked copy showing only the last four digits (you can download it from UIDAI)",
+        "PAN card copy",
+        "Bank account details and a cancelled cheque",
+        "Address, mobile number and email"
+      ],
+      "docsPreferredTitle": "Preferred Associates also need",
+      "docsPreferred": [
+        "Business details",
+        "GSTIN, if you have one",
+        "Your experience and references"
+      ],
+      "earningsTitle": "How earnings work, in plain words",
+      "earnings": [
+        "You earn only when a customer’s payment has reached Grid Nova’s bank account and been checked. A payment that is only promised earns nothing.",
+        "You earn in step with the payment: if the customer has paid part of the price, you earn on that part.",
+        "Each entry in your portal moves from Earned to Approved to Paid, and shows which customer and which payment it belongs to.",
+        "Approved commission is paid into a bank account in your own name, [monthly, by the 10th of the following month].",
+        "Tax is deducted at source as the law requires, and you receive TDS certificates.",
+        "If a payment is reversed — a cheque bounces, a refund is made, a project is cancelled — the commission on it is reversed too."
+      ],
+      "earningsNote": "Commission rates for each programme and level are shown in your portal, not on this page."
+    },
+    "howItWorks": {
+      "eyebrow": "How It Works",
+      "title": "From application to your first payout.",
+      "intro": "A walkthrough of the Associate portal. The screens below are illustrations of how it will work, not the live portal.",
+      "illustration": "Illustration",
+      "steps": [
+        {
+          "title": "Apply and verify",
+          "body": "Fill in your details, upload your documents and accept the KYC & data consent notice. We verify everything, including a phone call, before approval.",
+          "screen": {
+            "heading": "Your application",
+            "fields": [
+              "Full name",
+              "Mobile number",
+              "PAN",
+              "Masked Aadhaar (upload)",
+              "Bank account + cancelled cheque"
+            ],
+            "status": "Verification call — pending"
+          }
+        },
+        {
+          "title": "Get your Associate ID",
+          "body": "Once approved you receive a unique Associate ID, a digital ID card and welcome letter, and a physical welcome kit. Your ID card carries a QR code anyone can scan to confirm you.",
+          "screen": {
+            "heading": "Grid Nova ID card",
+            "name": "Your name",
+            "role": "Associate",
+            "id": "Associate ID",
+            "qr": "Scan to verify"
+          }
+        },
+        {
+          "title": "Add a customer",
+          "body": "Meet the customer in person. Read them the Customer Information Notice, record their agreement, and enter their details. Site photos are taken on site, through the portal.",
+          "screen": {
+            "heading": "New customer",
+            "notice": "Customer Information Notice read to customer",
+            "agreed": "Customer has been informed and agrees",
+            "photos": "Take site photos"
+          }
+        },
+        {
+          "title": "Follow the project",
+          "body": "See every customer’s project move through the same eight steps shown on our homepage, from enquiry to subsidy.",
+          "screen": {
+            "heading": "Sample customer — rooftop project"
+          }
+        },
+        {
+          "title": "Track your commission",
+          "body": "Every entry shows its customer, its payment and its status. Paid entries carry the bank reference.",
+          "screen": {
+            "heading": "Commission",
+            "columns": [
+              "Customer",
+              "Payment",
+              "Status"
+            ],
+            "rows": [
+              {
+                "customer": "Sample customer A",
+                "payment": "Stage payment",
+                "status": "Paid"
+              },
+              {
+                "customer": "Sample customer B",
+                "payment": "Stage payment",
+                "status": "Approved"
+              },
+              {
+                "customer": "Sample customer C",
+                "payment": "Advance",
+                "status": "Earned"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "guidelines": {
+      "eyebrow": "Guidelines",
+      "title": "How every Grid Nova Associate works.",
+      "items": [
+        {
+          "title": "No cash, ever",
+          "body": "Customers pay only into Grid Nova’s own bank account — by cheque, demand draft, NEFT, RTGS, IMPS or UPI. Never accept cash, and never let a customer pay you or any other account."
+        },
+        {
+          "title": "No price promises",
+          "body": "Don’t promise a price, discount, subsidy, approval, timeline or warranty that Grid Nova hasn’t confirmed in writing."
+        },
+        {
+          "title": "Approved brands only",
+          "body": "Recommend only the equipment, brands and categories Grid Nova has approved."
+        },
+        {
+          "title": "Customer data stays in the portal",
+          "body": "Collect details in person, explain why using the Customer Information Notice, and never copy customer information outside the portal."
+        }
+      ],
+      "photoTitle": "Taking good site photos",
+      "photoTips": [
+        "Take them on site, through the portal camera — never upload photos from another site or from the internet.",
+        "Shoot in daylight. First the whole roof in one frame, then close-ups.",
+        "Show everything that can cast shade: water tanks, walls, trees, towers, nearby buildings.",
+        "Photograph the electricity meter and the main distribution board.",
+        "Keep them sharp and unedited — no filters, no screenshots."
+      ],
+      "portalTitle": "Helping a customer approve the agreement on the PM Surya Ghar portal",
+      "portalSteps": [
+        "The customer signs in to the national PM Surya Ghar portal with their own login.",
+        "Together, check that Grid Nova is shown as the vendor and that the details match the customer’s proposal.",
+        "The customer approves the agreement themselves.",
+        "Never ask for the customer’s password or OTP, and never approve on their behalf."
+      ],
+      "portalNote": "Portal screens can change. Always follow the steps the portal itself shows."
+    },
+    "join": {
+      "eyebrow": "Apply or Sign In",
+      "title": "Ready to start?",
+      "applyTitle": "Apply",
+      "applyAssociate": "Apply as an Associate",
+      "applyPreferred": "Apply as a Preferred Associate",
+      "loginTitle": "Already approved?",
+      "loginAssociate": "Associate Portal",
+      "loginPreferred": "Preferred Associate Portal",
+      "loginBody": "Sign in to add customers, follow projects and see your commission.",
+      "openingSoon": "Opening soon",
+      "openingSoonNote": "Applications and the Associate portals are opening soon. To register your interest now, call +91 98747 74440 or email info@gridnova.in."
+    },
+    "faq": {
+      "eyebrow": "Questions",
+      "title": "Associate FAQ",
+      "items": [
+        {
+          "q": "Is there a fee to join?",
+          "a": "No. Grid Nova does not charge any registration fee, joining fee or security deposit. If anyone asks you for money to join, report it to us."
+        },
+        {
+          "q": "Will I be a Grid Nova employee?",
+          "a": "No. Associates are independent and work on their own account. You cannot sign contracts, quote prices or accept money on Grid Nova’s behalf."
+        },
+        {
+          "q": "When do I get paid?",
+          "a": "Commission is earned when the customer’s payment is verified in Grid Nova’s bank account. After Grid Nova approves it, it is paid to your bank account [monthly, by the 10th of the following month]."
+        },
+        {
+          "q": "How will customers know I am genuine?",
+          "a": "Your Grid Nova ID card carries a QR code. Anyone can scan it to confirm your name, photo, ID, level and active status."
+        },
+        {
+          "q": "What if two Associates bring the same customer?",
+          "a": "The customer belongs to the first Associate whose complete submission Grid Nova verifies. It stays with that Associate for [90] days, or until the project is completed or closed."
+        },
+        {
+          "q": "Can I stop being an Associate?",
+          "a": "Yes, with [15] days’ written notice through your portal. Commission already earned on verified payments remains payable."
+        }
+      ],
+      "helplineTitle": "Associate helpline",
+      "helplineBody": "Questions about the programme? Call us or write to us."
+    },
+    "jobs": {
+      "eyebrow": "Careers",
+      "title": "Build the grid with us.",
+      "intro": "Grid Nova Energy is a growing renewable energy company executing solar EPC projects across West Bengal and Bihar. We’re looking for engineers, project managers and sales professionals who care about doing this right — not just fast.",
+      "thriveTitle": "The kind of person who thrives here",
+      "thrive1": "You understand that solar EPC is infrastructure work — methodical, detail-intensive, and accountable across a 25-year system lifetime. You prefer getting it right over getting it done fast.",
+      "thrive2": "You’re comfortable in the field as much as in a spreadsheet. You know that DISCOM processes and MNRE compliance aren’t bureaucratic nuisances — they’re the job.",
+      "values": [
+        {
+          "label": "Engineering integrity",
+          "desc": "We don't cut corners on specs, procurement or commissioning."
+        },
+        {
+          "label": "Long-term thinking",
+          "desc": "We measure success in decades of performance, not the delivery day."
+        },
+        {
+          "label": "Customer accountability",
+          "desc": "Every team member is a direct point of contact for the client."
+        },
+        {
+          "label": "Continuous learning",
+          "desc": "Solar EPC evolves rapidly. Curiosity is a requirement, not a bonus."
+        }
+      ],
+      "openingsLabel": "Current Openings",
+      "openingsTitle": "No roles listed right now.",
+      "openingsBody": "We hire when we find the right person for a specific need — not the other way around. If your background is in solar EPC, project management, electrical engineering or renewable energy sales, send us your CV and we’ll reach out when something opens that fits.",
+      "emailCv": "Email Your CV",
+      "learnAbout": "Learn About Us",
+      "mailSubject": "Career Enquiry — Grid Nova Energy"
+    }
+  },
+  "legal": {
+    "eyebrow": "Legal",
+    "effective": "Effective date",
+    "version": "Version",
+    "contents": "On this page",
+    "related": "Related policies",
+    "pendingLabel": "Pending confirmation by Grid Nova",
+    "draftNotice": "Draft v1.1, prepared for review by Grid Nova Energy and its legal adviser before publication. Items shown like this are facts Grid Nova has not confirmed yet:",
+    "pendingSample": "pending",
+    "englishOnly": "This policy is published in English only. A reviewed Hindi and Bengali translation will follow; until then the English text is the one that applies.",
+    "titles": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Use",
+      "associate-terms": "Associate Network Terms",
+      "commission-policy": "Commission & Payout Policy",
+      "payment-policy": "Customer Payment Policy"
+    },
+    "descriptions": {
+      "privacy": "How Grid Nova Energy collects, uses, shares and protects personal data, and your rights under the Digital Personal Data Protection Act, 2023.",
+      "terms": "The terms for using www.gridnova.in, the Solar Calculator, the Nova assistant, call booking and online proposal acceptance.",
+      "associate-terms": "The agreement between Grid Nova Energy and every Associate and Preferred Associate in its Associate Network.",
+      "commission-policy": "When Associate commission is earned, approved and paid, how tax is deducted, and when commission is reversed.",
+      "payment-policy": "How to pay Grid Nova Energy safely: no cash, only to Grid Nova’s own bank account, never to an individual."
+    }
+  }
+}

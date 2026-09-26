@@ -1,31 +1,38 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
 import { Phone, Globe, MapPin, Mail } from "lucide-react";
-import { usePathname } from "next/navigation";
+import Link from "@/components/i18n/Link";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { scrollToTop } from "@/lib/lenis";
+import { useMessages } from "@/lib/i18n/client";
+import { useBarePathname } from "@/lib/i18n/navigation";
 import headerLogo from "@/public/brand/header-logo.png";
 
 const SITEMAP = [
-  { label: "About", href: "/about" },
-  { label: "Services", href: "/services" },
-  { label: "Industries", href: "/industries" },
-  { label: "Projects", href: "/projects" },
-  { label: "Technology", href: "/technology" },
-  { label: "Leadership", href: "/leadership" },
-  { label: "Sustainability", href: "/sustainability" },
-  { label: "Careers", href: "/careers" },
-];
+  { key: "about", href: "/about" },
+  { key: "services", href: "/services" },
+  { key: "industries", href: "/industries" },
+  { key: "projects", href: "/projects" },
+  { key: "technology", href: "/technology" },
+  { key: "leadership", href: "/leadership" },
+  { key: "sustainability", href: "/sustainability" },
+  { key: "careers", href: "/careers" },
+] as const;
 
 const LEGAL = [
-  { label: "Privacy Policy", href: "/privacy" },
-  { label: "Terms of Service", href: "/terms" },
-  { label: "Staff Login", href: "/dashboard" },
-];
+  { key: "privacy", href: "/privacy" },
+  { key: "terms", href: "/terms" },
+  { key: "associateTerms", href: "/associate-terms" },
+  { key: "commissionPolicy", href: "/commission-policy" },
+  { key: "paymentPolicy", href: "/payment-policy" },
+  { key: "staffLogin", href: "/dashboard" },
+] as const;
 
 export default function Footer() {
-  const pathname = usePathname();
+  const pathname = useBarePathname();
+  const nav = useMessages("nav");
+  const t = useMessages("footer");
 
   const handleHomeClick = (e: React.MouseEvent) => {
     if (pathname === "/") {
@@ -41,7 +48,7 @@ export default function Footer() {
           <div>
             <Link
               href="/"
-              aria-label="Grid Nova Energy — home"
+              aria-label={t.homeLabel}
               onClick={handleHomeClick}
               className="inline-flex bg-white/95 rounded-xl px-3 py-1.5 shadow-sm transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
@@ -54,18 +61,22 @@ export default function Footer() {
               />
             </Link>
             <p className="mt-5 text-white/50 text-sm leading-relaxed max-w-[38ch]">
-              Eco-Energy Initiative — delivering India&rsquo;s clean energy
-              future through expertise, innovation and a relentless
-              commitment to quality.
+              {t.tagline}
             </p>
             <p className="mt-5 font-utility text-[11px] tracking-[0.15em] text-white/35 uppercase">
-              Solar EPC · Green Energy Projects · Grid-Scale Solar · O&amp;M · Consulting
+              {t.serviceLine}
             </p>
+            <div className="mt-6">
+              <p className="font-utility text-[11px] tracking-[0.15em] text-white/40 uppercase mb-2.5">
+                {t.language}
+              </p>
+              <LanguageSwitcher size="md" />
+            </div>
           </div>
 
           <div>
             <p className="font-utility text-[11px] tracking-[0.15em] text-white/40 uppercase mb-5">
-              Sitemap
+              {t.sitemap}
             </p>
             <ul className="space-y-3">
               {SITEMAP.map((l) => (
@@ -77,7 +88,7 @@ export default function Footer() {
                     <span className="w-0 group-hover:w-2.5 overflow-hidden transition-all duration-200 opacity-0 group-hover:opacity-100">
                       <span className="block h-px bg-[#f7a800]" />
                     </span>
-                    {l.label}
+                    {nav.links[l.key]}
                   </Link>
                 </li>
               ))}
@@ -86,7 +97,7 @@ export default function Footer() {
 
           <div>
             <p className="font-utility text-[11px] tracking-[0.15em] text-white/40 uppercase mb-5">
-              Legal
+              {t.legal}
             </p>
             <ul className="space-y-3">
               {LEGAL.map((l) => (
@@ -98,7 +109,7 @@ export default function Footer() {
                     <span className="w-0 group-hover:w-2.5 overflow-hidden transition-all duration-200 opacity-0 group-hover:opacity-100">
                       <span className="block h-px bg-[#f7a800]" />
                     </span>
-                    {l.label}
+                    {t.legalLinks[l.key]}
                   </Link>
                 </li>
               ))}
@@ -107,7 +118,7 @@ export default function Footer() {
 
           <div>
             <p className="font-utility text-[11px] tracking-[0.15em] text-white/40 uppercase mb-5">
-              Kolkata Office
+              {t.kolkataOffice}
             </p>
             <ul className="space-y-3.5 text-white/60 text-sm">
               <li className="flex gap-2.5">
@@ -131,7 +142,7 @@ export default function Footer() {
                   className="hover:text-white transition-colors"
                 >
                   <span className="block text-white/40 text-[10px] uppercase tracking-[0.1em] mb-1">
-                    Patna Office
+                    {t.patnaOffice}
                   </span>
                   C/O Parbati Bhawan, West Ram Krishna Nagar, New Bypass
                   Road, Opposite Metro Pillar No. 81, P.O.- New Jaganpura,
@@ -171,7 +182,7 @@ export default function Footer() {
                 style={{ border: 0, filter: "brightness(0.82) saturate(0.85)" }}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title="Grid Nova Energy office location"
+                title={t.mapTitle}
               />
             </div>
           </div>
@@ -183,12 +194,11 @@ export default function Footer() {
             onClick={handleHomeClick}
             className="text-white/35 hover:text-white/55 text-xs font-utility transition-colors duration-200"
           >
-            © {new Date().getFullYear()} Grid Nova Energy. All rights
-            reserved.
+            © {new Date().getFullYear()} {t.copyright}
           </Link>
           <div className="flex items-center gap-4">
             <p className="text-white/35 text-xs font-utility">
-              Designed &amp; engineered by{" "}
+              {t.credit}{" "}
               <a
                 href="https://www.highlinework.com"
                 target="_blank"

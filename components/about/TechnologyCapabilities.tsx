@@ -1,12 +1,6 @@
 import Image from "next/image";
 import inverterPhoto from "@/public/images/Inverter Room.webp";
-
-const CAPABILITIES = [
-  "High-efficiency solar PV modules sourced from reputed, certified manufacturers.",
-  "Advanced inverters and balance-of-system components meeting international benchmarks.",
-  "System design optimized using industry-standard engineering software tools.",
-  "Full compliance with MNRE guidelines, DISCOM interconnection requirements and safety standards.",
-];
+import type { Messages } from "@/lib/i18n/types";
 
 function DiamondMark() {
   return (
@@ -20,15 +14,16 @@ function DiamondMark() {
   );
 }
 
-export default function TechnologyCapabilities() {
+export default function TechnologyCapabilities({ t }: { t: Messages["about"]["capabilities"] }) {
+  const CAPABILITIES = t.items;
   return (
     <section className="relative bg-[#f7f9fc] py-24 md:py-28">
       <div className="mx-auto max-w-[1280px] px-6 md:px-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div>
-            <span className="ref-tag text-[#2f5daa]">Technology &amp; Capabilities</span>
+            <span className="ref-tag text-[#2f5daa]">{t.eyebrow}</span>
             <h2 className="mt-4 font-display text-[#0e2a63] text-[clamp(1.4rem,8vw,2.5rem)] xs:text-[clamp(1.5rem,6.5vw,2.5rem)] md:text-[clamp(1.75rem,2.6vw,3rem)] leading-[1.1] font-medium max-w-[18ch] text-balance">
-              Engineering standards, not shortcuts.
+              {t.title}
             </h2>
             <ul className="mt-9 space-y-5">
               {CAPABILITIES.map((c) => (
@@ -42,7 +37,7 @@ export default function TechnologyCapabilities() {
           <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden">
             <Image
               src={inverterPhoto}
-              alt="Inverter room and balance-of-system electrical equipment"
+              alt={t.alt}
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover object-center"

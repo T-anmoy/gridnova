@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import OverviewPage from '@/app/dashboard/page'
-import LeadsPage from '@/app/dashboard/leads/page'
-import LeadDetailPage from '@/app/dashboard/leads/[id]/page'
-import ProposalsPage from '@/app/dashboard/proposals/page'
-import ProposalDetailPage from '@/app/dashboard/proposals/[id]/page'
-import AnalyticsPage from '@/app/dashboard/analytics/page'
-import AuditLogPage from '@/app/dashboard/audit-log/page'
+import OverviewPage from '@/app/(internal)/dashboard/page'
+import LeadsPage from '@/app/(internal)/dashboard/leads/page'
+import LeadDetailPage from '@/app/(internal)/dashboard/leads/[id]/page'
+import ProposalsPage from '@/app/(internal)/dashboard/proposals/page'
+import ProposalDetailPage from '@/app/(internal)/dashboard/proposals/[id]/page'
+import AnalyticsPage from '@/app/(internal)/dashboard/analytics/page'
+import AuditLogPage from '@/app/(internal)/dashboard/audit-log/page'
 import type {
   ActivityItem,
   AuditLog,

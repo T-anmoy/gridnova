@@ -7,7 +7,7 @@ import {
   validateEmail,
   validatePhone,
   validateName,
-} from '@/app/solar-calculator/lib'
+} from '@/app/(site)/[lang]/solar-calculator/lib'
 
 describe('solar-calculator/lib', () => {
   it('maps both customer types to the residential segment (no "society" segment exists on the backend)', () => {

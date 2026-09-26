@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, X, Send } from "lucide-react";
-import Link from "next/link";
-import { ASK_NOVA_FAQ } from "@/lib/ask-nova-faq";
+import Link from "@/components/i18n/Link";
+import { useMessages } from "@/lib/i18n/client";
+import { fmt } from "@/lib/i18n/types";
 import { ApiShapeError } from "@/lib/dashboard/api-error";
 import { chatMessageResponseSchema, formatZodError } from "@/lib/dashboard/schemas";
 
@@ -46,6 +47,11 @@ function usePrefersReducedMotion() {
 }
 
 export default function AskNova() {
+  // Fixed, fact-checked question/answer set (messages: nova.faq) surfaced as
+  // quick answers — no network call. Live replies from the backend stay in
+  // whatever language the backend answers in.
+  const t = useMessages("nova");
+  const ASK_NOVA_FAQ = t.faq;
   // ── Core panel state ──────────────────────────────────────────────────────
   const [open, setOpen] = useState(false);
   const [thread, setThread] = useState<ThreadMsg[]>([]);
@@ -124,7 +130,7 @@ export default function AskNova() {
         },
       ]);
     },
-    [reduced],
+    [reduced, ASK_NOVA_FAQ],
   );
 
   // ── Floating bubble: appear 3.5s after mount ──────────────────────────────
@@ -187,7 +193,7 @@ export default function AskNova() {
     })();
 
     return () => { cancelled = true; };
-  }, [bubbleVisible, reduced]);
+  }, [bubbleVisible, reduced, ASK_NOVA_FAQ]);
 
   // ── Answer typewriter: advance the last still-typing Nova message ──────────
   useEffect(() => {
@@ -289,8 +295,7 @@ export default function AskNova() {
         ),
       );
     } catch {
-      const errMsg =
-        "Having a little trouble right now — try again in a moment, or reach our team directly.";
+      const errMsg = t.error;
       setThread((prev) =>
         prev.map((m) =>
           m.id === loadingId
@@ -365,16 +370,16 @@ export default function AskNova() {
                 </div>
                 <div>
                   <span className="font-display text-white font-semibold text-[15px] leading-none block">
-                    Ask Nova
+                    {t.title}
                   </span>
                   <span className="mt-1 block text-white/40 text-[11px] font-utility leading-none">
-                    Solar energy assistant
+                    {t.subtitle}
                   </span>
                 </div>
               </div>
               <button
                 onClick={() => setOpen(false)}
-                aria-label="Close Ask Nova"
+                aria-label={t.close}
                 className="h-8 w-8 rounded-full hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors active:scale-[0.95]"
               >
                 <X className="h-4 w-4" />
@@ -387,14 +392,14 @@ export default function AskNova() {
               <div
                 ref={scrollRef}
                 data-lenis-prevent
-                aria-label="Conversation with Nova"
+                aria-label={t.conversationLabel}
                 className="px-5 py-3 flex-1 min-h-0 overflow-y-auto flex flex-col gap-3"
               >
                 {thread.length === 0 ? (
                   <p className="text-white/50 text-[13px] font-utility leading-relaxed">
                     {ASK_NOVA_ENABLED
-                      ? "Hi, I’m Nova — your solar energy assistant. Type a question or tap a quick answer below."
-                      : "Hi, I’m Nova. Live chat is offline right now — tap a quick answer below for instant answers to common questions."}
+                      ? t.greeting
+                      : t.greetingOffline}
                   </p>
                 ) : (
                   thread.map((m) => {
@@ -404,7 +409,7 @@ export default function AskNova() {
                         <div
                           key={m.id}
                           className="self-start flex gap-2"
-                          aria-label="Nova is typing"
+                          aria-label={t.typing}
                         >
                           <div className="h-6 w-6 mt-1 rounded-full bg-[#f7a800]/90 flex items-center justify-center shrink-0">
                             <Sparkles
@@ -450,7 +455,7 @@ export default function AskNova() {
                               onClick={() => setOpen(false)}
                               className="text-[#f7a800] hover:underline underline-offset-2 whitespace-nowrap"
                             >
-                              Reach our team →
+                              {t.reachTeam}
                             </Link>
                           </div>
                         </div>
@@ -500,7 +505,7 @@ export default function AskNova() {
                 {/* FAQ chips — persistent quick-answer shortcuts */}
                 <div className="px-5 pt-3">
                   <p className="mb-1.5 font-utility text-[10px] tracking-[0.18em] text-white/30 uppercase">
-                    Quick answers
+                    {t.quickAnswers}
                   </p>
                   <div className="flex flex-col gap-1.5 max-h-[22dvh] overflow-y-auto">
                     {ASK_NOVA_FAQ.map((faq, i) => (
@@ -543,17 +548,17 @@ export default function AskNova() {
                           }
                           // Shift+Enter: browser default (insert newline)
                         }}
-                        placeholder="Ask a specific question… (Enter to send)"
+                        placeholder={t.placeholder}
                         rows={1}
                         disabled={sending}
-                        aria-label="Message to Nova"
+                        aria-label={t.inputLabel}
                         className="flex-1 min-w-0 resize-none bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-[13px] font-utility text-white/90 placeholder-white/25 focus:outline-none focus:border-[#f7a800]/40 transition-colors leading-snug disabled:opacity-50"
                         style={{ maxHeight: "96px", overflowY: "auto" }}
                       />
                       <button
                         onClick={sendRealMessage}
                         disabled={!input.trim() || sending}
-                        aria-label="Send message"
+                        aria-label={t.send}
                         className="h-9 w-9 mb-0.5 shrink-0 rounded-xl bg-[#f7a800] text-[#091c3c] flex items-center justify-center transition-all hover:bg-white active:scale-[0.93] disabled:opacity-35 disabled:cursor-not-allowed"
                       >
                         <Send className="h-3.5 w-3.5" />
@@ -563,34 +568,34 @@ export default function AskNova() {
                     {/* Character countdown — appears when approaching the limit */}
                     {input.length >= WARN_CHARS && (
                       <p className="mt-1 text-amber-400/80 text-[11px] font-utility text-right">
-                        {MAX_CHARS - input.length} chars remaining
+                        {fmt(t.charsRemaining, { count: MAX_CHARS - input.length })}
                       </p>
                     )}
 
                     <p className="mt-3 text-white/35 text-[11px] font-utility leading-relaxed">
-                      Have something specific in mind?{" "}
+                      {t.specificPrefix}{" "}
                       <Link
                         href="/contact"
                         onClick={() => setOpen(false)}
                         className="text-[#f7a800] hover:underline"
                       >
-                        Talk to our team directly
+                        {t.specificLink}
                       </Link>
-                      .
+                      {t.specificSuffix}
                     </p>
                   </div>
                 ) : (
                   <div className="px-5 pt-2 pb-4">
                     <p className="text-white/35 text-[11px] font-utility leading-relaxed">
-                      Live chat is temporarily offline — browse the quick answers above, or{" "}
+                      {t.offlinePrefix}{" "}
                       <Link
                         href="/contact"
                         onClick={() => setOpen(false)}
                         className="text-[#f7a800] hover:underline"
                       >
-                        talk to our team directly
+                        {t.offlineLink}
                       </Link>
-                      .
+                      {t.offlineSuffix}
                     </p>
                   </div>
                 )}
@@ -615,7 +620,7 @@ export default function AskNova() {
                 ? { duration: 0.12 }
                 : { type: "spring", stiffness: 380, damping: 26 }
             }
-            aria-label="Ask Nova a quick question"
+            aria-label={t.bubbleLabel}
             className="relative text-left rounded-2xl rounded-br-sm px-4 py-3 w-[min(258px,calc(100vw-5.5rem))] shadow-[0_16px_40px_-10px_rgba(9,28,60,0.6)] active:scale-[0.98]"
             style={{
               backgroundColor: "rgba(4,14,40,0.97)",
@@ -628,7 +633,7 @@ export default function AskNova() {
             <span className="flex items-center gap-1.5 mb-1.5">
               <Sparkles style={{ height: "12px", width: "12px" }} className="text-[#f7a800]" />
               <span className="font-utility text-[10px] tracking-[0.12em] uppercase text-[#f7a800]">
-                Ask Nova
+                {t.title}
               </span>
             </span>
             <span className="block text-white/90 text-[13px] font-utility leading-snug min-h-[2.4em]">
@@ -638,7 +643,7 @@ export default function AskNova() {
               )}
             </span>
             <span className="block mt-1.5 text-white/40 text-[10px] font-utility">
-              Tap for the answer →
+              {t.bubbleTap}
             </span>
             {/* Tail pointing toward the launcher */}
             <span
@@ -656,7 +661,7 @@ export default function AskNova() {
       {/* ── Launcher button ───────────────────────────────────────────────── */}
       <motion.button
         onClick={toggle}
-        aria-label={open ? "Close Ask Nova" : "Open Ask Nova quick answers"}
+        aria-label={open ? t.close : t.open}
         whileHover={reduced ? undefined : { scale: 1.08 }}
         whileTap={reduced ? undefined : { scale: 0.94 }}
         transition={{ type: "spring", stiffness: 400, damping: 20 }}

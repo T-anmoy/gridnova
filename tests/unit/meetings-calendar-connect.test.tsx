@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { toast } from 'sonner'
-import MeetingsPage from '@/app/dashboard/meetings/page'
+import MeetingsPage from '@/app/(internal)/dashboard/meetings/page'
 
 const mockUseUser = vi.fn()
 vi.mock('@clerk/nextjs', () => ({ useUser: () => mockUseUser() }))

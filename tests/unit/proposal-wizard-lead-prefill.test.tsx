@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-import ProposalInputForm from "@/app/proposal/new/ProposalInputForm";
+import ProposalInputForm from "@/app/(internal)/proposal/new/ProposalInputForm";
 
 beforeEach(() => {
   window.scrollTo = vi.fn();

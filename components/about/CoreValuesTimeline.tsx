@@ -3,36 +3,10 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import type { Messages } from "@/lib/i18n/types";
 
-const VALUES = [
-  {
-    n: "01",
-    title: "Sustainability",
-    copy: "Commitment to environmental responsibility and clean energy in every project we undertake.",
-  },
-  {
-    n: "02",
-    title: "Integrity",
-    copy: "Transparent business practices and ethical conduct at all levels of the organization.",
-  },
-  {
-    n: "03",
-    title: "Quality",
-    copy: "Strict adherence to high technical and safety standards from design through commissioning.",
-  },
-  {
-    n: "04",
-    title: "Innovation",
-    copy: "Continuous improvement through emerging technologies and smarter, data-driven solutions.",
-  },
-  {
-    n: "05",
-    title: "Customer Focus",
-    copy: "Long-term partnerships built on trust, transparency and measurable performance outcomes.",
-  },
-];
-
-export default function CoreValuesTimeline() {
+export default function CoreValuesTimeline({ t }: { t: Messages["about"]["values"] }) {
+  const VALUES = t.items.map((v, i) => ({ ...v, n: String(i + 1).padStart(2, "0") }));
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -94,9 +68,9 @@ export default function CoreValuesTimeline() {
   return (
     <section ref={ref} className="relative bg-white py-24 md:py-28 border-t border-[#e4e8ee]">
       <div className="mx-auto max-w-[1280px] px-6 md:px-10">
-        <span className="ref-tag text-[#2f5daa]">Core Values</span>
+        <span className="ref-tag text-[#2f5daa]">{t.eyebrow}</span>
         <h2 className="mt-4 font-display text-[#0e2a63] text-[clamp(1.4rem,8vw,2.5rem)] xs:text-[clamp(1.5rem,6.5vw,2.5rem)] md:text-[clamp(1.75rem,2.6vw,3rem)] leading-[1.1] font-medium max-w-[20ch] text-balance">
-          The standard behind every project.
+          {t.title}
         </h2>
 
         <div className="relative mt-16 max-w-[760px]">

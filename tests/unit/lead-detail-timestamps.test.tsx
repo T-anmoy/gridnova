@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { render, screen } from "@testing-library/react";
-import LeadDetailPage from "@/app/dashboard/leads/[id]/page";
+import LeadDetailPage from "@/app/(internal)/dashboard/leads/[id]/page";
 import type { LeadDetail } from "@/lib/dashboard/types";
 
 // This is the real, previously-broken display surface: the exact bug report

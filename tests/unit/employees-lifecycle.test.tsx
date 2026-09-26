@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import EmployeesPage from '@/app/dashboard/employees/page'
+import EmployeesPage from '@/app/(internal)/dashboard/employees/page'
 import { ApiError } from '@/lib/dashboard/api-error'
 import type { Employee } from '@/lib/dashboard/types'
 

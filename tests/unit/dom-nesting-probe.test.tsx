@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render } from '@testing-library/react'
-import AgentsPage from '@/app/dashboard/agents/page'
+import AgentsPage from '@/app/(internal)/dashboard/agents/page'
 import type { GovernanceAgentsResponse } from '@/lib/dashboard/types'
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import LeadsPage from '@/app/dashboard/leads/page'
+import LeadsPage from '@/app/(internal)/dashboard/leads/page'
 import type { LeadSummary } from '@/lib/dashboard/types'
 
 const mockUseUser = vi.fn()

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { STATES, DISCOMS, DISCOMS_BY_STATE, discomsForState } from "@/app/proposal/new/types";
-import { discomsForState as calculatorDiscomsForState } from "@/app/solar-calculator/lib";
+import { STATES, DISCOMS, DISCOMS_BY_STATE, discomsForState } from "@/app/(internal)/proposal/new/types";
+import { discomsForState as calculatorDiscomsForState } from "@/app/(site)/[lang]/solar-calculator/lib";
 
 describe("STATES — full India coverage", () => {
   it("includes all 28 states + 8 union territories (36 total), no duplicates", () => {

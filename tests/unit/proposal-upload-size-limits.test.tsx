@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import Step5Documents from '@/app/proposal/new/steps/Step5Documents'
-import { DEFAULT_FILES } from '@/app/proposal/new/types'
+import Step5Documents from '@/app/(internal)/proposal/new/steps/Step5Documents'
+import { DEFAULT_FILES } from '@/app/(internal)/proposal/new/types'
 
 // Regression test for the "one slot said 5MB" bug — every document slot on
 // this step must advertise (and enforce) the same 10MB limit the backend

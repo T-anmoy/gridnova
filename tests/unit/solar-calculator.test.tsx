@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import SolarCalculator from '@/app/solar-calculator/SolarCalculator'
+import SolarCalculator from '@/app/(site)/[lang]/solar-calculator/SolarCalculator'
+import { withI18n } from './helpers/i18n'
 
 beforeEach(() => {
   window.scrollTo = vi.fn()
@@ -86,7 +87,7 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
     vi.stubGlobal('fetch', fetchMock)
 
     const user = userEvent.setup()
-    render(<SolarCalculator />)
+    render(withI18n(<SolarCalculator />))
 
     await fillStepA(user)
     await fillStepB(user)
@@ -157,7 +158,7 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
     vi.stubGlobal('fetch', fetchMock)
 
     const user = userEvent.setup()
-    render(<SolarCalculator />)
+    render(withI18n(<SolarCalculator />))
 
     await fillStepA(user)
     await fillStepB(user)
@@ -184,7 +185,7 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
     vi.stubGlobal('fetch', fetchMock)
 
     const user = userEvent.setup()
-    render(<SolarCalculator />)
+    render(withI18n(<SolarCalculator />))
 
     await fillStepA(user)
     await fillStepB(user)
@@ -228,7 +229,7 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
   it('requires a valid 6-digit PIN code before Basics can proceed', async () => {
     vi.stubGlobal('fetch', vi.fn())
     const user = userEvent.setup()
-    render(<SolarCalculator />)
+    render(withI18n(<SolarCalculator />))
 
     await user.selectOptions(screen.getByLabelText(/^state/i), 'West Bengal')
     await user.type(screen.getByLabelText(/^city/i), 'Kolkata')
@@ -243,7 +244,7 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
   it('requires a connection phase before Sizing can proceed, even though it used to be optional', async () => {
     vi.stubGlobal('fetch', vi.fn())
     const user = userEvent.setup()
-    render(<SolarCalculator />)
+    render(withI18n(<SolarCalculator />))
     await fillStepA(user)
 
     await user.type(screen.getByLabelText(/average monthly electricity bill/i), '3500')
@@ -263,7 +264,7 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
     vi.stubGlobal('fetch', fetchMock)
 
     const user = userEvent.setup()
-    render(<SolarCalculator />)
+    render(withI18n(<SolarCalculator />))
     await fillStepA(user)
 
     await user.click(screen.getByRole('button', { name: /by monthly units/i }))
@@ -288,7 +289,7 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
     vi.stubGlobal('fetch', fetchMock)
 
     const user = userEvent.setup()
-    render(<SolarCalculator />)
+    render(withI18n(<SolarCalculator />))
     await fillStepA(user)
 
     await user.type(screen.getByLabelText(/average monthly electricity bill/i), '3500')
@@ -315,7 +316,7 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
   it('never renders an equipment tier selector anywhere in the flow', async () => {
     vi.stubGlobal('fetch', vi.fn())
     const user = userEvent.setup()
-    render(<SolarCalculator />)
+    render(withI18n(<SolarCalculator />))
     await fillStepA(user)
 
     await user.type(screen.getByLabelText(/average monthly electricity bill/i), '3500')

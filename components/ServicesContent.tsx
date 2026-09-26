@@ -2,35 +2,23 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/i18n/Link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowRight } from "lucide-react";
 import solarEpcPhoto from "@/public/images/SOLAR EPC.webp";
 import rooftopPhoto from "@/public/images/ROOFTOP SOLAR.webp";
 import utilityPhoto from "@/public/images/PM KUSUM.webp";
+import type { Messages } from "@/lib/i18n/types";
 
-const OM_PILLARS = [
-  { n: "Preventive", d: "Scheduled cleaning, thermographic inspection, string performance checks and inverter health monitoring." },
-  { n: "Corrective", d: "Fault diagnosis, component replacement and root-cause documentation within defined response windows." },
-  { n: "Performance", d: "Yield analysis against modelled generation, PR ratio tracking and degradation benchmarking." },
-  { n: "Regulatory", d: "DISCOM compliance documentation, safety inspection records and warranty claim management." },
-];
+// Anchor ids for the government-programme pillars, in messages order
+// (services.government.items). The homepage links straight to these.
+const GOV_IDS = ["schools", "street-lighting", "solar-pumps"] as const;
 
-const GOV_PROGRAMMES = [
-  { n: "Government & Institutional Solar", d: "Grid-connected rooftop solar for schools and public institutions, delivered to government programme quality and documentation standards — including 330+ schools electrified for WBREDA." },
-  { n: "Solar Street Lighting", d: "Standalone solar street lighting — pole, module, battery and controller — supplied, installed and commissioned under state and central government rural electrification programmes. 4,800+ units deployed." },
-  { n: "Solar Water Pumps", d: "Solarisation of agricultural pump sets under PM-KUSUM Component C, replacing diesel and grid-dependent irrigation with solar-powered pumping. 2,350+ installations completed." },
-];
-
-const CONSULTING_ITEMS = [
-  { n: "01", t: "Feasibility Studies", d: "Solar resource assessment, yield projection, financial modelling and payback analysis using site-specific inputs." },
-  { n: "02", t: "Site Assessment", d: "Shadow analysis, structural survey, grid interconnection capacity check and civil condition review." },
-  { n: "03", t: "System Design", d: "Full electrical design package: module string layout, inverter selection, single-line diagram and protection coordination." },
-  { n: "04", t: "Regulatory Support", d: "DISCOM interconnection applications, net-metering documentation, MNRE subsidy processing and state nodal agency coordination." },
-];
-
-export default function ServicesContent() {
+export default function ServicesContent({ t }: { t: Messages["services"] }) {
+  const OM_PILLARS = t.om.items;
+  const GOV_PROGRAMMES = t.government.items.map((p, i) => ({ ...p, id: GOV_IDS[i] }));
+  const CONSULTING_ITEMS = t.consulting.items.map((item, i) => ({ ...item, num: String(i + 1).padStart(2, "0") }));
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -127,20 +115,18 @@ export default function ServicesContent() {
       {/* ── Intro hero — dark navy, blueprint-grid ── */}
       <section className="bg-[#091c3c] blueprint-grid pt-[calc(var(--header-h)+3.5rem)] pb-24 md:pb-32">
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
-          <span className="sv-eyebrow ref-tag text-[#f7a800] mb-6 block">Our Capabilities</span>
+          <span className="sv-eyebrow ref-tag text-[#f7a800] mb-6 block">{t.intro.eyebrow}</span>
           <h1
             className="sv-h1 font-display text-white font-medium leading-[0.95] text-balance max-w-[14ch]"
             style={{ fontSize: "clamp(1.75rem,8vw,7rem)" }}
           >
-            Full-lifecycle capability.<br />One accountable team.
+            {t.intro.title}<br />{t.intro.title2}
           </h1>
           <p className="sv-sub mt-8 text-white/55 max-w-[48ch] leading-relaxed text-lg">
-            Grid Nova delivers every service below in-house — not
-            subcontracted, not templated. Each engagement is engineered for
-            the specific site, client and budget.
+            {t.intro.body}
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
-            {["EPC", "Green Energy", "Grid-Scale", "Government Programmes", "O&M", "Consulting"].map((s) => (
+            {t.intro.tags.map((s) => (
               <span key={s} className="sv-tag font-utility text-xs text-white/60 border border-white/15 rounded-full px-4 py-1.5">
                 {s}
               </span>
@@ -150,44 +136,35 @@ export default function ServicesContent() {
       </section>
 
       {/* ── 01 Solar EPC — text left, image right, light bg ── */}
-      <section className="s01 bg-[#f7f9fc] py-24 md:py-32">
+      <section id="epc" className="s01 scroll-mt-28 bg-[#f7f9fc] py-24 md:py-32">
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
           <div className="grid lg:grid-cols-2 gap-14 lg:gap-24 items-center">
             <div className="s01-text">
-              <span className="font-utility text-[11px] tracking-[0.22em] text-[#2f5daa]/60 uppercase">01 / EPC</span>
+              <span className="font-utility text-[11px] tracking-[0.22em] text-[#2f5daa]/60 uppercase">{t.epc.label}</span>
               <h2
                 className="mt-5 font-display text-[#0e2a63] font-semibold leading-[1.05]"
                 style={{ fontSize: "clamp(1.8rem,4.5vw,3rem)" }}
               >
-                Solar EPC Services
+                {t.epc.title}
               </h2>
               <p className="mt-6 text-[#111827]/65 leading-relaxed">
-                We manage the full Engineering, Procurement and Construction
-                lifecycle for grid-connected and off-grid solar power plants.
-                From initial site survey through system design, equipment
-                sourcing, civil works, module installation, cabling, inverter
-                commissioning and DISCOM grid synchronisation — every activity
-                sits under one accountable contract.
+                {t.epc.body}
               </p>
               <p className="mt-4 text-[#111827]/65 leading-relaxed">
-                Our EPC scope includes technical due diligence, shadow analysis,
-                structural loading assessment, protection relay coordination,
-                and documentation packages for state electricity regulatory
-                body approvals. We do not begin construction until the design
-                is signed off in full.
+                {t.epc.body2}
               </p>
               <Link
                 href="/contact"
                 className="mt-8 inline-flex items-center gap-2 text-[#0e2a63] font-utility font-semibold text-sm group active:scale-[0.97] transition-transform"
               >
-                Discuss an EPC project
+                {t.epc.cta}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
             <div className="s01-img relative aspect-[4/3] w-full rounded-2xl overflow-hidden">
               <Image
                 src={solarEpcPhoto}
-                alt="Grid Nova Energy Solar EPC — large-scale installation"
+                alt={t.epc.alt}
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover object-center"
@@ -198,78 +175,61 @@ export default function ServicesContent() {
       </section>
 
       {/* ── 02 Green Energy Projects — cinematic full-width image, editorial text below ── */}
-      <section className="s02 bg-white border-t border-[#e4e8ee]">
+      <section id="rooftop" className="s02 scroll-mt-28 bg-white border-t border-[#e4e8ee]">
         <div className="s02-img relative aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9] w-full overflow-hidden">
           <Image
             src={rooftopPhoto}
-            alt="Green Energy Project — distributed solar installation, Grid Nova Energy"
+            alt={t.green.alt}
             fill
             sizes="100vw"
             className="object-cover object-center"
           />
         </div>
         <div className="s02-body mx-auto max-w-[1280px] px-6 md:px-10 py-20 md:py-28">
-          <span className="s02-eyebrow font-utility text-[11px] tracking-[0.22em] text-[#2f5daa]/60 uppercase block mb-6">02 / Green Energy</span>
+          <span className="s02-eyebrow font-utility text-[11px] tracking-[0.22em] text-[#2f5daa]/60 uppercase block mb-6">{t.green.label}</span>
           <h2
             className="s02-h2 font-display text-[#0e2a63] font-semibold leading-[1.05] max-w-[14ch]"
             style={{ fontSize: "clamp(1.8rem,6vw,4rem)" }}
           >
-            Green Energy Projects
+            {t.green.title}
           </h2>
           <div className="mt-10 grid sm:grid-cols-2 gap-x-16 gap-y-6 text-[#111827]/65 leading-relaxed max-w-[80ch]">
             <p className="s02-col">
-              We design and install solar systems precisely matched to each
-              building&rsquo;s load profile, roof geometry, structural capacity
-              and grid-interconnection point. Residential, commercial and
-              industrial profiles each demand different engineering assumptions —
-              we model every one specifically.
+              {t.green.body}
             </p>
             <p className="s02-col">
-              Our delivery includes net-metering applications, DISCOM approval
-              management, roof waterproofing assessment and post-installation
-              performance monitoring. We handle PM Surya Ghar subsidy
-              documentation for eligible residential customers — a process that
-              requires careful coordination between the installer, DISCOM and
-              the national portal.
+              {t.green.body2}
             </p>
           </div>
         </div>
       </section>
 
       {/* ── 03 Grid-Scale Solar Infrastructure — dark navy, image left, text right ── */}
-      <section className="s03 bg-[#091c3c] py-24 md:py-32">
+      <section id="grid-scale" className="s03 scroll-mt-28 bg-[#091c3c] py-24 md:py-32">
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
           <div className="grid lg:grid-cols-2 gap-14 lg:gap-24 items-center">
             <div className="s03-img relative aspect-[4/3] w-full rounded-2xl overflow-hidden">
               <Image
                 src={utilityPhoto}
-                alt="Utility-scale ground-mounted solar farm — Grid Nova Energy"
+                alt={t.gridScale.alt}
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover object-center"
               />
             </div>
             <div className="s03-text">
-              <span className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase">03 / Grid-Scale</span>
+              <span className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase">{t.gridScale.label}</span>
               <h2
                 className="mt-5 font-display text-white font-semibold leading-[1.05]"
                 style={{ fontSize: "clamp(1.8rem,4.5vw,3rem)" }}
               >
-                Grid-Scale Solar Infrastructure
+                {t.gridScale.title}
               </h2>
               <p className="mt-6 text-white/60 leading-relaxed">
-                For large ground-mounted installations, we provide design and
-                execution support covering land suitability, irradiance
-                modelling, single-line diagram development, inverter and
-                transformer specification, substation design, grid evacuation
-                planning and full project management through commissioning.
+                {t.gridScale.body}
               </p>
               <p className="mt-4 text-white/60 leading-relaxed">
-                Grid Nova&rsquo;s team and branch network has delivered projects
-                aligned with PM-KUSUM component C — 2,350+ solar pump
-                installations across rural districts in Bihar and West Bengal —
-                representing large-scale rural deployment capability under
-                government programme constraints.
+                {t.gridScale.body2}
               </p>
             </div>
           </div>
@@ -277,28 +237,25 @@ export default function ServicesContent() {
       </section>
 
       {/* ── 04 Government & Community Programmes — three-pillar grid, no image ── */}
-      <section className="s04gov bg-white py-24 md:py-28 border-t border-[#e4e8ee]">
+      <section id="government" className="s04gov scroll-mt-28 bg-white py-24 md:py-28 border-t border-[#e4e8ee]">
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
           <div className="s04gov-header flex flex-col md:flex-row md:items-end gap-8 md:gap-20 mb-16">
             <div className="shrink-0">
-              <span className="font-utility text-[11px] tracking-[0.22em] text-[#2f5daa]/60 uppercase">04 / Government Programmes</span>
+              <span className="font-utility text-[11px] tracking-[0.22em] text-[#2f5daa]/60 uppercase">{t.government.label}</span>
               <h2
                 className="mt-5 font-display text-[#0e2a63] font-semibold leading-[1.0]"
                 style={{ fontSize: "clamp(1.8rem,4.5vw,3rem)" }}
               >
-                Government &amp;<br />Community Solar
+                {t.government.title}<br />{t.government.title2}
               </h2>
             </div>
             <p className="text-[#111827]/65 leading-relaxed max-w-[48ch] md:pb-1">
-              Grid Nova&rsquo;s branch network has delivered at scale under
-              national and state electrification programmes — work that
-              demands rigorous compliance, documentation and on-ground
-              execution across rural districts.
+              {t.government.body}
             </p>
           </div>
           <div className="s04gov-grid grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-[#e4e8ee] rounded-2xl overflow-hidden">
             {GOV_PROGRAMMES.map((p) => (
-              <div key={p.n} className="s04gov-pillar bg-[#f7f9fc] p-8 md:p-9">
+              <div key={p.id} id={p.id} className="s04gov-pillar scroll-mt-28 bg-[#f7f9fc] p-8 md:p-9">
                 <p className="font-display text-[#0e2a63] font-semibold mb-3">{p.n}</p>
                 <p className="text-[#111827]/60 text-sm leading-relaxed">{p.d}</p>
               </div>
@@ -308,23 +265,20 @@ export default function ServicesContent() {
       </section>
 
       {/* ── 05 O&M — four-pillar grid, no image ── */}
-      <section className="s05om bg-[#0e2a63] py-24 md:py-28 border-t border-white/10">
+      <section id="om" className="s05om scroll-mt-28 bg-[#0e2a63] py-24 md:py-28 border-t border-white/10">
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
           <div className="s05om-header flex flex-col md:flex-row md:items-end gap-8 md:gap-20 mb-16">
             <div className="shrink-0">
-              <span className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase">05 / O&amp;M</span>
+              <span className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase">{t.om.label}</span>
               <h2
                 className="mt-5 font-display text-white font-semibold leading-[1.0]"
                 style={{ fontSize: "clamp(1.8rem,4.5vw,3rem)" }}
               >
-                Operation &amp;<br />Maintenance
+                {t.om.title}<br />{t.om.title2}
               </h2>
             </div>
             <p className="text-white/55 leading-relaxed max-w-[48ch] md:pb-1">
-              A solar system performs precisely as well as it is maintained.
-              Our O&amp;M programmes are structured around the principle that
-              annual yield degradation is a management problem, not an
-              inevitability.
+              {t.om.body}
             </p>
           </div>
           <div className="s05om-grid grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 rounded-2xl overflow-hidden">
@@ -339,28 +293,25 @@ export default function ServicesContent() {
       </section>
 
       {/* ── 06 Consulting — numbered list, light bg ── */}
-      <section className="s06 bg-[#f7f9fc] py-24 md:py-32 border-t border-[#e4e8ee]">
+      <section id="consulting" className="s06 scroll-mt-28 bg-[#f7f9fc] py-24 md:py-32 border-t border-[#e4e8ee]">
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
           <div className="grid lg:grid-cols-[1fr_1.5fr] gap-16 lg:gap-24 items-start">
             <div className="s06-intro">
-              <span className="font-utility text-[11px] tracking-[0.22em] text-[#2f5daa]/60 uppercase">06 / Consulting</span>
+              <span className="font-utility text-[11px] tracking-[0.22em] text-[#2f5daa]/60 uppercase">{t.consulting.label}</span>
               <h2
                 className="mt-5 font-display text-[#0e2a63] font-semibold leading-[1.05]"
                 style={{ fontSize: "clamp(1.8rem,4.5vw,3rem)" }}
               >
-                Energy Consulting
+                {t.consulting.title}
               </h2>
               <p className="mt-6 text-[#111827]/65 leading-relaxed">
-                Not every client needs a full EPC contract from day one. Our
-                consulting scope is available as a standalone engagement for
-                clients who need rigorous technical input before committing
-                to a project.
+                {t.consulting.body}
               </p>
             </div>
             <div className="s06-list border-t border-[#e4e8ee]">
               {CONSULTING_ITEMS.map((item) => (
-                <div key={item.n} className="s06-item grid md:grid-cols-[56px_1fr] gap-5 py-7 border-b border-[#e4e8ee] items-start">
-                  <span className="font-display text-[#0e2a63]/20 text-2xl font-bold">{item.n}</span>
+                <div key={item.num} className="s06-item grid md:grid-cols-[56px_1fr] gap-5 py-7 border-b border-[#e4e8ee] items-start">
+                  <span className="font-display text-[#0e2a63]/20 text-2xl font-bold">{item.num}</span>
                   <div>
                     <p className="font-display text-[#0e2a63] font-semibold">{item.t}</p>
                     <p className="mt-2 text-[#111827]/60 text-sm leading-relaxed">{item.d}</p>
@@ -376,14 +327,9 @@ export default function ServicesContent() {
       <section className="s07 bg-[#091c3c] py-16 md:py-20 border-t border-white/10">
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
           <div className="s07-body max-w-[70ch]">
-            <span className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase">07 / Looking Ahead</span>
+            <span className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase">{t.ahead.label}</span>
             <p className="mt-5 text-white/55 leading-relaxed">
-              As India&rsquo;s energy needs evolve, we&rsquo;re developing
-              capability in battery energy storage (BESS), EV charging
-              infrastructure and microgrid solutions — natural extensions of
-              our core solar EPC expertise. These are emerging areas for
-              Grid Nova, not offerings available today, and we&rsquo;ll
-              formally bring them to market as that capability matures.
+              {t.ahead.body}
             </p>
           </div>
         </div>

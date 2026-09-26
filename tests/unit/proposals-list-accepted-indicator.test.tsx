@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import ProposalsPage from '@/app/dashboard/proposals/page'
+import ProposalsPage from '@/app/(internal)/dashboard/proposals/page'
 import type { ProposalSummary } from '@/lib/dashboard/types'
 
 vi.mock('@clerk/nextjs', () => ({

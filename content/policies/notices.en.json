@@ -1,0 +1,123 @@
+{
+  "_source": "content/policies/GridNova_Policies_Draft_v1.md, documents 6 and 7. Not pages: shown inside the Associate registration flow (Phase 2) and read to customers by Associates (Phase 3).",
+  "notices": {
+    "associate-kyc-consent": {
+      "number": 6,
+      "sourceTitle": "ASSOCIATE KYC & DATA CONSENT NOTICE",
+      "meta": [],
+      "sections": [
+        {
+          "id": "intro",
+          "heading": null,
+          "blocks": [
+            {
+              "type": "note",
+              "text": "Shown on its own screen at registration. The applicant must accept it before submitting."
+            },
+            {
+              "type": "h4",
+              "text": "Why we are asking for this information"
+            },
+            {
+              "type": "p",
+              "text": "Grid Nova needs to confirm who you are, keep the Associate Network safe for customers, and pay your commission correctly and lawfully."
+            },
+            {
+              "type": "h4",
+              "text": "What we will collect"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Name, date of birth, photograph, address, mobile number and email.",
+                "Aadhaar: we check the number you enter is valid, then store **only its last four digits**. Please upload a **masked Aadhaar** (showing only the last four digits), which you can download from UIDAI.",
+                "PAN, and a copy of your PAN card, for identity and tax deduction.",
+                "Bank account details and a cancelled cheque, for paying your commission.",
+                "For Preferred Associate applications: business details, GSTIN (if any), experience and references."
+              ]
+            },
+            {
+              "type": "h4",
+              "text": "How we will use it"
+            },
+            {
+              "type": "p",
+              "text": "To verify your identity, including by a phone call; to decide your application; to issue your Associate ID and ID card; to calculate, pay and report commission and tax; to prevent fraud; and to meet legal obligations."
+            },
+            {
+              "type": "h4",
+              "text": "Who will see it"
+            },
+            {
+              "type": "p",
+              "text": "Only authorised Grid Nova staff, and our service providers who store it securely for us. Your name, photo, ID, level and active status are shown on your ID card and its verification page."
+            },
+            {
+              "type": "h4",
+              "text": "How long we keep it"
+            },
+            {
+              "type": "p",
+              "text": "While you are an Associate, and afterwards only as long as tax and legal rules require."
+            },
+            {
+              "type": "h4",
+              "text": "Your choices"
+            },
+            {
+              "type": "p",
+              "text": "You can ask to see, correct or erase your data, or withdraw this consent, by writing to [privacy@gridnova.in]. Withdrawing consent ends your association, because we cannot run it without this information."
+            },
+            {
+              "type": "checkbox",
+              "text": "I have read this notice and consent to Grid Nova processing my personal data as described."
+            }
+          ]
+        }
+      ],
+      "slug": "associate-kyc-consent"
+    },
+    "customer-information-notice": {
+      "number": 7,
+      "sourceTitle": "CUSTOMER INFORMATION NOTICE",
+      "meta": [],
+      "sections": [
+        {
+          "id": "intro",
+          "heading": null,
+          "blocks": [
+            {
+              "type": "note",
+              "text": "Shown to, or read out to, the customer by the Associate before any details are recorded. The Associate records the customer's agreement in the portal."
+            },
+            {
+              "type": "h4",
+              "text": "Grid Nova Energy — how we use your information"
+            },
+            {
+              "type": "p",
+              "text": "Grid Nova Energy will use the details, documents and photographs collected today to assess your site, prepare your proposal, install your solar system, and — if you choose — apply for government subsidy and grid connection through the national portal and your DISCOM."
+            },
+            {
+              "type": "p",
+              "text": "Your information is seen only by Grid Nova, the Associate helping you, and the government bodies involved in your application. We never sell it."
+            },
+            {
+              "type": "p",
+              "text": "Please pay only to Grid Nova's bank account, never in cash and never to any individual."
+            },
+            {
+              "type": "p",
+              "text": "You can ask Grid Nova to see, correct or delete your information at any time: info@gridnova.in · +91 98747 74440."
+            },
+            {
+              "type": "checkbox",
+              "text": "The customer has been informed and agrees."
+            }
+          ]
+        }
+      ],
+      "slug": "customer-information-notice"
+    }
+  }
+}

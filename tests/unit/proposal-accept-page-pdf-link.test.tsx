@@ -32,7 +32,7 @@ describe('ProposalAcceptPage — PDF availability', () => {
       'fetch',
       vi.fn().mockResolvedValue(new Response(JSON.stringify({ ...READY_RESPONSE, pdf_available: true }), { status: 200 }))
     )
-    const { default: ProposalAcceptPage } = await import('@/app/proposal/accept/[token]/page')
+    const { default: ProposalAcceptPage } = await import('@/app/(internal)/proposal/accept/[token]/page')
     render(<ProposalAcceptPage />)
 
     const link = await screen.findByRole('link', { name: /download proposal \(pdf\)/i })
@@ -45,7 +45,7 @@ describe('ProposalAcceptPage — PDF availability', () => {
       'fetch',
       vi.fn().mockResolvedValue(new Response(JSON.stringify(READY_RESPONSE), { status: 200 }))
     )
-    const { default: ProposalAcceptPage } = await import('@/app/proposal/accept/[token]/page')
+    const { default: ProposalAcceptPage } = await import('@/app/(internal)/proposal/accept/[token]/page')
     render(<ProposalAcceptPage />)
 
     await screen.findByText(/review & accept your proposal|proposal for/i)

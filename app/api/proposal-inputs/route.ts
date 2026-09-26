@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
-import { mapProposalInputsToBackend } from "@/app/proposal/new/backend-mapping";
-import type { ProposalFormValues } from "@/app/proposal/new/types";
+import { mapProposalInputsToBackend } from "@/app/(internal)/proposal/new/backend-mapping";
+import type { ProposalFormValues } from "@/app/(internal)/proposal/new/types";
 
 // Real Route Handler for the sales-team site-assessment wizard
 // (app/proposal/new): validates the submitted fields, maps them onto the

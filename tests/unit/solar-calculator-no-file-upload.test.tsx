@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import SolarCalculator from '@/app/solar-calculator/SolarCalculator'
+import SolarCalculator from '@/app/(site)/[lang]/solar-calculator/SolarCalculator'
+import { withI18n } from './helpers/i18n'
 
 // Regression test for the silent-discard bug: the public calculator used to
 // show "Electricity Bill" / "Roof Photo" upload slots whose files were never
@@ -29,7 +30,7 @@ describe('SolarCalculator — Site Details step no longer collects files', () =>
   it('shows no file upload controls and instead tells the visitor how to share files after submitting', async () => {
     window.scrollTo = vi.fn()
     const user = userEvent.setup()
-    render(<SolarCalculator />)
+    render(withI18n(<SolarCalculator />))
     await reachSiteDetailsStep(user)
 
     expect(screen.queryByText('Electricity Bill')).not.toBeInTheDocument()

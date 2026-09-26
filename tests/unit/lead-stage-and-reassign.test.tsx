@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import LeadDetailPage from '@/app/dashboard/leads/[id]/page'
+import LeadDetailPage from '@/app/(internal)/dashboard/leads/[id]/page'
 import type { LeadDetail } from '@/lib/dashboard/types'
 import { ASSIGNABLE_EMPLOYEES_FIXTURE } from './fixtures/dashboard-contract'
 

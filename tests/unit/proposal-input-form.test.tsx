@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import ProposalInputForm from "@/app/proposal/new/ProposalInputForm";
+import ProposalInputForm from "@/app/(internal)/proposal/new/ProposalInputForm";
 
 // jsdom doesn't always implement the Blob URL APIs FileUploadSlot's image
 // previews rely on — stub them so file-upload interactions don't throw.

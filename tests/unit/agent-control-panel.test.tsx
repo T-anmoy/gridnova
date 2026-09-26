@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import AgentsPage from '@/app/dashboard/agents/page'
+import AgentsPage from '@/app/(internal)/dashboard/agents/page'
 import type { GovernanceAgentsResponse, AgentAuditResponse } from '@/lib/dashboard/types'
 
 const toastSuccess = vi.fn()

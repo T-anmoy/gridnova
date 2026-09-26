@@ -1,37 +1,28 @@
 import Image from "next/image";
 import overviewPhoto from "@/public/images/COMPANY OVERVIEW.webp";
+import type { Messages } from "@/lib/i18n/types";
 
-const FACTS = [
-  { label: "Headquarters", value: "India" },
-  { label: "Operating Footprint", value: "West Bengal & Bihar" },
-  { label: "Industrial Reference", value: "1.3 MWp — Showa India" },
-  { label: "Focus", value: "EPC · Green Energy · Grid-Scale · O&M" },
-];
-
-export default function CompanyOverview() {
+export default function CompanyOverview({ t }: { t: Messages["about"]["overview"] }) {
+  const FACTS = t.facts;
   return (
     <section className="relative bg-white py-24 md:py-28 border-t border-[#e4e8ee]">
       <div className="mx-auto max-w-[1280px] px-6 md:px-10">
         <div className="grid lg:grid-cols-[1.5fr_1fr] gap-14 lg:gap-20">
           <div>
-            <span className="ref-tag text-[#2f5daa]">Company Overview</span>
+            <span className="ref-tag text-[#2f5daa]">{t.eyebrow}</span>
             <p className="mt-6 font-display text-[#0e2a63] text-2xl md:text-[28px] leading-[1.45] max-w-[62ch]">
-              <span className="float-left font-display text-[clamp(2.5rem,10vw,5rem)] md:text-[80px] leading-[0.85] pr-3 pt-1 text-[#f7a800]">
-                G
-              </span>
-              rid Nova Energy is a renewable energy company focused on
-              delivering reliable, cost-effective and sustainable solar
-              energy solutions. Founded with the objective of accelerating
-              India&rsquo;s transition to clean energy, the company designs,
-              develops and implements solar power systems for residential,
-              commercial, industrial and institutional clients.
+              {/* Drop cap is a Latin typographic device; Devanagari/Bengali
+                  conjuncts can't be split off a first letter, so translated
+                  text sets `dropCap` to "" and renders as plain prose. */}
+              {t.dropCap && (
+                <span className="float-left font-display text-[clamp(2.5rem,10vw,5rem)] md:text-[80px] leading-[0.85] pr-3 pt-1 text-[#f7a800]">
+                  {t.dropCap}
+                </span>
+              )}
+              {t.lead}
             </p>
             <p className="mt-6 text-[#111827]/65 leading-relaxed max-w-[62ch]">
-              By combining technical expertise, quality engineering and a
-              customer-centric approach, Grid Nova Energy aims to be a
-              trusted, long-term partner in India&rsquo;s growing renewable
-              energy ecosystem — measured not by a single installation, but
-              by decades of sustained performance.
+              {t.body}
             </p>
           </div>
 
@@ -39,14 +30,14 @@ export default function CompanyOverview() {
             <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden mb-8">
               <Image
                 src={overviewPhoto}
-                alt="Grid Nova technician logging readings from a switchgear panel inside an inverter room"
+                alt={t.alt}
                 fill
                 sizes="(max-width: 1024px) 100vw, 30vw"
                 className="object-cover object-center"
               />
             </div>
             <p className="font-utility text-[11px] tracking-[0.15em] text-[#0e2a63]/50 uppercase mb-6">
-              At a Glance
+              {t.glance}
             </p>
             <dl className="space-y-6">
               {FACTS.map((f) => (

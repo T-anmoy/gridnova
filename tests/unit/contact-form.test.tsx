@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import ContactForm from "@/app/contact/ContactForm";
+import ContactForm from "@/app/(site)/[lang]/contact/ContactForm";
+import { en } from "./helpers/i18n";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -22,7 +23,7 @@ describe("ContactForm — real submission (no more mailto: handoff)", () => {
     const initialHref = window.location.href;
 
     const user = userEvent.setup();
-    render(<ContactForm />);
+    render(<ContactForm t={en.contact.form} />);
     await fillValidForm(user);
     await user.click(screen.getByRole("button", { name: /send message/i }));
 
@@ -48,7 +49,7 @@ describe("ContactForm — real submission (no more mailto: handoff)", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ success: false, error: "This form is not fully configured yet. Please call or email us directly." }), { status: 503 })));
 
     const user = userEvent.setup();
-    render(<ContactForm />);
+    render(<ContactForm t={en.contact.form} />);
     await fillValidForm(user);
     await user.click(screen.getByRole("button", { name: /send message/i }));
 
@@ -61,7 +62,7 @@ describe("ContactForm — real submission (no more mailto: handoff)", () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
 
     const user = userEvent.setup();
-    render(<ContactForm />);
+    render(<ContactForm t={en.contact.form} />);
     await fillValidForm(user);
     await user.click(screen.getByRole("button", { name: /send message/i }));
 
@@ -73,7 +74,7 @@ describe("ContactForm — real submission (no more mailto: handoff)", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const user = userEvent.setup();
-    render(<ContactForm />);
+    render(<ContactForm t={en.contact.form} />);
     await user.click(screen.getByRole("button", { name: /send message/i }));
 
     expect(await screen.findByText("Name is required")).toBeInTheDocument();

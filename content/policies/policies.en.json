@@ -1,0 +1,896 @@
+{
+  "_source": "content/policies/GridNova_Policies_Draft_v1.md (Draft v1.1, prepared 27 September 2026). Generated verbatim from the draft — edit the draft and regenerate, do not paraphrase here.",
+  "documents": {
+    "privacy": {
+      "number": 1,
+      "sourceTitle": "PRIVACY POLICY",
+      "meta": [
+        {
+          "label": "Effective date",
+          "value": "[date of publication]"
+        }
+      ],
+      "sections": [
+        {
+          "id": "1-1-who-we-are",
+          "heading": "1.1 Who we are",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Grid Nova Energy (\"Grid Nova\", \"we\", \"us\", \"our\") is [legal entity name and form — e.g. a partnership firm / LLP / company registered in India], GSTIN [●]. Our Kolkata office is at Plot No. 83, Kasba Industrial Estate, Phase II, Kolkata – 700107, West Bengal, and our Patna office is at C/O Parbati Bhawan, West Ram Krishna Nagar, New Bypass Road, Opposite Metro Pillar No. 81, P.O. New Jaganpura, Patna – 800027, Bihar."
+            },
+            {
+              "type": "p",
+              "text": "This Policy explains how we handle personal data when you use www.gridnova.in, speak with our assistant Nova, request an estimate, book a call, become our customer, or join our Associate Network. We act as the \"Data Fiduciary\" for this data under the Digital Personal Data Protection Act, 2023 (\"DPDP Act\")."
+            }
+          ]
+        },
+        {
+          "id": "1-2-the-short-version",
+          "heading": "1.2 The short version",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "We collect only what we need to design, quote, install and support your solar system, or to run our Associate Network.",
+                "We never sell your personal data.",
+                "We use trusted service providers to run our website and systems; they may process data outside India, under contracts that require them to protect it.",
+                "You can ask to see, correct or erase your data, and you can withdraw consent at any time."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1-3-what-we-collect-and-when",
+          "heading": "1.3 What we collect, and when",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "When",
+                "What we collect"
+              ],
+              "rows": [
+                [
+                  "**You contact us or request an estimate**",
+                  "Name, email, phone, city or address, state, the kind of property, electricity bill amount, your message and your enquiry preferences"
+                ],
+                [
+                  "**You use the Solar Calculator**",
+                  "Your location, electricity usage or bill, and roof details you enter. If you ask us to contact you, your name and contact details"
+                ],
+                [
+                  "**You chat with Nova**",
+                  "The messages you type, and any contact or project details you choose to share in the conversation"
+                ],
+                [
+                  "**You book a call**",
+                  "Name, contact details, chosen time slot, and the calendar event created for the meeting"
+                ],
+                [
+                  "**You become a customer** (directly or through an Associate)",
+                  "Identity and contact details; installation address and location; electricity connection details (DISCOM, consumer number, sanctioned load, connection type, bills); property and roof details; site photographs; documents needed for subsidy and grid connection (such as ownership proof, bank details for subsidy credit and an identity document); your system choices; payment records; signatures on project documents"
+                ],
+                [
+                  "**You join our Associate Network**",
+                  "Details described in the Associate KYC & Data Consent Notice: identity and contact details, masked Aadhaar, PAN, photograph, address, bank details for commission payments, and your performance and payment records"
+                ],
+                [
+                  "**You browse the site**",
+                  "Essential technical data such as your IP address and browser type, used for security and to keep the site running"
+                ]
+              ]
+            },
+            {
+              "type": "p",
+              "text": "We do not intentionally collect data about children. Our services are meant for adults; if you are under 18, please ask a parent or guardian to contact us."
+            }
+          ]
+        },
+        {
+          "id": "1-4-why-we-use-it",
+          "heading": "1.4 Why we use it",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "We use personal data only for these purposes:"
+            },
+            {
+              "type": "ol",
+              "items": [
+                "To respond to your enquiry, prepare estimates, and arrange calls and site visits.",
+                "To design your system, prepare proposals and agreements, install, commission and maintain it.",
+                "To apply for and follow up government schemes you choose to use (for example PM Surya Ghar: Muft Bijli Yojana or PM-KUSUM), including submissions to the national portal and your DISCOM.",
+                "To record payments, issue receipts and meet tax, accounting and scheme record-keeping duties.",
+                "To run our Associate Network: verify Associates, attribute customers, calculate and pay commissions, and prevent fraud.",
+                "To keep our systems secure, prevent misuse, and fix errors.",
+                "To tell you about our services — only where you have agreed, and you can opt out at any time."
+              ]
+            },
+            {
+              "type": "p",
+              "text": "We rely on your consent, or on the legitimate uses permitted by the DPDP Act (for example, where you have voluntarily given us data for a specific purpose, or where the law requires us to keep it)."
+            }
+          ]
+        },
+        {
+          "id": "1-5-nova-our-ai-assistant",
+          "heading": "1.5 Nova, our AI assistant",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Nova is an automated assistant, not a person. When you chat with Nova, your messages are processed by an artificial-intelligence service provider to generate replies. Nova is designed not to invent prices, meeting times, equipment brands, warranty terms or subsidy decisions; these are confirmed only by our team in writing. Please do not share sensitive documents or bank details in the chat."
+            }
+          ]
+        },
+        {
+          "id": "1-6-who-we-share-it-with",
+          "heading": "1.6 Who we share it with",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "We share personal data only where needed for the purposes above:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "**Service providers who run our systems for us**, bound by contract to use the data only on our instructions: website hosting (Vercel), application hosting and database ([Google Cloud, India region — confirm at deployment]), secure file storage (Cloudflare R2), email delivery (Resend), sign-in and account security (Clerk), our AI assistant (OpenAI), calendar scheduling (Google), and error monitoring (Sentry).",
+                "**Government bodies and your DISCOM**, where you ask us to apply for a scheme, subsidy or grid connection on your behalf.",
+                "**Our Associates**, limited to the customers they introduced and only what they need to serve those customers.",
+                "**Banks and payment processors**, to record and verify payments and pay commissions.",
+                "**Authorities**, where the law requires it."
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Some of these providers may store or process data outside India. We choose providers with strong security practices and transfer data only as permitted under Indian law."
+            }
+          ]
+        },
+        {
+          "id": "1-7-how-we-protect-it",
+          "heading": "1.7 How we protect it",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Access is limited to staff and Associates who need it for their role, and every change is recorded in an audit log.",
+                "Documents and photographs are stored privately and opened only through short-lived, access-controlled links.",
+                "Aadhaar numbers are never stored in full. We keep only the last four digits and a masked copy of the card.",
+                "Sensitive credentials are encrypted.",
+                "If a personal data breach occurs, we will inform affected people and the Data Protection Board as the law requires, explaining what happened, what it may mean for you, and what we are doing about it."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1-8-how-long-we-keep-it",
+          "heading": "1.8 How long we keep it",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "**Enquiries that do not become projects:** up to 24 months from our last interaction, then deleted or anonymised.",
+                "**Customer project records:** for the life of the project, the warranty period, and any longer period required by tax, accounting or government-scheme rules.",
+                "**Associate records:** for the period of association, and afterwards only as long as required for commission, tax and legal purposes.",
+                "**Chat conversations:** [12] months, unless they form part of a customer or project record."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1-9-your-rights",
+          "heading": "1.9 Your rights",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Under the DPDP Act, you can:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "ask for a summary of the personal data we hold about you and how we use it;",
+                "ask us to correct, complete, update or erase it;",
+                "withdraw consent (this does not affect anything done before you withdrew, and some services may no longer be possible);",
+                "nominate another person to exercise your rights if you die or become unable to do so;",
+                "have your grievances addressed."
+              ]
+            },
+            {
+              "type": "p",
+              "text": "To use any of these rights, write to **[privacy@gridnova.in]**. We will respond within [30] days. If you are not satisfied with our response, you may approach the Data Protection Board of India."
+            }
+          ]
+        },
+        {
+          "id": "1-10-cookies",
+          "heading": "1.10 Cookies",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "We use only essential cookies and similar browser storage needed to run the website securely, remember your language choice, and keep staff and Associates signed in. We do not use advertising cookies. If we introduce analytics in future, we will update this Policy and ask for your consent where required."
+            }
+          ]
+        },
+        {
+          "id": "1-11-grievance-officer",
+          "heading": "1.11 Grievance Officer",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "[Name], Grievance Officer, Grid Nova Energy, [address], [email], [phone]."
+            }
+          ]
+        },
+        {
+          "id": "1-12-changes-to-this-policy",
+          "heading": "1.12 Changes to this Policy",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "We will post any update here with a new effective date. Where a change significantly affects how we use your data, we will tell you directly or ask for fresh consent."
+            }
+          ]
+        }
+      ],
+      "slug": "privacy"
+    },
+    "terms": {
+      "number": 2,
+      "sourceTitle": "TERMS OF USE",
+      "meta": [
+        {
+          "label": "Effective date",
+          "value": "[date of publication]"
+        }
+      ],
+      "sections": [
+        {
+          "id": "2-1-about-these-terms",
+          "heading": "2.1 About these Terms",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "These Terms govern your use of www.gridnova.in and its features, including the Solar Calculator, the Nova assistant, call booking and online proposal acceptance. By using the site you agree to them. If you do not agree, please do not use the site."
+            }
+          ]
+        },
+        {
+          "id": "2-2-estimates-are-indicative",
+          "heading": "2.2 Estimates are indicative",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Figures shown by the Solar Calculator, Nova or any other online tool are **indicative estimates**. They are based on the information you provide and general assumptions. A binding price is given only in a written proposal from Grid Nova, prepared after a site assessment."
+            }
+          ]
+        },
+        {
+          "id": "2-3-government-schemes-and-subsidies",
+          "heading": "2.3 Government schemes and subsidies",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Subsidies and incentives under schemes such as PM Surya Ghar: Muft Bijli Yojana are granted by the Government and processed through the national portal and your DISCOM. Eligibility, amounts and timelines are decided by those authorities under the scheme rules in force. Grid Nova helps you apply and supports you through the process, but **cannot guarantee** approval, amount or timing. Subsidy eligibility may depend on factors such as property ownership, connection type and the use of Domestic Content Requirement (DCR) compliant modules."
+            }
+          ]
+        },
+        {
+          "id": "2-4-nova-our-ai-assistant",
+          "heading": "2.4 Nova, our AI assistant",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Nova provides general information and helps you get in touch with our team. Its replies are automated, may contain errors, and are not an offer, a quotation or professional advice. Nothing Nova says binds Grid Nova unless our team confirms it in writing."
+            }
+          ]
+        },
+        {
+          "id": "2-5-booking-a-call",
+          "heading": "2.5 Booking a call",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Times are shown subject to availability. We will confirm your booking by email. If we need to change the time, we will contact you. Please tell us if you need to reschedule."
+            }
+          ]
+        },
+        {
+          "id": "2-6-proposals-and-online-acceptance",
+          "heading": "2.6 Proposals and online acceptance",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "A proposal is valid for the period stated in it. Accepting a proposal through our secure link records your intention to proceed on the terms of that proposal. The work itself is governed by the agreement signed between you and Grid Nova, including any agreement required under a government scheme."
+            }
+          ]
+        },
+        {
+          "id": "2-7-payments",
+          "heading": "2.7 Payments",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Grid Nova never accepts cash. Payments must be made only to Grid Nova's own bank account by cheque, demand draft, NEFT, RTGS, IMPS or UPI, as described in our Customer Payment Policy. No Associate or employee is authorised to accept payment into a personal account."
+            }
+          ]
+        },
+        {
+          "id": "2-8-our-associates",
+          "heading": "2.8 Our Associates",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Grid Nova Associates are independent persons authorised to introduce customers and, where approved, to carry out defined project activities. You can confirm an Associate's identity by scanning the QR code on their Grid Nova ID card. Associates cannot change prices, promise subsidies or accept payments on Grid Nova's behalf."
+            }
+          ]
+        },
+        {
+          "id": "2-9-using-the-site-responsibly",
+          "heading": "2.9 Using the site responsibly",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "You agree not to misuse the site, attempt to access areas you are not authorised to use, submit false information, interfere with its security, or use automated means to extract its content."
+            }
+          ]
+        },
+        {
+          "id": "2-10-intellectual-property",
+          "heading": "2.10 Intellectual property",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "All content on this site — text, images, graphics, logos and design — belongs to Grid Nova or its licensors. You may view and share it for personal, non-commercial purposes; any other use needs our written permission."
+            }
+          ]
+        },
+        {
+          "id": "2-11-limitation-of-liability",
+          "heading": "2.11 Limitation of liability",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "We work to keep the site accurate and available, but it is provided \"as is\". To the extent permitted by law, Grid Nova is not liable for any indirect or consequential loss arising from use of the site or reliance on its general information. Nothing in these Terms limits any liability that cannot be limited under law, or your rights under the Consumer Protection Act, 2019."
+            }
+          ]
+        },
+        {
+          "id": "2-12-links-to-other-sites",
+          "heading": "2.12 Links to other sites",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "The site links to government portals and other websites. We are not responsible for their content or privacy practices."
+            }
+          ]
+        },
+        {
+          "id": "2-13-governing-law",
+          "heading": "2.13 Governing law",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "These Terms are governed by the laws of India. Courts at Kolkata, West Bengal, have jurisdiction."
+            }
+          ]
+        },
+        {
+          "id": "2-14-contact",
+          "heading": "2.14 Contact",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Grid Nova Energy, Plot No. 83, Kasba Industrial Estate, Phase II, Kolkata – 700107 · info@gridnova.in · +91 98747 74440."
+            }
+          ]
+        }
+      ],
+      "slug": "terms"
+    },
+    "associate-terms": {
+      "number": 3,
+      "sourceTitle": "ASSOCIATE NETWORK TERMS",
+      "meta": [
+        {
+          "label": "Version",
+          "value": "1.0"
+        },
+        {
+          "label": "Effective date",
+          "value": "[date]"
+        }
+      ],
+      "sections": [
+        {
+          "id": "intro",
+          "heading": null,
+          "blocks": [
+            {
+              "type": "p",
+              "text": "These Terms form an agreement between Grid Nova and each person approved to join the Grid Nova Associate Network. Part A applies to everyone. Part B applies to Associates. Part C applies to Preferred Associates. By submitting your registration and accepting these Terms, you agree to be bound by them."
+            }
+          ]
+        },
+        {
+          "id": "part-a-common-terms",
+          "heading": "PART A — COMMON TERMS",
+          "blocks": [
+            {
+              "type": "h4",
+              "text": "A1. Your relationship with Grid Nova"
+            },
+            {
+              "type": "p",
+              "text": "You are an independent person working on your own account. You are **not** an employee, partner, franchisee or legal agent of Grid Nova. You cannot sign contracts, make commitments, quote prices, or accept money on Grid Nova's behalf, except as these Terms expressly allow."
+            },
+            {
+              "type": "h4",
+              "text": "A2. No fee, no deposit"
+            },
+            {
+              "type": "p",
+              "text": "Grid Nova does not currently charge any registration fee, joining fee or security deposit to join the Network. If anyone asks you for money to join, report it to us immediately."
+            },
+            {
+              "type": "h4",
+              "text": "A3. Who can join"
+            },
+            {
+              "type": "p",
+              "text": "You must be at least 18 years old, resident in India, and hold a valid PAN and a bank account in your own name. Grid Nova may approve or decline any application at its discretion and will record the reason for a decision."
+            },
+            {
+              "type": "h4",
+              "text": "A4. Registration and verification"
+            },
+            {
+              "type": "p",
+              "text": "You must give true, complete and current information and keep it up to date. Grid Nova will verify your application, including by a verification phone call, before approval. Providing false information or documents is grounds for rejection or immediate termination and may be reported to the authorities."
+            },
+            {
+              "type": "h4",
+              "text": "A5. Your Associate ID and ID card"
+            },
+            {
+              "type": "p",
+              "text": "On approval you receive a unique Associate ID, a Grid Nova ID card and a welcome letter (digital), plus a welcome kit (physical). The ID card and kit remain Grid Nova property. The ID card carries a QR code that lets anyone confirm your status online. You must return or stop using them if your association ends."
+            },
+            {
+              "type": "h4",
+              "text": "A6. Your account"
+            },
+            {
+              "type": "p",
+              "text": "Your portal account is personal to you. Do not share your login. You are responsible for everything done through your account."
+            },
+            {
+              "type": "h4",
+              "text": "A7. Introducing customers"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "You collect customer information yourself, in person, and enter it in your portal. You must explain to the customer why the information is collected, using the Customer Information Notice, and record their agreement.",
+                "Every detail you enter must be true and collected from the customer or their documents. Site photographs must be taken on site through the portal.",
+                "A customer is attributed to the first Associate whose complete submission is verified by Grid Nova. The attribution stays with that Associate for [90] days, or until the project is completed or closed, whichever applies under the Commission & Payout Policy."
+              ]
+            },
+            {
+              "type": "h4",
+              "text": "A8. What you must never do"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Accept cash, or ask a customer to pay any money to you or to any account other than Grid Nova's.",
+                "Promise a price, discount, subsidy, approval, timeline or warranty that Grid Nova has not confirmed in writing.",
+                "Recommend equipment, brands or categories other than those Grid Nova has approved.",
+                "Use Grid Nova's name, logo or materials except as provided in your kit and portal.",
+                "Share customer data with anyone outside Grid Nova, or use it for any other purpose.",
+                "Pressure, mislead or harass any customer."
+              ]
+            },
+            {
+              "type": "h4",
+              "text": "A9. Customer data"
+            },
+            {
+              "type": "p",
+              "text": "When you collect customer information for Grid Nova, you do so on Grid Nova's behalf and must follow Grid Nova's instructions. Keep it confidential, do not copy it outside the portal, and delete any copies you hold when asked or when your association ends."
+            },
+            {
+              "type": "h4",
+              "text": "A10. Commission"
+            },
+            {
+              "type": "p",
+              "text": "You earn commission only as set out in the Commission & Payout Policy and the rate schedule shown in your portal."
+            },
+            {
+              "type": "h4",
+              "text": "A11. Suspension and termination"
+            },
+            {
+              "type": "p",
+              "text": "You may leave the Network at any time with [15] days' written notice through your portal. Grid Nova may suspend or terminate your association with immediate effect for any breach of these Terms, fraud, misconduct or harm to Grid Nova's reputation, and otherwise on [30] days' notice. Commission already earned on verified payments before termination remains payable, subject to any reversal or recovery under the Commission & Payout Policy."
+            },
+            {
+              "type": "h4",
+              "text": "A12. Confidentiality"
+            },
+            {
+              "type": "p",
+              "text": "Prices, rate schedules, customer lists and business information you receive from Grid Nova are confidential, during and after your association."
+            },
+            {
+              "type": "h4",
+              "text": "A13. Liability"
+            },
+            {
+              "type": "p",
+              "text": "You are responsible for your own conduct and for any loss caused by your breach of these Terms, fraud or negligence."
+            },
+            {
+              "type": "h4",
+              "text": "A14. Changes"
+            },
+            {
+              "type": "p",
+              "text": "Grid Nova may update these Terms and the commission rate schedule with [15] days' notice in your portal. Continuing in the Network after that date means you accept the change."
+            },
+            {
+              "type": "h4",
+              "text": "A15. Disputes and law"
+            },
+            {
+              "type": "p",
+              "text": "We will first try to resolve any dispute through discussion. These Terms are governed by the laws of India, and courts at Kolkata, West Bengal, have jurisdiction."
+            }
+          ]
+        },
+        {
+          "id": "part-b-associates",
+          "heading": "PART B — ASSOCIATES",
+          "blocks": [
+            {
+              "type": "h4",
+              "text": "B1. Two ways to work"
+            },
+            {
+              "type": "p",
+              "text": "When you register, you choose, and Grid Nova approves, one of:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "**Sales Associate** — you find and introduce customers, collect their information and documents, and hand them over to Grid Nova. Grid Nova carries out the site assessment, proposal, installation and completion.",
+                "**Execution Associate** — in addition, you manage the approved project stages assigned to you: site assessment, document collection, coordination of installation, recording of installed equipment details (including module and inverter serial numbers and DCR status), and follow-up to completion, as instructed and verified by Grid Nova."
+              ]
+            },
+            {
+              "type": "h4",
+              "text": "B2. Execution standards"
+            },
+            {
+              "type": "p",
+              "text": "Execution Associates must follow Grid Nova's technical, safety and documentation standards, record every installed component exactly as it appears on the equipment, and never record serial numbers from any other installation. Grid Nova verifies each stage before it is marked complete."
+            }
+          ]
+        },
+        {
+          "id": "part-c-preferred-associates",
+          "heading": "PART C — PREFERRED ASSOCIATES",
+          "blocks": [
+            {
+              "type": "h4",
+              "text": "C1. Territory and level"
+            },
+            {
+              "type": "p",
+              "text": "Preferred Associates are appointed to a specific territory and level: State Head (at most two per state), District Head (one per district) or Block Associate. Block is the first level of the network. The level and territory are stated in your approval and ID card. Grid Nova may change them with notice."
+            },
+            {
+              "type": "h4",
+              "text": "C1A. Full scope of work"
+            },
+            {
+              "type": "p",
+              "text": "Preferred Associates may both introduce customers and carry out the approved project stages assigned to them, on the same standards as Execution Associates in Part B (including clause B2)."
+            },
+            {
+              "type": "h4",
+              "text": "C2. Your network"
+            },
+            {
+              "type": "p",
+              "text": "You may view and support the Associates and customers within your territory and below your level. You may recommend new applicants in your territory; final approval always rests with Grid Nova."
+            },
+            {
+              "type": "h4",
+              "text": "C3. Responsibilities"
+            },
+            {
+              "type": "p",
+              "text": "You are expected to develop your territory, guide the people in your network, uphold these Terms and report misconduct promptly."
+            },
+            {
+              "type": "h4",
+              "text": "C4. Earnings"
+            },
+            {
+              "type": "p",
+              "text": "In addition to commission on your own customers, you may earn a territory commission on verified business in your territory, as set out in the Commission & Payout Policy."
+            }
+          ]
+        }
+      ],
+      "slug": "associate-terms"
+    },
+    "commission-policy": {
+      "number": 4,
+      "sourceTitle": "COMMISSION & PAYOUT POLICY",
+      "meta": [
+        {
+          "label": "Effective date",
+          "value": "[date]"
+        }
+      ],
+      "sections": [
+        {
+          "id": "4-1-rate-schedule",
+          "heading": "4.1 Rate schedule",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Commission rates for each Associate type, level and role are published in your portal. Grid Nova may update the schedule with [15] days' notice; the rate that applies is the one in force on the date the customer's agreement is signed."
+            }
+          ]
+        },
+        {
+          "id": "4-2-when-commission-is-earned",
+          "heading": "4.2 When commission is earned",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Commission is earned only when a customer's payment has been **received and verified in Grid Nova's bank account**. It is earned in proportion to the amount verified. A recorded but unverified payment earns nothing."
+            }
+          ]
+        },
+        {
+          "id": "4-3-territory-commission",
+          "heading": "4.3 Territory commission",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Where applicable, State Heads, District Heads and Block Associates earn a territory commission on verified payments from customers in their territory, at the rates in the schedule."
+            }
+          ]
+        },
+        {
+          "id": "4-4-status-of-your-commission",
+          "heading": "4.4 Status of your commission",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Each entry in your portal shows one of: **Earned** (payment verified) → **Approved** (checked by Grid Nova) → **Paid** (transferred, with bank reference). You can see which customer and which payment every entry relates to."
+            }
+          ]
+        },
+        {
+          "id": "4-5-payout",
+          "heading": "4.5 Payout",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Approved commission is paid to your registered bank account [monthly, by the 10th of the following month]. Payments are made only to a bank account in your own name."
+            }
+          ]
+        },
+        {
+          "id": "4-6-tax",
+          "heading": "4.6 Tax",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Grid Nova deducts tax at source as required under the Income-tax law in force, and issues TDS certificates. Under the current rules, TDS on commission is 2% once your total commission in a financial year crosses ₹20,000, and 20% if a valid PAN is not provided. These rates may change with the law. If you are registered under GST, you must share your GSTIN and raise invoices as required."
+            }
+          ]
+        },
+        {
+          "id": "4-7-reversals",
+          "heading": "4.7 Reversals",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Commission is reversed, or recovered from future payouts, if the payment it was based on is reversed — for example, a cheque is dishonoured, a refund is made, or a project is cancelled — or if it was obtained through false information or a breach of the Associate Network Terms."
+            }
+          ]
+        },
+        {
+          "id": "4-8-queries",
+          "heading": "4.8 Queries",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Raise any query about a commission entry through your portal within [30] days of it appearing. Grid Nova will respond within [15] working days."
+            }
+          ]
+        },
+        {
+          "id": "4-9-recognition",
+          "heading": "4.9 Recognition",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Grid Nova may recognise outstanding performance through awards, certificates and rankings. Recognition is at Grid Nova's discretion and is not a contractual entitlement."
+            }
+          ]
+        }
+      ],
+      "slug": "commission-policy"
+    },
+    "payment-policy": {
+      "number": 5,
+      "sourceTitle": "CUSTOMER PAYMENT POLICY",
+      "meta": [
+        {
+          "label": "Effective date",
+          "value": "[date]"
+        }
+      ],
+      "sections": [
+        {
+          "id": "5-1-no-cash-ever",
+          "heading": "5.1 No cash, ever",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Grid Nova does not accept cash for any product or service, at any stage."
+            }
+          ]
+        },
+        {
+          "id": "5-2-how-to-pay",
+          "heading": "5.2 How to pay",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Pay only to Grid Nova's own bank account, by cheque, demand draft, NEFT, RTGS, IMPS or UPI. Grid Nova's account details appear on your proposal and invoice: **Account name:** [Grid Nova Energy], **Bank:** [●], **Account number:** [●], **IFSC:** [●]."
+            }
+          ]
+        },
+        {
+          "id": "5-3-never-pay-an-individual",
+          "heading": "5.3 Never pay an individual",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "No Associate or employee may accept payment in their own name or account. If anyone asks you to, do not pay — call us on +91 98747 74440."
+            }
+          ]
+        },
+        {
+          "id": "5-4-receipts",
+          "heading": "5.4 Receipts",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "You receive an official receipt from Grid Nova once your payment is confirmed in our account. Keep your payment reference (cheque number or UTR) until you receive it."
+            }
+          ]
+        },
+        {
+          "id": "5-5-payment-schedule",
+          "heading": "5.5 Payment schedule",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Your agreement sets out how much is due at each stage of your project."
+            }
+          ]
+        },
+        {
+          "id": "5-6-dishonoured-cheques",
+          "heading": "5.6 Dishonoured cheques",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "If a cheque is dishonoured, the related stage of work may be paused until payment is received, and any bank charges may be recovered as set out in your agreement."
+            }
+          ]
+        },
+        {
+          "id": "5-7-refunds",
+          "heading": "5.7 Refunds",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Refunds, where due under your agreement, are made only to the account from which the payment was received."
+            }
+          ]
+        }
+      ],
+      "slug": "payment-policy"
+    }
+  },
+  "pendingItems": {
+    "head": [
+      "#",
+      "Where",
+      "Item"
+    ],
+    "rows": [
+      [
+        "1",
+        "1.1",
+        "Legal entity name and legal form (partnership firm / LLP / company)"
+      ],
+      [
+        "2",
+        "1.1",
+        "GSTIN"
+      ],
+      [
+        "3",
+        "All documents",
+        "Effective date of each document"
+      ],
+      [
+        "4",
+        "1.6",
+        "Application hosting and database provider (Google Cloud, India region — confirm at deployment)"
+      ],
+      [
+        "5",
+        "1.8",
+        "Retention period for chat conversations (draft: 12 months)"
+      ],
+      [
+        "6",
+        "1.9, 6",
+        "Privacy contact email (draft: privacy@gridnova.in)"
+      ],
+      [
+        "7",
+        "1.9",
+        "Response time for data requests (draft: 30 days)"
+      ],
+      [
+        "8",
+        "1.11",
+        "Grievance Officer: name, address, email, phone"
+      ],
+      [
+        "9",
+        "3 (A7)",
+        "Customer attribution lock period (draft: 90 days)"
+      ],
+      [
+        "10",
+        "3 (A11)",
+        "Notice period for an Associate leaving (draft: 15 days) and for termination without cause (draft: 30 days)"
+      ],
+      [
+        "11",
+        "3 (A14), 4.1",
+        "Notice period for changes to terms and rates (draft: 15 days)"
+      ],
+      [
+        "12",
+        "4.5",
+        "Commission payout schedule (draft: monthly, by the 10th)"
+      ],
+      [
+        "13",
+        "4.8",
+        "Window to raise a commission query (draft: 30 days) and response time (draft: 15 working days)"
+      ],
+      [
+        "14",
+        "5.2",
+        "Bank account name, bank, account number and IFSC"
+      ]
+    ]
+  }
+}

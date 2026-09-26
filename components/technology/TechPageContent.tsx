@@ -5,78 +5,63 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
 import techPhoto from "@/public/images/TECHNOLOGY ENGINEERING.webp";
-import CTASection from "@/components/CTASection";
+import type { Messages } from "@/lib/i18n/types";
 
-const STEPS = [
+// Per-step colours only; titles, bodies and nav labels come from messages
+// (technology.steps, same order).
+const STEP_STYLES = [
   {
     n: "01",
-    title: "Feasibility Analysis",
-    body: "Before any design work begins, we assess the site on every relevant dimension: solar irradiance data, shadow-casting obstructions, structural condition of the mounting surface, proximity to the grid interconnection point, and financial inputs for payback modelling. A feasibility study that misses one of these dimensions can invalidate a project post-construction.",
     bg: "bg-[#f7f9fc]",
     textColor: "text-[#0e2a63]",
     bodyColor: "text-[#111827]/65",
     borderColor: "border-[#e4e8ee]",
     accentColor: "text-[#2f5daa]",
-    navLabel: "Feasibility",
   },
   {
     n: "02",
-    title: "System Design",
-    body: "We develop the complete electrical design package: module layout optimised for available surface area and shadow avoidance, string grouping, inverter selection, DC cable sizing and routing, AC switchgear specification, single-line diagram and protection coordination. All designs are developed using industry-standard engineering simulation software to validate yield projections against actual site inputs.",
     bg: "bg-white",
     textColor: "text-[#0e2a63]",
     bodyColor: "text-[#111827]/65",
     borderColor: "border-[#e4e8ee]",
     accentColor: "text-[#2f5daa]",
-    navLabel: "System Design",
   },
   {
     n: "03",
-    title: "Procurement",
-    body: "We source high-efficiency solar PV modules from reputed, certified manufacturers with proven performance data and bankable warranties. Inverters, mounting structures, cables, protection devices and balance-of-system components are procured against pre-agreed specifications — no substitutions without client sign-off. Robust vendor relationships ensure consistent quality and timely supply, even on multi-site government programmes.",
     bg: "bg-[#091c3c]",
     textColor: "text-white",
     bodyColor: "text-white/60",
     borderColor: "border-white/10",
     accentColor: "text-[#f7a800]",
-    navLabel: "Procurement",
   },
   {
     n: "04",
-    title: "Construction",
-    body: "Civil works, mounting structure installation, module racking, wiring and conduit installation are all executed to documented quality standards. Our site teams are supervised by experienced project engineers who enforce compliance with both our internal standards and applicable electrical safety regulations. Progress is documented photographically at every major milestone.",
     bg: "bg-[#0e2a63]",
     textColor: "text-white",
     bodyColor: "text-white/60",
     borderColor: "border-white/10",
     accentColor: "text-[#f7a800]",
-    navLabel: "Construction",
   },
   {
     n: "05",
-    title: "Commissioning",
-    body: "Before handover, every system undergoes a structured commissioning protocol: insulation resistance tests, IV curve checks on each string, inverter functional testing, protection relay verification and DISCOM synchronisation check. Systems are only handed over with a complete test report and operating manual. We don't commission against a deadline — we commission against a standard.",
     bg: "bg-[#f7f9fc]",
     textColor: "text-[#0e2a63]",
     bodyColor: "text-[#111827]/65",
     borderColor: "border-[#e4e8ee]",
     accentColor: "text-[#f7a800]",
-    navLabel: "Commissioning",
   },
   {
     n: "06",
-    title: "Operation & Maintenance",
-    body: "Commissioning is the beginning, not the end. We offer structured O&M programmes that include scheduled preventive maintenance, corrective fault response, thermographic inspection, string performance analysis and yield reporting. Degradation is tracked against modelled projections, and any underperformance is investigated and addressed — not noted and ignored.",
     bg: "bg-white",
     textColor: "text-[#0e2a63]",
     bodyColor: "text-[#111827]/65",
     borderColor: "border-[#e4e8ee]",
     accentColor: "text-[#2f5daa]",
-    navLabel: "O&M",
   },
 ];
 
-export default function TechPageContent() {
+export default function TechPageContent({ t }: { t: Messages["technology"] }) {
+  const STEPS = STEP_STYLES.map((style, i) => ({ ...style, ...t.steps[i] }));
   const containerRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(-1);
   const [navVisible, setNavVisible] = useState(false);
@@ -105,7 +90,7 @@ export default function TechPageContent() {
     }
 
     // Scroll-spy: track active step
-    STEPS.forEach((step, idx) => {
+    STEP_STYLES.forEach((step, idx) => {
       const el = document.getElementById(`tech-step-${step.n}`);
       if (!el) return;
       triggers.push(
@@ -123,7 +108,7 @@ export default function TechPageContent() {
 
     // Step entrance animations — distinct per step
     const ctx = gsap.context(() => {
-      STEPS.forEach((step, idx) => {
+      STEP_STYLES.forEach((step, idx) => {
         const numSel = `#tech-step-${step.n} .step-num`;
         const bodySel = `#tech-step-${step.n} .step-body`;
         const st = {
@@ -201,12 +186,10 @@ export default function TechPageContent() {
                 className="font-display text-white font-medium leading-[0.95] text-balance"
                 style={{ fontSize: "clamp(2.4rem,7vw,5.5rem)" }}
               >
-                Engineering standards, not shortcuts.
+                {t.title}
               </h1>
               <p className="mt-8 text-white/55 max-w-[50ch] leading-relaxed text-lg">
-                Every Grid Nova project follows the same six-stage engineering
-                process — documented, supervised and signed off at each
-                transition.
+                {t.intro}
               </p>
             </div>
             <div className="hidden lg:block">
@@ -285,7 +268,7 @@ export default function TechPageContent() {
                   {step.n}
                 </span>
                 <span className={`font-utility text-[11px] tracking-[0.22em] ${step.accentColor} uppercase mt-auto`}>
-                  Step {step.n}
+                  {t.stepLabel} {step.n}
                 </span>
               </div>
               <div className="step-body max-w-[760px]">
@@ -313,15 +296,10 @@ export default function TechPageContent() {
                 className="font-display text-[#0e2a63] font-semibold leading-[1.05]"
                 style={{ fontSize: "clamp(1.6rem,3.5vw,2.5rem)" }}
               >
-                Built to certified standards.
+                {t.standardsTitle}
               </h2>
               <div className="mt-9 space-y-5">
-                {[
-                  "High-efficiency solar PV modules sourced from certified manufacturers with BIS/IEC certifications.",
-                  "Advanced inverters meeting international performance benchmarks and DISCOM interconnection requirements.",
-                  "System design validated using industry-standard engineering software tools for yield simulation and shadow analysis.",
-                  "Full compliance with MNRE guidelines, Central Electricity Authority regulations and applicable state DISCOM interconnection standards.",
-                ].map((c) => (
+                {t.standards.map((c) => (
                   <div key={c} className="flex gap-4 items-start">
                     <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-[#f7a800] shrink-0" />
                     <p className="text-[#111827]/70 leading-relaxed">{c}</p>
@@ -332,7 +310,7 @@ export default function TechPageContent() {
             <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden">
               <Image
                 src={techPhoto}
-                alt="Grid Nova Energy technician testing electrical protection panels with a multimeter inside an inverter room"
+                alt={t.standardsAlt}
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover object-center"
@@ -341,8 +319,6 @@ export default function TechPageContent() {
           </div>
         </div>
       </section>
-
-      <CTASection />
     </div>
   );
 }

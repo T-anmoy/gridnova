@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import SiteAssessmentsPage from '@/app/dashboard/site-assessments/page'
-import SiteAssessmentDetailPage from '@/app/dashboard/site-assessments/[id]/page'
+import SiteAssessmentsPage from '@/app/(internal)/dashboard/site-assessments/page'
+import SiteAssessmentDetailPage from '@/app/(internal)/dashboard/site-assessments/[id]/page'
 import type { ProposalInputDetail, ProposalInputSummary } from '@/lib/dashboard/types'
 import { PROPOSAL_DRAFT_TRIGGERED, PROPOSAL_DRAFT_NOT_TRIGGERED, reviewProposalInputResponse } from './fixtures/dashboard-contract'
 

@@ -1,65 +1,80 @@
-import Link from "next/link";
+import Image, { type StaticImageData } from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
+import Link from "@/components/i18n/Link";
+import type { Messages } from "@/lib/i18n/types";
+import michaelGomes from "@/public/leadership/michael-gomes.webp";
+import shouvikBiswas from "@/public/leadership/shouvik-biswas.webp";
+import rajuPaul from "@/public/leadership/raju-paul.webp";
+import srinjayDas from "@/public/leadership/srinjay-das.webp";
+import moloyDas from "@/public/leadership/moloy-das.webp";
+import arunKumar from "@/public/leadership/arun-kumar.webp";
+import narenMukherjee from "@/public/leadership/naren-mukherjee.webp";
 
-const LEADERS = [
-  { name: "Michael Gomes", role: "Managing Partner" },
-  { name: "Shouvik Biswas", role: "Partner" },
-  { name: "Raju Paul", role: "Partner" },
-  { name: "Srinjay Das", role: "VP — Business" },
-  { name: "Moloy Das", role: "GM — Projects" },
-  { name: "Arun Kumar", role: "Zonal Sales Manager" },
-  { name: "Naren Mukherjee", role: "Senior Advisor — Solar Power" },
+// The same real photos /leadership uses. Names stay as written in every
+// language; roles come from messages (leaders.<key>.role).
+const LEADERS: { key: keyof Messages["leaders"]; name: string; photo: StaticImageData }[] = [
+  { key: "michael-gomes", name: "Michael Gomes", photo: michaelGomes },
+  { key: "shouvik-biswas", name: "Shouvik Biswas", photo: shouvikBiswas },
+  { key: "raju-paul", name: "Raju Paul", photo: rajuPaul },
+  { key: "srinjay-das", name: "Srinjay Das", photo: srinjayDas },
+  { key: "moloy-das", name: "Moloy Das", photo: moloyDas },
+  { key: "arun-kumar", name: "Arun Kumar", photo: arunKumar },
+  { key: "naren-mukherjee", name: "Naren Mukherjee", photo: narenMukherjee },
 ];
 
-export default function LeadershipPreview() {
+export default function LeadershipPreview({
+  t,
+  leaders,
+}: {
+  t: Messages["home"]["leadership"];
+  leaders: Messages["leaders"];
+}) {
   return (
     <section className="relative bg-white py-24 md:py-32 border-t border-[#e4e8ee]">
       <div className="mx-auto max-w-[1280px] px-6 md:px-10">
         <ScrollReveal>
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-14">
-          <div>
-            <span className="ref-tag text-[#2f5daa]">Leadership</span>
-            <h2 className="mt-4 font-display text-[#0e2a63] text-[clamp(1.4rem,8vw,2.5rem)] xs:text-[clamp(1.5rem,6.5vw,2.5rem)] md:text-[clamp(1.75rem,2.6vw,3rem)] leading-[1.1] font-medium max-w-[18ch] text-balance">
-              Decades of EPC experience, one accountable team.
-            </h2>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
+            <div>
+              <span className="ref-tag text-[#2f5daa]">{t.eyebrow}</span>
+              <h2 className="mt-4 font-display text-[#0e2a63] text-[clamp(1.4rem,7vw,2.5rem)] md:text-[clamp(1.75rem,2.6vw,3rem)] leading-[1.1] font-medium max-w-[18ch] text-balance">
+                {t.title}
+              </h2>
+            </div>
+            <Link href="/leadership" className="btn-text w-fit">
+              {t.link} →
+            </Link>
           </div>
-          <Link
-            href="/leadership"
-            className="inline-flex items-center gap-1.5 text-[#0e2a63] font-utility text-sm font-semibold group w-fit"
-          >
-            Meet the full team
-            <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
-          </Link>
-        </div>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-px bg-[#e4e8ee] rounded-2xl overflow-hidden">
+        {/* One column of compact rows until lg:, then one portrait card per
+            leader in a single row of seven — no layout at any width can leave
+            an empty slot. */}
+        <div className="grid grid-cols-1 lg:grid-cols-7 gap-3 lg:gap-4">
           {LEADERS.map((l, idx) => (
-            <ScrollReveal
-              key={l.name}
-              delay={idx * 0.06}
-              className={
-                // 7 leaders isn't a clean multiple of 3 or 6, so the last card
-                // would otherwise sit alone with the grid's gap-color bleeding
-                // through the empty tracks next to it. Stretch it to fill the
-                // row instead of leaving that dead space exposed.
-                idx === LEADERS.length - 1 ? "sm:col-span-3 lg:col-span-6" : ""
-              }
-            >
+            <ScrollReveal key={l.key} delay={idx * 0.06}>
               <Link
                 href="/leadership"
-                className="group block h-full bg-white hover:bg-[#f0f4ff] p-4 xs:p-5 sm:p-6 transition-all duration-300"
+                className="group flex lg:flex-col items-center lg:items-stretch gap-4 lg:gap-0 h-full rounded-2xl lg:rounded-none p-2 lg:p-0 hover:bg-[#f7f9fc] lg:hover:bg-transparent transition-colors duration-300"
               >
-                <div className="h-11 w-11 rounded-full bg-gradient-to-br from-[#0e2a63] to-[#2f5daa] flex items-center justify-center text-white font-display text-sm font-semibold group-hover:scale-110 group-hover:shadow-[0_4px_16px_-4px_rgba(14,42,99,0.35)] transition-all duration-300">
-                  {l.name.split(" ").map((n) => n[0]).join("")}
+                <div className="relative h-16 w-16 lg:h-auto lg:w-full lg:aspect-[4/5] shrink-0 rounded-xl overflow-hidden bg-[#e4e8ee]">
+                  <Image
+                    src={l.photo}
+                    alt={`${l.name}, ${leaders[l.key].role}`}
+                    fill
+                    sizes="(max-width: 1024px) 64px, 170px"
+                    className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.04]"
+                  />
                 </div>
-                <p className="mt-5 font-display text-[#0e2a63] font-semibold text-[15px] group-hover:text-[#2f5daa] transition-colors duration-300">
-                  {l.name}
-                </p>
-                <p className="mt-1 text-[#111827]/50 text-xs font-utility group-hover:text-[#2f5daa]/60 transition-colors duration-300">
-                  {l.role}
-                </p>
+                <div className="lg:mt-3">
+                  <p className="font-display text-[#0e2a63] font-semibold text-[15px] leading-snug group-hover:text-[#2f5daa] transition-colors duration-300">
+                    {l.name}
+                  </p>
+                  <p className="mt-0.5 text-[#111827]/55 text-xs font-utility leading-snug">
+                    {leaders[l.key].role}
+                  </p>
+                </div>
+                <ArrowUpRight className="lg:hidden ml-auto h-4 w-4 text-[#0e2a63]/30" aria-hidden="true" />
               </Link>
             </ScrollReveal>
           ))}
