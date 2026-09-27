@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
 import { toast } from 'sonner'
@@ -74,17 +74,16 @@ function statusBadgeVariant(status: MeetingSummary['status']) {
   return map[status] ?? 'gray'
 }
 
-export default function MeetingsPage() {
+// Google's OAuth redirect lands back here with `?calendar=connected` or
+// `?calendar=error&reason=…` — surface it once, then clean the query string
+// so a refresh doesn't re-show the same toast. Isolated into its own
+// component (rather than called directly from MeetingsPage) because
+// useSearchParams() opts the whole subtree into client-side rendering during
+// prerendering unless it's wrapped in a Suspense boundary.
+function CalendarRedirectHandler() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { user } = useUser()
-  const role = user?.publicMetadata?.role as Role | undefined
 
-  const [page, setPage] = useState(1)
-
-  // Google's OAuth redirect lands back here with `?calendar=connected` or
-  // `?calendar=error&reason=…` — surface it once, then clean the query
-  // string so a refresh doesn't re-show the same toast.
   useEffect(() => {
     const calendar = searchParams.get('calendar')
     if (!calendar) return
@@ -97,6 +96,16 @@ export default function MeetingsPage() {
     router.replace('/dashboard/meetings')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  return null
+}
+
+export default function MeetingsPage() {
+  const router = useRouter()
+  const { user } = useUser()
+  const role = user?.publicMetadata?.role as Role | undefined
+
+  const [page, setPage] = useState(1)
 
   const { data, isLoading, error, refetch } = useMeetings({ page, page_size: PAGE_SIZE })
 
@@ -121,6 +130,10 @@ export default function MeetingsPage() {
 
   return (
     <div>
+      <Suspense fallback={null}>
+        <CalendarRedirectHandler />
+      </Suspense>
+
       <div className="mb-6">
         <h1 className="font-display text-2xl font-bold text-[#091c3c]">Meetings</h1>
         <p className="font-utility text-sm text-[#111827]/50 mt-1">{total} total meetings</p>

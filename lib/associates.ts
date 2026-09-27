@@ -1,8 +1,7 @@
-// Associate Network entry points. The routes are built in Phase 2; until then
-// ASSOCIATE_PORTAL_OPEN stays false and every Apply / Login button renders as
-// a clearly labelled "Opening soon" state instead of a link that would 404.
-// Flip this to true in the same change that ships those routes.
-export const ASSOCIATE_PORTAL_OPEN = false;
+// Associate Network entry points. Phase 2B ships the routes below (apply
+// wizards, sign-in, portals) — every Apply / Login button on the Careers
+// page now links to a real route instead of showing "Opening soon".
+export const ASSOCIATE_PORTAL_OPEN = true;
 
 export const ASSOCIATE_ROUTES = {
   applyAssociate: "/associates/apply/associate",

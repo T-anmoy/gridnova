@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { formatDate } from '@/lib/dashboard/utils'
 import type { Role, Employee } from '@/lib/dashboard/types'
 
-const ROLES: Role[] = ['admin', 'sales', 'management', 'engineer', 'subcontractor']
+const ROLES: Role[] = ['admin', 'sales', 'management', 'engineer', 'operations', 'accounts']
 
 // ApiError.message is a generic "API error 4xx" string — the backend's real
 // detail (e.g. the last-admin guard) lives in `.detail` and must be shown

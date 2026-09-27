@@ -1532,5 +1532,311 @@
       "commission-policy": "When Associate commission is earned, approved and paid, how tax is deducted, and when commission is reversed.",
       "payment-policy": "How to pay Grid Nova Energy safely: no cash, only to Grid Nova’s own bank account, never to an individual."
     }
+  },
+  "associates": {
+    "signIn": {
+      "title": "Associate sign-in",
+      "subtitle": "Sign in to your Grid Nova Associate portal"
+    },
+    "preferredSignIn": {
+      "title": "Preferred Associate sign-in",
+      "subtitle": "Sign in to your Grid Nova Preferred Associate portal"
+    },
+    "verify": {
+      "eyebrow": "Associate verification",
+      "title": "Verify a Grid Nova Associate",
+      "loading": "Looking up this Associate ID…",
+      "notFoundTitle": "No associate found",
+      "notFoundBody": "We couldn't find an active or inactive record for this Associate ID. If you scanned a QR code or ID card, please check the ID and try again.",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "typeAssociate": "Associate",
+      "typePreferred": "Preferred Associate",
+      "levelStateHead": "State Head",
+      "levelDistrictHead": "District Head",
+      "levelBlock": "Block Associate",
+      "idLabel": "Associate ID",
+      "statusNote": "This status is checked live against Grid Nova's records."
+    },
+    "consent": {
+      "eyebrow": "Before you continue",
+      "title": "KYC & data consent",
+      "loading": "Loading the consent notice…",
+      "error": "We couldn't load the consent notice. Please check your connection and try again.",
+      "versionLabel": "Notice version",
+      "acceptLabel": "I have read this notice and consent to Grid Nova processing my personal data as described.",
+      "continueButton": "Accept and continue",
+      "backButton": "Back"
+    },
+    "wizard": {
+      "common": {
+        "stepOf": "Step {current} of {total}",
+        "back": "Back",
+        "next": "Continue",
+        "submit": "Submit application",
+        "submitting": "Submitting…",
+        "required": "Required",
+        "optional": "Optional",
+        "whyWeAsk": "Why we ask",
+        "example": "Example",
+        "uploadHint": "JPEG, PNG or PDF, up to 5 MB.",
+        "photoUploadHint": "JPEG, PNG or WEBP photo, up to 5 MB.",
+        "chooseFile": "Choose file",
+        "replaceFile": "Replace file",
+        "sampleLabel": "What this should look like",
+        "autosaveNote": "Your progress is saved on this device as you go, so a lost connection won't lose your answers.",
+        "autosaveRestored": "We restored your progress from a previous visit.",
+        "errorGeneric": "Something went wrong. Please check the highlighted fields and try again.",
+        "errorNetwork": "We couldn't reach Grid Nova's servers. Please check your connection and try again.",
+        "errorRateLimited": "Too many attempts — please wait a minute and try again.",
+        "errorDuplicate": "It looks like this {field} is already registered with Grid Nova.",
+        "errorSeatFull": "That territory seat is already filled. Please choose a different territory or level.",
+        "reviewTitle": "Review your application",
+        "reviewNote": "Please check everything below before submitting. You can go back and edit any step.",
+        "selectPlaceholder": "Select…",
+        "stateLabel": "State",
+        "districtLabel": "District",
+        "blockLabel": "Block",
+        "seatCheckingLabel": "Checking seat availability…",
+        "seatAvailableLabel": "A seat is available for this territory.",
+        "seatFullLabel": "This seat is already filled. Please choose a different territory."
+      },
+      "fields": {
+        "full_name": {
+          "label": "Full name",
+          "why": "So we can identify you correctly on your application, ID card and payments.",
+          "example": "e.g. Ananya Roy"
+        },
+        "date_of_birth": {
+          "label": "Date of birth",
+          "why": "Grid Nova only registers applicants who are 18 or older.",
+          "example": "e.g. 14/06/1995"
+        },
+        "mobile": {
+          "label": "Mobile number",
+          "why": "We use this to reach you about your application and, once approved, for your account.",
+          "example": "e.g. 98765 43210"
+        },
+        "email": {
+          "label": "Email address",
+          "why": "We'll send updates on your application here, and later use it for your Associate sign-in.",
+          "example": "e.g. ananya.roy@email.com"
+        },
+        "address_line": {
+          "label": "Address",
+          "why": "Your registered address, for our records and verification.",
+          "example": "e.g. 12 Lake View Road, Salt Lake, Kolkata"
+        },
+        "state": {
+          "label": "State",
+          "why": "Used to route your application to the right territory."
+        },
+        "district": {
+          "label": "District",
+          "why": "Some states are organised by district for Associate territories."
+        },
+        "block": {
+          "label": "Block",
+          "why": "This district is organised down to block level."
+        },
+        "pin_code": {
+          "label": "PIN code",
+          "why": "Confirms your address and local area.",
+          "example": "e.g. 700091"
+        },
+        "aadhaar_number": {
+          "label": "Aadhaar number",
+          "why": "We verify this number is valid, then store only its last four digits — never the full number.",
+          "example": "e.g. 1234 5678 9123"
+        },
+        "pan": {
+          "label": "PAN",
+          "why": "Required for identity verification and tax deduction on your commission.",
+          "example": "e.g. ABCDE1234F"
+        },
+        "bank_account_number": {
+          "label": "Bank account number",
+          "why": "Where Grid Nova pays your commission. Must be an account in your own name.",
+          "example": "e.g. 000123456789"
+        },
+        "bank_ifsc": {
+          "label": "Bank IFSC code",
+          "why": "Identifies your bank branch for payment.",
+          "example": "e.g. SBIN0001234"
+        },
+        "capability": {
+          "label": "What would you like to do?",
+          "why": "Sales Associates introduce customers; Execution Associates also manage project stages. Grid Nova approves your choice."
+        },
+        "requested_level": {
+          "label": "Level you're applying for",
+          "why": "Preferred Associates are appointed at a specific level and territory."
+        },
+        "business_type": {
+          "label": "Business type",
+          "why": "Helps us understand your existing business or professional background.",
+          "example": "e.g. Electrical contractor"
+        },
+        "gstin": {
+          "label": "GSTIN",
+          "why": "If your business is GST-registered. Leave blank if not applicable.",
+          "example": "e.g. 19ABCDE1234F1Z5"
+        },
+        "office_address": {
+          "label": "Office address",
+          "why": "Where you operate from in this territory.",
+          "example": "e.g. Shop 4, Market Road, Siliguri"
+        },
+        "prior_experience": {
+          "label": "Prior experience",
+          "why": "Tell us about relevant experience — sales, solar, construction, or community leadership.",
+          "example": "e.g. 6 years running an electrical supplies shop, active in the local trade association."
+        },
+        "team_size": {
+          "label": "Team size",
+          "why": "The people you can call on to help cover this territory.",
+          "example": "e.g. 3"
+        },
+        "reference_name": {
+          "label": "Reference name",
+          "why": "Someone who can vouch for you, other than a family member.",
+          "example": "e.g. Suresh Banerjee"
+        },
+        "reference_mobile": {
+          "label": "Reference mobile number",
+          "why": "So Grid Nova can call this reference during verification.",
+          "example": "e.g. 90123 45678"
+        }
+      },
+      "documents": {
+        "masked_aadhaar": {
+          "label": "Masked Aadhaar",
+          "why": "Proof of identity, without exposing your full Aadhaar number.",
+          "sample": "A downloaded masked Aadhaar shows only the last four digits — the rest are hidden with X's. Download it from the UIDAI website, not a photo of your physical card."
+        },
+        "pan_card": {
+          "label": "PAN card copy",
+          "why": "Proof of your PAN for identity and tax purposes.",
+          "sample": "A clear photo or scan of your physical PAN card, or the e-PAN PDF from the Income Tax e-filing portal."
+        },
+        "photo": {
+          "label": "Your photograph",
+          "why": "Used on your Associate ID card and its public verification page.",
+          "sample": "A recent, plain-background photo of your face, similar to a passport photo. No sunglasses or filters."
+        },
+        "cancelled_cheque": {
+          "label": "Cancelled cheque",
+          "why": "Confirms your bank account details for commission payments.",
+          "sample": "A cheque leaf from your account with 'CANCELLED' written across it, showing your printed name, account number and IFSC."
+        }
+      },
+      "associate": {
+        "title": "Become a Grid Nova Associate",
+        "intro": "This takes about 10 minutes. You'll need your Aadhaar, PAN, a photo and your bank details ready.",
+        "stepPersonal": "Personal details",
+        "stepAddress": "Address & territory",
+        "stepIdentityBank": "Identity & bank details",
+        "stepCapability": "Your role",
+        "stepDocuments": "Documents",
+        "stepConsent": "Consent",
+        "stepReview": "Review & submit",
+        "capabilitySales": "Sales Associate — I'll introduce customers",
+        "capabilityExecution": "Execution Associate — I'll also manage project stages",
+        "success": {
+          "title": "Application submitted",
+          "body": "Thank you — we've received your Associate application.",
+          "nextStepsTitle": "What happens next",
+          "steps": [
+            "Grid Nova reviews your application and documents.",
+            "We'll call you on the mobile number you gave, to verify your details.",
+            "Once approved, you'll get your Associate ID and an invitation to sign in to your portal."
+          ]
+        }
+      },
+      "preferred": {
+        "title": "Become a Grid Nova Preferred Associate",
+        "intro": "This takes about 15 minutes. You'll need your Aadhaar, PAN, a photo, your bank details and two references ready.",
+        "stepPersonal": "Personal details",
+        "stepAddress": "Address",
+        "stepTerritory": "Requested territory",
+        "stepBusiness": "Business details",
+        "stepReferences": "References",
+        "stepIdentityBank": "Identity & bank details",
+        "stepDocuments": "Documents",
+        "stepConsent": "Consent",
+        "stepReview": "Review & submit",
+        "levelStateHead": "State Head (at most two per state)",
+        "levelDistrictHead": "District Head (one per district)",
+        "levelBlock": "Block Associate",
+        "success": {
+          "title": "Application submitted",
+          "body": "Thank you — we've received your Preferred Associate application.",
+          "nextStepsTitle": "What happens next",
+          "steps": [
+            "Grid Nova reviews your application, documents and references.",
+            "We'll call you on the mobile number you gave, to verify your details.",
+            "Once approved, you'll get your Associate ID, your appointed territory, and an invitation to sign in to your portal."
+          ]
+        }
+      }
+    },
+    "portal": {
+      "nav": {
+        "home": "Home",
+        "idCard": "My ID Card",
+        "profile": "Profile",
+        "help": "Help",
+        "territory": "My Territory",
+        "signOut": "Sign out"
+      },
+      "associate": {
+        "home": {
+          "title": "Welcome, {name}",
+          "subtitle": "Associate ID {associateId}",
+          "emptyTitle": "Nothing to action right now",
+          "emptyBody": "Customer and earnings tools are coming in a later phase. For now, your ID card and profile are ready below.",
+          "statusActive": "Your account is active.",
+          "statusSuspended": "Your account is currently suspended. Contact Grid Nova for details.",
+          "statusDeactivated": "Your account has been deactivated."
+        },
+        "idCard": {
+          "title": "My ID Card",
+          "body": "Your ID card confirms your Associate status to customers. Anyone can verify it using the QR code or your Associate ID.",
+          "download": "Download ID card (PDF)",
+          "notReady": "Your ID card hasn't been generated yet. Please check back shortly or contact Grid Nova.",
+          "loading": "Preparing your download link…"
+        },
+        "profile": {
+          "title": "Profile",
+          "capability": "Capability",
+          "level": "Level",
+          "territory": "Territory",
+          "approvedOn": "Approved on",
+          "status": "Status"
+        },
+        "help": {
+          "title": "Help",
+          "body": "Questions about your application, ID card or account? Reach the Grid Nova Associate team.",
+          "callLabel": "Call",
+          "emailLabel": "Email"
+        }
+      },
+      "preferred": {
+        "home": {
+          "title": "Welcome, {name}",
+          "subtitle": "Associate ID {associateId} · {level}",
+          "emptyTitle": "Nothing to action right now",
+          "emptyBody": "Customer and earnings tools are coming in a later phase. For now, your ID card and profile are ready below.",
+          "statusActive": "Your account is active.",
+          "statusSuspended": "Your account is currently suspended. Contact Grid Nova for details.",
+          "statusDeactivated": "Your account has been deactivated."
+        },
+        "territory": {
+          "title": "My Territory",
+          "comingSoonTitle": "Coming in a later phase",
+          "comingSoonBody": "Territory performance, the Associates working under you, and territory commission will appear here once that phase ships. Nothing is missing from your account today — this feature simply hasn't been built yet."
+        }
+      }
+    }
   }
 }

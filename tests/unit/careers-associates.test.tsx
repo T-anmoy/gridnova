@@ -10,15 +10,13 @@ async function renderPage() {
 }
 
 describe("Careers & Associates page", () => {
-  it("never links to the Phase 2 portal routes before they exist — each shows 'Opening soon' instead", async () => {
-    expect(ASSOCIATE_PORTAL_OPEN).toBe(false);
+  it("links every Apply/Login button to its real Phase 2B route now that ASSOCIATE_PORTAL_OPEN is true", async () => {
+    expect(ASSOCIATE_PORTAL_OPEN).toBe(true);
     const { container } = await renderPage();
     for (const href of Object.values(ASSOCIATE_ROUTES)) {
-      expect(container.querySelector(`a[href="${href}"]`)).toBeNull();
+      expect(container.querySelector(`a[href="${href}"]`)).not.toBeNull();
     }
-    const soon = screen.getAllByRole("link", { name: /opening soon/i });
-    expect(soon).toHaveLength(4);
-    for (const el of soon) expect(el).toHaveAttribute("aria-disabled", "true");
+    expect(screen.queryByRole("link", { name: /opening soon/i })).toBeNull();
   });
 
   it("has the anchors the homepage and footer point to", async () => {

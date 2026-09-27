@@ -125,23 +125,24 @@ describe('EmployeesPage — deactivate/reactivate', () => {
     )
   })
 
-  it('offers Subcontractor as a role option, using the exact backend enum string', async () => {
+  it('offers Operations and Accounts as role options, using the exact backend enum strings', async () => {
     const user = userEvent.setup()
     render(<EmployeesPage />)
 
     const roleTriggers = screen.getAllByRole('combobox')
     await user.click(roleTriggers[0])
-    const option = await screen.findByRole('option', { name: 'subcontractor' })
+    expect(await screen.findByRole('option', { name: 'operations' })).toBeInTheDocument()
+    const option = screen.getByRole('option', { name: 'accounts' })
     expect(option).toBeInTheDocument()
 
     mockUpdateRoleMutateAsync.mockResolvedValue({
-      employee_id: 'emp-sales-1', role: 'subcontractor', clerk_synced: true, local_mirror: true,
+      employee_id: 'emp-sales-1', role: 'accounts', clerk_synced: true, local_mirror: true,
     })
     await user.click(option)
     await user.click(screen.getByRole('button', { name: /^confirm$/i }))
 
     await waitFor(() =>
-      expect(mockUpdateRoleMutateAsync).toHaveBeenCalledWith({ employeeId: 'emp-sales-1', role: 'subcontractor' })
+      expect(mockUpdateRoleMutateAsync).toHaveBeenCalledWith({ employeeId: 'emp-sales-1', role: 'accounts' })
     )
   })
 })

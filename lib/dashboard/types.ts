@@ -1,4 +1,4 @@
-export type Role = 'admin' | 'sales' | 'management' | 'engineer' | 'subcontractor'
+export type Role = 'admin' | 'sales' | 'management' | 'engineer' | 'operations' | 'accounts'
 
 // ── Equipment / SKU master ───────────────────────────────────────────────────
 
