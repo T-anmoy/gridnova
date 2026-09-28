@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { UploadCloud, X, FileText, AlertCircle, Image as ImageIcon } from 'lucide-react'
+import { UploadCloud, X, FileText, AlertCircle, Image as ImageIcon, Loader2 } from 'lucide-react'
 
 const MAX_SIZE_MB = 5
 
@@ -18,6 +18,9 @@ export default function FileUploadSlot({
   whyLabel,
   sampleLabel,
   error,
+  uploading,
+  onRetry,
+  retryLabel,
 }: {
   label: string
   why: string
@@ -31,6 +34,12 @@ export default function FileUploadSlot({
   whyLabel: string
   sampleLabel?: string
   error?: string
+  // Only relevant once `file` is set — distinguishes "picked, upload in
+  // flight" from "picked, confirmed uploaded" so a slot is never shown as
+  // attached before the server actually has it.
+  uploading?: boolean
+  onRetry?: () => void
+  retryLabel?: string
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [localError, setLocalError] = useState<string | null>(null)
@@ -83,7 +92,11 @@ export default function FileUploadSlot({
         />
         {file ? (
           <div className="flex items-center justify-center gap-3">
-            {isImage && previewUrl ? (
+            {uploading ? (
+              <div className="h-12 w-12 rounded-lg bg-[#f7f9fc] flex items-center justify-center shrink-0">
+                <Loader2 className="h-5 w-5 text-[#2f5daa] animate-spin" />
+              </div>
+            ) : isImage && previewUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={previewUrl} alt={file.name} className="h-12 w-12 rounded-lg object-cover shrink-0" />
             ) : (
@@ -93,19 +106,21 @@ export default function FileUploadSlot({
             )}
             <div className="text-left">
               <p className="font-utility text-sm text-[#091c3c] truncate max-w-[200px]">{file.name}</p>
-              <p className="font-utility text-xs text-[#0e2a63]">{replaceLabel}</p>
+              {!uploading && !error && <p className="font-utility text-xs text-[#0e2a63]">{replaceLabel}</p>}
             </div>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation()
-                onChange(null)
-              }}
-              aria-label={`Remove ${file.name}`}
-              className="text-[#111827]/30 hover:text-red-500 transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            {!uploading && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onChange(null)
+                }}
+                aria-label={`Remove ${file.name}`}
+                className="text-[#111827]/30 hover:text-red-500 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
         ) : (
           <>
@@ -126,9 +141,23 @@ export default function FileUploadSlot({
         </p>
       )}
       {error && !localError && (
-        <p className="mt-2 flex items-center gap-1.5 text-[11px] text-red-500 font-utility">
-          <AlertCircle className="h-3 w-3 shrink-0" /> {error}
-        </p>
+        <div className="mt-2 flex items-center gap-2">
+          <p className="flex items-center gap-1.5 text-[11px] text-red-500 font-utility">
+            <AlertCircle className="h-3 w-3 shrink-0" /> {error}
+          </p>
+          {onRetry && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                onRetry()
+              }}
+              className="text-[11px] font-semibold text-[#0e2a63] underline font-utility"
+            >
+              {retryLabel}
+            </button>
+          )}
+        </div>
       )}
     </div>
   )

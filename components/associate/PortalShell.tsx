@@ -2,13 +2,20 @@
 
 import { useClerk } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
-import { Home, IdCard, User, HelpCircle, Map, LogOut } from 'lucide-react'
+import { Home, IdCard, User, HelpCircle, Map, LogOut, Users } from 'lucide-react'
 import Link from '@/components/i18n/Link'
 import { useLocale } from '@/lib/i18n/client'
 
-type NavKey = 'home' | 'idCard' | 'profile' | 'help' | 'territory'
+type NavKey = 'home' | 'idCard' | 'profile' | 'help' | 'territory' | 'customers'
 
-const ICONS: Record<NavKey, React.ElementType> = { home: Home, idCard: IdCard, profile: User, help: HelpCircle, territory: Map }
+const ICONS: Record<NavKey, React.ElementType> = {
+  home: Home,
+  idCard: IdCard,
+  profile: User,
+  help: HelpCircle,
+  territory: Map,
+  customers: Users,
+}
 
 export default function PortalShell({
   base,
@@ -31,6 +38,7 @@ export default function PortalShell({
 
   const items: { key: NavKey; href: string }[] = [
     { key: 'home', href: base },
+    { key: 'customers', href: `${base}/customers` },
     ...(showTerritory ? [{ key: 'territory' as const, href: `${base}/territory` }] : []),
     { key: 'idCard', href: `${base}/id-card` },
     { key: 'profile', href: `${base}/profile` },

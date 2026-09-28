@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/nextjs'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { dashboardFetch } from '@/lib/dashboard/api-client'
 import type {
@@ -15,10 +15,12 @@ import type {
   AssociateMe,
   AssociateStatus,
   KycConsent,
+  PaginatedTerritoryMembers,
   SeatAvailability,
   SignedDocumentLink,
   TerritoryBlock,
   TerritoryDistrict,
+  TerritoryMemberListParams,
   TerritorySeat,
   TerritoryState,
   VerifyAssociateResponse,
@@ -156,6 +158,22 @@ export function useAssociateMe() {
       if (!token) throw new Error('Not authenticated')
       return dashboardFetch<AssociateMe>('/api/v1/associate/me', token)
     },
+  })
+}
+
+export function useTerritoryMembers(params: TerritoryMemberListParams) {
+  const { getToken } = useAuth()
+  return useQuery({
+    queryKey: ['territory-members', params],
+    queryFn: async () => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      const qs = new URLSearchParams()
+      for (const [k, v] of Object.entries(params)) if (v !== undefined) qs.set(k, String(v))
+      const q = qs.toString()
+      return dashboardFetch<PaginatedTerritoryMembers>(`/api/v1/associate/territory/members${q ? `?${q}` : ''}`, token)
+    },
+    placeholderData: keepPreviousData,
   })
 }
 

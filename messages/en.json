@@ -1787,7 +1787,8 @@
         "profile": "Profile",
         "help": "Help",
         "territory": "My Territory",
-        "signOut": "Sign out"
+        "signOut": "Sign out",
+        "customers": "My Customers"
       },
       "associate": {
         "home": {
@@ -1833,9 +1834,266 @@
         },
         "territory": {
           "title": "My Territory",
-          "comingSoonTitle": "Coming in a later phase",
-          "comingSoonBody": "Territory performance, the Associates working under you, and territory commission will appear here once that phase ships. Nothing is missing from your account today — this feature simply hasn't been built yet."
+          "subtitle": "The Associates and Preferred Associates in your network.",
+          "filters": {
+            "status": "Status",
+            "type": "Type",
+            "all": "All",
+            "typeAssociate": "Associates",
+            "typePreferred": "Preferred Associates"
+          },
+          "status": {
+            "active": "Active",
+            "suspended": "Suspended",
+            "deactivated": "Deactivated"
+          },
+          "type": {
+            "associate": "Associate",
+            "preferred_associate": "Preferred Associate"
+          },
+          "capability": {
+            "sales": "Sales",
+            "execution": "Execution"
+          },
+          "level": {
+            "state_head": "State Head",
+            "district_head": "District Head",
+            "block": "Block Associate"
+          },
+          "customers": "Customers",
+          "verified": "Verified",
+          "total": "{total} in your network",
+          "countsNote": "Customer numbers count every customer a member has registered, including any whose site is outside your territory. Individual customer details are not shown here.",
+          "customersLink": "See customers in My Customers",
+          "empty": {
+            "title": "No one in your network yet",
+            "body": "When Associates join under your territory, they'll be listed here with how many customers each has registered."
+          },
+          "emptyFiltered": {
+            "title": "No one matches these filters",
+            "body": "Try choosing \"All\" for status or type."
+          },
+          "notPreferred": "Only Preferred Associates have a territory roster.",
+          "pageOf": "Page {page} of {pages}",
+          "previous": "Previous",
+          "next": "Next"
         }
+      },
+      "shared": {
+        "progress": {
+          "title": "Progress",
+          "steps": {
+            "registered": "Registered",
+            "verified": "Verified",
+            "site_assessed": "Site assessed",
+            "formal_proposal_requested": "Formal proposal requested",
+            "proposal_ready": "Proposal ready",
+            "accepted": "Accepted",
+            "agreement_signed": "Agreement signed"
+          },
+          "currentLabel": "Current stage",
+          "nextStepLabel": "What to do next"
+        },
+        "nextStep": {
+          "registered": "Wait for Grid Nova to verify this customer.",
+          "verified": "A site assessment is being scheduled.",
+          "site_assessed": "Ask Grid Nova to prepare the formal proposal once the site assessment is approved.",
+          "proposal_requested": "The formal proposal is being prepared — no action needed yet.",
+          "proposal_prepared": "The formal proposal is being prepared — no action needed yet.",
+          "proposal_issued": "Share the formal proposal with the customer and record their acceptance.",
+          "accepted": "Get the agreement signed with the customer.",
+          "agreement_signed": "This customer's journey is complete.",
+          "portal_agreement_approved": "This customer's journey is complete.",
+          "none": "No action needed right now.",
+          "blockedMissingInformation": "The formal proposal is on hold — some information is missing.",
+          "blockedDraftFailed": "The formal proposal draft failed — ask Grid Nova to retry it."
+        }
+      },
+      "customers": {
+        "title": "My Customers",
+        "addButton": "Add customer",
+        "empty": {
+          "title": "No customers yet",
+          "body": "Customers you onboard will show up here, along with their progress."
+        },
+        "band": {
+          "hot": "Hot",
+          "warm": "Warm",
+          "cold": "Cold"
+        },
+        "card": {
+          "viewButton": "View",
+          "ownerLabel": "Owner"
+        },
+        "filters": {
+          "allStatus": "All statuses",
+          "mineOnly": "Mine only"
+        }
+      },
+      "wizard": {
+        "title": "Add a new customer",
+        "backButton": "Back",
+        "continueButton": "Continue",
+        "restoredNotice": "We restored your unfinished draft.",
+        "steps": {
+          "notice": "Customer notice",
+          "customer": "Customer details",
+          "connection": "Connection details",
+          "property": "Property details",
+          "requirement": "Requirement",
+          "documents": "Documents",
+          "photos": "Photos",
+          "review": "Review & submit"
+        },
+        "notice": {
+          "title": "Read this to the customer",
+          "confirmLabel": "The customer has been informed and agrees",
+          "confirmRequired": "Please confirm the customer has been informed and agrees before continuing."
+        },
+        "customer": {
+          "nameLabel": "Customer name",
+          "mobileLabel": "Mobile number",
+          "emailLabel": "Email (optional)"
+        },
+        "connection": {
+          "stateLabel": "State",
+          "districtLabel": "District",
+          "blockLabel": "Block",
+          "connectionInCustomerNameLabel": "Is the electricity connection in the customer's name?"
+        },
+        "property": {
+          "propertyInCustomerNameLabel": "Is the property in the customer's name?",
+          "customerTimelineLabel": "When does the customer want to move ahead?",
+          "siteLocationLabel": "Site location"
+        },
+        "requirement": {
+          "title": "Choose an equipment package",
+          "subtitle": "Both packages are genuine, well-supported options — the right choice depends on the customer's priorities.",
+          "dcrTitle": "About DCR",
+          "dcrExplainer": "DCR (Domestic Content Requirement) panels are made in India and are required for some government subsidy schemes. Non-DCR panels can be imported and may cost less, but aren't eligible for every subsidy."
+        },
+        "warnings": {
+          "non_dcr_pm_surya_ghar": "This customer may not be eligible for the PM Surya Ghar subsidy with non-DCR panels.",
+          "kw_exceeds_sanctioned_load": "The requested system size is larger than this customer's sanctioned load.",
+          "kw_high_for_consumption": "The requested system size looks large for this customer's typical consumption.",
+          "pin_district_mismatch": "The PIN code entered doesn't match the selected district.",
+          "pin_not_in_directory": "This PIN code isn't in our directory yet — please double-check it.",
+          "attribution_review": "Another associate may already have this customer under review."
+        },
+        "documents": {
+          "title": "Upload documents",
+          "missingLabel": "Still needed",
+          "uploadButton": "Choose file",
+          "replaceButton": "Replace",
+          "uploadFailed": "This document couldn't be uploaded. Please try again.",
+          "retryButton": "Retry"
+        },
+        "photos": {
+          "title": "Take site photos",
+          "captureButton": "Take photo",
+          "exampleLabel": "Example",
+          "geotagNote": "Photos are automatically tagged with location and time — this can't be turned off.",
+          "cameraUnavailable": "Camera access is needed to take this photo.",
+          "locationRequired": "Turn on location to take this photo, then try again.",
+          "uploadFailed": "This photo couldn't be uploaded. Please try again.",
+          "retryButton": "Retry"
+        },
+        "review": {
+          "title": "Review & submit",
+          "submitButton": "Submit customer",
+          "incompleteTitle": "A few things are still missing",
+          "missingDocumentsLabel": "Missing documents"
+        },
+        "editing": {
+          "returnedToDraftNotice": "This customer was submitted before — saving your edit returns it to draft until you resubmit.",
+          "notEditableNotice": "This customer can no longer be edited from here."
+        }
+      },
+      "estimate": {
+        "getEstimateButton": "Get an indicative estimate",
+        "banner": "This is an indicative estimate, not the final priced proposal. Grid Nova will prepare the formal, approved proposal separately.",
+        "fields": {
+          "segmentLabel": "Customer segment",
+          "roofTypeLabel": "Roof type",
+          "housingSocietyLabel": "Is this a housing society?",
+          "accessDifficulty": {
+            "label": "Site access",
+            "easy": "Easy",
+            "moderate": "Moderate",
+            "difficult": "Difficult"
+          }
+        },
+        "errors": {
+          "segment_required": "Please choose a customer segment to size this estimate.",
+          "invalid_segment": "That segment isn't valid for this site.",
+          "not_enough_to_size": "There isn't enough information yet to size an estimate for this customer.",
+          "invalid_access_difficulty": "Please choose a valid site-access option."
+        },
+        "result": {
+          "systemSizeLabel": "Recommended system size",
+          "costBreakdownLabel": "Cost breakdown",
+          "subsidyLabel": "Subsidy",
+          "netCostLabel": "Net cost",
+          "rangeNote": "Shown as a range — the final net cost depends on the formal proposal."
+        },
+        "history": {
+          "title": "Past estimates",
+          "empty": "No estimates yet for this customer."
+        }
+      },
+      "proposal": {
+        "requestButton": "Request the formal proposal",
+        "requestedNote": "Requested — Grid Nova is preparing the formal proposal.",
+        "readyMissingFields": "Not ready yet — missing:",
+        "detail": {
+          "notPreparedTitle": "Formal proposal not prepared yet",
+          "preparedTitle": "Formal proposal",
+          "statusLabel": "Status",
+          "totalValueLabel": "Total value",
+          "dateSentLabel": "Sent",
+          "acceptedAtLabel": "Accepted",
+          "pdfLink": "View PDF"
+        },
+        "acceptance": {
+          "title": "Record in-person acceptance",
+          "deliveredOnLabel": "Delivered on",
+          "noteLabel": "Note",
+          "referenceLabel": "Reference",
+          "submitButton": "Record acceptance",
+          "errors": {
+            "note_required": "A note is required.",
+            "reference_required": "A reference is required.",
+            "invalid_delivered_on": "Please enter a valid delivery date.",
+            "proposal_not_found": "This proposal could not be found.",
+            "not_latest_version": "This isn't the latest version of the proposal.",
+            "already_accepted": "This proposal has already been accepted.",
+            "not_approved": "This proposal hasn't been approved yet.",
+            "placeholder_content": "This proposal still has placeholder content.",
+            "expired": "This proposal has expired."
+          }
+        }
+      },
+      "agreement": {
+        "title": "Agreement",
+        "notGeneratedNote": "The agreement hasn't been generated yet.",
+        "downloadLink": "Download agreement",
+        "uploadSigned": {
+          "title": "Upload the signed scan",
+          "stampPaperNumberLabel": "Stamp paper number",
+          "stampPaperDateLabel": "Stamp paper date",
+          "submitButton": "Upload",
+          "errors": {
+            "not_generated": "The agreement hasn't been generated yet.",
+            "already_signed": "A signed copy has already been uploaded.",
+            "invalid_stamp_paper_number": "Please enter a valid stamp paper number.",
+            "invalid_stamp_paper_date": "Please enter a valid stamp paper date."
+          }
+        }
+      },
+      "checklist": {
+        "title": "Documents & photos",
+        "requiredLabel": "Required",
+        "missingLabel": "Still missing"
       }
     }
   }

@@ -83,6 +83,36 @@ export interface AssociateMe {
   documents: { id_card: boolean; welcome_letter: boolean }
 }
 
+// GET /api/v1/associate/territory/members — Preferred Associates only (403
+// for a plain Associate). capability/level are both always present and
+// exactly one is non-null: a plain Associate has capability, a Preferred
+// Associate has level. customer_count is a bare number (no customer detail)
+// and can include customers whose site is outside the caller's territory.
+export interface TerritoryMember {
+  associate_id: string
+  full_name: string
+  associate_type: ApplicationType
+  capability: AssociateCapability | null
+  level: AssociateLevel | null
+  status: AssociateStatus
+  customer_count: number
+  verified_customer_count: number
+}
+
+export interface TerritoryMemberListParams {
+  page?: number
+  page_size?: number
+  status?: AssociateStatus
+  associate_type?: ApplicationType
+}
+
+export interface PaginatedTerritoryMembers {
+  items: TerritoryMember[]
+  page: number
+  page_size: number
+  total: number
+}
+
 export interface SignedDocumentLink {
   url: string
   expires_at: string

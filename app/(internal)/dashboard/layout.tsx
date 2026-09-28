@@ -17,6 +17,8 @@ import {
   CalendarClock,
   ClipboardCheck,
   Handshake,
+  ListChecks,
+  ShieldAlert,
   Menu,
   X,
   LogOut,
@@ -45,6 +47,8 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: 'Overview', href: '/dashboard', icon: LayoutDashboard, roles: 'all' },
   { label: 'Leads', href: '/dashboard/leads', icon: Users, roles: 'all' },
+  { label: 'Onboardings', href: '/dashboard/onboardings', icon: ListChecks, roles: ['admin', 'sales', 'management'] },
+  { label: 'Attribution Flags', href: '/dashboard/attribution-flags', icon: ShieldAlert, roles: ['admin'] },
   { label: 'Meetings', href: '/dashboard/meetings', icon: CalendarClock, roles: ['admin', 'sales', 'management'] },
   { label: 'Site Assessments', href: '/dashboard/site-assessments', icon: ClipboardCheck, roles: ['admin', 'sales'] },
   { label: 'Proposals', href: '/dashboard/proposals', icon: FileText, roles: ['admin', 'sales', 'management', 'engineer'], badge: true },
