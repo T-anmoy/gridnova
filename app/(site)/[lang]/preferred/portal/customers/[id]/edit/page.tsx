@@ -11,7 +11,7 @@ export default async function PreferredPortalEditCustomerPage({
   const m = messagesFor(await resolveLocale(params)).associates
   return (
     <PortalShell base="/preferred/portal" active="customers" showTerritory labels={m.portal.nav} signOutLabel={m.portal.nav.signOut}>
-      <EditOnboardingWizard onboardingId={Number(resolved.id)} copy={m.portal.wizard} portalBase="/preferred/portal" />
+      <EditOnboardingWizard onboardingId={Number(resolved.id)} copy={m.portal.wizard} territory={m.territory} portalBase="/preferred/portal" />
     </PortalShell>
   )
 }

@@ -1,6 +1,6 @@
 import { useAuth } from '@clerk/nextjs'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ApiError } from '@/lib/dashboard/api-error'
+import { ApiError, backoffDelay } from '@/lib/dashboard/api-error'
 import { dashboardFetch } from '@/lib/dashboard/api-client'
 import type {
   AdminAssociate,
@@ -62,11 +62,26 @@ async function publicFetch<T>(path: string, options?: RequestInit): Promise<T> {
 
 // ── Public reference data ────────────────────────────────────────────────────
 
+// Territory lookups retry only transient failures (network, 5xx) — never a 4xx
+// or a 503, which is the backend's "territories_not_seeded" answer and won't
+// fix itself within a retry — at most twice, with backoff.
+export function shouldRetryTerritoryLookup(failureCount: number, error: unknown): boolean {
+  if (failureCount >= 2 || !(error instanceof ApiError)) return false
+  return error.status === 0 || (error.status >= 500 && error.status !== 503)
+}
+
+const territoryLookupOptions = {
+  staleTime: 5 * 60_000,
+  retry: shouldRetryTerritoryLookup,
+  retryDelay: backoffDelay,
+  refetchOnWindowFocus: false,
+} as const
+
 export function useTerritoryStates() {
   return useQuery({
     queryKey: ['territory-states'],
     queryFn: () => publicFetch<{ items: TerritoryState[] }>('/api/v1/public/territories/states').then((r) => r.items),
-    staleTime: 5 * 60_000,
+    ...territoryLookupOptions,
   })
 }
 
@@ -78,7 +93,7 @@ export function useTerritoryDistricts(stateLgdCode: number | undefined) {
         (r) => r.items
       ),
     enabled: !!stateLgdCode,
-    staleTime: 5 * 60_000,
+    ...territoryLookupOptions,
   })
 }
 
@@ -90,7 +105,7 @@ export function useTerritoryBlocks(districtLgdCode: number | undefined) {
         (r) => r.items
       ),
     enabled: !!districtLgdCode,
-    staleTime: 5 * 60_000,
+    ...territoryLookupOptions,
   })
 }
 

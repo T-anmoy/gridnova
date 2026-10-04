@@ -18,6 +18,18 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Associate portal switch
+
+`NEXT_PUBLIC_ASSOCIATE_PORTAL_OPEN` (see `.env.example`) controls whether the Associate Network is offered:
+
+| Value | Careers page | `/associates/*`, `/preferred/*` |
+| --- | --- | --- |
+| `true` | Apply / Sign-in links | Real forms and portals |
+| `false` | Non-clickable "Opening soon" | Friendly "Opening soon" page |
+| unset | open in development, **closed in production builds** | same as the Careers page |
+
+It is inlined at build time, so changing it needs a rebuild. Turn it on in production only after the backend is deployed and its territory data is loaded. The state/district/block selects then show "Registration is not open yet" (backend `503 territories_not_seeded`) or a Retry button instead of an empty dropdown. Development builds also show the HTTP status under a failed select.
+
 ## Testing
 
 Run the **full suite** (unit + end-to-end) before considering any change done:

@@ -3,9 +3,6 @@
 import { useState } from 'react'
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
 import {
-  useTerritoryStates,
-  useTerritoryDistricts,
-  useTerritoryBlocks,
   useKycConsent,
   useSeatAvailability,
   submitApplication,
@@ -24,6 +21,8 @@ import {
 } from '@/lib/associate/validation'
 import { ApiError } from '@/lib/dashboard/api-error'
 import FileUploadSlot from '@/components/associate/FileUploadSlot'
+import TerritorySelect from '@/components/associate/TerritorySelect'
+import { useTerritoryCascade } from '@/lib/associate/territory'
 import type { AssociateLevel } from '@/lib/associate/types'
 import type { Messages } from '@/lib/i18n/types'
 
@@ -81,9 +80,10 @@ const inputClass = (hasError: boolean) =>
   }`
 
 function Field({
-  label, why, whyLabel, example, exampleLabel, error, children,
+  label, htmlFor, why, whyLabel, example, exampleLabel, error, children,
 }: {
   label: string
+  htmlFor?: string
   why?: string
   whyLabel: string
   example?: string
@@ -93,7 +93,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="font-utility text-xs text-[#111827]/55 uppercase tracking-[0.1em] mb-1.5 block">{label}</label>
+      <label htmlFor={htmlFor} className="font-utility text-xs text-[#111827]/55 uppercase tracking-[0.1em] mb-1.5 block">{label}</label>
       {children}
       {why && <p className="mt-1.5 text-xs text-[#111827]/50 leading-relaxed"><span className="font-semibold text-[#111827]/65">{whyLabel}:</span> {why}</p>}
       {example && <p className="mt-0.5 text-xs text-[#111827]/40 leading-relaxed">{exampleLabel}: {example}</p>}
@@ -127,18 +127,16 @@ export default function AssociateApplyForm({ kind, t }: { kind: Kind; t: Message
     setErrors((e) => ({ ...e, [key]: '' }))
   }
 
-  const { data: states } = useTerritoryStates()
-  const { data: districts } = useTerritoryDistricts(values.state_lgd_code ? Number(values.state_lgd_code) : undefined)
-  const selectedDistrict = districts?.find((d) => String(d.lgd_code) === values.district_lgd_code)
-  const { data: blocks } = useTerritoryBlocks(selectedDistrict?.has_blocks ? Number(values.district_lgd_code) : undefined)
-
-  const { data: reqDistricts } = useTerritoryDistricts(
-    values.requested_state_lgd_code ? Number(values.requested_state_lgd_code) : undefined
-  )
-  const selectedReqDistrict = reqDistricts?.find((d) => String(d.lgd_code) === values.requested_district_lgd_code)
-  const { data: reqBlocks } = useTerritoryBlocks(
-    selectedReqDistrict?.has_blocks ? Number(values.requested_district_lgd_code) : undefined
-  )
+  const addressTerritory = { state: values.state_lgd_code, district: values.district_lgd_code, block: values.block_lgd_code }
+  const { districts, selectedDistrict } = useTerritoryCascade(addressTerritory)
+  const requestedTerritory = {
+    state: values.requested_state_lgd_code,
+    district: values.requested_district_lgd_code,
+    block: values.requested_block_lgd_code,
+  }
+  const requestedDepth =
+    values.requested_level === 'state_head' ? 'state' : values.requested_level === 'district_head' ? 'district' : 'block'
+  const { selectedDistrict: selectedReqDistrict } = useTerritoryCascade(requestedTerritory, requestedDepth)
 
   const seatParams =
     kind === 'preferred' && values.requested_level && values.requested_state_lgd_code
@@ -164,7 +162,7 @@ export default function AssociateApplyForm({ kind, t }: { kind: Kind; t: Message
     if (step === 'address') {
       if (!values.address_line.trim()) next.address_line = common.required
       if (!values.state_lgd_code) next.state_lgd_code = common.required
-      if (districts && districts.length > 0 && !values.district_lgd_code) next.district_lgd_code = common.required
+      if (districts.data && districts.data.length > 0 && !values.district_lgd_code) next.district_lgd_code = common.required
       if (selectedDistrict?.has_blocks && !values.block_lgd_code) next.block_lgd_code = common.required
       if (!isValidPinCode(values.pin_code)) next.pin_code = fields.pin_code.label
     }
@@ -348,42 +346,19 @@ export default function AssociateApplyForm({ kind, t }: { kind: Kind; t: Message
             <Field label={fields.address_line.label} why={fields.address_line.why} whyLabel={common.whyWeAsk} example={fields.address_line.example} exampleLabel={common.example} error={errors.address_line}>
               <input className={inputClass(!!errors.address_line)} value={values.address_line} onChange={(e) => set('address_line', e.target.value)} />
             </Field>
-            <Field label={fields.state.label} why={fields.state.why} whyLabel={common.whyWeAsk} error={errors.state_lgd_code}>
-              <select
-                className={inputClass(!!errors.state_lgd_code)}
-                value={values.state_lgd_code}
-                onChange={(e) => setValues((v) => ({ ...v, state_lgd_code: e.target.value, district_lgd_code: '', block_lgd_code: '' }))}
-              >
-                <option value="">{common.selectPlaceholder}</option>
-                {(states ?? []).map((s) => (
-                  <option key={s.lgd_code} value={s.lgd_code}>{s.name}</option>
-                ))}
-              </select>
-            </Field>
-            {values.state_lgd_code && districts && districts.length > 0 && (
-              <Field label={fields.district.label} why={fields.district.why} whyLabel={common.whyWeAsk} error={errors.district_lgd_code}>
-                <select
-                  className={inputClass(!!errors.district_lgd_code)}
-                  value={values.district_lgd_code}
-                  onChange={(e) => setValues((v) => ({ ...v, district_lgd_code: e.target.value, block_lgd_code: '' }))}
-                >
-                  <option value="">{common.selectPlaceholder}</option>
-                  {districts.map((d) => (
-                    <option key={d.lgd_code} value={d.lgd_code}>{d.name}</option>
-                  ))}
-                </select>
-              </Field>
-            )}
-            {selectedDistrict?.has_blocks && (
-              <Field label={fields.block.label} why={fields.block.why} whyLabel={common.whyWeAsk} error={errors.block_lgd_code}>
-                <select className={inputClass(!!errors.block_lgd_code)} value={values.block_lgd_code} onChange={(e) => set('block_lgd_code', e.target.value)}>
-                  <option value="">{common.selectPlaceholder}</option>
-                  {(blocks ?? []).map((b) => (
-                    <option key={b.lgd_code} value={b.lgd_code}>{b.name}</option>
-                  ))}
-                </select>
-              </Field>
-            )}
+            <TerritorySelect
+              idPrefix="address"
+              copy={t.territory}
+              value={addressTerritory}
+              onChange={(n) => setValues((v) => ({ ...v, state_lgd_code: n.state, district_lgd_code: n.district, block_lgd_code: n.block }))}
+              labels={{ state: fields.state.label, district: fields.district.label, block: fields.block.label }}
+              whys={{ state: fields.state.why, district: fields.district.why, block: fields.block.why }}
+              errors={{ state: errors.state_lgd_code, district: errors.district_lgd_code, block: errors.block_lgd_code }}
+              inputClass={inputClass}
+              renderField={({ id, label, why, error, children }) => (
+                <Field label={label} htmlFor={id} why={why} whyLabel={common.whyWeAsk} error={error}>{children}</Field>
+              )}
+            />
             <Field label={fields.pin_code.label} why={fields.pin_code.why} whyLabel={common.whyWeAsk} example={fields.pin_code.example} exampleLabel={common.example} error={errors.pin_code}>
               <input className={inputClass(!!errors.pin_code)} value={values.pin_code} onChange={(e) => set('pin_code', e.target.value)} />
             </Field>
@@ -405,42 +380,19 @@ export default function AssociateApplyForm({ kind, t }: { kind: Kind; t: Message
               </select>
             </Field>
             {values.requested_level && (
-              <Field label={common.stateLabel} whyLabel={common.whyWeAsk} error={errors.requested_state_lgd_code}>
-                <select
-                  className={inputClass(!!errors.requested_state_lgd_code)}
-                  value={values.requested_state_lgd_code}
-                  onChange={(e) => setValues((v) => ({ ...v, requested_state_lgd_code: e.target.value, requested_district_lgd_code: '', requested_block_lgd_code: '' }))}
-                >
-                  <option value="">{common.selectPlaceholder}</option>
-                  {(states ?? []).map((s) => (
-                    <option key={s.lgd_code} value={s.lgd_code}>{s.name}</option>
-                  ))}
-                </select>
-              </Field>
-            )}
-            {values.requested_level && values.requested_level !== 'state_head' && values.requested_state_lgd_code && (
-              <Field label={common.districtLabel} whyLabel={common.whyWeAsk} error={errors.requested_district_lgd_code}>
-                <select
-                  className={inputClass(!!errors.requested_district_lgd_code)}
-                  value={values.requested_district_lgd_code}
-                  onChange={(e) => setValues((v) => ({ ...v, requested_district_lgd_code: e.target.value, requested_block_lgd_code: '' }))}
-                >
-                  <option value="">{common.selectPlaceholder}</option>
-                  {(reqDistricts ?? []).map((d) => (
-                    <option key={d.lgd_code} value={d.lgd_code}>{d.name}</option>
-                  ))}
-                </select>
-              </Field>
-            )}
-            {values.requested_level === 'block' && selectedReqDistrict?.has_blocks && (
-              <Field label={common.blockLabel} whyLabel={common.whyWeAsk} error={errors.requested_block_lgd_code}>
-                <select className={inputClass(!!errors.requested_block_lgd_code)} value={values.requested_block_lgd_code} onChange={(e) => set('requested_block_lgd_code', e.target.value)}>
-                  <option value="">{common.selectPlaceholder}</option>
-                  {(reqBlocks ?? []).map((b) => (
-                    <option key={b.lgd_code} value={b.lgd_code}>{b.name}</option>
-                  ))}
-                </select>
-              </Field>
+              <TerritorySelect
+                idPrefix="requested"
+                copy={t.territory}
+                value={requestedTerritory}
+                depth={requestedDepth}
+                onChange={(n) => setValues((v) => ({ ...v, requested_state_lgd_code: n.state, requested_district_lgd_code: n.district, requested_block_lgd_code: n.block }))}
+                labels={{ state: common.stateLabel, district: common.districtLabel, block: common.blockLabel }}
+                errors={{ state: errors.requested_state_lgd_code, district: errors.requested_district_lgd_code, block: errors.requested_block_lgd_code }}
+                inputClass={inputClass}
+                renderField={({ id, label, error, children }) => (
+                  <Field label={label} htmlFor={id} whyLabel={common.whyWeAsk} error={error}>{children}</Field>
+                )}
+              />
             )}
             {seatParams && (
               <p className={`text-xs font-utility ${seatAvailability && !seatAvailability.available ? 'text-red-600' : 'text-[#111827]/50'}`}>

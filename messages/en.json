@@ -2095,6 +2095,21 @@
         "requiredLabel": "Required",
         "missingLabel": "Still missing"
       }
+    },
+    "territory": {
+      "selectPlaceholder": "Select…",
+      "loading": "Loading…",
+      "loadError": "We couldn't load this list. Please check your connection.",
+      "retry": "Retry",
+      "notOpen": "Registration is not open yet. Please try again soon.",
+      "chooseStateFirst": "Choose a state first",
+      "chooseDistrictFirst": "Choose a district first",
+      "noOptions": "No options are available for this selection."
+    },
+    "closed": {
+      "title": "Opening soon",
+      "body": "Applications and the Associate portals are not open yet. To register your interest now, call +91 98747 74440 or email info@gridnova.in.",
+      "back": "Back to Careers"
     }
   }
 }

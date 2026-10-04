@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertCircle, CheckCircle2, Loader2, ArrowLeft, ArrowRight } from 'lucide-react'
-import { useTerritoryStates, useTerritoryDistricts, useTerritoryBlocks } from '@/lib/associate/api-client'
+import TerritorySelect, { type TerritoryCopy } from '@/components/associate/TerritorySelect'
 import { clearAutosaveDraft, useAutosaveDraft } from '@/lib/associate/useAutosaveDraft'
 import {
   useOnboardingOptions,
@@ -51,10 +51,10 @@ const EMPTY_DRAFT: DraftState = {
 const inputClass =
   'w-full rounded-xl border border-[#e4e8ee] bg-white px-4 py-3 text-[#111827] text-sm font-utility outline-none transition-all duration-200 focus:border-[#2f5daa] focus:ring-2 focus:ring-[#2f5daa]/10'
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, htmlFor, children }: { label: string; htmlFor?: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="font-utility text-xs text-[#111827]/55 uppercase tracking-[0.1em] mb-1.5 block">{label}</label>
+      <label htmlFor={htmlFor} className="font-utility text-xs text-[#111827]/55 uppercase tracking-[0.1em] mb-1.5 block">{label}</label>
       {children}
     </div>
   )
@@ -74,10 +74,12 @@ function WarningNotice({ warning, copy }: { warning: OnboardingWarning; copy: Wi
 
 export default function OnboardingWizard({
   copy,
+  territory,
   portalBase,
   existing,
 }: {
   copy: WizardCopy
+  territory: TerritoryCopy
   portalBase: '/associates/portal' | '/preferred/portal'
   existing?: Onboarding
 }) {
@@ -114,9 +116,6 @@ export default function OnboardingWizard({
   const [submitError, setSubmitError] = useState<{ message: string; missing?: string[] } | null>(null)
 
   const { data: options, isLoading: optionsLoading } = useOnboardingOptions()
-  const { data: states } = useTerritoryStates()
-  const { data: districts } = useTerritoryDistricts(draft.state_lgd_code ? Number(draft.state_lgd_code) : undefined)
-  const { data: blocks } = useTerritoryBlocks(draft.district_lgd_code ? Number(draft.district_lgd_code) : undefined)
 
   const createMutation = useCreateOnboarding()
   const updateMutation = useUpdateOnboarding()
@@ -360,47 +359,15 @@ export default function OnboardingWizard({
 
         {stepKey === 'connection' && (
           <div className="space-y-4">
-            <Field label={copy.connection.stateLabel}>
-              <select
-                className={inputClass}
-                value={draft.state_lgd_code}
-                onChange={(e) => setDraft((d) => ({ ...d, state_lgd_code: e.target.value, district_lgd_code: '', block_lgd_code: '' }))}
-              >
-                <option value="" />
-                {states?.map((s) => (
-                  <option key={s.lgd_code} value={s.lgd_code}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label={copy.connection.districtLabel}>
-              <select
-                className={inputClass}
-                value={draft.district_lgd_code}
-                onChange={(e) => setDraft((d) => ({ ...d, district_lgd_code: e.target.value, block_lgd_code: '' }))}
-                disabled={!draft.state_lgd_code}
-              >
-                <option value="" />
-                {districts?.map((d) => (
-                  <option key={d.lgd_code} value={d.lgd_code}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            {blocks && blocks.length > 0 && (
-              <Field label={copy.connection.blockLabel}>
-                <select className={inputClass} value={draft.block_lgd_code} onChange={(e) => update('block_lgd_code', e.target.value)}>
-                  <option value="" />
-                  {blocks.map((b) => (
-                    <option key={b.lgd_code} value={b.lgd_code}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            )}
+            <TerritorySelect
+              idPrefix="connection"
+              copy={territory}
+              value={{ state: draft.state_lgd_code, district: draft.district_lgd_code, block: draft.block_lgd_code }}
+              onChange={(n) => setDraft((d) => ({ ...d, state_lgd_code: n.state, district_lgd_code: n.district, block_lgd_code: n.block }))}
+              labels={{ state: copy.connection.stateLabel, district: copy.connection.districtLabel, block: copy.connection.blockLabel }}
+              inputClass={() => inputClass}
+              renderField={({ id, label, children }) => <Field label={label} htmlFor={id}>{children}</Field>}
+            />
             <Field label={copy.connection.connectionInCustomerNameLabel}>
               <select
                 className={inputClass}

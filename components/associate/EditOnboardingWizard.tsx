@@ -9,10 +9,12 @@ import type { Messages } from '@/lib/i18n/types'
 export default function EditOnboardingWizard({
   onboardingId,
   copy,
+  territory,
   portalBase,
 }: {
   onboardingId: number
   copy: Messages['associates']['portal']['wizard']
+  territory: Messages['associates']['territory']
   portalBase: '/associates/portal' | '/preferred/portal'
 }) {
   const { data: onboarding, isLoading, error, refetch } = useOnboarding(onboardingId)
@@ -26,5 +28,5 @@ export default function EditOnboardingWizard({
     )
   }
 
-  return <OnboardingWizard copy={copy} portalBase={portalBase} existing={onboarding} />
+  return <OnboardingWizard copy={copy} territory={territory} portalBase={portalBase} existing={onboarding} />
 }

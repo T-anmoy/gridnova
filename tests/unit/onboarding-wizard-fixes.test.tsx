@@ -21,7 +21,7 @@ vi.mock('@/lib/associate/onboarding-api-client', () => ({
 }))
 
 vi.mock('@/lib/associate/api-client', () => ({
-  useTerritoryStates: () => ({ data: [] }),
+  useTerritoryStates: () => ({ data: [{ lgd_code: 19, iso_code: "WB", name: "West Bengal" }, { lgd_code: 10, iso_code: "BR", name: "Bihar" }] }),
   useTerritoryDistricts: () => ({ data: [] }),
   useTerritoryBlocks: () => ({ data: [] }),
 }))
@@ -94,6 +94,7 @@ describe('OnboardingWizard — warnings never block submission', () => {
     const user = userEvent.setup()
     render(
       <OnboardingWizard
+        territory={en.associates.territory}
         copy={copy}
         portalBase="/associates/portal"
         existing={existingOnboarding({ onboarding_id: 601, warnings: [{ code: 'attribution_review', message: 'x' }] })}
@@ -123,7 +124,7 @@ describe('OnboardingWizard — submit-time missing documents show translated lab
     })
     const { default: OnboardingWizard } = await import('@/components/associate/OnboardingWizard')
     const user = userEvent.setup()
-    render(<OnboardingWizard copy={copy} portalBase="/associates/portal" existing={existingOnboarding({ onboarding_id: 602 })} />)
+    render(<OnboardingWizard copy={copy} territory={en.associates.territory} portalBase="/associates/portal" existing={existingOnboarding({ onboarding_id: 602 })} />)
 
     await goToStep(user, 7)
     await user.click(screen.getByRole('button', { name: copy.review.submitButton }))
@@ -146,7 +147,7 @@ describe('OnboardingWizard — a document only counts as attached once its uploa
     const { default: OnboardingWizard } = await import('@/components/associate/OnboardingWizard')
     const user = userEvent.setup()
     const { container } = render(
-      <OnboardingWizard copy={copy} portalBase="/associates/portal" existing={existingOnboarding({ onboarding_id: 603 })} />
+      <OnboardingWizard copy={copy} territory={en.associates.territory} portalBase="/associates/portal" existing={existingOnboarding({ onboarding_id: 603 })} />
     )
     await goToStep(user, 5) // notice -> customer -> connection -> property -> requirement -> documents
 

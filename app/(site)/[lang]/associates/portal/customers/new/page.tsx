@@ -6,7 +6,7 @@ export default async function AssociatePortalNewCustomerPage({ params }: LangPar
   const m = messagesFor(await resolveLocale(params)).associates
   return (
     <PortalShell base="/associates/portal" active="customers" showTerritory={false} labels={m.portal.nav} signOutLabel={m.portal.nav.signOut}>
-      <OnboardingWizard copy={m.portal.wizard} portalBase="/associates/portal" />
+      <OnboardingWizard copy={m.portal.wizard} territory={m.territory} portalBase="/associates/portal" />
     </PortalShell>
   )
 }
