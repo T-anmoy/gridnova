@@ -25,6 +25,7 @@ vi.mock('@/lib/dashboard/register-api-client', () => ({
   useUpdateUnit: () => ({ mutateAsync: h.update }),
   useVoidUnit: () => ({ mutateAsync: h.voidUnit }),
   useMatchUnit: () => ({ mutateAsync: vi.fn() }),
+  useCreateCatalogueItem: () => ({ mutateAsync: vi.fn() }),
   useVerifyRegister: () => ({ mutateAsync: h.verify, isPending: false }),
   checkSerial: h.check,
   useStaffCatalogue: (category: string) => (category === 'module' ? h.modules : h.inverters),

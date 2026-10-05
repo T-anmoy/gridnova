@@ -10,6 +10,7 @@ import type { StaffRegister, StaffRegisterUnit } from '@/lib/dashboard/register-
 
 const h = vi.hoisted(() => ({
   match: vi.fn(),
+  create: vi.fn(),
   verify: vi.fn(),
   catalogueCalls: [] as string[],
   items: [] as unknown[],
@@ -20,6 +21,7 @@ vi.mock('@/lib/dashboard/register-api-client', () => ({
   useUpdateUnit: () => ({ mutateAsync: vi.fn() }),
   useVoidUnit: () => ({ mutateAsync: vi.fn() }),
   useMatchUnit: () => ({ mutateAsync: h.match }),
+  useCreateCatalogueItem: () => ({ mutateAsync: h.create }),
   useVerifyRegister: () => ({ mutateAsync: h.verify, isPending: false }),
   checkSerial: vi.fn(),
   useStaffCatalogue: (category: string) => {
@@ -51,6 +53,7 @@ const panel = (r: StaffRegister, isAdmin = false) => render(withI18n(<RegisterPa
 
 beforeEach(() => {
   h.match.mockReset()
+  h.create.mockReset()
   h.verify.mockReset()
   h.catalogueCalls.length = 0
   h.items = [MODULE_ITEM]
@@ -133,6 +136,82 @@ describe('MatchUnitDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Match unit' }))
     expect(await screen.findByTestId('match-error')).toHaveTextContent(text)
     expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+})
+
+describe('MatchUnitDialog — add this model to the catalogue', () => {
+  async function openForm(r = register([unmatched()]), isAdmin = false) {
+    const user = userEvent.setup()
+    panel(r, isAdmin)
+    await user.click(screen.getByRole('button', { name: 'Match' }))
+    await user.click(screen.getByRole('button', { name: 'Add this model to the catalogue' }))
+    return user
+  }
+  const submit = (user: ReturnType<typeof userEvent.setup>) => user.click(screen.getByRole('button', { name: 'Add to catalogue and match' }))
+  const created = (id = 90) => ({ equipment: { id, category: 'module', brand: 'Sova Solar', model_name: 'SS-540M', specification: null, is_dcr_compliant: true, is_active: true }, package: 'NOVA_ASSURED', approved_makes: [], in_package: true })
+
+  it('prefills from what was printed and the associate’s DCR declaration, then creates and matches', async () => {
+    h.create.mockResolvedValue(created())
+    h.match.mockResolvedValue({})
+    const user = await openForm()
+    expect(screen.getByLabelText(/^Brand/)).toHaveValue('Sova Solar')
+    expect(screen.getByLabelText(/^Model, as printed/)).toHaveValue('SS-540M')
+    expect(screen.getByLabelText(/^DCR/)).toHaveValue('yes')
+    expect(screen.getByLabelText(/^Category/)).toHaveValue('module')
+    expect(screen.queryByLabelText(/equivalent/i)).toBeNull()
+    await user.type(screen.getByLabelText('Specification'), '540 Wp mono PERC')
+    await submit(user)
+    expect(h.create).toHaveBeenCalledWith({ category: 'module', brand: 'Sova Solar', model_name: 'SS-540M', specification: '540 Wp mono PERC', is_dcr_compliant: true })
+    expect(h.match).toHaveBeenCalledWith({ unitId: 17, equipmentId: 90 })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+
+  it('asks for the equivalent reason after make_not_approved, listing the approved makes, and sends it', async () => {
+    h.create.mockRejectedValueOnce(new ApiError(422, 'x', undefined, { code: 'make_not_approved', message: 'en', approved_makes: ['Waaree', 'Adani'], package: 'NOVA_ASSURED' }))
+    h.create.mockResolvedValueOnce(created())
+    h.match.mockResolvedValue({})
+    const user = await openForm()
+    await submit(user)
+    expect(await screen.findByTestId('match-error')).toHaveTextContent(/Waaree, Adani/)
+    await user.type(screen.getByLabelText(/equivalent/i), 'Same specification as approved make')
+    await submit(user)
+    expect(h.create).toHaveBeenLastCalledWith(expect.objectContaining({ equivalent_reason: 'Same specification as approved make' }))
+    expect(h.match).toHaveBeenCalledWith({ unitId: 17, equipmentId: 90 })
+  })
+
+  it('does not create the item twice when the match is refused and retried', async () => {
+    h.create.mockResolvedValue(created())
+    h.match.mockRejectedValueOnce(new ApiError(422, 'x', undefined, { code: 'dcr_mismatch', message: 'en' }))
+    h.match.mockResolvedValueOnce({})
+    const user = await openForm()
+    await submit(user)
+    expect(await screen.findByTestId('match-error')).toHaveTextContent(/DCR flag doesn’t match/)
+    await submit(user)
+    expect(h.create).toHaveBeenCalledTimes(1)
+    expect(h.match).toHaveBeenCalledTimes(2)
+    expect(h.match).toHaveBeenLastCalledWith({ unitId: 17, equipmentId: 90 })
+  })
+
+  it('requires brand, model and a DCR answer, and a reason once the register is verified', async () => {
+    const verified = register([unmatched({ category: 'inverter', is_dcr: null })], { verified_at: '2026-03-05T00:00:00Z', verified_by: 'ops' })
+    const user = await openForm(verified, true)
+    expect(screen.getByLabelText(/^DCR/)).toHaveValue('')
+    await user.click(screen.getByRole('button', { name: 'Add to catalogue and match' }))
+    expect(h.create).not.toHaveBeenCalled()
+    await user.type(within(screen.getByRole('dialog')).getByLabelText(/^Reason/), 'Nameplate checked')
+    await user.selectOptions(screen.getByLabelText(/^DCR/), 'no')
+    h.create.mockResolvedValue(created(91))
+    h.match.mockResolvedValue({})
+    await user.click(screen.getByRole('button', { name: 'Add to catalogue and match' }))
+    expect(h.create).toHaveBeenCalledWith(expect.objectContaining({ category: 'inverter', is_dcr_compliant: false }))
+    expect(h.match).toHaveBeenCalledWith({ unitId: 17, equipmentId: 91, reason: 'Nameplate checked' })
+  })
+
+  it('maps make_not_approved without a list to plain words', async () => {
+    h.create.mockRejectedValue(new ApiError(422, 'x', undefined, { code: 'make_not_approved', message: 'en' }))
+    const user = await openForm()
+    await submit(user)
+    expect(await screen.findByTestId('match-error')).toHaveTextContent(/isn’t on the approved list/)
   })
 })
 

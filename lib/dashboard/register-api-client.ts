@@ -60,6 +60,38 @@ export const useMatchUnit = (id: number) =>
     true
   )
 
+export interface CatalogueItemInput {
+  category: EquipmentCategory
+  brand: string
+  model_name: string
+  specification?: string
+  is_dcr_compliant: boolean
+  equivalent_reason?: string
+}
+
+export interface CatalogueItemResult {
+  equipment: { id: number; category: EquipmentCategory; brand: string; model_name: string; specification: string | null; is_dcr_compliant: boolean; is_active: boolean }
+  package: string | null
+  approved_makes: string[]
+  in_package: boolean | null
+}
+
+// Staff: add a model that is not in the catalogue yet (Operations, Admin). Refreshes the catalogue lists.
+export function useCreateCatalogueItem(onboardingId: number) {
+  const { getToken } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (input: CatalogueItemInput) => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<CatalogueItemResult>(`${unitsPath(onboardingId)}/catalogue`, token, body(input))
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['equipment'] })
+    },
+  })
+}
+
 export const useVoidUnit = (id: number) =>
   useRegisterMutation<{ unitId: number; reason: string }, { unit: RegisterUnit; register: Register }>(id, (t, { unitId, reason }) =>
     dashboardFetch(`${unitsPath(id)}/units/${unitId}/void`, t, body({ reason }))

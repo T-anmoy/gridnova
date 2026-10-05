@@ -497,8 +497,7 @@ export function useConnectCalendar() {
       if (!token) throw new Error('Not authenticated')
       return dashboardFetch<{ authorization_url: string }>(
         '/api/v1/dashboard/employees/me/calendar/connect',
-        token,
-        { method: 'POST' }
+        token
       )
     },
   })

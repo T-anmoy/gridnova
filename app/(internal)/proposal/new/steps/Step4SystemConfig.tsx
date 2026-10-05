@@ -3,6 +3,8 @@
 import { SelectField, ToggleGroup, YesNoToggle, TextAreaField } from "../formPrimitives";
 import { BACKUP_DURATIONS, EQUIPMENT_TIERS } from "../types";
 import type { ProposalFormValues } from "../types";
+import { usePackageCatalogue } from "@/lib/pricing/usePackageCatalogue";
+import { equipmentTierLabels } from "@/lib/pricing/tier-labels";
 
 interface Props {
   values: ProposalFormValues;
@@ -13,6 +15,7 @@ interface Props {
 export default function Step4SystemConfig({ values, set, dcrAutoSet }: Props) {
   const needsBackupDuration = values.connectionType === "off-grid" || values.connectionType === "hybrid";
   const isOnGrid = values.connectionType === "on-grid";
+  const { catalogue } = usePackageCatalogue();
   const showBatteryToggle = values.connectionType !== "hybrid";
 
   return (
@@ -55,6 +58,7 @@ export default function Step4SystemConfig({ values, set, dcrAutoSet }: Props) {
         optional
         placeholder="Select equipment tier…"
         options={EQUIPMENT_TIERS}
+        labels={equipmentTierLabels(catalogue)}
         value={values.preferredEquipmentTier}
         onChange={(v) => set("preferredEquipmentTier", v)}
       />

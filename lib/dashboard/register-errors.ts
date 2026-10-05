@@ -31,6 +31,7 @@ export const REGISTER_ERRORS: Record<string, string> = {
   not_matchable: 'This kind of equipment isn’t matched to the catalogue.',
   already_matched: 'This unit has already been matched. The register has been refreshed.',
   units_unmatched: 'Match every unit to a catalogue item before verifying the register.',
+  make_not_approved: 'This make isn’t on the approved list for the package. Say why an equivalent is acceptable (at least 5 characters).',
   override_exists: 'An override has already been recorded.',
 }
 
@@ -48,6 +49,15 @@ export function registerErrorMessage(err: unknown): string {
       if (code === 'register_incomplete') {
         const missing = err.structuredDetail?.missing
         if (Array.isArray(missing) && missing.length > 0) return `The register still needs: ${missing.join(' and ')}.`
+      }
+      if (code === 'make_not_approved') {
+        const makes = err.structuredDetail?.approved_makes
+        const pkg = err.structuredDetail?.package
+        const list = Array.isArray(makes) ? makes.filter((m): m is string => typeof m === 'string') : []
+        const forPkg = typeof pkg === 'string' && pkg ? ` for ${pkg}` : ''
+        return list.length > 0
+          ? `This make isn’t on the approved list${forPkg} (${list.join(', ')}). Say why an equivalent is acceptable (at least 5 characters).`
+          : REGISTER_ERRORS.make_not_approved
       }
       if (code in REGISTER_ERRORS) return REGISTER_ERRORS[code]
     }

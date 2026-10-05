@@ -3,6 +3,9 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ProposalInputForm from "@/app/(internal)/proposal/new/ProposalInputForm";
 
+// Step 4 reads the public package catalogue; keep it out of the scripted fetch calls below.
+vi.mock("@/lib/pricing/usePackageCatalogue", () => ({ usePackageCatalogue: () => ({ catalogue: null, status: "error" }) }));
+
 // jsdom doesn't always implement the Blob URL APIs FileUploadSlot's image
 // previews rely on — stub them so file-upload interactions don't throw.
 beforeEach(() => {
