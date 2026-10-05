@@ -5,6 +5,8 @@ import Link from '@/components/i18n/Link'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import ExecutionEvidenceForm, { Panel } from '@/components/execution/ExecutionEvidenceForm'
 import RegisterReadOnly from '@/components/execution/RegisterReadOnly'
+import RegisterEntry from '@/components/associate/RegisterEntry'
+import RegisterUnitActions from '@/components/associate/RegisterUnitActions'
 import { useExecution, useSubmitExecutionStage, useUploadExecutionFile } from '@/lib/associate/execution-api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { formatDatetime } from '@/lib/dashboard/utils'
@@ -108,6 +110,10 @@ export default function ExecutionChecklist({
   const pending = status.pending_submission
   const readOnlyReason = status.execution_mode === 'grid_nova' ? copy.gridNova : status.can_submit ? null : copy.readOnly
 
+  // The owner may enter and change serial numbers until Grid Nova verifies the register; a
+  // territory reader (can_submit false) and everyone after verification sees it read-only.
+  const editable = !!status.can_submit && !!status.register && !status.register.verified_at
+
   return (
     <div className="space-y-5">
       {back}
@@ -141,7 +147,17 @@ export default function ExecutionChecklist({
 
       {status.register && (
         <Panel>
-          <RegisterReadOnly register={status.register} copy={copy.register} />
+          <RegisterReadOnly
+            register={status.register}
+            copy={copy.register}
+            renderUnitActions={editable ? (unit) => <RegisterUnitActions onboardingId={onboardingId} unit={unit} copy={copy.register} /> : undefined}
+          />
+          {status.register.verified_at && status.can_submit && <p className="mt-3 text-xs text-[#111827]/60" data-testid="register-locked-note">{copy.register.entry.lockedNote}</p>}
+        </Panel>
+      )}
+      {status.register && editable && (
+        <Panel>
+          <RegisterEntry onboardingId={onboardingId} portalBase={portalBase} copy={copy.register} />
         </Panel>
       )}
     </div>

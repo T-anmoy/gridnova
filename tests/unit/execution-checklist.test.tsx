@@ -18,6 +18,17 @@ vi.mock('@/lib/associate/execution-api-client', () => ({
   useUploadExecutionFile: () => ({ mutateAsync: uploadMutate }),
 }))
 
+// The entry form talks to the associate register endpoints; this file is about the checklist.
+vi.mock('@/lib/associate/register-api-client', () => ({
+  useAssociateCreateUnit: () => ({ mutateAsync: vi.fn() }),
+  useAssociateBulkCreateUnits: () => ({ mutateAsync: vi.fn() }),
+  useAssociateUpdateUnit: () => ({ mutateAsync: vi.fn() }),
+  useAssociateVoidUnit: () => ({ mutateAsync: vi.fn() }),
+  checkAssociateSerial: vi.fn(),
+  useAssociateCatalogue: () => ({ items: [], isLoading: false, error: undefined, rateLimited: false, refetch: vi.fn() }),
+}))
+vi.mock('@clerk/nextjs', () => ({ useAuth: () => ({ getToken: async () => 'tok' }) }))
+
 const copy = en.associates.portal.execution
 const photosCopy = en.associates.portal.wizard.photos
 
@@ -208,7 +219,7 @@ describe('ExecutionChecklist — blockers, errors and labels', () => {
   })
 })
 
-describe('ExecutionChecklist — serial register (read-only; associate entry is deferred)', () => {
+describe('ExecutionChecklist — serial register (entry for the owner until verified)', () => {
   const register: Register = {
     verified_at: null,
     verified_by: null,
@@ -219,12 +230,29 @@ describe('ExecutionChecklist — serial register (read-only; associate entry is 
     flags: [],
   }
 
-  it('shows the register read-only, with no entry controls', () => {
+  it('offers entry and edit/remove to the owner before verification, and shows the waiting chip', () => {
     state.data = status({ register })
     show()
     expect(screen.getByTestId('register-readonly')).toHaveTextContent('SN-0001')
-    expect(screen.queryByTestId('unit-entry')).toBeNull()
-    expect(screen.queryByLabelText(/Serial number$/)).toBeNull()
+    expect(screen.getByTestId('register-entry')).toBeInTheDocument()
+    expect(screen.getByTestId('waiting-match-chip')).toHaveTextContent(copy.register.entry.waiting)
+    expect(screen.getByRole('button', { name: copy.register.entry.edit })).toBeInTheDocument()
+  })
+
+  it('is read-only for a territory reader (can_submit false)', () => {
+    state.data = status({ register, can_submit: false })
+    show()
+    expect(screen.queryByTestId('register-entry')).toBeNull()
+    expect(screen.queryByRole('button', { name: copy.register.entry.edit })).toBeNull()
+  })
+
+  it('is read-only after Grid Nova verifies the register, with the verified badge and a locked note', () => {
+    state.data = status({ register: { ...register, verified_at: '2026-03-05T00:00:00Z', verified_by: 'ops' } })
+    show()
+    expect(screen.getByTestId('register-badge')).toHaveTextContent(copy.register.verifiedBadge)
+    expect(screen.queryByTestId('register-entry')).toBeNull()
+    expect(screen.queryByRole('button', { name: copy.register.entry.edit })).toBeNull()
+    expect(screen.getByTestId('register-locked-note')).toBeInTheDocument()
   })
 
   it('omits the section when the response carries no register', () => {

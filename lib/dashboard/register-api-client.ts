@@ -16,7 +16,7 @@ export interface UnitsResult {
   register: Register
 }
 
-function useRegisterMutation<TInput, TOut>(onboardingId: number, run: (token: string, input: TInput) => Promise<TOut>) {
+function useRegisterMutation<TInput, TOut>(onboardingId: number, run: (token: string, input: TInput) => Promise<TOut>, refreshOnError = false) {
   const { getToken } = useAuth()
   const qc = useQueryClient()
   return useMutation({
@@ -30,6 +30,10 @@ function useRegisterMutation<TInput, TOut>(onboardingId: number, run: (token: st
       void qc.invalidateQueries({ queryKey: ['staff-execution', onboardingId] })
       void qc.invalidateQueries({ queryKey: ['staff-execution-queue'] })
       void qc.invalidateQueries({ queryKey: ['work-queues'] })
+    },
+    // A refused match (e.g. already matched by someone else) means the register on screen is stale.
+    onError: () => {
+      if (refreshOnError) void qc.invalidateQueries({ queryKey: ['staff-execution', onboardingId] })
     },
   })
 }
@@ -47,6 +51,13 @@ export const useBulkCreateUnits = (id: number) =>
 export const useUpdateUnit = (id: number) =>
   useRegisterMutation<{ unitId: number; patch: Partial<UnitInput> & { reason?: string } }, UnitsResult & { unit: RegisterUnit }>(id, (t, { unitId, patch }) =>
     dashboardFetch(`${unitsPath(id)}/units/${unitId}`, t, { method: 'PATCH', body: JSON.stringify(patch) })
+  )
+
+// Staff match: link an unmatched unit to a catalogue item. `reason` only once the register is verified (admin only).
+export const useMatchUnit = (id: number) =>
+  useRegisterMutation<{ unitId: number; equipmentId: number; reason?: string }, { unit: RegisterUnit; register: Register }>(id, (t, { unitId, equipmentId, reason }) =>
+    dashboardFetch(`${unitsPath(id)}/units/${unitId}/match`, t, body({ equipment_id: equipmentId, ...(reason ? { reason } : {}) })),
+    true
   )
 
 export const useVoidUnit = (id: number) =>

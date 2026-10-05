@@ -61,3 +61,9 @@ export function staffPaymentError(err: unknown): string {
 }
 
 export const isSelfVerification = (err: unknown): boolean => err instanceof ApiError && err.structuredDetail?.code === 'self_verification'
+
+/** Case-insensitive match of a typed filter against any of the given fields (the customer's name or the project code). */
+export const matchesFilter = (query: string, ...fields: (string | null | undefined)[]): boolean => {
+  const q = query.trim().toLowerCase()
+  return !q || fields.some((f) => !!f && f.toLowerCase().includes(q))
+}

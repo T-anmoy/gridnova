@@ -30,6 +30,9 @@ export interface RegisterUnit {
   verified_by: string | null
   verified_at: string | null
   void_reason: string | null
+  // As printed on the nameplate (HF-C). Set for unmatched units, optional otherwise.
+  brand_as_printed?: string | null
+  model_as_printed?: string | null
   // Staff only (0041).
   previously_voided?: boolean
 }
@@ -48,6 +51,9 @@ export interface Register {
 export interface UnitInput {
   category: UnitCategory
   equipment_id?: number
+  // A module or inverter that isn't in the catalogue: both are then required.
+  brand_as_printed?: string
+  model_as_printed?: string
   serial_number: string
   rating_wp?: string
   rating_kw?: string

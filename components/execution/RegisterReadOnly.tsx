@@ -1,6 +1,6 @@
 import { AlertTriangle, Check, Clock } from 'lucide-react'
 import { formatDate } from '@/lib/dashboard/utils'
-import type { Register } from '@/lib/associate/register-types'
+import type { Register, RegisterUnit } from '@/lib/associate/register-types'
 import type { Messages } from '@/lib/i18n/types'
 
 type RegisterCopy = Messages['associates']['portal']['execution']['register']
@@ -13,7 +13,16 @@ const fill = (template: string, vars: Record<string, string>) => Object.entries(
  * advice, never a block. It deliberately ignores `previously_voided`: that
  * signal is staff-only and never reaches an associate screen.
  */
-export default function RegisterReadOnly({ register, copy }: { register: Register; copy: RegisterCopy }) {
+export default function RegisterReadOnly({
+  register,
+  copy,
+  renderUnitActions,
+}: {
+  register: Register
+  copy: RegisterCopy
+  /** Edit / remove controls, only passed while the associate may still change the register. */
+  renderUnitActions?: (unit: RegisterUnit) => React.ReactNode
+}) {
   const units = register.units.filter((u) => u.status !== 'voided')
   return (
     <div className="space-y-3" data-testid="register-readonly">
@@ -46,16 +55,24 @@ export default function RegisterReadOnly({ register, copy }: { register: Registe
                 <p className="flex flex-wrap items-center gap-2">
                   <span className="font-mono font-semibold text-[#091c3c]">{u.serial_number}</span>
                   <span className="rounded bg-[#f7f9fc] px-1.5 py-0.5 text-[11px] text-[#111827]/60">{copy.category[u.category]}</span>
+                  {u.category !== 'other' && u.equipment == null && (
+                    <span className="rounded bg-[#111827]/10 px-1.5 py-0.5 text-[11px] text-[#111827]/70" data-testid="waiting-match-chip">{copy.entry.waiting}</span>
+                  )}
                   {u.category === 'module' && u.is_dcr != null && (
                     <span className={`rounded px-1.5 py-0.5 text-[11px] ${u.is_dcr ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{u.is_dcr ? copy.dcr : copy.nonDcr}</span>
                   )}
                 </p>
                 <p className="text-xs text-[#111827]/60">
-                  {u.equipment ? `${u.equipment.brand} ${u.equipment.model_name}` : ''}
+                  {u.equipment
+                    ? `${u.equipment.brand} ${u.equipment.model_name}`
+                    : u.brand_as_printed || u.model_as_printed
+                      ? fill(copy.entry.printedAs, { brand: u.brand_as_printed ?? '', model: u.model_as_printed ?? '' })
+                      : ''}
                   {u.rating_wp ? ` · ${fill(copy.ratingWp, { value: u.rating_wp })}` : ''}
                   {u.rating_kw ? ` · ${fill(copy.ratingKw, { value: u.rating_kw })}` : ''}
                   {u.warranty_start && u.warranty_end ? ` · ${fill(copy.warranty, { start: formatDate(u.warranty_start), end: formatDate(u.warranty_end) })}` : ''}
                 </p>
+                {renderUnitActions?.(u)}
               </li>
             ))}
           </ul>

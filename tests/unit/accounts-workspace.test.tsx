@@ -348,3 +348,82 @@ describe('Payment detail — actions', () => {
     expect(screen.getByRole('button', { name: 'Resend receipt' })).toBeInTheDocument()
   })
 })
+
+describe('Accounts workspace — rows say who the customer is (customer_name, project_reference_id)', () => {
+  const named = (id: number, name: string | null, code: string | null) => pay({ payment_id: id, customer_name: name, project_reference_id: code })
+  const milestone = (id: number, name: string | null, code: string | null, over: Partial<Milestone> = {}) =>
+    ({
+      milestone_id: id, number: 1, label: 'On Order', percent: '30', amount_due: '30000.00', paid_toward: '0.00', outstanding: '30000.00',
+      trigger: null, due_status: 'due', due_since: null, overdue: false, onboarding_id: 5, project_id: 9, needs_attention: false,
+      customer_name: name, project_reference_id: code, ...over,
+    }) as Milestone
+
+  it('payments queue: row shows the customer name with the project code, and filters by either — with no extra request', async () => {
+    h.list = page([named(11, 'Bikash Das', 'GN-2026-1'), named(12, 'Asha Roy', 'GN-2026-2')])
+    render(withI18n(<AccountsPage />))
+    const rows = screen.getAllByTestId('payment-row')
+    expect(rows[0]).toHaveTextContent('Bikash Das')
+    expect(rows[0]).toHaveTextContent('GN-2026-1')
+    expect(rows[0]).toHaveTextContent('Payment #11')
+    const calls = h.listParams.length
+    const user = userEvent.setup()
+    await user.type(screen.getByRole('searchbox'), 'asha')
+    expect(screen.getAllByTestId('payment-row')).toHaveLength(1)
+    expect(screen.getByTestId('payment-row')).toHaveTextContent('Asha Roy')
+    await user.clear(screen.getByRole('searchbox'))
+    await user.type(screen.getByRole('searchbox'), 'GN-2026-1')
+    expect(screen.getByTestId('payment-row')).toHaveTextContent('Bikash Das')
+    await user.clear(screen.getByRole('searchbox'))
+    await user.type(screen.getByRole('searchbox'), 'zzz')
+    expect(screen.queryAllByTestId('payment-row')).toHaveLength(0)
+    expect(screen.getByText('No payments match.')).toBeInTheDocument()
+    // Filtering is on the loaded page: the list was never re-requested with a search term.
+    expect(h.listParams.slice(calls).every((p) => !('q' in (p as object)))).toBe(true)
+  })
+
+  it('payments queue: a row without a name or code shows only its payment number, not an invented customer', () => {
+    h.list = page([named(13, null, null)])
+    render(withI18n(<AccountsPage />))
+    const row = screen.getByTestId('payment-row')
+    expect(within(row).queryByTestId('who-cell')).toBeNull()
+    expect(row).toHaveTextContent('Payment #13')
+  })
+
+  it('instalments tab: customer name and code replace "Project n", filterable, still linking to the project', async () => {
+    h.milestones = page([milestone(1, 'Bikash Das', 'GN-2026-1'), milestone(2, 'Asha Roy', 'GN-2026-2', { onboarding_id: 6 })])
+    render(withI18n(<AccountsPage />))
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('tab', { name: 'Instalments' }))
+    const rows = screen.getAllByTestId('milestone-row')
+    expect(rows[0]).toHaveTextContent('Bikash Das')
+    expect(rows[0]).toHaveTextContent('GN-2026-1')
+    expect(within(rows[0]).getByRole('link', { name: 'Open project' })).toHaveAttribute('href', '/dashboard/onboardings/5')
+    await user.type(screen.getByRole('searchbox'), 'GN-2026-2')
+    expect(screen.getAllByTestId('milestone-row')).toHaveLength(1)
+    expect(screen.getByTestId('milestone-row')).toHaveTextContent('Asha Roy')
+  })
+
+  it('instalments tab: falls back to the old project link when the backend sends no name', async () => {
+    h.milestones = page([milestone(1, null, null)])
+    render(withI18n(<AccountsPage />))
+    await userEvent.setup().click(screen.getByRole('tab', { name: 'Instalments' }))
+    expect(within(screen.getByTestId('milestone-row')).getByRole('link', { name: 'Project 9' })).toBeInTheDocument()
+  })
+
+  it('receipts view: shows the customer and filters by name or code', async () => {
+    const rcpt = { receipt_number: 'GNR-1', email_status: 'sent', emailed_at: null, pdf_available: true, receipt_pending_email: false, held: false, url: 'u' }
+    h.list = page([
+      { ...named(11, 'Bikash Das', 'GN-2026-1'), status: 'verified', receipt: rcpt },
+      { ...named(12, 'Asha Roy', 'GN-2026-2'), status: 'verified', receipt: { ...rcpt, receipt_number: 'GNR-2' } },
+    ])
+    render(withI18n(<AccountsPage />))
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('tab', { name: 'Receipts' }))
+    const rows = screen.getAllByTestId('receipt-row')
+    expect(rows[1]).toHaveTextContent('Asha Roy')
+    expect(rows[1]).toHaveTextContent('GN-2026-2')
+    await user.type(screen.getByRole('searchbox'), 'bikash')
+    expect(screen.getAllByTestId('receipt-row')).toHaveLength(1)
+    expect(screen.getByTestId('receipt-row')).toHaveTextContent('GNR-1')
+  })
+})

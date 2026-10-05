@@ -2,7 +2,7 @@ import { useAuth } from '@clerk/nextjs'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardFetch } from '@/lib/dashboard/api-client'
 import type { FileLinkResponse } from '@/lib/associate/onboarding-types'
-import type { Milestone, PaymentTotals, StaffPayment } from '@/lib/associate/payment-types'
+import type { Milestone, PaymentTotals, StaffMilestone, StaffPayment } from '@/lib/associate/payment-types'
 import type { PaymentProject } from './payments-api-client'
 
 // Accounts workspace endpoints (/api/v1/dashboard). Roles: admin + accounts do
@@ -57,7 +57,7 @@ export const usePaymentList = (params: PaymentListParams) =>
   useStaffGet<Paginated<StaffPayment>>(['staff-payments-list', params], `${BASE}/payments${qs(params as Record<string, string | number | boolean | undefined>)}`)
 
 export const useMilestoneQueue = (params: { needs_attention?: boolean; page?: number; page_size?: number }) =>
-  useStaffGet<Paginated<Milestone>>(['staff-milestones', params], `${BASE}/payment-milestones${qs(params)}`)
+  useStaffGet<Paginated<StaffMilestone>>(['staff-milestones', params], `${BASE}/payment-milestones${qs(params)}`)
 
 export const usePaymentDetail = (paymentId: number) => useStaffGet<PaymentDetail>(['staff-payment', paymentId], `${BASE}/payments/${paymentId}`, !!paymentId)
 

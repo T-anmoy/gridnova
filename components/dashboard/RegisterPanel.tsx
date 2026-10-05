@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import ReasonDialog from '@/components/dashboard/ReasonDialog'
+import MatchUnitDialog from '@/components/dashboard/MatchUnitDialog'
 import CataloguePicker, { type CatalogueItem } from '@/components/execution/CataloguePicker'
 import SerialScanButton from '@/components/execution/SerialScanButton'
 import {
@@ -20,9 +21,10 @@ import {
   useVerifyRegister,
   useVoidUnit,
 } from '@/lib/dashboard/register-api-client'
-import { REGISTER_ERRORS, registerErrorMessage, rowErrorsOf } from '@/lib/dashboard/register-errors'
+import { REGISTER_ERRORS, registerErrorMessage, rowErrorsOf, unmatchedUnitIdsOf } from '@/lib/dashboard/register-errors'
+import { isUnmatched, type StaffRegister, type StaffRegisterUnit } from '@/lib/dashboard/register-staff-types'
 import { formatDate } from '@/lib/dashboard/utils'
-import type { Register, RegisterUnit, RegisterWarning, RowError, SerialCheck, UnitCategory, UnitInput } from '@/lib/associate/register-types'
+import type { RegisterUnit, RegisterWarning, RowError, SerialCheck, UnitCategory, UnitInput } from '@/lib/associate/register-types'
 
 const WARNING_TEXT: Record<string, string> = {
   rating_out_of_range: 'The rating looks outside the usual range — please double-check it. (Saved anyway.)',
@@ -368,7 +370,7 @@ export default function RegisterPanel({
   isAdmin,
 }: {
   onboardingId: number
-  register: Register
+  register: StaffRegister
   canWrite: boolean
   isAdmin: boolean
 }) {
@@ -376,18 +378,34 @@ export default function RegisterPanel({
   const voidUnit = useVoidUnit(onboardingId)
   const [editing, setEditing] = useState<RegisterUnit | null>(null)
   const [voiding, setVoiding] = useState<RegisterUnit | null>(null)
+  const [matching, setMatching] = useState<StaffRegisterUnit | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  // Unit ids a refused verify named; only those still unmatched stay highlighted.
+  const [refusedIds, setRefusedIds] = useState<number[]>([])
   const locked = !!register.verified_at
-  const live = register.units.filter((u) => u.status !== 'voided')
+  // Unmatched units first — they are what blocks verification.
+  const live = register.units
+    .filter((u) => u.status !== 'voided')
+    .sort((a, b) => Number(isUnmatched(b)) - Number(isUnmatched(a)))
+  const unmatchedCount = live.filter(isUnmatched).length
+  const highlighted = new Set(live.filter((u) => isUnmatched(u) && refusedIds.includes(u.unit_id)).map((u) => u.unit_id))
   const previouslyVoided = register.flags.includes('previously_voided') || register.units.some((u) => u.previously_voided)
 
   async function handleVerify() {
     setNotice(null)
+    setRefusedIds([])
     try {
       await verify.mutateAsync()
       setNotice('Register verified and locked.')
     } catch (err) {
-      setNotice(registerErrorMessage(err))
+      const ids = unmatchedUnitIdsOf(err)
+      if (ids) {
+        setRefusedIds(ids)
+        const serials = ids.map((id) => register.units.find((u) => u.unit_id === id)?.serial_number ?? `unit ${id}`)
+        setNotice(`${REGISTER_ERRORS.units_unmatched} Still waiting for a match: ${serials.join(', ')}.`)
+      } else {
+        setNotice(registerErrorMessage(err))
+      }
     }
   }
 
@@ -405,6 +423,11 @@ export default function RegisterPanel({
       </CardHeader>
       <CardContent className="space-y-4">
         {notice && <p role="status" className="text-sm text-gray-700">{notice}</p>}
+        {unmatchedCount > 0 && (
+          <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-900" data-testid="unmatched-summary">
+            {unmatchedCount} unit{unmatchedCount === 1 ? '' : 's'} not matched to the catalogue yet. The register can’t be verified until each is matched.
+          </p>
+        )}
 
         <dl className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4" data-testid="register-totals">
           <div><dt className="text-gray-500">Modules</dt><dd className="font-semibold">{register.totals.modules}</dd></div>
@@ -432,20 +455,27 @@ export default function RegisterPanel({
         ) : (
           <ul className="divide-y divide-gray-100 rounded-xl border border-[#e4e8ee]" aria-label="Units">
             {live.map((u) => (
-              <li key={u.unit_id} className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm" data-testid="register-unit">
+              <li
+                key={u.unit_id}
+                className={`flex flex-wrap items-center gap-2 px-3 py-2 text-sm ${highlighted.has(u.unit_id) ? 'bg-amber-50 ring-2 ring-inset ring-amber-400' : ''}`}
+                data-testid="register-unit"
+                data-highlighted={highlighted.has(u.unit_id) ? 'true' : undefined}
+              >
                 <span className="font-mono font-semibold">{u.serial_number}</span>
                 <Badge variant="secondary">{u.category}</Badge>
                 {u.category === 'module' && u.is_dcr != null && <Badge variant={u.is_dcr ? 'green' : 'amber'}>{u.is_dcr ? 'DCR' : 'Non-DCR'}</Badge>}
                 <Badge variant={u.status === 'verified' ? 'green' : 'gray'}>{u.status}</Badge>
                 {u.previously_voided && <Badge variant="orange" data-testid="unit-previously-voided">Previously voided</Badge>}
+                {isUnmatched(u) && <Badge variant="amber" data-testid="unit-unmatched">Needs catalogue match</Badge>}
                 <span className="text-xs text-gray-500">
-                  {u.equipment ? `${u.equipment.brand} ${u.equipment.model_name}` : ''}
+                  {u.equipment ? `${u.equipment.brand} ${u.equipment.model_name}` : [u.brand_as_printed, u.model_as_printed].filter(Boolean).length ? `As printed: ${[u.brand_as_printed, u.model_as_printed].filter(Boolean).join(' ')}` : ''}
                   {u.rating_wp ? ` · ${u.rating_wp} Wp` : ''}
                   {u.rating_kw ? ` · ${u.rating_kw} kW` : ''}
                 </span>
                 {u.equipment?.is_placeholder && <Badge variant="orange" data-testid="dummy-chip">Dummy / pending Grid Nova</Badge>}
                 {canWrite && (!locked || isAdmin) && (
                   <span className="ml-auto flex gap-2">
+                    {isUnmatched(u) && u.category !== 'other' && <Button size="sm" onClick={() => setMatching(u)}>Match</Button>}
                     <Button size="sm" variant="outline" onClick={() => setEditing(u)}>Edit</Button>
                     <Button size="sm" variant="outline" onClick={() => setVoiding(u)}>Void</Button>
                   </span>
@@ -458,6 +488,7 @@ export default function RegisterPanel({
         {canWrite && <UnitEntry onboardingId={onboardingId} locked={locked} isAdmin={isAdmin} />}
       </CardContent>
 
+      {matching && <MatchUnitDialog onboardingId={onboardingId} unit={matching} locked={locked} onClose={() => setMatching(null)} />}
       {editing && <EditUnitDialog onboardingId={onboardingId} unit={editing} locked={locked} onClose={() => setEditing(null)} />}
       <ReasonDialog
         open={!!voiding}

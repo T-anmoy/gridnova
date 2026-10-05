@@ -354,6 +354,13 @@ describe('Operations queue page', () => {
     expect(h.push).toHaveBeenCalledWith('/dashboard/operations/5')
   })
 
+  it('marks a project whose models are not matched to the catalogue yet (flags and attention_reasons)', () => {
+    h.queue = { data: { items: [item({ flags: ['catalogue_unmatched'], attention_reasons: ['catalogue_unmatched'], pending_submission: null, is_stuck: false })], page: 1, page_size: 25, total: 1 } }
+    render(withI18n(<OperationsPage />))
+    expect(screen.getByTestId('queue-row')).toHaveTextContent('Model not matched')
+    expect(screen.getByTestId('queue-row')).not.toHaveTextContent('catalogue unmatched')
+  })
+
   it('has a one-click needs-attention filter that changes the request', async () => {
     h.queue = { data: { items: [], page: 1, page_size: 25, total: 0 } }
     render(withI18n(<OperationsPage />))

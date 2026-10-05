@@ -239,7 +239,7 @@ export default function ExecutionDetailPanel({ onboardingId, role }: { onboardin
             )}
             {attentionFlags.map((f) => (
               <Badge key={f} variant="orange" data-testid={`flag-${f}`}>
-                {f === 'dcr_mismatch' ? 'DCR mismatch' : f === 'capacity_mismatch' ? 'Capacity mismatch' : f.replace(/_/g, ' ')}
+                {f === 'dcr_mismatch' ? 'DCR mismatch' : f === 'capacity_mismatch' ? 'Capacity mismatch' : f === 'catalogue_unmatched' ? 'Model not matched' : f.replace(/_/g, ' ')}
               </Badge>
             ))}
             {d.execution_mode === 'associate' && isAdmin && (

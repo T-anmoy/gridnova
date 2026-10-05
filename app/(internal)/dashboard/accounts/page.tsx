@@ -16,7 +16,7 @@ import { DashboardError } from '@/components/dashboard/DashboardError'
 import NoAccess from '@/components/dashboard/NoAccess'
 import { downloadExport, useMilestoneQueue, usePaymentList, useReleaseHeldReceipts, useResendReceipt, type ExportKind } from '@/lib/dashboard/accounts-api-client'
 import { useWorkQueues } from '@/lib/dashboard/execution-api-client'
-import { ATTENTION_LABEL, STATUS_LABEL, STATUS_VARIANT, isDummyReason, staffPaymentError } from '@/lib/dashboard/payment-ui'
+import { ATTENTION_LABEL, STATUS_LABEL, STATUS_VARIANT, isDummyReason, matchesFilter, staffPaymentError } from '@/lib/dashboard/payment-ui'
 import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { formatDate } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
@@ -44,6 +44,28 @@ function Loading() {
   return <div className="space-y-3 p-6">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
 }
 
+// Who a row is for: the customer's name with the project code under it. Nothing is invented when the
+// backend sends neither (the caller supplies the fallback).
+function WhoCell({ name, code, fallback }: { name?: string | null; code?: string | null; fallback: React.ReactNode }) {
+  if (!name && !code) return <>{fallback}</>
+  return (
+    <div data-testid="who-cell">
+      <p className="font-medium text-gray-900">{name ?? '—'}</p>
+      {code && <p className="text-xs text-gray-400">{code}</p>}
+    </div>
+  )
+}
+
+// Filters the rows already on this page by customer name or project code — no extra request.
+function RowFilter({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <label className="flex items-center gap-1.5 text-xs text-gray-500">
+      <span className="sr-only">Filter this page by customer or project code</span>
+      <Input type="search" className="h-9 w-64" placeholder="Filter this page by customer or project code" value={value} onChange={(e) => onChange(e.target.value)} />
+    </label>
+  )
+}
+
 function AttentionBadges({ reasons }: { reasons: string[] }) {
   return (
     <div className="flex flex-wrap gap-1">
@@ -59,6 +81,7 @@ function PaymentsTab() {
   const [needsAttention, setNeedsAttention] = useState(false)
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
+  const [filter, setFilter] = useState('')
   const [page, setPage] = useState(1)
   const { data, isLoading, error, refetch } = usePaymentList({
     status: status || undefined,
@@ -92,6 +115,7 @@ function PaymentsTab() {
         </Select>
         <label className="flex items-center gap-1.5 text-xs text-gray-500">From <Input type="date" className="h-9 w-40" value={from} onChange={(e) => { setFrom(e.target.value); reset() }} /></label>
         <label className="flex items-center gap-1.5 text-xs text-gray-500">To <Input type="date" className="h-9 w-40" value={to} onChange={(e) => { setTo(e.target.value); reset() }} /></label>
+        <RowFilter value={filter} onChange={setFilter} />
       </div>
       {error && <DashboardError error={error} onRetry={() => void refetch()} />}
       <Card>
@@ -100,14 +124,17 @@ function PaymentsTab() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Payment</TableHead><TableHead>Amount</TableHead><TableHead>Method</TableHead><TableHead>Reference</TableHead>
+                  <TableHead>Customer</TableHead><TableHead>Amount</TableHead><TableHead>Method</TableHead><TableHead>Reference</TableHead>
                   <TableHead>Status</TableHead><TableHead>Attention</TableHead><TableHead>Recorded</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data?.items.map((p) => (
+                {data?.items.filter((p) => matchesFilter(filter, p.customer_name, p.project_reference_id)).map((p) => (
                   <TableRow key={p.payment_id} className="cursor-pointer" data-testid="payment-row" onClick={() => router.push(`/dashboard/accounts/payments/${p.payment_id}`)}>
-                    <TableCell className="text-sm">#{p.payment_id}</TableCell>
+                    <TableCell className="text-sm">
+                      <WhoCell name={p.customer_name} code={p.project_reference_id} fallback={null} />
+                      <p className="text-xs text-gray-400">Payment #{p.payment_id}</p>
+                    </TableCell>
                     <TableCell className="font-medium">{formatInr(p.amount)}</TableCell>
                     <TableCell className="text-sm">{STAFF_PAYMENT_COPY.modes[p.mode as keyof typeof STAFF_PAYMENT_COPY.modes] ?? p.mode}</TableCell>
                     <TableCell className="text-sm">{p.reference}</TableCell>
@@ -116,7 +143,7 @@ function PaymentsTab() {
                     <TableCell className="text-sm text-gray-500">{formatDate(p.recorded_at)}</TableCell>
                   </TableRow>
                 ))}
-                {data && data.items.length === 0 && <TableRow><TableCell colSpan={7} className="py-10 text-center text-sm text-gray-500">No payments match.</TableCell></TableRow>}
+                {data && !data.items.some((p) => matchesFilter(filter, p.customer_name, p.project_reference_id)) && <TableRow><TableCell colSpan={7} className="py-10 text-center text-sm text-gray-500">No payments match.</TableCell></TableRow>}
               </TableBody>
             </Table>
           )}
@@ -129,26 +156,37 @@ function PaymentsTab() {
 
 function MilestonesTab() {
   const [overdueOnly, setOverdueOnly] = useState(false)
+  const [filter, setFilter] = useState('')
   const [page, setPage] = useState(1)
   const { data, isLoading, error, refetch } = useMilestoneQueue({ needs_attention: overdueOnly || undefined, page, page_size: 25 })
   return (
     <div className="space-y-4">
-      <Button variant={overdueOnly ? 'default' : 'outline'} size="sm" aria-pressed={overdueOnly} onClick={() => { setOverdueOnly((v) => !v); setPage(1) }}>
-        Overdue only
-      </Button>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button variant={overdueOnly ? 'default' : 'outline'} size="sm" aria-pressed={overdueOnly} onClick={() => { setOverdueOnly((v) => !v); setPage(1) }}>
+          Overdue only
+        </Button>
+        <RowFilter value={filter} onChange={setFilter} />
+      </div>
       {error && <DashboardError error={error} onRetry={() => void refetch()} />}
       <Card>
         <CardContent className="p-0">
           {isLoading ? <Loading /> : (
             <Table>
               <TableHeader>
-                <TableRow><TableHead>Project</TableHead><TableHead>Instalment</TableHead><TableHead>Due</TableHead><TableHead>Paid so far</TableHead><TableHead>Outstanding</TableHead><TableHead>Status</TableHead></TableRow>
+                <TableRow><TableHead>Customer</TableHead><TableHead>Instalment</TableHead><TableHead>Due</TableHead><TableHead>Paid so far</TableHead><TableHead>Outstanding</TableHead><TableHead>Status</TableHead></TableRow>
               </TableHeader>
               <TableBody>
-                {data?.items.map((m) => (
+                {data?.items.filter((m) => matchesFilter(filter, m.customer_name, m.project_reference_id)).map((m) => (
                   <TableRow key={m.milestone_id} data-testid="milestone-row">
                     <TableCell className="text-sm">
-                      {m.onboarding_id != null ? <Link className="text-[#0e2a63] underline" href={`/dashboard/onboardings/${m.onboarding_id}`}>Project {m.project_id ?? m.onboarding_id}</Link> : <>Project {m.project_id ?? '—'}</>}
+                      <WhoCell
+                        name={m.customer_name}
+                        code={m.project_reference_id}
+                        fallback={m.onboarding_id != null ? <Link className="text-[#0e2a63] underline" href={`/dashboard/onboardings/${m.onboarding_id}`}>Project {m.project_id ?? m.onboarding_id}</Link> : <>Project {m.project_id ?? '—'}</>}
+                      />
+                      {(m.customer_name || m.project_reference_id) && m.onboarding_id != null && (
+                        <Link className="text-xs text-[#0e2a63] underline" href={`/dashboard/onboardings/${m.onboarding_id}`}>Open project</Link>
+                      )}
                     </TableCell>
                     <TableCell className="text-sm">{m.label} <span className="text-gray-400">({String(m.percent)}%)</span></TableCell>
                     <TableCell>{formatInr(m.amount_due)}</TableCell>
@@ -162,7 +200,7 @@ function MilestonesTab() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {data && data.items.length === 0 && <TableRow><TableCell colSpan={6} className="py-10 text-center text-sm text-gray-500">No instalments match.</TableCell></TableRow>}
+                {data && !data.items.some((m) => matchesFilter(filter, m.customer_name, m.project_reference_id)) && <TableRow><TableCell colSpan={6} className="py-10 text-center text-sm text-gray-500">No instalments match.</TableCell></TableRow>}
               </TableBody>
             </Table>
           )}
@@ -176,6 +214,7 @@ function MilestonesTab() {
 // Receipts are derived from verified payments (there is no separate list endpoint).
 function ReceiptsTab({ canAct }: { canAct: boolean }) {
   const [needsAttention, setNeedsAttention] = useState(false)
+  const [filter, setFilter] = useState('')
   const [page, setPage] = useState(1)
   const [notice, setNotice] = useState<string | null>(null)
   const { data, isLoading, error, refetch } = usePaymentList({ status: 'verified', needs_attention: needsAttention || undefined, page, page_size: 25 })
@@ -208,6 +247,7 @@ function ReceiptsTab({ canAct }: { canAct: boolean }) {
           Needs attention
         </Button>
         {canAct && <Button variant="outline" size="sm" disabled={release.isPending} onClick={() => void handleRelease()}>Release held receipts</Button>}
+        <RowFilter value={filter} onChange={setFilter} />
       </div>
       {notice && <p role="status" className="rounded-lg border border-[#e4e8ee] bg-white px-4 py-2 text-sm text-gray-700">{notice}</p>}
       {error && <DashboardError error={error} onRetry={() => void refetch()} />}
@@ -216,15 +256,16 @@ function ReceiptsTab({ canAct }: { canAct: boolean }) {
           {isLoading ? <Loading /> : (
             <Table>
               <TableHeader>
-                <TableRow><TableHead>Receipt</TableHead><TableHead>Payment</TableHead><TableHead>Amount</TableHead><TableHead>Customer email</TableHead><TableHead>State</TableHead><TableHead /></TableRow>
+                <TableRow><TableHead>Receipt</TableHead><TableHead>Customer</TableHead><TableHead>Payment</TableHead><TableHead>Amount</TableHead><TableHead>Customer email</TableHead><TableHead>State</TableHead><TableHead /></TableRow>
               </TableHeader>
               <TableBody>
-                {data?.items.map((p) => {
+                {data?.items.filter((p) => matchesFilter(filter, p.customer_name, p.project_reference_id)).map((p) => {
                   const r = p.receipt
                   const reasons = (p.attention_reasons ?? []).filter((x) => x.startsWith('receipt_'))
                   return (
                     <TableRow key={p.payment_id} data-testid="receipt-row">
                       <TableCell className="text-sm">{r?.receipt_number ?? '—'}</TableCell>
+                      <TableCell className="text-sm"><WhoCell name={p.customer_name} code={p.project_reference_id} fallback="—" /></TableCell>
                       <TableCell className="text-sm"><Link className="text-[#0e2a63] underline" href={`/dashboard/accounts/payments/${p.payment_id}`}>#{p.payment_id}</Link></TableCell>
                       <TableCell>{formatInr(p.amount)}</TableCell>
                       <TableCell className="text-sm">{r ? (r.email_skipped_reason ? `Not sent: ${r.email_skipped_reason}` : r.email_status ?? '—') : '—'}</TableCell>
@@ -241,7 +282,7 @@ function ReceiptsTab({ canAct }: { canAct: boolean }) {
                     </TableRow>
                   )
                 })}
-                {data && data.items.length === 0 && <TableRow><TableCell colSpan={6} className="py-10 text-center text-sm text-gray-500">No receipts match.</TableCell></TableRow>}
+                {data && !data.items.some((p) => matchesFilter(filter, p.customer_name, p.project_reference_id)) && <TableRow><TableCell colSpan={7} className="py-10 text-center text-sm text-gray-500">No receipts match.</TableCell></TableRow>}
               </TableBody>
             </Table>
           )}

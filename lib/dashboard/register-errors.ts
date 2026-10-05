@@ -7,11 +7,11 @@ export const REGISTER_ERRORS: Record<string, string> = {
   invalid_category: 'Choose module, inverter or other.',
   equipment_required: 'Choose the model from the catalogue.',
   unknown_equipment: 'That model isn’t in the catalogue.',
-  equipment_category_mismatch: 'That model is a different kind of equipment.',
+  equipment_category_mismatch: 'That item is a different kind of equipment — a module unit needs a module, an inverter unit needs an inverter.',
   rating_required: 'Enter the rating.',
   invalid_number: 'The rating must be a number.',
   dcr_required: 'The DCR flag is required for a module.',
-  dcr_mismatch: 'The DCR flag doesn’t match the catalogue.',
+  dcr_mismatch: 'The DCR flag doesn’t match the catalogue. Pick an item whose DCR status agrees with what the associate declared.',
   warranty_pair: 'Enter both warranty dates, or neither.',
   warranty_order: 'The warranty can’t end before it starts.',
   warranty_too_long: 'That warranty period is longer than 40 years.',
@@ -20,13 +20,25 @@ export const REGISTER_ERRORS: Record<string, string> = {
   too_many_rows: 'You can save at most 200 units at once.',
   duplicate_serial: 'This serial number is already registered.',
   duplicate_in_batch: 'This serial number appears twice in this list.',
-  unit_voided: 'This unit has been voided and can’t be changed.',
+  unit_voided: 'This unit has been voided and can’t be changed or matched.',
   register_locked: 'The register is verified and locked. Only an Admin can change it, with a reason.',
   register_already_verified: 'The register is already verified.',
   register_incomplete: 'The register needs at least one module and one inverter before it can be verified.',
   reason_required: 'A reason is required.',
   register_rows_invalid: 'Some rows need fixing — nothing was saved.',
+  printed_too_long: 'The brand and model can each be at most 100 characters.',
+  equipment_inactive: 'That catalogue item is switched off. Pick an active one.',
+  not_matchable: 'This kind of equipment isn’t matched to the catalogue.',
+  already_matched: 'This unit has already been matched. The register has been refreshed.',
+  units_unmatched: 'Match every unit to a catalogue item before verifying the register.',
   override_exists: 'An override has already been recorded.',
+}
+
+/** The unit ids a 409 `units_unmatched` names, or null when this isn't that error. */
+export function unmatchedUnitIdsOf(err: unknown): number[] | null {
+  if (!(err instanceof ApiError) || err.structuredDetail?.code !== 'units_unmatched') return null
+  const ids = err.structuredDetail.unit_ids
+  return Array.isArray(ids) ? ids.filter((n): n is number => typeof n === 'number') : []
 }
 
 export function registerErrorMessage(err: unknown): string {

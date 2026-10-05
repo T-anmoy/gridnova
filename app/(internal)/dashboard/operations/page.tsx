@@ -18,6 +18,7 @@ const REASON_LABEL: Record<string, string> = {
   stuck: 'Stuck',
   dcr_mismatch: 'DCR mismatch',
   capacity_mismatch: 'Capacity mismatch',
+  catalogue_unmatched: 'Model not matched',
 }
 
 const STAGES = Object.entries(STAFF_EXECUTION_COPY.stages)

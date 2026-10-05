@@ -37,6 +37,12 @@ export interface Milestone {
   needs_attention?: boolean
 }
 
+// A row of the staff instalments queue: the milestone plus who it is for (HF-C).
+export interface StaffMilestone extends Milestone {
+  customer_name?: string | null
+  project_reference_id?: string | null
+}
+
 export interface PaymentTotals {
   accepted_total: string
   paid_verified: string
@@ -80,6 +86,9 @@ export interface StaffPayment extends Payment {
   cancelled_by: string | null
   needs_attention: boolean
   attention_reasons: string[]
+  // On every staff list row (HF-C), from the payment's project — also when there is no onboarding.
+  customer_name?: string | null
+  project_reference_id?: string | null
   receipt:
     | (Receipt & { email_skipped_reason?: string | null; held_reason?: string | null; render_error?: string | null })
     | null
