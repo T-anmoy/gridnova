@@ -12,12 +12,16 @@ const mockUseCreateOnboarding = vi.fn()
 const mockUseUpdateOnboarding = vi.fn()
 const mockUseUploadOnboardingFile = vi.fn()
 const mockUseSubmitOnboarding = vi.fn()
+const mockUseSetSiteLocation = vi.fn()
+const mockUseConfirmSiteLocation = vi.fn()
 vi.mock('@/lib/associate/onboarding-api-client', () => ({
   useOnboardingOptions: () => mockUseOnboardingOptions(),
   useCreateOnboarding: () => mockUseCreateOnboarding(),
   useUpdateOnboarding: () => mockUseUpdateOnboarding(),
   useUploadOnboardingFile: () => mockUseUploadOnboardingFile(),
   useSubmitOnboarding: () => mockUseSubmitOnboarding(),
+  useSetSiteLocation: () => mockUseSetSiteLocation(),
+  useConfirmSiteLocation: () => mockUseConfirmSiteLocation(),
 }))
 
 vi.mock('@/lib/associate/api-client', () => ({
@@ -38,6 +42,7 @@ const OPTIONS: OnboardingOptions = {
   photo_slots: [{ key: 'front', label: 'Front of premises' }],
   customer_timelines: ['immediate'],
   attribution_lock_days: 7,
+  site_location: { accuracy_good_m: 20, accuracy_warn_m: 50, accuracy_reject_m: 200, sample_seconds: 10, required_to_submit: true, sources: ['device_gps', 'photo_gps', 'google_maps_link', 'pasted_coordinates'], recommended_source: 'photo_gps' },
 }
 
 function existingOnboarding(over: Partial<Onboarding> = {}): Onboarding {
@@ -51,6 +56,7 @@ function existingOnboarding(over: Partial<Onboarding> = {}): Onboarding {
     territory: { state: { lgd_code: 19, name: 'West Bengal' }, district: null, block: null },
     site_latitude: null,
     site_longitude: null,
+    site_location: { present: true, confirmed: true, latitude: 22.5726, longitude: 88.3639, source: 'device_gps', accuracy_m: 8, captured_at: '2026-01-01T00:00:00Z', verified: true, confirmed_at: '2026-01-01T00:00:00Z', confirmed_by: 'GNA-1', precision: null, flags: [], photo_distance_m: null, maps_url: 'https://www.google.com/maps?q=22.5726,88.3639' },
     connection_in_customer_name: true,
     property_in_customer_name: true,
     customer_timeline: 'immediate',
@@ -78,6 +84,8 @@ beforeEach(() => {
   mockUseOnboardingOptions.mockReturnValue({ data: OPTIONS, isLoading: false })
   mockUseCreateOnboarding.mockReturnValue({ mutateAsync: vi.fn() })
   mockUseUpdateOnboarding.mockReturnValue({ mutateAsync: vi.fn().mockResolvedValue({}) })
+  mockUseSetSiteLocation.mockReturnValue({ mutateAsync: vi.fn(), isPending: false })
+  mockUseConfirmSiteLocation.mockReturnValue({ mutateAsync: vi.fn(), isPending: false })
 })
 
 async function goToStep(user: ReturnType<typeof userEvent.setup>, count: number) {
@@ -105,7 +113,7 @@ describe('OnboardingWizard — warnings never block submission', () => {
     expect(screen.getByText(copy.warnings.attribution_review)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: copy.continueButton })).not.toBeDisabled()
 
-    await goToStep(user, 7) // notice -> ... -> review
+    await goToStep(user, 8) // notice -> ... -> house -> ... -> review
     expect(screen.getByText(copy.warnings.attribution_review)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: copy.review.submitButton })).not.toBeDisabled()
   })
@@ -128,7 +136,7 @@ describe('OnboardingWizard — submit-time missing documents show translated lab
     const user = userEvent.setup()
     render(withI18n(<OnboardingWizard copy={copy} territory={en.associates.territory} portalBase="/associates/portal" existing={existingOnboarding({ onboarding_id: 602 })} />))
 
-    await goToStep(user, 7)
+    await goToStep(user, 8)
     await user.click(screen.getByRole('button', { name: copy.review.submitButton }))
 
     expect(await screen.findByText('Electricity bill')).toBeInTheDocument()
@@ -151,7 +159,7 @@ describe('OnboardingWizard — a document only counts as attached once its uploa
     const { container } = render(
       withI18n(<OnboardingWizard copy={copy} territory={en.associates.territory} portalBase="/associates/portal" existing={existingOnboarding({ onboarding_id: 603 })} />)
     )
-    await goToStep(user, 5) // notice -> customer -> connection -> property -> requirement -> documents
+    await goToStep(user, 6) // notice -> customer -> connection -> property -> requirement -> house -> documents
 
     const input = container.querySelector('input[type="file"]') as HTMLInputElement
     const file = new File(['x'], 'bill.pdf', { type: 'application/pdf' })

@@ -41,7 +41,7 @@ beforeEach(() => {
 
 const showHome = () => render(withI18n(<PortalHome copy={en.associates.portal.associate.home} feed={feed} stageNames={stages} portalBase="/associates/portal" />))
 
-describe('describeTodo — the nine contract keys', () => {
+describe('describeTodo — the contract keys', () => {
   const cases: [HomeItem, string][] = [
     [item({ message_key: 'todo.documents_missing', params: { missing_documents: ['electricity_bill', 'id_proof'] } }), 'Documents still needed: Electricity bill, Id proof.'],
     [item({ message_key: 'todo.ready_to_submit' }), feed.todo.ready_to_submit],
@@ -73,7 +73,7 @@ describe('describeTodo — the nine contract keys', () => {
     const keys = Object.keys(en.associates.portal.feed.todo).sort()
     expect(Object.keys(hi.associates.portal.feed.todo).sort()).toEqual(keys)
     expect(Object.keys(bn.associates.portal.feed.todo).sort()).toEqual(keys)
-    expect(keys).toEqual(['documents_missing', 'execution_next_step', 'formal_proposal_ready', 'generic', 'payment_due', 'payment_overdue', 'ready_to_submit', 'receipt_available', 'stage_rejected', 'upload_signed_agreement'])
+    expect(keys).toEqual(['documents_missing', 'execution_next_step', 'formal_proposal_ready', 'generic', 'payment_due', 'payment_overdue', 'ready_to_submit', 'receipt_available', 'site_location_missing', 'site_location_unconfirmed', 'stage_rejected', 'upload_signed_agreement'])
   })
 
   it('translates in Hindi and Bengali too', () => {

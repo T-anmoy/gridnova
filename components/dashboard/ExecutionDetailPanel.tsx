@@ -257,6 +257,20 @@ export default function ExecutionDetailPanel({ onboardingId, role }: { onboardin
               {d.customer.site.territory ? ` · ${d.customer.site.territory}` : ''}
             </p>
           )}
+          {(role === 'operations' || role === 'engineer') && d.customer.site.latitude != null && d.customer.site.longitude != null && (
+            // Site-work roles only. A link, never the numbers as text.
+            <p data-testid="house-location">
+              <span className="text-gray-500">House location (as confirmed by the associate): </span>
+              <a
+                href={`https://www.google.com/maps?q=${d.customer.site.latitude},${d.customer.site.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-blue-600 underline"
+              >
+                <ExternalLink className="h-3 w-3" /> Open in Google Maps
+              </a>
+            </p>
+          )}
           {d.customer.mobile && <p>Customer: {d.customer.mobile}</p>}
           {d.customer.associate && (
             <p>

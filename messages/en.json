@@ -1960,6 +1960,7 @@
           "connection": "Connection details",
           "property": "Property details",
           "requirement": "Requirement",
+          "house": "At the house",
           "documents": "Documents",
           "photos": "Photos",
           "review": "Review & submit"
@@ -2478,7 +2479,9 @@
           "upload_signed_agreement": "Upload the signed agreement.",
           "execution_next_step": "Next installation step: {stage}.",
           "receipt_available": "Receipt {number} is ready for the customer.",
-          "generic": "There is an update for this customer."
+          "generic": "There is an update for this customer.",
+          "site_location_missing": "Add the house location for this customer.",
+          "site_location_unconfirmed": "Confirm the house location for this customer."
         },
         "blocked": {
           "formal_proposal_blocked": "The formal proposal is on hold.",
@@ -2527,6 +2530,154 @@
     "waitingOnline": "Saved on this device — it will upload when you're back online.",
     "uploadingPct": "Uploading {percent}%",
     "uploading": "Uploading…",
-    "replace": "Replace photo"
+    "replace": "Replace photo",
+    "recommendedTag": "Recommended"
+  },
+  "siteLocation": {
+    "title": "At the house",
+    "intro": "Mark exactly where the customer's house is. You must confirm it before you can continue.",
+    "priority": {
+      "title": "First priority: take the site photos with the app camera.",
+      "body": "Every photo saves the exact location of the house automatically.",
+      "galleryLine": "Photos chosen from your phone are accepted, but Grid Nova may need to confirm them."
+    },
+    "state": {
+      "notSet": "Not set",
+      "needsConfirm": "Set — needs your confirmation",
+      "confirmedVerified": "Confirmed — location checked",
+      "confirmedUnverified": "Confirmed — Grid Nova will check this on the call"
+    },
+    "actions": {
+      "usePhoto": "Use the location of my site photo",
+      "usePhotoBest": "Best photo is accurate to about {meters} m.",
+      "takePhoto": "Take a photo now",
+      "captureHere": "Capture location here",
+      "haveLink": "I have a Google Maps link or location numbers",
+      "change": "Change location",
+      "retry": "Try again",
+      "save": "Save location",
+      "saving": "Saving…",
+      "confirm": "Yes, this is the customer's house",
+      "confirming": "Confirming…",
+      "openMaps": "Open in Google Maps",
+      "howTo": "How do I get this from Google Maps?",
+      "cancel": "Cancel",
+      "backToHouse": "Back to “At the house”"
+    },
+    "paste": {
+      "label": "Google Maps link or location numbers",
+      "hint": "Paste a link from Google Maps or WhatsApp, or numbers like 22.5726, 88.3639.",
+      "placeholder": "Paste here"
+    },
+    "photoPrompt": {
+      "question": "Use this photo's location as the house location?",
+      "yes": "Yes, use it"
+    },
+    "gps": {
+      "finding": "Finding your location… stay outside if you can.",
+      "saved": "Saved — accurate to about {meters} m.",
+      "poor": "The location is not very accurate (about {meters} m). Go outside, away from walls, and try again.",
+      "rejected": "This location is too rough to use (about {meters} m). Try again outside, or use another way.",
+      "denied": "Location is turned off for this app. Turn on location in your phone settings, then try again.",
+      "timeout": "We couldn't find your location in time. Go outside and try again.",
+      "unsupported": "This phone or browser can't share its location.",
+      "alternative": "You can also use a Google Maps link instead.",
+      "waitingOnline": "Reading saved on this phone. It will save when you're back online."
+    },
+    "details": {
+      "pin": "Pin",
+      "accuracy": "Accurate to about {meters} m",
+      "accuracyUnknown": "Accuracy not known",
+      "source": "How it was set",
+      "photoDistance": "About {meters} m from where your photos were taken",
+      "resetNote": "If you change the location, you will need to confirm it again."
+    },
+    "source": {
+      "device_gps": "Captured on this phone",
+      "photo_gps": "From a site photo",
+      "google_maps_link": "From a Google Maps link",
+      "pasted_coordinates": "From the numbers you typed",
+      "staff_entered": "Entered by Grid Nova",
+      "unknown_legacy": "Saved earlier"
+    },
+    "flags": {
+      "low_accuracy": "The location is not very accurate.",
+      "accuracy_unknown": "We don't know how accurate this location is.",
+      "approximate_location": "This is the middle of a map area, not an exact pin. Touch and hold on the house in Google Maps, then share that pin.",
+      "unverified_source": "Not checked — Grid Nova will confirm this with the customer.",
+      "far_from_photos": "Your photos were taken far from this point — please check the location.",
+      "location_missing": "No location yet."
+    },
+    "errors": {
+      "generic": "We couldn't save the location. Please try again.",
+      "offline": "No internet. Try again when you're back online.",
+      "link_rate_limited": "Too many links tried. Wait a little, or use Capture location here.",
+      "outside_india": "This point is outside India. Check it and try again.",
+      "outside_india_swapped": "This point is outside India. The two numbers may be the wrong way round — swap them and try again.",
+      "invalid_coordinates": "These numbers are not a valid location. Type them like 22.5726, 88.3639.",
+      "accuracy_too_low": "The location is too rough to use. Try again outside, or use a Google Maps link.",
+      "no_gps_on_photo": "That photo has no saved location. Take a new photo with the camera, or use another way.",
+      "no_gps_on_photo_no_photo": "There is no photo for that spot yet. Take a photo first.",
+      "no_gps_on_photo_not_camera": "That photo was chosen from the phone. Take a new photo with the camera, or use another way.",
+      "no_gps_on_photo_no_gps": "That photo has no saved location. Take a new photo with the camera, or use another way.",
+      "unknown_photo_slot": "We couldn't find that photo. Take it again.",
+      "site_location_not_set": "Set the house location first, then confirm it.",
+      "not_editable": "This customer can no longer be changed.",
+      "invalid_link": "That link didn't work. Copy the link again from Google Maps.",
+      "invalid_link_empty": "Paste a link or numbers first.",
+      "invalid_link_too_long": "That link is too long. In Google Maps tap Share and copy the link.",
+      "invalid_link_malformed": "That doesn't look like a link. Copy the whole link and paste it again.",
+      "invalid_link_scheme": "Only links starting with https:// work. Copy the link again from Google Maps.",
+      "invalid_link_userinfo": "That doesn't look like a Google Maps link. Copy the link again from Google Maps.",
+      "invalid_link_port": "That doesn't look like a Google Maps link. Copy the link again from Google Maps.",
+      "invalid_link_host_not_allowed": "Only Google Maps links work here. Open the house in Google Maps, tap Share and copy the link.",
+      "link_unresolvable": "We couldn't open that link. Open it in Google Maps, tap Share again, or use another way.",
+      "link_unresolvable_timeout": "The link took too long to open. Check your internet and try again.",
+      "link_unresolvable_network": "The link took too long to open. Check your internet and try again.",
+      "no_coordinates_in_link": "This link has no exact point in it."
+    },
+    "guidance": {
+      "drop_pin_and_share": "In Google Maps, touch and hold on the house to drop a pin, then tap Share and copy the link.",
+      "use_device_gps": "Or stand at the house and use Capture location here.",
+      "paste_coordinates": "Or paste the location numbers, like 22.5726, 88.3639."
+    },
+    "help": {
+      "title": "How do I get this from Google Maps?",
+      "steps": [
+        {
+          "title": "Open Google Maps",
+          "body": "Open the Google Maps app on your phone and find the customer's house."
+        },
+        {
+          "title": "Drop a pin",
+          "body": "Touch and hold on the house until a red pin appears."
+        },
+        {
+          "title": "Share and copy",
+          "body": "Tap Share, then Copy link. The customer can also send you their location on WhatsApp — copy the link in that message."
+        },
+        {
+          "title": "Paste it here",
+          "body": "Come back to this app, paste the link in the box and tap Save location."
+        }
+      ],
+      "close": "Close"
+    },
+    "review": {
+      "missing": "The house location is missing.",
+      "unconfirmed": "The house location is not confirmed yet.",
+      "goToStep": "Go to “At the house”"
+    },
+    "chip": {
+      "confirmed": "Location confirmed ✓",
+      "needed": "Location needed",
+      "toConfirm": "Confirm location"
+    },
+    "detail": {
+      "title": "House location",
+      "capturedOther": "Location captured",
+      "confirmedOther": "Location confirmed ✓",
+      "notCaptured": "Location not captured yet"
+    }
   }
 }

@@ -6,6 +6,7 @@ import Link from '@/components/i18n/Link'
 import { useOnboardings } from '@/lib/associate/onboarding-api-client'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import PinnedAction from '@/components/associate/PinnedAction'
+import LocationChip from '@/components/associate/LocationChip'
 import { nextStepKeyFromSummary } from '@/lib/onboarding/progress'
 import type { Onboarding } from '@/lib/associate/onboarding-types'
 import type { Messages } from '@/lib/i18n/types'
@@ -50,6 +51,10 @@ function CustomerCard({
           )}
           <ChevronRight className="h-4 w-4 text-[#111827]/30" />
         </div>
+      </div>
+
+      <div className="mt-3">
+        <LocationChip location={onboarding.site_location} status={onboarding.status} />
       </div>
 
       <NextStepLine summary={onboarding.progress_summary} blocked={onboarding.formal_proposal_blocked} nextStepCopy={nextStepCopy} actionNeededLabel={actionNeededLabel} />

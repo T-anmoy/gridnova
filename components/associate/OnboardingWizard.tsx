@@ -15,8 +15,12 @@ import {
 import { ApiError } from '@/lib/dashboard/api-error'
 import FileUploadSlot from '@/components/associate/FileUploadSlot'
 import PhotoCaptureSlot from '@/components/associate/PhotoCaptureSlot'
+import PhotosFirstCard from '@/components/associate/PhotosFirstCard'
+import SiteLocationStep, { PhotoLocationPrompt } from '@/components/associate/SiteLocationStep'
 import { usePhotoUploads } from '@/lib/associate/usePhotoUploads'
-import type { Onboarding, OnboardingWarning } from '@/lib/associate/onboarding-types'
+import { bestPhotoCandidate, serverPhotoCandidates } from '@/lib/associate/site-location'
+import { SITE_LOCATION_WARNING_CODES, type Onboarding, type OnboardingWarning, type SiteLocation } from '@/lib/associate/onboarding-types'
+import { useMessages } from '@/lib/i18n/client'
 import type { Messages } from '@/lib/i18n/types'
 
 type WizardCopy = Messages['associates']['portal']['wizard']
@@ -36,6 +40,9 @@ interface DraftState {
   // Remembered so a reload mid-wizard reuses the same onboarding (and finds its pending photos).
   onboarding_id?: number
 }
+
+// The photo slot embedded in the house step (the first camera photo the associate takes).
+const HOUSE_PHOTO_SLOT = 'panel_installation_area'
 
 const LAST_TERRITORY_KEY = 'gna-last-territory'
 
@@ -79,7 +86,7 @@ function Field({ label, htmlFor, children }: { label: string; htmlFor?: string; 
 function WarningNotice({ warning, copy }: { warning: OnboardingWarning; copy: WizardCopy['warnings'] }) {
   // attribution_review deliberately withholds who — the backend never sends
   // a name for it, and this notice must never imply one exists to guess.
-  const text = copy[warning.code] ?? warning.message
+  const text = (copy as Record<string, string>)[warning.code] ?? warning.message
   return (
     <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3">
       <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
@@ -93,13 +100,17 @@ export default function OnboardingWizard({
   territory,
   portalBase,
   existing,
+  initialStep,
 }: {
   copy: WizardCopy
   territory: TerritoryCopy
   portalBase: '/associates/portal' | '/preferred/portal'
   existing?: Onboarding
+  // Deep link from a to-do ("add / confirm the house location").
+  initialStep?: 'house'
 }) {
   const router = useRouter()
+  const siteCopy = useMessages('siteLocation')
   const draftKey = `gna-onboarding-${existing?.onboarding_id ?? 'new'}`
   const initialDraft: DraftState = existing
     ? {
@@ -123,10 +134,13 @@ export default function OnboardingWizard({
   const [documents, setDocuments] = useState<Record<string, File | null>>({})
   const [documentStatus, setDocumentStatus] = useState<Record<string, 'uploading' | 'success' | 'error' | undefined>>({})
   const [documentErrors, setDocumentErrors] = useState<Record<string, string | undefined>>({})
-  const [stepIndex, setStepIndex] = useState(0)
+  const steps: (keyof WizardCopy['steps'])[] = ['notice', 'customer', 'connection', 'property', 'requirement', 'house', 'documents', 'photos', 'review']
+  const [stepIndex, setStepIndex] = useState(() => (existing && initialStep ? steps.indexOf(initialStep) : 0))
+  // The server's own picture of the house location; only ever replaced by a response.
+  const [siteLocation, setSiteLocation] = useState<SiteLocation | undefined>(existing?.site_location)
   const [warnings, setWarnings] = useState<OnboardingWarning[]>(existing?.warnings ?? [])
   const [onboardingId, setOnboardingId] = useState<number | undefined>(existing?.onboarding_id)
-  const [submitError, setSubmitError] = useState<{ message: string; missing?: string[] } | null>(null)
+  const [submitError, setSubmitError] = useState<{ message: string; missing?: string[]; locationMissing?: boolean; locationUnconfirmed?: boolean } | null>(null)
 
   // A reload loses component state but not the autosaved draft: pick the
   // onboarding id back up from it rather than creating a duplicate customer.
@@ -134,12 +148,19 @@ export default function OnboardingWizard({
     if (!onboardingId && draft.onboarding_id) setOnboardingId(draft.onboarding_id)
   }, [onboardingId, draft.onboarding_id])
 
+  // Every response carries the whole onboarding, including its site_location —
+  // adopting it keeps the flags (far from photos, confirmed…) current.
+  function adopt(o: Onboarding | undefined) {
+    if (o?.site_location) setSiteLocation(o.site_location)
+  }
+
   const photoUploads = usePhotoUploads({
     scope: `onboarding-${onboardingId ?? 'pending'}`,
     upload: (slot, photo, onProgress) => {
       if (!onboardingId) return Promise.reject(new Error('onboarding not created yet'))
       const camera = photo.capture_method === 'camera'
-      return uploadMutation.mutateAsync({
+      return uploadMutation
+        .mutateAsync({
         id: onboardingId,
         input: {
           file: photo.file,
@@ -153,6 +174,10 @@ export default function OnboardingWizard({
           onProgress,
         },
       })
+        .then((res) => {
+          adopt(res)
+          return res
+        })
     },
     describeError: (err) => (err instanceof ApiError ? err.detail || err.message : copy.photos.uploadFailed),
   })
@@ -164,8 +189,20 @@ export default function OnboardingWizard({
   const uploadMutation = useUploadOnboardingFile()
   const submitMutation = useSubmitOnboarding()
 
-  const steps: (keyof WizardCopy['steps'])[] = ['notice', 'customer', 'connection', 'property', 'requirement', 'documents', 'photos', 'review']
   const stepKey = steps[stepIndex]
+
+  // The slot with the best-accuracy camera photo that the server already has.
+  const uploadedSlots = Object.entries(photoUploads.photos)
+    .filter(([slot, p]) => !!p && photoUploads.status[slot] === 'success')
+    .map(([slot, p]) => ({ slot, ...p! }))
+  const handledSlots = new Set(Object.keys(photoUploads.photos))
+  const photoCandidate = bestPhotoCandidate([
+    ...uploadedSlots,
+    ...serverPhotoCandidates(existing?.photos ?? []).filter((p) => !handledSlots.has(p.slot)),
+  ])
+  const houseSlot = options?.photo_slots.find((slot) => slot.key === HOUSE_PHOTO_SLOT)
+  const houseStepIndex = steps.indexOf('house')
+  const photosStepIndex = steps.indexOf('photos')
 
   function update<K extends keyof DraftState>(key: K, value: DraftState[K]) {
     setDraft((d) => ({ ...d, [key]: value }))
@@ -204,6 +241,7 @@ export default function OnboardingWizard({
       equipment_package: draft.equipment_package,
     })
     setOnboardingId(res.onboarding.onboarding_id)
+    adopt(res.onboarding)
     setDraft((d) => ({ ...d, onboarding_id: res.onboarding.onboarding_id }))
     setWarnings(res.warnings)
     return res.onboarding.onboarding_id
@@ -212,6 +250,7 @@ export default function OnboardingWizard({
   async function handleContinue() {
     setSubmitError(null)
     if (stepKey === 'notice' && !draft.notice_acknowledged) return
+    if (stepKey === 'house' && !siteLocation?.confirmed) return
     if (stepKey === 'requirement') {
       try {
         await ensureOnboarding()
@@ -239,7 +278,7 @@ export default function OnboardingWizard({
     setDocumentStatus((s) => ({ ...s, [documentType]: 'uploading' }))
     setDocumentErrors((e) => ({ ...e, [documentType]: undefined }))
     try {
-      await uploadMutation.mutateAsync({ id: onboardingId, input: { file, kind: 'document', document_type: documentType } })
+      adopt(await uploadMutation.mutateAsync({ id: onboardingId, input: { file, kind: 'document', document_type: documentType } }))
       setDocumentStatus((s) => ({ ...s, [documentType]: 'success' }))
     } catch (err) {
       setDocumentStatus((s) => ({ ...s, [documentType]: 'error' }))
@@ -265,7 +304,12 @@ export default function OnboardingWizard({
     } catch (err) {
       if (err instanceof ApiError && err.structuredDetail?.code === 'incomplete') {
         const missing = (err.structuredDetail.missing_documents as string[]) ?? []
-        setSubmitError({ message: err.structuredDetail.message as string, missing })
+        setSubmitError({
+          message: err.structuredDetail.message as string,
+          missing,
+          locationMissing: err.structuredDetail.missing_site_location === true,
+          locationUnconfirmed: err.structuredDetail.site_location_unconfirmed === true,
+        })
       } else {
         setSubmitError({ message: err instanceof ApiError ? err.detail || err.message : 'Failed to submit' })
       }
@@ -284,6 +328,24 @@ export default function OnboardingWizard({
   // keys, not labels — look each one up against the same options the
   // documents step already renders labels from, so review never shows a
   // raw backend key like "electricity_bill".
+  const renderPhotoSlot = (slot: (typeof options.photo_slots)[number]) => (
+    <PhotoCaptureSlot
+      key={slot.key}
+      label={slot.label}
+      exampleUrl={slot.example_image_url}
+      exampleLabel={copy.photos.exampleLabel}
+      captureLabel={copy.photos.captureButton}
+      locationRequiredLabel={copy.photos.locationRequired}
+      retryLabel={copy.photos.retryButton}
+      value={photoUploads.photos[slot.key] ?? null}
+      onChange={(p) => void photoUploads.capture(slot.key, p)}
+      status={photoUploads.status[slot.key]}
+      progress={photoUploads.progress[slot.key]}
+      uploadError={photoUploads.errors[slot.key]}
+      onRetryUpload={photoUploads.status[slot.key] === 'error' ? () => photoUploads.retry(slot.key) : undefined}
+    />
+  )
+
   const documentLabelByKey = new Map(options.documents.map((d) => [d.key, d.label]))
 
   // A 409 not_editable customer (no longer draft/submitted) can't be
@@ -325,7 +387,7 @@ export default function OnboardingWizard({
 
       {warnings.length > 0 && (
         <div className="mt-5 space-y-2">
-          {warnings.map((w) => (
+          {warnings.filter((w) => !SITE_LOCATION_WARNING_CODES.includes(w.code)).map((w) => (
             <WarningNotice key={w.code} warning={w} copy={copy.warnings} />
           ))}
         </div>
@@ -454,6 +516,18 @@ export default function OnboardingWizard({
           </div>
         )}
 
+        {stepKey === 'house' && onboardingId && (
+          <SiteLocationStep
+            onboardingId={onboardingId}
+            location={siteLocation}
+            options={options.site_location}
+            photoCandidate={photoCandidate}
+            onAdopt={adopt}
+            photoSlot={houseSlot ? renderPhotoSlot(houseSlot) : undefined}
+            onTakePhoto={houseSlot ? undefined : () => setStepIndex(photosStepIndex)}
+          />
+        )}
+
         {stepKey === 'documents' && (
           <div className="space-y-5">
             <p className="font-display text-base font-semibold text-[#0e2a63]">{copy.documents.title}</p>
@@ -480,27 +554,21 @@ export default function OnboardingWizard({
 
         {stepKey === 'photos' && (
           <div className="space-y-5">
+            <PhotosFirstCard />
+            {onboardingId && (
+              <PhotoLocationPrompt
+                onboardingId={onboardingId}
+                location={siteLocation}
+                candidate={photoCandidate}
+                onAdopt={adopt}
+                onBackToHouse={() => setStepIndex(houseStepIndex)}
+              />
+            )}
             <div>
               <p className="font-display text-base font-semibold text-[#0e2a63]">{copy.photos.title}</p>
               <p className="mt-1 text-xs text-[#111827]/55 leading-relaxed">{copy.photos.geotagNote}</p>
             </div>
-            {options.photo_slots.map((slot) => (
-              <PhotoCaptureSlot
-                key={slot.key}
-                label={slot.label}
-                exampleUrl={slot.example_image_url}
-                exampleLabel={copy.photos.exampleLabel}
-                captureLabel={copy.photos.captureButton}
-                locationRequiredLabel={copy.photos.locationRequired}
-                retryLabel={copy.photos.retryButton}
-                value={photoUploads.photos[slot.key] ?? null}
-                onChange={(p) => void photoUploads.capture(slot.key, p)}
-                status={photoUploads.status[slot.key]}
-                progress={photoUploads.progress[slot.key]}
-                uploadError={photoUploads.errors[slot.key]}
-                onRetryUpload={photoUploads.status[slot.key] === 'error' ? () => photoUploads.retry(slot.key) : undefined}
-              />
-            ))}
+            {options.photo_slots.filter((slot) => slot.key !== houseSlot?.key).map((slot) => renderPhotoSlot(slot))}
           </div>
         )}
 
@@ -510,6 +578,20 @@ export default function OnboardingWizard({
             {submitError && (
               <div className="rounded-lg border border-red-200 bg-red-50 p-4">
                 <p className="text-sm text-red-700">{submitError.message}</p>
+                {(submitError.locationMissing || submitError.locationUnconfirmed) && (
+                  <div className="mt-2" data-testid="incomplete-location">
+                    <p className="text-xs font-semibold text-red-800">
+                      {submitError.locationMissing ? siteCopy.review.missing : siteCopy.review.unconfirmed}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setStepIndex(houseStepIndex)}
+                      className="mt-1 min-h-[44px] rounded-lg border border-red-300 bg-white px-4 text-xs font-semibold text-red-800 font-utility"
+                    >
+                      {siteCopy.review.goToStep}
+                    </button>
+                  </div>
+                )}
                 {submitError.missing && submitError.missing.length > 0 && (
                   <>
                     <p className="mt-2 text-xs font-semibold text-red-800">{copy.review.missingDocumentsLabel}</p>
@@ -547,7 +629,7 @@ export default function OnboardingWizard({
           <button
             type="button"
             onClick={() => void handleContinue()}
-            disabled={stepKey === 'notice' && !draft.notice_acknowledged}
+            disabled={(stepKey === 'notice' && !draft.notice_acknowledged) || (stepKey === 'house' && !siteLocation?.confirmed)}
             className="flex items-center gap-1.5 rounded-lg bg-[#0e2a63] px-5 py-2.5 text-sm font-semibold text-white font-utility disabled:opacity-40"
           >
             {copy.continueButton} <ArrowRight className="h-4 w-4" />

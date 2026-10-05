@@ -118,6 +118,31 @@ beforeEach(() => {
   for (const fn of [h.verify, h.reject, h.record, h.mode, h.dcr, h.upload, h.refetch, h.push]) fn.mockReset()
 })
 
+describe('ExecutionDetailPanel — house location for site-work roles', () => {
+  const withCoords = () =>
+    detail({ customer: { ...detail().customer, site: { address: '12 Lake Road', pin_code: '700001', territory: 'Kolkata', latitude: 22.5726, longitude: 88.3639 } } })
+
+  it.each(['operations', 'engineer'] as const)('%s sees the label and an Open in Google Maps link, never the numbers as text', (role) => {
+    h.detail = { data: withCoords() }
+    showPanel(role)
+    const block = screen.getByTestId('house-location')
+    expect(block).toHaveTextContent('House location (as confirmed by the associate)')
+    expect(within(block).getByRole('link', { name: /Open in Google Maps/ })).toHaveAttribute('href', 'https://www.google.com/maps?q=22.5726,88.3639')
+    expect(document.body.textContent).not.toMatch(/22\.5726|88\.3639/)
+  })
+
+  it('shows nothing when the project has no coordinates', () => {
+    showPanel('operations')
+    expect(screen.queryByTestId('house-location')).not.toBeInTheDocument()
+  })
+
+  it('is not added for admin (who has the full site-location card on the project page)', () => {
+    h.detail = { data: withCoords() }
+    showPanel('admin')
+    expect(screen.queryByTestId('house-location')).not.toBeInTheDocument()
+  })
+})
+
 describe('ExecutionDetailPanel — stalls, flags and stage history', () => {
   it('marks a stuck project with days in stage, shows flags, mode and stage provenance (incl. admin override)', () => {
     showPanel()

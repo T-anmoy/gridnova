@@ -7,19 +7,21 @@ type FeedCopy = Messages['associates']['portal']['feed']
 type StageNames = Record<string, string>
 
 // Where each kind of to-do should take the associate.
-export type TodoTarget = 'detail' | 'execution' | 'payments'
+export type TodoTarget = 'detail' | 'execution' | 'payments' | 'house'
 export const TODO_TARGET: Record<string, TodoTarget> = {
   stage_rejected: 'execution',
   execution_next_step: 'execution',
   payment_due: 'payments',
   receipt_available: 'payments',
+  site_location_missing: 'house',
+  site_location_unconfirmed: 'house',
 }
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : v == null ? '' : String(v))
 
 /**
  * Turns a home-feed item (message key + params) into the sentence shown on its
- * card, in the viewer's language. The nine contract keys are translated; an
+ * card, in the viewer's language. The contract keys are translated; an
  * unknown key falls back to a safe generic line — a raw key is never shown.
  * Amounts are the server's decimal strings, formatted but never calculated.
  */
@@ -48,6 +50,10 @@ export function describeTodo(item: HomeItem, copy: FeedCopy, stageNames: StageNa
       return copy.todo.upload_signed_agreement
     case 'todo.execution_next_step':
       return copy.todo.execution_next_step.replace('{stage}', stage())
+    case 'todo.site_location_missing':
+      return copy.todo.site_location_missing
+    case 'todo.site_location_unconfirmed':
+      return copy.todo.site_location_unconfirmed
     case 'todo.receipt_available':
       return copy.todo.receipt_available.replace('{number}', str(p.receipt_number))
     default:

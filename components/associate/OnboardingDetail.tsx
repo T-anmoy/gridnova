@@ -16,6 +16,7 @@ import { DashboardError } from '@/components/dashboard/DashboardError'
 import OnboardingProgressPortal from '@/components/associate/OnboardingProgressPortal'
 import { isExecutionStage } from '@/lib/onboarding/progress'
 import { useAssociateMe } from '@/lib/associate/api-client'
+import LocationDetailCard from '@/components/associate/LocationDetailCard'
 import EstimateSection from '@/components/associate/EstimateSection'
 import FileUploadSlot from '@/components/associate/FileUploadSlot'
 import { ApiError } from '@/lib/dashboard/api-error'
@@ -322,6 +323,14 @@ export default function OnboardingDetail({
         >
           {paymentsCopy.open}
         </Link>
+      )}
+
+      {onboarding.site_location && (
+        <LocationDetailCard
+          location={onboarding.site_location}
+          isOwner={isOwner}
+          editHref={isOwner && onboarding.can_edit ? `${portalBase}/customers/${onboardingId}/edit?step=house` : undefined}
+        />
       )}
 
       <div className="rounded-2xl border border-[#e4e8ee] bg-white p-5">

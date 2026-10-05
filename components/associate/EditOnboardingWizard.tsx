@@ -11,11 +11,13 @@ export default function EditOnboardingWizard({
   copy,
   territory,
   portalBase,
+  initialStep,
 }: {
   onboardingId: number
   copy: Messages['associates']['portal']['wizard']
   territory: Messages['associates']['territory']
   portalBase: '/associates/portal' | '/preferred/portal'
+  initialStep?: 'house'
 }) {
   const { data: onboarding, isLoading, error, refetch } = useOnboarding(onboardingId)
 
@@ -28,5 +30,5 @@ export default function EditOnboardingWizard({
     )
   }
 
-  return <OnboardingWizard copy={copy} territory={territory} portalBase={portalBase} existing={onboarding} />
+  return <OnboardingWizard copy={copy} territory={territory} portalBase={portalBase} existing={onboarding} initialStep={initialStep} />
 }

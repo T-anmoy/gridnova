@@ -66,6 +66,16 @@ describe('PhotoCaptureSlot — two ways in', () => {
     expect(gallery.accept).toContain('.heic')
   })
 
+  it('"Take photo" is the filled primary button with a Recommended tag; "Choose from phone" stays, quieter', () => {
+    setup()
+    const take = screen.getByRole('button', { name: CAPTURE_LABEL })
+    const choose = screen.getByRole('button', { name: m.galleryButton })
+    expect(take.className).toContain('bg-[#0e2a63]')
+    expect(choose.className).not.toContain('bg-[#0e2a63]')
+    expect(screen.getByTestId('recommended-tag')).toHaveTextContent(m.recommendedTag)
+    expect(take).toHaveAccessibleDescription(m.recommendedTag)
+  })
+
   it('camera path requires location and sends capture_method=camera with the GPS reading and accuracy', async () => {
     geolocation((ok) => ok({ coords: { latitude: 22.5, longitude: 88.4, accuracy: 12 } } as GeolocationPosition))
     const { camera, onChange } = setup()

@@ -12,10 +12,97 @@ export type WarningCode =
   | 'pin_district_mismatch'
   | 'pin_not_in_directory'
   | 'attribution_review'
+  | SiteLocationWarningCode
 
 export interface OnboardingWarning {
   code: WarningCode
   message: string
+  // Present on site-location warnings: `site_location.warning.<code>`.
+  message_key?: string
+}
+
+// ── Site location (Phase 3C) ─────────────────────────────────────────────
+
+export type SiteLocationSource =
+  | 'device_gps'
+  | 'photo_gps'
+  | 'google_maps_link'
+  | 'pasted_coordinates'
+  | 'staff_entered'
+  | 'unknown_legacy'
+
+export type SiteLocationFlag =
+  | 'low_accuracy'
+  | 'accuracy_unknown'
+  | 'approximate_location'
+  | 'unverified_source'
+  | 'far_from_photos'
+  | 'location_missing'
+
+export type SiteLocationWarningCode =
+  | 'low_accuracy'
+  | 'accuracy_unknown'
+  | 'approximate_location'
+  | 'unverified_source'
+  | 'far_from_photos'
+  | 'accuracy_poor'
+
+export const SITE_LOCATION_WARNING_CODES: readonly string[] = [
+  'low_accuracy',
+  'accuracy_unknown',
+  'approximate_location',
+  'unverified_source',
+  'far_from_photos',
+  'accuracy_poor',
+]
+
+// The owner and staff get every field; a Preferred Associate viewing a
+// downline customer gets only `present` and `confirmed` — so every other
+// field is optional and must never be assumed.
+export interface SiteLocation {
+  present: boolean
+  confirmed: boolean
+  latitude?: number | null
+  longitude?: number | null
+  source?: SiteLocationSource | null
+  accuracy_m?: number | null
+  captured_at?: string | null
+  verified?: boolean
+  confirmed_at?: string | null
+  confirmed_by?: string | null
+  precision?: 'exact' | 'viewport_center' | null
+  flags?: SiteLocationFlag[]
+  photo_distance_m?: number | null
+  maps_url?: string | null
+  // Staff only.
+  check_with_customer?: boolean
+}
+
+export type SetSiteLocationInput =
+  | { source: 'device_gps'; latitude: number; longitude: number; accuracy_m: number; captured_at: string }
+  | { source: 'photo_gps'; photo_slot: string }
+  | { source: 'google_maps_link'; link: string }
+  | { source: 'pasted_coordinates'; text: string }
+
+export interface SiteLocationOptions {
+  accuracy_good_m: number
+  accuracy_warn_m: number
+  accuracy_reject_m: number
+  sample_seconds: number
+  required_to_submit: boolean
+  sources: SiteLocationSource[]
+  recommended_source: SiteLocationSource
+}
+
+export interface SiteLocationResponse extends Onboarding {
+  warnings: OnboardingWarning[]
+}
+
+export interface CorrectSiteLocationInput {
+  source: 'google_maps_link' | 'pasted_coordinates'
+  link?: string
+  text?: string
+  reason: string
 }
 
 export interface TerritoryRef {
@@ -55,6 +142,8 @@ export interface OnboardingFile {
   received_at: string
   latitude: number | null
   longitude: number | null
+  // Photos only. `null` to a Preferred Associate viewing a downline customer.
+  accuracy_m?: number | null
   client_captured_at: string | null
   // Photos only.
   capture_method?: CaptureMethod | null
@@ -133,6 +222,7 @@ export interface Onboarding {
   territory: OnboardingTerritory
   site_latitude: number | null
   site_longitude: number | null
+  site_location: SiteLocation
   connection_in_customer_name: boolean
   property_in_customer_name: boolean
   customer_timeline: string | null
@@ -184,6 +274,7 @@ export interface OnboardingOptions {
   photo_slots: PhotoSlotOption[]
   customer_timelines: string[]
   attribution_lock_days: number
+  site_location: SiteLocationOptions
 }
 
 // ── POST "" (create) ─────────────────────────────────────────────────────
@@ -264,6 +355,9 @@ export interface SubmitIncompleteDetail {
   code: 'incomplete'
   message: string
   missing_documents: string[]
+  // Both are always present on `incomplete`.
+  missing_site_location: boolean
+  site_location_unconfirmed: boolean
 }
 
 // ── Progress ──────────────────────────────────────────────────────────────

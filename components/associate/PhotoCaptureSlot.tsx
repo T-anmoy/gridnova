@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { Camera, AlertCircle, MapPin, Loader2, Image as ImageIcon, CloudOff } from 'lucide-react'
 import { useMessages } from '@/lib/i18n/client'
 import { prepareImage, PhotoPrepError, type PhotoPrepErrorCode } from '@/lib/associate/image-prep'
@@ -14,8 +14,12 @@ const PREP_ERROR_KEY: Record<PhotoPrepErrorCode, 'notAnImage' | 'heicFailed' | '
   too_large: 'tooLarge',
 }
 
-const BUTTON =
-  'flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-[#e4e8ee] px-3 py-3 text-center font-utility text-sm font-semibold text-[#0e2a63] transition-colors hover:border-[#2f5daa]/40'
+const BUTTON_BASE =
+  'flex min-h-[56px] w-full flex-col items-center justify-center gap-1 rounded-xl px-3 py-3 text-center font-utility text-sm font-semibold transition-colors disabled:opacity-60'
+// "Take photo" is the recommended way in (it carries the house's location), so
+// it is the filled button; the gallery option stays available but quieter.
+const BUTTON_PRIMARY = `${BUTTON_BASE} border-2 border-[#0e2a63] bg-[#0e2a63] text-white hover:bg-[#0e2a63]/90`
+const BUTTON_SECONDARY = `${BUTTON_BASE} border-2 border-dashed border-[#e4e8ee] text-[#0e2a63] hover:border-[#2f5daa]/40`
 
 // Every photo slot offers two ways in: "Take photo" (the device camera; the
 // location is read at that moment and is required) and "Choose from phone"
@@ -55,6 +59,7 @@ export default function PhotoCaptureSlot({
   progress?: number | null
 }) {
   const m = useMessages('photoSlot')
+  const tagId = useId()
   const cameraRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLInputElement>(null)
   const [locationError, setLocationError] = useState(false)
@@ -176,14 +181,32 @@ export default function PhotoCaptureSlot({
       )}
 
       <div className="mt-2.5 flex gap-2">
-        <button type="button" disabled={preparing} onClick={() => cameraRef.current?.click()} className={BUTTON}>
-          <Camera className="h-5 w-5 text-[#2f5daa]/70" />
-          {captureLabel}
-        </button>
-        <button type="button" disabled={preparing} onClick={() => galleryRef.current?.click()} className={BUTTON}>
-          <ImageIcon className="h-5 w-5 text-[#2f5daa]/70" />
-          {m.galleryButton}
-        </button>
+        <div className="relative flex-1 pt-2.5">
+          <span
+            id={`${tagId}-tag`}
+            data-testid="recommended-tag"
+            className="absolute left-3 top-0 z-10 rounded-full bg-[#f7a800] px-2 py-0.5 font-utility text-[10px] font-bold uppercase tracking-wide text-[#3d2a00]"
+          >
+            {m.recommendedTag}
+          </span>
+          <button
+            type="button"
+            data-testid="take-photo-button"
+            aria-describedby={`${tagId}-tag`}
+            disabled={preparing}
+            onClick={() => cameraRef.current?.click()}
+            className={BUTTON_PRIMARY}
+          >
+            <Camera className="h-5 w-5" />
+            {captureLabel}
+          </button>
+        </div>
+        <div className="flex-1 pt-2.5">
+          <button type="button" data-testid="choose-photo-button" disabled={preparing} onClick={() => galleryRef.current?.click()} className={BUTTON_SECONDARY}>
+            <ImageIcon className="h-5 w-5 text-[#2f5daa]/70" />
+            {m.galleryButton}
+          </button>
+        </div>
         {picker(cameraRef, 'camera')}
         {picker(galleryRef, 'gallery')}
       </div>

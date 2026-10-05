@@ -8,7 +8,9 @@ import type {
   InPersonAcceptanceInput,
   InPersonAcceptanceResponse,
   Onboarding,
+  CorrectSiteLocationInput,
   ProgressResponse,
+  SiteLocationResponse,
   UploadSignedAgreementInput,
 } from '@/lib/associate/onboarding-types'
 import type {
@@ -77,6 +79,24 @@ export function useVerificationCall() {
         method: 'POST',
         body: JSON.stringify(input),
       })
+    },
+    onSuccess: (_data, vars) => {
+      void qc.invalidateQueries({ queryKey: ['staff-onboarding', vars.id] })
+      void qc.invalidateQueries({ queryKey: ['staff-onboardings'] })
+    },
+  })
+}
+
+// ── Site location (admin, sales) ─────────────────────────────────────────
+
+export function useCorrectSiteLocation() {
+  const { getToken } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, input }: { id: number; input: CorrectSiteLocationInput }) => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<SiteLocationResponse>(`${BASE}/${id}/site-location`, token, { method: 'POST', body: JSON.stringify(input) })
     },
     onSuccess: (_data, vars) => {
       void qc.invalidateQueries({ queryKey: ['staff-onboarding', vars.id] })

@@ -22,6 +22,7 @@ const PRIORITY_STYLE: Record<number, string> = {
 function hrefFor(item: HomeItem, portalBase: string): string {
   const target = TODO_TARGET[item.kind] ?? 'detail'
   const base = `${portalBase}/customers/${item.onboarding_id}`
+  if (target === 'house') return `${base}/edit?step=house`
   return target === 'detail' ? base : `${base}/${target}`
 }
 

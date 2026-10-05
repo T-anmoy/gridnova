@@ -31,6 +31,7 @@ vi.mock('@/lib/dashboard/onboarding-api-client', () => ({
   useStaffOnboardingAgreement: () => mockUseStaffOnboardingAgreement(),
   useGenerateAgreement: () => mockUseGenerateAgreement(),
   useUploadStaffSignedAgreement: () => mockUseUploadStaffSignedAgreement(),
+  useCorrectSiteLocation: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }))
 
 const ONBOARDING: Onboarding = {
@@ -43,6 +44,7 @@ const ONBOARDING: Onboarding = {
   territory: { state: { lgd_code: 19, name: 'West Bengal' }, district: null, block: null },
   site_latitude: null,
   site_longitude: null,
+  site_location: { present: false, confirmed: false, flags: ['location_missing'] },
   connection_in_customer_name: true,
   property_in_customer_name: true,
   customer_timeline: 'immediate',

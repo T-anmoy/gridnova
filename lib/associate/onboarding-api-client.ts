@@ -18,6 +18,8 @@ import type {
   PaginatedOnboardings,
   ProgressResponse,
   RequestFormalProposalResponse,
+  SetSiteLocationInput,
+  SiteLocationResponse,
   UploadFileInput,
   UploadSignedAgreementInput,
 } from './onboarding-types'
@@ -191,6 +193,45 @@ export function useSubmitOnboarding() {
     onSuccess: (_data, id) => {
       void qc.invalidateQueries({ queryKey: ['onboarding', id] })
       void qc.invalidateQueries({ queryKey: ['onboardings'] })
+    },
+  })
+}
+
+// ── Site location ─────────────────────────────────────────────────────────
+
+// Owner only. Setting a location always leaves it unconfirmed; any change
+// clears a prior confirmation, and a submitted customer returns to draft —
+// the response is the whole onboarding, so callers just adopt it.
+export function useSetSiteLocation() {
+  const { getToken } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, input }: { id: number; input: SetSiteLocationInput }) => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<SiteLocationResponse>(`${BASE}/${id}/site-location`, token, { method: 'POST', body: JSON.stringify(input) })
+    },
+    onSuccess: (_data, vars) => {
+      void qc.invalidateQueries({ queryKey: ['onboarding', vars.id] })
+      void qc.invalidateQueries({ queryKey: ['onboardings'] })
+      void qc.invalidateQueries({ queryKey: ['home'] })
+    },
+  })
+}
+
+export function useConfirmSiteLocation() {
+  const { getToken } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      return dashboardFetch<SiteLocationResponse>(`${BASE}/${id}/site-location/confirm`, token, { method: 'POST' })
+    },
+    onSuccess: (_data, id) => {
+      void qc.invalidateQueries({ queryKey: ['onboarding', id] })
+      void qc.invalidateQueries({ queryKey: ['onboardings'] })
+      void qc.invalidateQueries({ queryKey: ['home'] })
     },
   })
 }

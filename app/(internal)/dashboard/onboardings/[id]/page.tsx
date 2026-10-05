@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import OnboardingProgressStaff from '@/components/dashboard/OnboardingProgressStaff'
+import { ConfirmLocationPrompt, SiteLocationCard } from '@/components/dashboard/SiteLocationStaff'
 import PhotoFlagBadges from '@/components/dashboard/PhotoFlagBadges'
 import ExecutionDetailPanel from '@/components/dashboard/ExecutionDetailPanel'
 import StaffPaymentsSection from '@/components/dashboard/StaffPaymentsSection'
@@ -32,6 +33,7 @@ import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { ApiError, wrongAccountOf } from '@/lib/dashboard/api-error'
 import { FormalProposalBlockedBanner } from '@/components/dashboard/FormalProposalBlocked'
 import { formatCurrency, formatDatetime } from '@/lib/dashboard/utils'
+import type { SiteLocation } from '@/lib/associate/onboarding-types'
 
 function errorMessage(err: unknown, fallback: string): string {
   if (err instanceof ApiError) return err.detail || err.message
@@ -39,7 +41,7 @@ function errorMessage(err: unknown, fallback: string): string {
   return fallback
 }
 
-function VerificationCallSection({ onboardingId, verification }: { onboardingId: number; verification: { completed: boolean; verified_at: string | null; note?: string; verified_by_employee_id?: string } }) {
+function VerificationCallSection({ onboardingId, verification, siteLocation }: { onboardingId: number; siteLocation?: SiteLocation; verification: { completed: boolean; verified_at: string | null; note?: string; verified_by_employee_id?: string } }) {
   const [note, setNote] = useState('')
   const mutation = useVerificationCall()
 
@@ -61,6 +63,7 @@ function VerificationCallSection({ onboardingId, verification }: { onboardingId:
         ) : (
           <>
             <p className="text-sm text-gray-500">Not yet completed.</p>
+            <ConfirmLocationPrompt location={siteLocation} />
             <Textarea placeholder="Call note" value={note} onChange={(e) => setNote(e.target.value)} />
             <Button
               size="sm"
@@ -354,7 +357,9 @@ export default function StaffOnboardingDetailPage() {
         </div>
       )}
 
-      <VerificationCallSection onboardingId={onboardingId} verification={onboarding.verification} />
+      <VerificationCallSection onboardingId={onboardingId} verification={onboarding.verification} siteLocation={onboarding.site_location} />
+
+      <SiteLocationCard onboardingId={onboardingId} location={onboarding.site_location} role={role} />
 
       <ScoreSection score={onboarding.score} />
 
