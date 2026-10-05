@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { UploadCloud, X, FileText, AlertCircle, Image as ImageIcon, Loader2 } from 'lucide-react'
 
-const MAX_SIZE_MB = 5
+const DEFAULT_MAX_SIZE_MB = 5
 
 export default function FileUploadSlot({
   label,
@@ -21,6 +21,7 @@ export default function FileUploadSlot({
   uploading,
   onRetry,
   retryLabel,
+  maxSizeMb = DEFAULT_MAX_SIZE_MB,
 }: {
   label: string
   why: string
@@ -40,6 +41,7 @@ export default function FileUploadSlot({
   uploading?: boolean
   onRetry?: () => void
   retryLabel?: string
+  maxSizeMb?: number
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [localError, setLocalError] = useState<string | null>(null)
@@ -55,8 +57,8 @@ export default function FileUploadSlot({
   function handleFiles(list: FileList | null) {
     const picked = list?.[0]
     if (!picked) return
-    if (picked.size > MAX_SIZE_MB * 1024 * 1024) {
-      setLocalError(`"${picked.name}" exceeds the ${MAX_SIZE_MB}MB limit`)
+    if (picked.size > maxSizeMb * 1024 * 1024) {
+      setLocalError(`"${picked.name}" exceeds the ${maxSizeMb}MB limit`)
       return
     }
     setLocalError(null)

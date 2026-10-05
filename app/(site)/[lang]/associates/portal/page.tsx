@@ -6,7 +6,7 @@ export default async function AssociatePortalHomePage({ params }: LangParams) {
   const m = messagesFor(await resolveLocale(params)).associates
   return (
     <PortalShell base="/associates/portal" active="home" showTerritory={false} labels={m.portal.nav} signOutLabel={m.portal.nav.signOut}>
-      <PortalHome copy={m.portal.associate.home} />
+      <PortalHome copy={m.portal.associate.home} feed={m.portal.feed} stageNames={m.portal.execution.stages} portalBase="/associates/portal" />
     </PortalShell>
   )
 }

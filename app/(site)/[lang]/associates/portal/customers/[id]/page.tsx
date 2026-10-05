@@ -19,6 +19,8 @@ export default async function AssociatePortalCustomerDetailPage({
         agreementCopy={m.portal.agreement}
         checklistCopy={m.portal.checklist}
         estimateCopy={m.portal.estimate}
+        executionCopy={m.portal.execution}
+        paymentsCopy={m.portal.payments}
       />
     </PortalShell>
   )

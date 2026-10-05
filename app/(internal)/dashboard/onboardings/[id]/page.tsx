@@ -17,7 +17,6 @@ import {
   useGenerateAgreement,
   useUploadStaffSignedAgreement,
 } from '@/lib/dashboard/onboarding-api-client'
-import { ApiError } from '@/lib/dashboard/api-error'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -26,6 +25,11 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import OnboardingProgressStaff from '@/components/dashboard/OnboardingProgressStaff'
+import PhotoFlagBadges from '@/components/dashboard/PhotoFlagBadges'
+import ExecutionDetailPanel from '@/components/dashboard/ExecutionDetailPanel'
+import StaffPaymentsSection from '@/components/dashboard/StaffPaymentsSection'
+import { useStaffRole } from '@/lib/dashboard/use-staff-role'
+import { ApiError, wrongAccountOf } from '@/lib/dashboard/api-error'
 import { FormalProposalBlockedBanner } from '@/components/dashboard/FormalProposalBlocked'
 import { formatCurrency, formatDatetime } from '@/lib/dashboard/utils'
 
@@ -291,8 +295,27 @@ export default function StaffOnboardingDetailPage() {
   const { data: onboarding, isLoading, error, refetch } = useStaffOnboarding(onboardingId)
   const { data: progress } = useStaffOnboardingProgress(onboardingId)
   const { data: estimates } = useStaffOnboardingEstimates(onboardingId)
+  const { role } = useStaffRole()
+  const stageRecorded = (stage: string) => !!progress?.stages.some((st) => st.stage === stage && st.recorded)
 
-  if (error) return <div className="p-8"><DashboardError error={error} onRetry={() => void refetch()} /></div>
+  // Operations, engineers and Accounts follow email links here but may not read the
+  // sales-side customer record: show them just the part of the project they own.
+  if (error) {
+    const forbidden = error instanceof ApiError && error.status === 403 && !wrongAccountOf(error)
+    if (forbidden && (role === 'operations' || role === 'engineer' || role === 'accounts')) {
+      return (
+        <div className="p-6 md:p-8 space-y-6 max-w-4xl" data-testid="reduced-project-view">
+          <h1 className="text-2xl font-bold text-[#091c3c]">Project #{onboardingId}</h1>
+          {role === 'accounts' ? (
+            <StaffPaymentsSection onboardingId={onboardingId} role={role} />
+          ) : (
+            <ExecutionDetailPanel onboardingId={onboardingId} role={role} />
+          )}
+        </div>
+      )
+    }
+    return <div className="p-8"><DashboardError error={error} onRetry={() => void refetch()} /></div>
+  }
   if (isLoading || !onboarding) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -350,8 +373,22 @@ export default function StaffOnboardingDetailPage() {
               ))}
             </ul>
           )}
+          {onboarding.photos.length > 0 && (
+            <ul className="mt-3 space-y-2" aria-label="Photos">
+              {onboarding.photos.map((p) => (
+                <li key={p.file_ref} className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="text-gray-700">{p.photo_slot ?? p.filename}</span>
+                  <PhotoFlagBadges captureMethod={p.capture_method} locationVerified={p.location_verified} flags={p.flags} />
+                </li>
+              ))}
+            </ul>
+          )}
         </CardContent>
       </Card>
+
+      {stageRecorded('agreement_signed') && role && role !== 'accounts' && <ExecutionDetailPanel onboardingId={onboardingId} role={role} />}
+
+      {stageRecorded('accepted') && <StaffPaymentsSection onboardingId={onboardingId} role={role} />}
 
       {estimates && estimates.length > 0 && (
         <Card>

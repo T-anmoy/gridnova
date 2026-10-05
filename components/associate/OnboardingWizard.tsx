@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertCircle, CheckCircle2, Loader2, ArrowLeft, ArrowRight } from 'lucide-react'
 import TerritorySelect, { type TerritoryCopy } from '@/components/associate/TerritorySelect'
@@ -14,7 +14,8 @@ import {
 } from '@/lib/associate/onboarding-api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
 import FileUploadSlot from '@/components/associate/FileUploadSlot'
-import PhotoCaptureSlot, { type CapturedPhoto } from '@/components/associate/PhotoCaptureSlot'
+import PhotoCaptureSlot from '@/components/associate/PhotoCaptureSlot'
+import { usePhotoUploads } from '@/lib/associate/usePhotoUploads'
 import type { Onboarding, OnboardingWarning } from '@/lib/associate/onboarding-types'
 import type { Messages } from '@/lib/i18n/types'
 
@@ -32,6 +33,21 @@ interface DraftState {
   customer_timeline: string
   equipment_package: string
   notice_acknowledged: boolean
+  // Remembered so a reload mid-wizard reuses the same onboarding (and finds its pending photos).
+  onboarding_id?: number
+}
+
+const LAST_TERRITORY_KEY = 'gna-last-territory'
+
+// A new customer usually lives in the same area as the previous one: pre-fill
+// state / district from earlier in this browser session.
+function rememberedTerritory(): Pick<DraftState, 'state_lgd_code' | 'district_lgd_code'> | null {
+  try {
+    const raw = window.sessionStorage.getItem(LAST_TERRITORY_KEY)
+    return raw ? (JSON.parse(raw) as Pick<DraftState, 'state_lgd_code' | 'district_lgd_code'>) : null
+  } catch {
+    return null
+  }
 }
 
 const EMPTY_DRAFT: DraftState = {
@@ -99,7 +115,7 @@ export default function OnboardingWizard({
         equipment_package: '',
         notice_acknowledged: true,
       }
-    : EMPTY_DRAFT
+    : { ...EMPTY_DRAFT, ...(typeof window === 'undefined' ? null : rememberedTerritory()) }
   const [draft, setDraft, restored] = useAutosaveDraft<DraftState>(draftKey, initialDraft)
   // A slot only counts as attached once its upload has actually succeeded —
   // `status` tracks that separately from the picked file so an in-flight or
@@ -107,13 +123,39 @@ export default function OnboardingWizard({
   const [documents, setDocuments] = useState<Record<string, File | null>>({})
   const [documentStatus, setDocumentStatus] = useState<Record<string, 'uploading' | 'success' | 'error' | undefined>>({})
   const [documentErrors, setDocumentErrors] = useState<Record<string, string | undefined>>({})
-  const [photos, setPhotos] = useState<Record<string, CapturedPhoto | null>>({})
-  const [photoStatus, setPhotoStatus] = useState<Record<string, 'uploading' | 'success' | 'error' | undefined>>({})
-  const [photoErrors, setPhotoErrors] = useState<Record<string, string | undefined>>({})
   const [stepIndex, setStepIndex] = useState(0)
   const [warnings, setWarnings] = useState<OnboardingWarning[]>(existing?.warnings ?? [])
   const [onboardingId, setOnboardingId] = useState<number | undefined>(existing?.onboarding_id)
   const [submitError, setSubmitError] = useState<{ message: string; missing?: string[] } | null>(null)
+
+  // A reload loses component state but not the autosaved draft: pick the
+  // onboarding id back up from it rather than creating a duplicate customer.
+  useEffect(() => {
+    if (!onboardingId && draft.onboarding_id) setOnboardingId(draft.onboarding_id)
+  }, [onboardingId, draft.onboarding_id])
+
+  const photoUploads = usePhotoUploads({
+    scope: `onboarding-${onboardingId ?? 'pending'}`,
+    upload: (slot, photo, onProgress) => {
+      if (!onboardingId) return Promise.reject(new Error('onboarding not created yet'))
+      const camera = photo.capture_method === 'camera'
+      return uploadMutation.mutateAsync({
+        id: onboardingId,
+        input: {
+          file: photo.file,
+          kind: 'photo',
+          photo_slot: slot,
+          capture_method: photo.capture_method,
+          // Gallery photos carry no location or capture time: it would not be verified anyway.
+          ...(camera
+            ? { latitude: photo.latitude, longitude: photo.longitude, captured_at: photo.captured_at, accuracy_m: photo.accuracy_m }
+            : { exif_taken_at_client: photo.exif_taken_at_client }),
+          onProgress,
+        },
+      })
+    },
+    describeError: (err) => (err instanceof ApiError ? err.detail || err.message : copy.photos.uploadFailed),
+  })
 
   const { data: options, isLoading: optionsLoading } = useOnboardingOptions()
 
@@ -162,6 +204,7 @@ export default function OnboardingWizard({
       equipment_package: draft.equipment_package,
     })
     setOnboardingId(res.onboarding.onboarding_id)
+    setDraft((d) => ({ ...d, onboarding_id: res.onboarding.onboarding_id }))
     setWarnings(res.warnings)
     return res.onboarding.onboarding_id
   }
@@ -210,41 +253,6 @@ export default function OnboardingWizard({
   function retryDocumentUpload(documentType: string) {
     const file = documents[documentType]
     if (file) void handleUploadDocument(documentType, file)
-  }
-
-  async function handleCapturePhoto(slot: string, photo: CapturedPhoto | null) {
-    if (!photo) {
-      setPhotos((p) => ({ ...p, [slot]: null }))
-      setPhotoStatus((s) => ({ ...s, [slot]: undefined }))
-      setPhotoErrors((e) => ({ ...e, [slot]: undefined }))
-      return
-    }
-    if (!onboardingId) return
-    setPhotos((p) => ({ ...p, [slot]: photo }))
-    setPhotoStatus((s) => ({ ...s, [slot]: 'uploading' }))
-    setPhotoErrors((e) => ({ ...e, [slot]: undefined }))
-    try {
-      await uploadMutation.mutateAsync({
-        id: onboardingId,
-        input: {
-          file: photo.file,
-          kind: 'photo',
-          photo_slot: slot,
-          latitude: photo.latitude,
-          longitude: photo.longitude,
-          captured_at: photo.captured_at,
-        },
-      })
-      setPhotoStatus((s) => ({ ...s, [slot]: 'success' }))
-    } catch (err) {
-      setPhotoStatus((s) => ({ ...s, [slot]: 'error' }))
-      setPhotoErrors((e) => ({ ...e, [slot]: err instanceof ApiError ? err.detail || err.message : copy.photos.uploadFailed }))
-    }
-  }
-
-  function retryPhotoUpload(slot: string) {
-    const photo = photos[slot]
-    if (photo) void handleCapturePhoto(slot, photo)
   }
 
   async function handleSubmit() {
@@ -363,7 +371,14 @@ export default function OnboardingWizard({
               idPrefix="connection"
               copy={territory}
               value={{ state: draft.state_lgd_code, district: draft.district_lgd_code, block: draft.block_lgd_code }}
-              onChange={(n) => setDraft((d) => ({ ...d, state_lgd_code: n.state, district_lgd_code: n.district, block_lgd_code: n.block }))}
+              onChange={(n) => {
+                setDraft((d) => ({ ...d, state_lgd_code: n.state, district_lgd_code: n.district, block_lgd_code: n.block }))
+                try {
+                  window.sessionStorage.setItem(LAST_TERRITORY_KEY, JSON.stringify({ state_lgd_code: n.state, district_lgd_code: n.district }))
+                } catch {
+                  /* storage unavailable — pre-fill is a convenience only */
+                }
+              }}
               labels={{ state: copy.connection.stateLabel, district: copy.connection.districtLabel, block: copy.connection.blockLabel }}
               inputClass={() => inputClass}
               renderField={({ id, label, children }) => <Field label={label} htmlFor={id}>{children}</Field>}
@@ -478,11 +493,12 @@ export default function OnboardingWizard({
                 captureLabel={copy.photos.captureButton}
                 locationRequiredLabel={copy.photos.locationRequired}
                 retryLabel={copy.photos.retryButton}
-                value={photos[slot.key] ?? null}
-                onChange={(p) => void handleCapturePhoto(slot.key, p)}
-                uploading={photoStatus[slot.key] === 'uploading'}
-                uploadError={photoStatus[slot.key] === 'error' ? photoErrors[slot.key] : undefined}
-                onRetryUpload={photoStatus[slot.key] === 'error' ? () => retryPhotoUpload(slot.key) : undefined}
+                value={photoUploads.photos[slot.key] ?? null}
+                onChange={(p) => void photoUploads.capture(slot.key, p)}
+                status={photoUploads.status[slot.key]}
+                progress={photoUploads.progress[slot.key]}
+                uploadError={photoUploads.errors[slot.key]}
+                onRetryUpload={photoUploads.status[slot.key] === 'error' ? () => photoUploads.retry(slot.key) : undefined}
               />
             ))}
           </div>

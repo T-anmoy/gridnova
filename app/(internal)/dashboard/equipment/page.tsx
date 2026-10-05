@@ -336,7 +336,12 @@ export default function EquipmentPage() {
                   )
                 : items.map((item) => (
                     <TableRow key={item.id} className={item.is_active ? undefined : 'opacity-50'}>
-                      <TableCell className="font-utility font-medium text-[#091c3c]">{item.brand}</TableCell>
+                      <TableCell className="font-utility font-medium text-[#091c3c]">
+                        {item.brand}
+                        {item.is_placeholder && (
+                          <Badge variant="orange" className="ml-2" data-testid="dummy-chip">Dummy / pending Grid Nova</Badge>
+                        )}
+                      </TableCell>
                       <TableCell className="font-utility text-sm">{item.model_name}</TableCell>
                       <TableCell>
                         <Badge variant={CATEGORY_BADGE[item.category]}>{CATEGORY_LABELS[item.category]}</Badge>

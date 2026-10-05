@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Home, IdCard, User, HelpCircle, Map, LogOut, Users } from 'lucide-react'
 import Link from '@/components/i18n/Link'
 import { useLocale } from '@/lib/i18n/client'
+import LanguageSwitcher from '@/components/i18n/LanguageSwitcher'
 
 type NavKey = 'home' | 'idCard' | 'profile' | 'help' | 'territory' | 'customers'
 
@@ -75,7 +76,13 @@ export default function PortalShell({
           </button>
         </nav>
 
-        <div className="flex-1 min-w-0">{children}</div>
+        <div className="flex-1 min-w-0">
+          {/* One tap away on every portal screen — the site header hides it behind the menu on phones. */}
+          <div className="mb-4 flex justify-end" data-testid="portal-language-switcher">
+            <LanguageSwitcher tone="light" />
+          </div>
+          {children}
+        </div>
       </div>
 
       {/* Phone-first bottom tab bar */}

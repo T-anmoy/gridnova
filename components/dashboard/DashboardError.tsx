@@ -3,9 +3,11 @@
 import Link from 'next/link'
 import { AlertCircle, Clock, ServerCrash, ShieldOff, WifiOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { classifyApiError, type ErrorKind } from '@/lib/dashboard/api-error'
+import { WrongAccountNotice } from '@/components/dashboard/WrongAccountNotice'
+import { classifyApiError, wrongAccountOf, type ErrorKind } from '@/lib/dashboard/api-error'
 
 const KIND_ICON: Record<ErrorKind, React.ElementType> = {
+  wrongAccount: ShieldOff,
   auth: ShieldOff,
   forbidden: ShieldOff,
   rateLimited: Clock,
@@ -29,6 +31,8 @@ export function DashboardError({
   error: unknown
   onRetry?: () => void
 }) {
+  const wrong = wrongAccountOf(error)
+  if (wrong) return <WrongAccountNotice kind={wrong} />
   const c = classifyApiError(error)
   const Icon = KIND_ICON[c.kind]
   const amber = AMBER.includes(c.kind)

@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, Plus, ChevronRight } from 'lucide-react'
+import { Plus, ChevronRight } from 'lucide-react'
 import Link from '@/components/i18n/Link'
-import { useOnboardings, useOnboardingProgress } from '@/lib/associate/onboarding-api-client'
+import { useOnboardings } from '@/lib/associate/onboarding-api-client'
 import { DashboardError } from '@/components/dashboard/DashboardError'
-import { getNextStepKey } from '@/lib/onboarding/progress'
+import PinnedAction from '@/components/associate/PinnedAction'
+import { nextStepKeyFromSummary } from '@/lib/onboarding/progress'
 import type { Onboarding } from '@/lib/associate/onboarding-types'
 import type { Messages } from '@/lib/i18n/types'
 
@@ -23,11 +24,13 @@ function CustomerCard({
   portalBase,
   copy,
   nextStepCopy,
+  actionNeededLabel,
 }: {
   onboarding: Onboarding
   portalBase: '/associates/portal' | '/preferred/portal'
   copy: CustomersCopy
   nextStepCopy: NextStepCopy
+  actionNeededLabel: string
 }) {
   return (
     <Link
@@ -49,59 +52,66 @@ function CustomerCard({
         </div>
       </div>
 
-      <NextStepLine onboardingId={onboarding.onboarding_id} blocked={onboarding.formal_proposal_blocked} nextStepCopy={nextStepCopy} />
+      <NextStepLine summary={onboarding.progress_summary} blocked={onboarding.formal_proposal_blocked} nextStepCopy={nextStepCopy} actionNeededLabel={actionNeededLabel} />
     </Link>
   )
 }
 
-// A separate component so its progress fetch is scoped per card and cached
-// by React Query — the list endpoint doesn't include next_stage itself
-// (only GET /{id}/progress does), and the brief requires the card's "what
-// to do next" prompt to be derived from that real next_stage, not guessed.
+// The "what to do next" line comes from the list response's own
+// `progress_summary` — one request for the whole page, never one per card.
 function NextStepLine({
-  onboardingId,
+  summary,
   blocked,
   nextStepCopy,
+  actionNeededLabel,
 }: {
-  onboardingId: number
+  summary: Onboarding['progress_summary']
   blocked: Onboarding['formal_proposal_blocked']
   nextStepCopy: NextStepCopy
+  actionNeededLabel: string
 }) {
-  const { data: progress } = useOnboardingProgress(onboardingId)
-  if (blocked) {
-    return (
-      <p className="mt-3 text-xs font-utility text-amber-700">
-        {nextStepCopy[blocked.reason === 'draft_failed' ? 'blockedDraftFailed' : 'blockedMissingInformation']}
-      </p>
-    )
-  }
-  if (!progress) return null
-  const key = getNextStepKey(progress, blocked)
-  return <p className="mt-3 text-xs font-utility text-[#111827]/55">{nextStepCopy[key as keyof NextStepCopy] ?? nextStepCopy.none}</p>
+  const key = nextStepKeyFromSummary(summary, blocked)
+  if (!key) return null
+  const text = nextStepCopy[key as keyof NextStepCopy] ?? nextStepCopy.none
+  const stalled = key.startsWith('blocked') || key === 'executionRejected'
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2">
+      {summary?.needs_action && (
+        <span data-testid="action-needed" className="rounded-full bg-[#f7a800]/20 px-2.5 py-1 font-utility text-xs font-semibold text-[#7a5200]">
+          {actionNeededLabel}
+        </span>
+      )}
+      <p className={`text-xs font-utility ${stalled ? 'text-amber-700' : 'text-[#111827]/55'}`}>{text}</p>
+    </div>
+  )
 }
 
 export default function CustomersList({
   copy,
   nextStepCopy,
+  actionNeededLabel,
   portalBase,
 }: {
   copy: CustomersCopy
   nextStepCopy: NextStepCopy
+  actionNeededLabel: string
   portalBase: '/associates/portal' | '/preferred/portal'
 }) {
   const [mineOnly, setMineOnly] = useState(false)
   const { data, isLoading, error, refetch } = useOnboardings({ mine_only: mineOnly, page_size: 50 })
 
   return (
-    <div>
+    <div className="pb-24 sm:pb-0">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-bold text-[#091c3c]">{copy.title}</h1>
-        <Link
-          href={`${portalBase}/customers/new`}
-          className="flex items-center gap-1.5 rounded-lg bg-[#0e2a63] px-4 py-2.5 text-sm font-semibold text-white font-utility"
-        >
-          <Plus className="h-4 w-4" /> {copy.addButton}
-        </Link>
+        <PinnedAction>
+          <Link
+            href={`${portalBase}/customers/new`}
+            className="flex min-h-[48px] w-full items-center justify-center gap-1.5 rounded-lg bg-[#0e2a63] px-4 text-sm font-semibold text-white font-utility sm:min-h-[44px] sm:w-auto"
+          >
+            <Plus className="h-4 w-4" /> {copy.addButton}
+          </Link>
+        </PinnedAction>
       </div>
 
       <label className="mt-4 flex items-center gap-2 cursor-pointer">
@@ -112,8 +122,10 @@ export default function CustomersList({
       {error && <DashboardError error={error} onRetry={() => void refetch()} />}
 
       {isLoading && (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-[#111827]/30" />
+        <div role="status" aria-busy="true" className="mt-6 space-y-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-24 animate-pulse rounded-2xl bg-[#eef1f6]" />
+          ))}
         </div>
       )}
 
@@ -127,7 +139,7 @@ export default function CustomersList({
       {data && data.items.length > 0 && (
         <div className="mt-6 space-y-3">
           {data.items.map((o) => (
-            <CustomerCard key={o.onboarding_id} onboarding={o} portalBase={portalBase} copy={copy} nextStepCopy={nextStepCopy} />
+            <CustomerCard key={o.onboarding_id} onboarding={o} portalBase={portalBase} copy={copy} nextStepCopy={nextStepCopy} actionNeededLabel={actionNeededLabel} />
           ))}
         </div>
       )}

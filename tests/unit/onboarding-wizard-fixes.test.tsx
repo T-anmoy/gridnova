@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { en } from './helpers/i18n'
+import { en, withI18n } from './helpers/i18n'
 import { ApiError } from '@/lib/dashboard/api-error'
 import type { Onboarding, OnboardingOptions } from '@/lib/associate/onboarding-types'
 
@@ -93,12 +93,14 @@ describe('OnboardingWizard — warnings never block submission', () => {
     const { default: OnboardingWizard } = await import('@/components/associate/OnboardingWizard')
     const user = userEvent.setup()
     render(
-      <OnboardingWizard
-        territory={en.associates.territory}
-        copy={copy}
-        portalBase="/associates/portal"
-        existing={existingOnboarding({ onboarding_id: 601, warnings: [{ code: 'attribution_review', message: 'x' }] })}
-      />
+      withI18n(
+        <OnboardingWizard
+          territory={en.associates.territory}
+          copy={copy}
+          portalBase="/associates/portal"
+          existing={existingOnboarding({ onboarding_id: 601, warnings: [{ code: 'attribution_review', message: 'x' }] })}
+        />
+      )
     )
     expect(screen.getByText(copy.warnings.attribution_review)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: copy.continueButton })).not.toBeDisabled()
@@ -124,7 +126,7 @@ describe('OnboardingWizard — submit-time missing documents show translated lab
     })
     const { default: OnboardingWizard } = await import('@/components/associate/OnboardingWizard')
     const user = userEvent.setup()
-    render(<OnboardingWizard copy={copy} territory={en.associates.territory} portalBase="/associates/portal" existing={existingOnboarding({ onboarding_id: 602 })} />)
+    render(withI18n(<OnboardingWizard copy={copy} territory={en.associates.territory} portalBase="/associates/portal" existing={existingOnboarding({ onboarding_id: 602 })} />))
 
     await goToStep(user, 7)
     await user.click(screen.getByRole('button', { name: copy.review.submitButton }))
@@ -147,7 +149,7 @@ describe('OnboardingWizard — a document only counts as attached once its uploa
     const { default: OnboardingWizard } = await import('@/components/associate/OnboardingWizard')
     const user = userEvent.setup()
     const { container } = render(
-      <OnboardingWizard copy={copy} territory={en.associates.territory} portalBase="/associates/portal" existing={existingOnboarding({ onboarding_id: 603 })} />
+      withI18n(<OnboardingWizard copy={copy} territory={en.associates.territory} portalBase="/associates/portal" existing={existingOnboarding({ onboarding_id: 603 })} />)
     )
     await goToStep(user, 5) // notice -> customer -> connection -> property -> requirement -> documents
 

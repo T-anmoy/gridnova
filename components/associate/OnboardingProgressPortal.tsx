@@ -1,11 +1,11 @@
 import { Check } from 'lucide-react'
-import { toPortalSteps, PORTAL_STEP_ORDER } from '@/lib/onboarding/progress'
+import { toPortalSteps } from '@/lib/onboarding/progress'
 import type { ProgressResponse } from '@/lib/associate/onboarding-types'
 import type { Messages } from '@/lib/i18n/types'
 
 type ProgressCopy = Messages['associates']['portal']['shared']['progress']
 
-// Compact ~6-step tracker for the portal. Renders from the exact same
+// Compact tracker (7 sales steps, plus execution steps once they apply) for the portal. Renders from the exact same
 // GET /{id}/progress response the staff full view uses (via
 // lib/onboarding/progress.ts) — never a separately-maintained idea of stage
 // order.
@@ -16,8 +16,8 @@ export default function OnboardingProgressPortal({ progress, copy }: { progress:
     <div>
       <p className="font-utility text-xs font-semibold uppercase tracking-wide text-[#111827]/45">{copy.title}</p>
       <ol className="mt-3 flex flex-wrap gap-2">
-        {PORTAL_STEP_ORDER.map((key) => {
-          const step = steps.find((s) => s.key === key)!
+        {steps.map((step) => {
+          const key = step.key
           const label = copy.steps[key]
           return (
             <li

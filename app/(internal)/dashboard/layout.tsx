@@ -6,19 +6,6 @@ import { usePathname, useRouter } from 'next/navigation'
 import { ClerkProvider, useUser, useClerk, useAuth } from '@clerk/nextjs'
 import { useQueryClient } from '@tanstack/react-query'
 import {
-  LayoutDashboard,
-  Users,
-  FileText,
-  BarChart2,
-  UserCog,
-  ClipboardList,
-  Bot,
-  Package,
-  CalendarClock,
-  ClipboardCheck,
-  Handshake,
-  ListChecks,
-  ShieldAlert,
   Menu,
   X,
   LogOut,
@@ -26,6 +13,10 @@ import {
   Zap,
 } from 'lucide-react'
 import { QueryProvider } from '@/components/dashboard/QueryProvider'
+import { I18nProvider } from '@/lib/i18n/client'
+import { STAFF_SHARED_MESSAGES } from '@/lib/dashboard/staff-copy'
+import { NAV_ITEMS, canSeeNavItem, queueBadgeCount } from '@/lib/dashboard/nav'
+import { useWorkQueues } from '@/lib/dashboard/execution-api-client'
 import { CommandPalette } from '@/components/dashboard/CommandPalette'
 import { Toaster } from '@/components/ui/sonner'
 import { Badge } from '@/components/ui/badge'
@@ -35,30 +26,6 @@ import { Separator } from '@/components/ui/separator'
 import { useProposals, prefetchLeads, prefetchProposals } from '@/lib/dashboard/api-client'
 import { cn } from '@/lib/dashboard/utils'
 import type { Role } from '@/lib/dashboard/types'
-
-interface NavItem {
-  label: string
-  href: string
-  icon: React.ElementType
-  roles: Role[] | 'all'
-  badge?: boolean
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { label: 'Overview', href: '/dashboard', icon: LayoutDashboard, roles: 'all' },
-  { label: 'Leads', href: '/dashboard/leads', icon: Users, roles: 'all' },
-  { label: 'Onboardings', href: '/dashboard/onboardings', icon: ListChecks, roles: ['admin', 'sales', 'management'] },
-  { label: 'Attribution Flags', href: '/dashboard/attribution-flags', icon: ShieldAlert, roles: ['admin'] },
-  { label: 'Meetings', href: '/dashboard/meetings', icon: CalendarClock, roles: ['admin', 'sales', 'management'] },
-  { label: 'Site Assessments', href: '/dashboard/site-assessments', icon: ClipboardCheck, roles: ['admin', 'sales'] },
-  { label: 'Proposals', href: '/dashboard/proposals', icon: FileText, roles: ['admin', 'sales', 'management', 'engineer'], badge: true },
-  { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart2, roles: ['admin', 'sales', 'management'] },
-  { label: 'Employees', href: '/dashboard/employees', icon: UserCog, roles: ['admin'] },
-  { label: 'Associate Network', href: '/dashboard/associate-network', icon: Handshake, roles: ['admin'] },
-  { label: 'Audit Log', href: '/dashboard/audit-log', icon: ClipboardList, roles: ['admin', 'management'] },
-  { label: 'Equipment', href: '/dashboard/equipment', icon: Package, roles: 'all' },
-  { label: 'Agent Control', href: '/dashboard/agents', icon: Bot, roles: ['admin'] },
-]
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname()
@@ -78,11 +45,8 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
     else if (href === '/dashboard/proposals') void prefetchProposals(qc, getToken)
   }
 
-  function canSee(item: NavItem) {
-    if (item.roles === 'all') return true
-    if (!role) return false
-    return (item.roles as Role[]).includes(role)
-  }
+  const { data: queues } = useWorkQueues()
+  const canSee = (item: (typeof NAV_ITEMS)[number]) => canSeeNavItem(item, role)
 
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard'
@@ -146,6 +110,11 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
             >
               <Icon className="h-4 w-4 shrink-0" />
               <span className="flex-1">{item.label}</span>
+              {item.queue && queueBadgeCount(item.queue, queues) > 0 && (
+                <Badge variant={active ? 'default' : 'amber'} className="min-w-[1.25rem] justify-center px-1.5 text-[10px]" data-testid={`queue-badge-${item.queue}`}>
+                  {queueBadgeCount(item.queue, queues)}
+                </Badge>
+              )}
               {item.badge && pendingCount > 0 && (
                 <Badge variant={active ? 'default' : 'amber'} className="min-w-[1.25rem] justify-center px-1.5 text-[10px]">
                   {pendingCount}
@@ -253,7 +222,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <ClerkProvider>
       <QueryProvider>
-        <DashboardShell>{children}</DashboardShell>
+        {/* The dashboard is English-only; the shared photo/upload components still read their strings from i18n. */}
+        <I18nProvider locale="en" messages={STAFF_SHARED_MESSAGES}>
+          <DashboardShell>{children}</DashboardShell>
+        </I18nProvider>
       </QueryProvider>
     </ClerkProvider>
   )

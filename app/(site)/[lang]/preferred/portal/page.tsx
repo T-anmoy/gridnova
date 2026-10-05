@@ -6,7 +6,7 @@ export default async function PreferredPortalHomePage({ params }: LangParams) {
   const m = messagesFor(await resolveLocale(params)).associates
   return (
     <PortalShell base="/preferred/portal" active="home" showTerritory labels={m.portal.nav} signOutLabel={m.portal.nav.signOut}>
-      <PortalHome copy={m.portal.preferred.home} />
+      <PortalHome copy={m.portal.preferred.home} feed={m.portal.feed} stageNames={m.portal.execution.stages} portalBase="/preferred/portal" />
     </PortalShell>
   )
 }

@@ -14,6 +14,8 @@ export interface Equipment {
   procurement_price_inr: number | null
   is_active: boolean
   created_at: string | null
+  // A development-only dummy catalogue row — never real stock.
+  is_placeholder?: boolean
 }
 
 export interface EquipmentListParams {

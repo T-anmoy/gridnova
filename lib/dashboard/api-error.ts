@@ -42,7 +42,7 @@ export class ApiShapeError extends Error {
   }
 }
 
-export type ErrorKind = 'auth' | 'forbidden' | 'rateLimited' | 'server' | 'network' | 'client'
+export type ErrorKind = 'wrongAccount' | 'auth' | 'forbidden' | 'rateLimited' | 'server' | 'network' | 'client'
 
 export interface ClassifiedError {
   kind: ErrorKind
@@ -51,6 +51,22 @@ export interface ClassifiedError {
   heading: string
   /** Real underlying detail (status code + message) surfaced for debugging. */
   detail: string
+}
+
+// The backend refuses a token from the other audience with these exact
+// sentences (403 with real Clerk tokens; 401 would also be accepted). It is a
+// wrong *account*, not an expired session — never sign out and retry.
+export const WRONG_ACCOUNT_ON_STAFF_AREA = 'This account cannot access staff endpoints.'
+export const WRONG_ACCOUNT_ON_ASSOCIATE_AREA = 'This endpoint is for Grid Nova associates only.'
+
+export type WrongAccount = 'associate_on_staff' | 'staff_on_associate'
+
+export function wrongAccountOf(error: unknown): WrongAccount | null {
+  if (!(error instanceof ApiError) || (error.status !== 401 && error.status !== 403)) return null
+  const detail = (error.detail ?? '').trim()
+  if (detail === WRONG_ACCOUNT_ON_STAFF_AREA) return 'associate_on_staff'
+  if (detail === WRONG_ACCOUNT_ON_ASSOCIATE_AREA) return 'staff_on_associate'
+  return null
 }
 
 // Map any thrown error into a classified, display-ready shape.
@@ -63,6 +79,9 @@ export function classifyApiError(error: unknown): ClassifiedError {
     return { kind: 'client', status: 0, heading: 'Something went wrong', detail: error.message }
   }
   const status = error instanceof ApiError ? error.status : 0
+  if (wrongAccountOf(error)) {
+    return { kind: 'wrongAccount', status, heading: 'Wrong account', detail: withCode(status, (error as ApiError).detail ?? '') }
+  }
   const rawDetail =
     error instanceof ApiError
       ? error.detail || error.message

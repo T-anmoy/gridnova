@@ -41,6 +41,12 @@ export interface OnboardingCustomer {
   email: string | null
 }
 
+// How a photo reached the server. `null` on photos uploaded before provenance existed.
+export type CaptureMethod = 'camera' | 'gallery'
+
+// Staff-only fraud-style flags; associates never see these (see PhotoFlagBadges).
+export type PhotoFlag = 'gallery_upload' | 'no_metadata' | 'old_photo' | 'duplicate_photo'
+
 export interface OnboardingFile {
   document_type?: string
   photo_slot?: string
@@ -50,6 +56,10 @@ export interface OnboardingFile {
   latitude: number | null
   longitude: number | null
   client_captured_at: string | null
+  // Photos only.
+  capture_method?: CaptureMethod | null
+  location_verified?: boolean
+  flags?: PhotoFlag[]
 }
 
 export interface OnboardingChecklist {
@@ -139,6 +149,8 @@ export interface Onboarding {
   warnings: OnboardingWarning[]
   created_at: string
   updated_at: string
+  // On list responses (associate and staff).
+  progress_summary?: ProgressSummary
   // Associate-only.
   can_edit?: boolean
   // Staff-only.
@@ -202,6 +214,19 @@ export interface OnboardingListParams {
   page_size?: number
 }
 
+// A compact, server-computed status for each customer on a list page, so cards
+// never need a per-customer progress request.
+export interface ProgressSummary {
+  current_stage: ProgressStageKey | null
+  stage_label: string | null
+  next_stage: ProgressStageKey | null
+  next_stage_label: string | null
+  needs_action: boolean
+  action_kinds: string[]
+  // 'formal_proposal_blocked' | 'payment_gate' | 'dcr_mismatch' today.
+  blocked: { reason: string } | null
+}
+
 export interface PaginatedOnboardings {
   items: Onboarding[]
   page: number
@@ -219,6 +244,11 @@ export interface UploadFileInput {
   latitude?: number
   longitude?: number
   captured_at?: string
+  // Photo provenance. The server infers `camera` from a GPS pair when omitted.
+  capture_method?: CaptureMethod
+  accuracy_m?: number
+  exif_taken_at_client?: string
+  onProgress?: (percent: number) => void
 }
 
 export interface FileLinkResponse {
@@ -238,16 +268,10 @@ export interface SubmitIncompleteDetail {
 
 // ── Progress ──────────────────────────────────────────────────────────────
 
-export type ProgressStageKey =
-  | 'registered'
-  | 'verified'
-  | 'site_assessed'
-  | 'proposal_requested'
-  | 'proposal_prepared'
-  | 'proposal_issued'
-  | 'accepted'
-  | 'agreement_signed'
-  | 'portal_agreement_approved'
+// Stage keys come from the backend and can grow (new execution stages). The
+// UI never assumes this is a closed set — see lib/onboarding/progress.ts for the
+// keys it knows how to group, and its fallback for the rest.
+export type ProgressStageKey = string
 
 export interface ProgressStage {
   stage: ProgressStageKey
@@ -255,15 +279,30 @@ export interface ProgressStage {
   recorded: boolean
   recorded_at: string | null
   recorded_by: string | null
+  // `via` is e.g. 'associate_submission' | 'direct' | 'admin_override'.
   evidence: { via: string } | null
   note: string | null
 }
+
+export interface ProgressAging {
+  days_in_stage: number
+  stuck_threshold_days: number | null
+  is_stuck: boolean
+}
+
+export type ExecutionMode = 'associate' | 'grid_nova'
 
 export interface ProgressResponse {
   project_id: number
   current_stage: ProgressStageKey | null
   next_stage: ProgressStageKey | null
+  // Ordered by the backend; stages that don't apply to the project are absent
+  // here and listed in `not_applicable` instead.
   stages: ProgressStage[]
+  not_applicable?: { stage: ProgressStageKey; label: string }[]
+  execution_mode?: ExecutionMode | null
+  execution_started_at?: string | null
+  aging?: ProgressAging | null
 }
 
 // ── Estimates ─────────────────────────────────────────────────────────────

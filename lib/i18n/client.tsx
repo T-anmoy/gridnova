@@ -50,3 +50,8 @@ export function useMessages<K extends keyof Messages>(namespace: K): Messages[K]
   }
   return ns as Messages[K];
 }
+
+/** Like useMessages, but undefined when no provider supplied the namespace. */
+export function useOptionalMessages<K extends keyof Messages>(namespace: K): Messages[K] | undefined {
+  return useContext(I18nContext)?.messages[namespace] as Messages[K] | undefined;
+}

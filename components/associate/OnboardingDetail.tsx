@@ -14,6 +14,8 @@ import {
 } from '@/lib/associate/onboarding-api-client'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import OnboardingProgressPortal from '@/components/associate/OnboardingProgressPortal'
+import { isExecutionStage } from '@/lib/onboarding/progress'
+import { useAssociateMe } from '@/lib/associate/api-client'
 import EstimateSection from '@/components/associate/EstimateSection'
 import FileUploadSlot from '@/components/associate/FileUploadSlot'
 import { ApiError } from '@/lib/dashboard/api-error'
@@ -24,6 +26,8 @@ type SharedCopy = Messages['associates']['portal']['shared']
 type ProposalCopy = Messages['associates']['portal']['proposal']
 type AgreementCopy = Messages['associates']['portal']['agreement']
 type ChecklistCopy = Messages['associates']['portal']['checklist']
+type ExecutionCopy = Messages['associates']['portal']['execution']
+type PaymentsCopy = Messages['associates']['portal']['payments']
 
 function ProposalSection({
   onboardingId,
@@ -250,6 +254,8 @@ export default function OnboardingDetail({
   agreementCopy,
   checklistCopy,
   estimateCopy,
+  executionCopy,
+  paymentsCopy,
 }: {
   onboardingId: number
   portalBase: '/associates/portal' | '/preferred/portal'
@@ -258,9 +264,15 @@ export default function OnboardingDetail({
   agreementCopy: AgreementCopy
   checklistCopy: ChecklistCopy
   estimateCopy: Messages['associates']['portal']['estimate']
+  executionCopy: ExecutionCopy
+  paymentsCopy: PaymentsCopy
 }) {
   const { data: onboarding, isLoading, error, refetch } = useOnboarding(onboardingId)
   const { data: progress } = useOnboardingProgress(onboardingId)
+  const { data: me } = useAssociateMe()
+  // Payments are owner-only (a Preferred Associate gets 403 on a downline customer's), so only the owner is offered them.
+  const isOwner = !!me && !!onboarding && onboarding.owner.associate_id === me.associate_id
+  const acceptedRecorded = !!progress?.stages.some((st) => st.stage === 'accepted' && st.recorded)
 
   if (error) return <DashboardError error={error} onRetry={() => void refetch()} />
   if (isLoading || !onboarding) {
@@ -292,6 +304,24 @@ export default function OnboardingDetail({
         <div className="rounded-2xl border border-[#e4e8ee] bg-white p-5">
           <OnboardingProgressPortal progress={progress} copy={sharedCopy.progress} />
         </div>
+      )}
+
+      {progress && progress.stages.some((st) => isExecutionStage(st.stage)) && (
+        <Link
+          href={`${portalBase}/customers/${onboardingId}/execution`}
+          className="flex min-h-[48px] items-center justify-between rounded-2xl border border-[#e4e8ee] bg-white px-5 py-4 font-display text-base font-semibold text-[#0e2a63]"
+        >
+          {executionCopy.open}
+        </Link>
+      )}
+
+      {isOwner && acceptedRecorded && (
+        <Link
+          href={`${portalBase}/customers/${onboardingId}/payments`}
+          className="flex min-h-[48px] items-center justify-between rounded-2xl border border-[#e4e8ee] bg-white px-5 py-4 font-display text-base font-semibold text-[#0e2a63]"
+        >
+          {paymentsCopy.open}
+        </Link>
       )}
 
       <div className="rounded-2xl border border-[#e4e8ee] bg-white p-5">

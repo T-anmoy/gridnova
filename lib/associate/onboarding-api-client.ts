@@ -39,20 +39,49 @@ function buildQS(params: Record<string, string | number | boolean | undefined | 
 // FormData instead. Exported so the staff-side dashboard onboarding client
 // (which shares this same signed-agreement endpoint shape) doesn't need its
 // own copy.
-export async function dashboardFetchForm<T>(path: string, token: string, formData: FormData): Promise<T> {
-  let res: Response
+export async function dashboardFetchForm<T>(
+  path: string,
+  token: string,
+  formData: FormData,
+  // When given, the upload goes through XMLHttpRequest so progress (0–100) can
+  // be reported — fetch can't observe upload progress.
+  onProgress?: (percent: number) => void
+): Promise<T> {
+  const { ApiError } = await import('@/lib/dashboard/api-error')
+  let status: number
+  let statusText: string
+  let body: string
   try {
-    res = await fetch(`${BACKEND_URL}${path}`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    })
+    if (onProgress && typeof XMLHttpRequest !== 'undefined') {
+      const xhr = await new Promise<XMLHttpRequest>((resolve, reject) => {
+        const req = new XMLHttpRequest()
+        req.open('POST', `${BACKEND_URL}${path}`)
+        req.setRequestHeader('Authorization', `Bearer ${token}`)
+        req.upload.onprogress = (e) => {
+          if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
+        }
+        req.onload = () => resolve(req)
+        req.onerror = () => reject(new Error('network'))
+        req.ontimeout = () => reject(new Error('network'))
+        req.send(formData)
+      })
+      status = xhr.status
+      statusText = xhr.statusText
+      body = xhr.responseText
+    } else {
+      const res = await fetch(`${BACKEND_URL}${path}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      })
+      status = res.status
+      statusText = res.statusText
+      body = await res.text().catch(() => '')
+    }
   } catch {
-    const { ApiError } = await import('@/lib/dashboard/api-error')
     throw new ApiError(0, 'Network request failed')
   }
-  if (!res.ok) {
-    const body = await res.text().catch(() => '')
+  if (status < 200 || status >= 300) {
     let detail = body
     let structuredDetail: Record<string, unknown> | undefined
     try {
@@ -63,15 +92,14 @@ export async function dashboardFetchForm<T>(path: string, token: string, formDat
       } else if (d && typeof d === 'object') {
         structuredDetail = d as Record<string, unknown>
         const msg = (d as Record<string, unknown>).message
-        detail = typeof msg === 'string' ? msg : res.statusText
+        detail = typeof msg === 'string' ? msg : statusText
       }
     } catch {
       /* not JSON */
     }
-    const { ApiError } = await import('@/lib/dashboard/api-error')
-    throw new ApiError(res.status, `API error ${res.status}`, detail || res.statusText, structuredDetail)
+    throw new ApiError(status, `API error ${status}`, detail || statusText, structuredDetail)
   }
-  return (await res.json()) as T
+  return JSON.parse(body) as T
 }
 
 // ── Reference data ────────────────────────────────────────────────────────
@@ -169,6 +197,23 @@ export function useSubmitOnboarding() {
 
 // ── Files ─────────────────────────────────────────────────────────────────
 
+// Multipart body shared by every file/photo upload endpoint (onboarding and
+// execution use the same field names).
+export function buildUploadForm(input: UploadFileInput): FormData {
+  const formData = new FormData()
+  formData.set('file', input.file)
+  formData.set('kind', input.kind)
+  if (input.document_type) formData.set('document_type', input.document_type)
+  if (input.photo_slot) formData.set('photo_slot', input.photo_slot)
+  if (input.latitude !== undefined) formData.set('latitude', String(input.latitude))
+  if (input.longitude !== undefined) formData.set('longitude', String(input.longitude))
+  if (input.captured_at) formData.set('captured_at', input.captured_at)
+  if (input.capture_method) formData.set('capture_method', input.capture_method)
+  if (input.accuracy_m !== undefined && input.accuracy_m > 0) formData.set('accuracy_m', String(input.accuracy_m))
+  if (input.exif_taken_at_client) formData.set('exif_taken_at_client', input.exif_taken_at_client)
+  return formData
+}
+
 export function useUploadOnboardingFile() {
   const { getToken } = useAuth()
   const qc = useQueryClient()
@@ -176,15 +221,8 @@ export function useUploadOnboardingFile() {
     mutationFn: async ({ id, input }: { id: number; input: UploadFileInput }) => {
       const token = await getToken()
       if (!token) throw new Error('Not authenticated')
-      const formData = new FormData()
-      formData.set('file', input.file)
-      formData.set('kind', input.kind)
-      if (input.document_type) formData.set('document_type', input.document_type)
-      if (input.photo_slot) formData.set('photo_slot', input.photo_slot)
-      if (input.latitude !== undefined) formData.set('latitude', String(input.latitude))
-      if (input.longitude !== undefined) formData.set('longitude', String(input.longitude))
-      if (input.captured_at) formData.set('captured_at', input.captured_at)
-      return dashboardFetchForm<Onboarding>(`${BASE}/${id}/files`, token, formData)
+      const formData = buildUploadForm(input)
+      return dashboardFetchForm<Onboarding>(`${BASE}/${id}/files`, token, formData, input.onProgress)
     },
     onSuccess: (_data, vars) => {
       void qc.invalidateQueries({ queryKey: ['onboarding', vars.id] })
