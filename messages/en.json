@@ -2679,5 +2679,72 @@
       "confirmedOther": "Location confirmed ✓",
       "notCaptured": "Location not captured yet"
     }
+  },
+  "pricing": {
+    "packages": {
+      "heading": "Our two packages",
+      "loading": "Loading package details…",
+      "panels": "Solar panels",
+      "technology": "Panel technology",
+      "inverter": "Inverter",
+      "cables": "Cables",
+      "orEquivalent": "or equivalent",
+      "orEquivalentNote": "The makes listed are the approved makes for each package. “Or equivalent” means a comparable product may be supplied in its place.",
+      "warranty": "Standard warranty",
+      "om": "Operation & maintenance",
+      "life": "Solar panel life span",
+      "chosen": "Chosen for this customer",
+      "forSize": "For a {kw} kW system"
+    },
+    "price": {
+      "basic": "Basic price",
+      "gst": "GST",
+      "final": "Final price",
+      "gstExplain": "GST is {total}% of the basic price: {rate1}% on {share1}% of it and {rate2}% on the other {share2}%."
+    },
+    "size": {
+      "exact": "Recommended system size: {kw} kW",
+      "priced": "Quoted system size: {kw} kW",
+      "snapped": "Our prices are for whole-kW systems. Your recommended {exact} kW is quoted as a {priced} kW system."
+    },
+    "subsidy": {
+      "title": "PM Surya Ghar subsidy — if eligible",
+      "amount": "Subsidy, if eligible: {amount}",
+      "net": "After subsidy, if eligible",
+      "separate": "The subsidy is shown separately and is not included in the prices above.",
+      "conditionsLead": "Conditions:",
+      "conditions": {
+        "dcr_modules_required": "DCR solar modules are required.",
+        "scheme_eligibility": "You must be eligible under the scheme."
+      }
+    },
+    "customQuote": {
+      "title": "We’ll prepare a custom quote for you",
+      "body": "Share your details and Grid Nova will prepare your quote personally.",
+      "book": "Book a call instead",
+      "reasons": {
+        "outside_west_bengal": "Our price list is for West Bengal only. We’ll quote your location personally.",
+        "segment_not_in_price_list": "Our price list covers homes and housing societies. Other kinds of sites are quoted individually.",
+        "battery_or_off_grid": "Our price list is for grid-connected systems without batteries. Battery and off-grid systems are quoted individually.",
+        "phase_unknown": "We need to know your connection phase to show prices. Go back and choose single phase or three phase, or share your details and we’ll check for you.",
+        "size_above_max": "Your system is larger than our price list covers, so it is quoted individually.",
+        "three_phase_below_min": "A three-phase connection is quoted from a larger system size than you need, so we’ll check the best option and quote you personally.",
+        "size_below_min": "Your system is smaller than our price list covers, so it is quoted individually.",
+        "other": "We can’t show a list price for this setup, so we’ll quote it personally."
+      }
+    },
+    "hidden": "Package prices are not shown online. Send us an estimate request and Grid Nova will share them with you.",
+    "footer": {
+      "destination": "Prices are for {destination}.",
+      "revise": "Grid Nova may revise prices.",
+      "version": "Price list version {version}"
+    },
+    "unsupportedSize": {
+      "non_integer_size": "Our price list is for whole-kW systems. Enter a whole number of kW.",
+      "size_above_max": "That size is above what our price list covers.",
+      "size_below_min": "That size is below what our price list covers.",
+      "three_phase_below_min": "That size is too small for a three-phase connection in our price list.",
+      "generic": "That system size isn’t in our price list."
+    }
   }
 }

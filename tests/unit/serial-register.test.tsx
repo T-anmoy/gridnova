@@ -290,6 +290,29 @@ describe('RegisterPanel — verify, lock and the staff-only flag', () => {
   })
 })
 
+describe('RegisterPanel — package-make advice (staff only)', () => {
+  it('shows the non-blocking make_not_in_package flag per unit and for the register, with the equivalent reason when present', () => {
+    panel({ register: register({ flags: ['make_not_in_package'], units: [unit({ flags: ['make_not_in_package'], equivalent_reason: 'Supplier substitution approved' })] }) })
+    expect(screen.getByTestId('unit-make-not-in-package')).toHaveTextContent('Make not in package')
+    expect(screen.getByTestId('make-not-in-package-flag')).toHaveTextContent(/advice only/i)
+    expect(screen.getByTestId('unit-equivalent-reason')).toHaveTextContent('Supplier substitution approved')
+  })
+
+  it('shows neither when nothing is flagged', () => {
+    panel()
+    expect(screen.queryByTestId('unit-make-not-in-package')).toBeNull()
+    expect(screen.queryByTestId('make-not-in-package-flag')).toBeNull()
+    expect(screen.queryByTestId('unit-equivalent-reason')).toBeNull()
+  })
+
+  it('does not block verification — the flag is advice', async () => {
+    h.verify.mockResolvedValue({})
+    panel({ register: register({ flags: ['make_not_in_package'], units: [unit({ flags: ['make_not_in_package'] })] }) })
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Verify register' }))
+    expect(h.verify).toHaveBeenCalled()
+  })
+})
+
 describe('serial scanning is feature-detected', () => {
   it('shows no Scan button where BarcodeDetector does not exist, and typing still works', () => {
     expect('BarcodeDetector' in window).toBe(false)
@@ -339,6 +362,16 @@ describe('associate read-only register view', () => {
     expect(screen.getByTestId('register-unit')).toHaveTextContent('550.00 Wp')
     expect(screen.queryByRole('button')).toBeNull()
     expect(screen.queryByRole('textbox')).toBeNull()
+  })
+
+  it('never shows the staff-only make_not_in_package flag or equivalent reason', () => {
+    const { container } = render(
+      <RegisterReadOnly
+        register={register({ flags: ['make_not_in_package'], units: [unit({ flags: ['make_not_in_package'], equivalent_reason: 'Supplier substitution approved' })] })}
+        copy={copy}
+      />
+    )
+    expect(container.textContent?.toLowerCase()).not.toMatch(/make not in package|outside the package|equivalent|substitution/)
   })
 
   it('never shows the staff-only previously_voided signal, even if the response carried it', () => {

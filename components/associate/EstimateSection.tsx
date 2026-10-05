@@ -5,13 +5,52 @@ import { Loader2 } from 'lucide-react'
 import { useCreateEstimate, useOnboardingEstimates } from '@/lib/associate/onboarding-api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { formatCurrency } from '@/lib/dashboard/utils'
+import { CustomQuoteNotice, PriceListSummary } from '@/components/pricing/PackageCards'
+import { usePackageCatalogue } from '@/lib/pricing/usePackageCatalogue'
+import { useMessages } from '@/lib/i18n/client'
+import type { PackageCatalogue, PriceListFields } from '@/lib/pricing/price-list'
 import type { AccessDifficulty, Estimate } from '@/lib/associate/onboarding-types'
 import type { Messages } from '@/lib/i18n/types'
 
 type EstimateCopy = Messages['associates']['portal']['estimate']
 
-function EstimateCard({ estimate, copy }: { estimate: Estimate; copy: EstimateCopy }) {
+function EstimateCard({ estimate, copy, catalogue }: { estimate: Estimate; copy: EstimateCopy; catalogue: PackageCatalogue | null }) {
   const r = estimate.result
+  const pricing = useMessages('pricing')
+  if (r.price_status) {
+    // List-priced (or custom-quote) result: both packages as returned, no range.
+    const fields: PriceListFields = {
+      price_status: r.price_status,
+      custom_quote_reasons: r.custom_quote_reasons ?? [],
+      recommended_kw_exact: r.recommended_kw_exact,
+      priced_kw: r.priced_kw ?? estimate.priced_kw,
+      priced_kw_differs: r.priced_kw_differs,
+      phase: r.phase,
+      packages: r.packages ?? {},
+      gst_rule: r.gst_rule,
+      price_list_version: r.price_list_version ?? estimate.price_list_version,
+      destination: r.destination,
+      subsidy_conditions: r.subsidy_conditions,
+      subsidy_inr: r.subsidy_inr,
+      note: r.note,
+      chosen_packages: r.chosen_packages ?? estimate.chosen_packages,
+    }
+    return (
+      <div className="rounded-xl border border-[#e4e8ee] bg-white p-5" data-testid="estimate-card" data-price-status={r.price_status}>
+        <div className="rounded-lg bg-[#0e2a63] px-3 py-2">
+          <p className="text-xs font-semibold text-white font-utility uppercase tracking-wide">{copy.banner}</p>
+        </div>
+        <div className="mt-4">
+          {r.price_status === 'custom_quote' ? (
+            <CustomQuoteNotice reasons={fields.custom_quote_reasons} />
+          ) : (
+            <PriceListSummary fields={fields} catalogue={catalogue} chosenLabel={pricing.packages.chosen} />
+          )}
+        </div>
+        <p className="mt-3 text-xs text-[#111827]/40 font-utility">{new Date(estimate.created_at).toLocaleString()}</p>
+      </div>
+    )
+  }
   return (
     <div className="rounded-xl border border-[#e4e8ee] bg-white p-5">
       {/* Impossible-to-miss banner — this is an estimate, never the formal
@@ -56,6 +95,8 @@ export default function EstimateSection({ onboardingId, copy }: { onboardingId: 
   const [error, setError] = useState<string | null>(null)
 
   const { data: estimates, isLoading } = useOnboardingEstimates(onboardingId)
+  const { catalogue } = usePackageCatalogue()
+  const pricing = useMessages('pricing')
   const createMutation = useCreateEstimate()
 
   async function handleCreate() {
@@ -72,7 +113,12 @@ export default function EstimateSection({ onboardingId, copy }: { onboardingId: 
       })
       setOpen(false)
     } catch (err) {
-      if (err instanceof ApiError && err.structuredDetail?.code) {
+      if (err instanceof ApiError && err.structuredDetail?.code === 'unsupported_size') {
+        // 422 with a reason: the requested size isn't in the price list.
+        const reason = String(err.structuredDetail.reason ?? '')
+        const known = pricing.unsupportedSize as Record<string, string>
+        setError(known[reason] ?? known.generic)
+      } else if (err instanceof ApiError && err.structuredDetail?.code) {
         const code = err.structuredDetail.code as keyof EstimateCopy['errors']
         setError(copy.errors[code] ?? err.detail ?? err.message)
       } else {
@@ -137,7 +183,7 @@ export default function EstimateSection({ onboardingId, copy }: { onboardingId: 
       <div className="mt-4 space-y-3">
         {isLoading && <Loader2 className="h-5 w-5 animate-spin text-[#111827]/30" />}
         {estimates && estimates.length === 0 && <p className="text-sm text-[#111827]/50 font-utility">{copy.history.empty}</p>}
-        {estimates?.map((e) => <EstimateCard key={e.estimate_id} estimate={e} copy={copy} />)}
+        {estimates?.map((e) => <EstimateCard key={e.estimate_id} estimate={e} copy={copy} catalogue={catalogue} />)}
       </div>
     </div>
   )

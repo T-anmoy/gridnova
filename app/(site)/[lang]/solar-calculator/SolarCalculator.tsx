@@ -1,7 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 import Link from "@/components/i18n/Link";
 import { useMessages } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/types";
@@ -18,7 +17,6 @@ import { STATES } from "@/app/(internal)/proposal/new/types";
 import {
   type CustomerType,
   type SizingMethod,
-  type InstantEstimateResult,
   toSegment,
   sizingMethodToEngineKey,
   ROOF_TYPE_LABELS,
@@ -36,16 +34,8 @@ import {
   validateName,
   validatePinCode,
 } from "./lib";
-import StaticEstimateReveal from "./StaticEstimateReveal";
-
-// CountUp (inside EstimateReveal) pulls in gsap + ScrollTrigger — kept out of
-// this page's initial JS via next/dynamic, since most visitors haven't
-// reached a result yet. Wrapped in our own <Suspense> below (rather than
-// dynamic()'s `loading` option) so the fallback can show the real resolved
-// breakdown instead of a hardcoded placeholder — same markup, just without
-// the count-up animation, so there's no layout shift and no wrong numbers
-// flashing while this chunk loads in.
-const EstimateReveal = dynamic(() => import("./EstimateReveal"));
+import CalculatorReveal from "./CalculatorReveal";
+import { parsePriceListEstimate, type PriceListFields } from "@/lib/pricing/price-list";
 
 const TOTAL_STEPS = 5;
 
@@ -88,7 +78,7 @@ export default function SolarCalculator() {
 
   // Step D — Instant Estimate
   const [estimateStatus, setEstimateStatus] = useState<EstimateStatus>("idle");
-  const [estimateResult, setEstimateResult] = useState<InstantEstimateResult | null>(null);
+  const [estimateResult, setEstimateResult] = useState<(PriceListFields & Record<string, unknown>) | null>(null);
 
   // Step E — Capture
   const [fullName, setFullName] = useState("");
@@ -148,30 +138,9 @@ export default function SolarCalculator() {
 
         if (!res.ok) throw new Error(`Pricing endpoint returned ${res.status}`);
 
-        const data = await res.json();
-        if (
-          typeof data.recommended_size_kw !== "number" ||
-          typeof data.base_cost !== "number" ||
-          typeof data.subtotal_before_tax !== "number" ||
-          typeof data.is_indicative_range !== "boolean"
-        ) {
-          throw new Error("Unexpected pricing response shape");
-        }
-
-        setEstimateResult({
-          recommendedSizeKw: data.recommended_size_kw,
-          baseCost: data.base_cost,
-          accessDifficultyAdder: data.adders?.access_difficulty ?? 0,
-          componentBreakdown: data.component_breakdown ?? {},
-          subtotalBeforeTax: data.subtotal_before_tax,
-          gstAmount: data.gst_amount,
-          subsidyInr: data.subsidy_inr ?? 0,
-          netCost: data.net_cost,
-          isIndicativeRange: data.is_indicative_range,
-          netCostRangeMin: data.net_cost_range_min,
-          netCostRangeMax: data.net_cost_range_max,
-          note: data.note,
-        });
+        const parsed = parsePriceListEstimate(await res.json());
+        if (!parsed) throw new Error("Unexpected pricing response shape");
+        setEstimateResult(parsed);
         setEstimateStatus("success");
       } catch {
         // Never let an unreachable/slow pricing endpoint strand the visitor —
@@ -243,7 +212,8 @@ export default function SolarCalculator() {
           accessDifficulty: accessDifficultyLabel || undefined,
           shading: shadingLabel || undefined,
           subsidyInterest,
-          indicativeTotalInr: estimateResult?.netCost ?? estimateResult?.netCostRangeMax ?? undefined,
+          // Internal only (the lead email): the back-compat net figure, never shown to the visitor.
+          indicativeTotalInr: typeof estimateResult?.net_cost === "number" ? estimateResult.net_cost : undefined,
           website: honeypot,
         }),
       });
@@ -523,9 +493,7 @@ export default function SolarCalculator() {
             )}
 
             {estimateStatus === "success" && estimateResult && (
-              <Suspense fallback={<StaticEstimateReveal result={estimateResult} />}>
-                <EstimateReveal result={estimateResult} />
-              </Suspense>
+              <CalculatorReveal result={estimateResult} />
             )}
 
             {estimateStatus === "error" && (
@@ -637,14 +605,13 @@ export default function SolarCalculator() {
             <ArrowRight className="h-4 w-4" />
           </button>
         )}
-        {step === 3 && estimateStatus === "success" && estimateResult ? (
+        {step === 3 && estimateStatus === "success" && estimateResult?.price_status === "list_price" ? (
           // Once a real result is shown, the primary path becomes booking a
           // site visit — carrying the calculator's own output forward as
           // read-only context (see BookingContextSummary on /book-a-call)
           // rather than making the visitor re-explain themselves.
           <Link
             href={`/book-a-call?${new URLSearchParams({
-              estimatedTotal: String(estimateResult.netCost ?? estimateResult.netCostRangeMax ?? ""),
               sizingMethod,
               sizingValue:
                 sizingMethod === "bill" ? averageMonthlyBill : sizingMethod === "units" ? monthlyUnits : roofAreaSqFt,

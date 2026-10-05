@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import SolarCalculator from '@/app/(site)/[lang]/solar-calculator/SolarCalculator'
 import { withI18n } from './helpers/i18n'
+import { CATALOGUE, CUSTOM_QUOTE, LIST_ESTIMATE } from './fixtures/pricing'
 
 beforeEach(() => {
   window.scrollTo = vi.fn()
@@ -30,30 +31,7 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-// tier and tier_cost no longer exist in the response — the public path
-// always prices at the fixed best tier server-side, and base_cost is the
-// one real (already tier-inclusive) number.
-const INSTANT_ESTIMATE_BODY = {
-  recommended_size_kw: 4.5,
-  sizing_detail: { consumption_based_kw: 4.5, area_based_kw: null, phase_capped: false },
-  base_cost: 259875.0,
-  adders: { access_difficulty: 0.0 },
-  component_breakdown: {
-    equipment: 0.0,
-    installation: 246375.0,
-    balance_of_system: 13500.0,
-    civil: 8000.0,
-    regulatory: 5000.0,
-  },
-  subtotal_before_tax: 259875.0,
-  gst_amount: 35862.75,
-  subsidy_inr: 78000.0,
-  net_cost: 217737.75,
-  is_indicative_range: false,
-  net_cost_range_min: null,
-  net_cost_range_max: null,
-  note: null,
-}
+const INSTANT_ESTIMATE_BODY = LIST_ESTIMATE
 
 async function fillStepA(user: ReturnType<typeof userEvent.setup>) {
   await user.selectOptions(screen.getByLabelText(/^state/i), 'West Bengal')
@@ -77,99 +55,131 @@ async function fillStepC(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('SolarCalculator — full flow with the pricing endpoint mocked', () => {
-  it('shows the full breakdown and framing, then offers "Book a Free Site Visit" carrying the result forward', async () => {
+  function stubApi(estimate: unknown = INSTANT_ESTIMATE_BODY, catalogue: unknown = CATALOGUE) {
     const fetchMock = vi.fn<typeof fetch>().mockImplementation(async (url) => {
-      if (String(url).includes('/api/v1/pricing/instant-estimate')) {
-        return new Response(JSON.stringify(INSTANT_ESTIMATE_BODY), { status: 200 })
-      }
+      if (String(url).includes('/api/v1/pricing/instant-estimate')) return new Response(JSON.stringify(estimate), { status: 200 })
+      if (String(url).includes('/api/v1/pricing/packages')) return new Response(JSON.stringify(catalogue), { status: 200 })
       throw new Error(`Unexpected fetch to ${url}`)
     })
     vi.stubGlobal('fetch', fetchMock)
+    return fetchMock
+  }
 
-    const user = userEvent.setup()
-    render(withI18n(<SolarCalculator />))
-
+  async function reachResult(user: ReturnType<typeof userEvent.setup>) {
     await fillStepA(user)
     await fillStepB(user)
     await fillStepC(user)
+  }
 
-    // Step D — the estimate itself: net cost, the itemized breakdown, and
-    // the subsidy shown clearly as its own deduction, not buried. The net
-    // cost figure appears twice by design — once as the hero headline, once
-    // as the final line of the itemized breakdown.
-    const netCostMatches = await screen.findAllByText('₹2,17,738')
-    expect(netCostMatches.length).toBe(2)
-    expect(screen.getByText(/recommended system size/i)).toBeInTheDocument()
-    expect(screen.getByText(/− ₹78,000/)).toBeInTheDocument()
-    expect(screen.getByText(/pm surya ghar subsidy/i)).toBeInTheDocument()
-    expect(screen.getByText(/indicative estimate only, not a final quote/i)).toBeInTheDocument()
-    expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringContaining('/api/v1/pricing/instant-estimate'),
-      expect.objectContaining({ method: 'POST' })
-    )
-    const sentBody = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string)
-    expect(sentBody).toMatchObject({
-      segment: 'residential',
-      state: 'West Bengal',
-      sizing_method: 'by_bill',
-      monthly_bill_inr: 3500,
-      connection_phase: 'single_phase',
-      is_housing_society: false,
-    })
-    // Tier is not a customer-supplied choice on this path any more.
+  it('shows two equal package cards with the exact list prices, the subsidy separately, and offers a site visit', async () => {
+    const fetchMock = stubApi()
+    const user = userEvent.setup()
+    render(withI18n(<SolarCalculator />))
+    await reachResult(user)
+
+    const cards = await screen.findAllByTestId('package-card')
+    expect(cards.map((c) => c.getAttribute('data-package'))).toEqual(['NOVA_ASSURED', 'NOVA_SIGNATURE'])
+    // Equal weight: identical markup classes on both cards.
+    expect(cards[0].className).toBe(cards[1].className)
+    expect(cards[0]).toHaveTextContent('Nova Assured')
+    expect(cards[1]).toHaveTextContent('Nova Signature')
+    // Amounts exactly as the backend sent them, Indian grouping, no rounding.
+    expect(cards[0]).toHaveTextContent('₹4,12,345.67')
+    expect(cards[0]).toHaveTextContent('₹36,698.76')
+    expect(cards[0]).toHaveTextContent('₹4,49,044.43')
+    expect(cards[1]).toHaveTextContent('₹5,02,928.47')
+    // Makes and technology from the catalogue, "or equivalent", terms.
+    await waitFor(() => expect(cards[0]).toHaveTextContent('Test Panel Co A, Test Panel Co B'))
+    expect(cards[1]).toHaveTextContent('Test technology two, Test technology three')
+    expect(cards[0]).toHaveTextContent(/or equivalent/i)
+    expect(cards[0]).toHaveTextContent('Test warranty text')
+    // Rounded legacy fields are never shown.
+    expect(document.body.textContent).not.toMatch(/3,57,600|3,57,601|4,00,000/)
+
+    // Subsidy shown separately with its conditions and the per-package net.
+    const subsidy = screen.getByTestId('subsidy-block')
+    expect(subsidy).toHaveTextContent(/if eligible/i)
+    expect(subsidy).toHaveTextContent('₹78,000')
+    expect(subsidy).toHaveTextContent(/DCR solar modules are required/i)
+    expect(subsidy).toHaveTextContent(/eligible under the scheme/i)
+    expect(within(cards[0]).getByTestId('net-after-subsidy')).toHaveTextContent('₹3,71,044.43')
+
+    // GST rule in plain words, footer lines.
+    expect(screen.getByTestId('gst-explanation')).toHaveTextContent('8.9%')
+    expect(screen.getByTestId('price-footer')).toHaveTextContent(/West Bengal/)
+    expect(screen.getByTestId('price-footer')).toHaveTextContent(/may revise prices/i)
+    expect(screen.getByTestId('price-footer')).toHaveTextContent('TEST-2026-01')
+    // No "cheap vs premium" framing.
+    expect(document.body.textContent).not.toMatch(/budget|best value|cheapest|premium|better|upgrade/i)
+
+    // Whole-kW explanation, because 3.40 ≠ 4.
+    expect(screen.getByTestId('snapped-note')).toHaveTextContent('Your recommended 3.40 kW is quoted as a 4 kW system')
+
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('/api/v1/pricing/instant-estimate'), expect.objectContaining({ method: 'POST' }))
+    const sentBody = JSON.parse((fetchMock.mock.calls.find(([u]) => String(u).includes('instant-estimate'))![1] as RequestInit).body as string)
+    expect(sentBody).toMatchObject({ segment: 'residential', state: 'West Bengal', sizing_method: 'by_bill', monthly_bill_inr: 3500, connection_phase: 'single_phase' })
     expect(sentBody).not.toHaveProperty('tier')
 
-    // No upsell framing — a confident statement instead of a Good/Better/Best choice.
-    expect(screen.getByText(/best-quality equipment as standard/i)).toBeInTheDocument()
-    expect(screen.queryByText(/equipment tier/i)).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /^good$/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /^better$/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /^best$/i })).not.toBeInTheDocument()
-
-    // Primary CTA is now a booking link, not a "Continue" button — and it
-    // carries the estimate's own net cost forward as query-string context.
-    const bookLink = screen.getByRole('link', { name: /book a free site visit/i })
-    const href = bookLink.getAttribute('href')!
+    // The primary CTA is still the site visit; it no longer carries a rounded single total.
+    const href = screen.getByRole('link', { name: /book a free site visit/i }).getAttribute('href')!
     expect(href).toContain('/book-a-call')
-    expect(href).toContain('estimatedTotal=217737.75')
+    expect(href).not.toContain('estimatedTotal')
     expect(href).toContain('sizingMethod=bill')
-    expect(href).toContain('sizingValue=3500')
     expect(href).toContain('source=calculator')
-    expect(screen.queryByRole('button', { name: /^continue$/i })).not.toBeInTheDocument()
   })
 
-  it('shows an honest indicative range (not a false confident number) when shading is significant, with a site-visit note', async () => {
-    const fetchMock = vi.fn<typeof fetch>().mockImplementation(async (url) => {
-      if (String(url).includes('/api/v1/pricing/instant-estimate')) {
-        return new Response(
-          JSON.stringify({
-            ...INSTANT_ESTIMATE_BODY,
-            net_cost: null,
-            is_indicative_range: true,
-            net_cost_range_min: 185077.09,
-            net_cost_range_max: 250398.41,
-            note: 'Shading at this site was reported as significant, so this is an indicative range rather than a firm number — a real site visit is needed to size and price this accurately.',
-          }),
-          { status: 200 }
-        )
-      }
-      throw new Error(`Unexpected fetch to ${url}`)
-    })
-    vi.stubGlobal('fetch', fetchMock)
-
+  it('explains whole-kW pricing only when the recommended and priced sizes differ', async () => {
+    stubApi({ ...INSTANT_ESTIMATE_BODY, recommended_kw_exact: '4.00', priced_kw: 4, priced_kw_differs: false })
     const user = userEvent.setup()
     render(withI18n(<SolarCalculator />))
+    await reachResult(user)
+    await screen.findAllByTestId('package-card')
+    expect(screen.queryByTestId('snapped-note')).not.toBeInTheDocument()
+    expect(screen.getByTestId('size-lines')).toHaveTextContent('4 kW')
+  })
 
-    await fillStepA(user)
-    await fillStepB(user)
-    await fillStepC(user)
+  it('hides the prices (but keeps the packages) when the backend hides the price table', async () => {
+    stubApi(INSTANT_ESTIMATE_BODY, { ...CATALOGUE, price_display: 'hidden', prices: undefined })
+    const user = userEvent.setup()
+    render(withI18n(<SolarCalculator />))
+    await reachResult(user)
+    expect(await screen.findByTestId('prices-hidden')).toBeInTheDocument()
+    const cards = screen.getAllByTestId('package-card')
+    expect(cards).toHaveLength(2)
+    expect(document.body.textContent).not.toMatch(/₹4,12,345|₹5,02,928/)
+    expect(screen.queryByTestId('subsidy-block')).not.toBeInTheDocument()
+  })
 
-    await screen.findByText('₹1,85,077')
-    expect(screen.getByText('₹2,50,398')).toBeInTheDocument()
-    expect(screen.getByText(/indicative net cost range/i)).toBeInTheDocument()
-    expect(screen.getByText(/a real site visit is needed/i)).toBeInTheDocument()
-    // No single confident net-cost figure is asserted in range mode.
-    expect(screen.queryByText(/^net cost$/i)).not.toBeInTheDocument()
+  it.each([
+    ['outside_west_bengal', /West Bengal only/i],
+    ['size_above_max', /larger than our price list/i],
+    ['three_phase_below_min', /three-phase connection/i],
+    ['battery_or_off_grid', /battery and off-grid/i],
+    ['segment_not_in_price_list', /homes and housing societies/i],
+    ['phase_unknown', /connection phase/i],
+    ['size_below_min', /smaller than our price list/i],
+  ])('custom quote (%s): a friendly message, no number anywhere, and the lead-capture path', async (reason, text) => {
+    stubApi(CUSTOM_QUOTE([reason]))
+    const user = userEvent.setup()
+    render(withI18n(<SolarCalculator />))
+    await reachResult(user)
+    const notice = await screen.findByTestId('custom-quote')
+    expect(notice).toHaveTextContent(text)
+    expect(screen.queryByTestId('package-card')).not.toBeInTheDocument()
+    const body = document.querySelector('main, body')!.textContent!
+    expect(body).not.toMatch(/₹/)
+    // Lead capture (Continue → contact step) and Book a call both remain.
+    expect(screen.getByRole('link', { name: /book a call/i })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /^continue$/i }))
+    await screen.findByText(/step 5 of 5/i)
+  })
+
+  it('treats a list-price response with malformed amounts as unavailable rather than showing garbage', async () => {
+    stubApi({ ...INSTANT_ESTIMATE_BODY, packages: { NOVA_ASSURED: { basic: 412345.67, gst: 1, final: 2 } } })
+    const user = userEvent.setup()
+    render(withI18n(<SolarCalculator />))
+    await reachResult(user)
+    await screen.findByText(/we.ll calculate your estimate and follow up personally/i)
   })
 
   it('never lets the pricing call stall the estimate step — degrades to a friendly message, and the capture step still creates a real Lead', async () => {

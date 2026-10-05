@@ -15,6 +15,7 @@ import {
   Wrench,
   Wallet,
   Database,
+  Tags,
 } from 'lucide-react'
 import type { Role } from '@/lib/dashboard/types'
 import type { WorkQueues } from '@/lib/dashboard/execution-types'
@@ -46,6 +47,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Data Checklist', href: '/dashboard/data-checklist', icon: Database, roles: ['admin', 'management'] },
   { label: 'Audit Log', href: '/dashboard/audit-log', icon: ClipboardList, roles: ['admin', 'management'] },
   { label: 'Equipment', href: '/dashboard/equipment', icon: Package, roles: 'all' },
+  { label: 'Price list', href: '/dashboard/price-list', icon: Tags, roles: ['admin', 'management', 'sales'] },
   { label: 'Agent Control', href: '/dashboard/agents', icon: Bot, roles: ['admin'] },
 ]
 

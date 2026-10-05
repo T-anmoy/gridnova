@@ -220,7 +220,30 @@ export interface ProposalContent {
   scope_of_work?: string
   warranty_support?: string
   terms_conditions?: string
+  // PM-A price-list snapshot (§5) — the amounts are exact decimal strings.
+  pricing?: ProposalPricingSnapshot
+  price_list?: { version: string; source_sha256: string }
   [key: string]: unknown
+}
+
+export interface ProposalPricingSnapshot {
+  price_status: 'list_price' | 'custom_quote'
+  package?: string | null
+  package_name?: string | null
+  phase?: string | null
+  kw?: number | string | null
+  basic?: string
+  gst?: string
+  final?: string
+  gst_rule?: { effective_rate: string; description?: string } | null
+  price_list_version?: string
+  source_sha256?: string
+  destination?: string
+  custom_quote_reasons?: string[]
+  // After PATCH …/adjust-pricing.
+  adjusted?: boolean
+  list_price_final?: string
+  variance?: string | null
 }
 
 export interface ProposalDetail {

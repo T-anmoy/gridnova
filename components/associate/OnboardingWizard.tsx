@@ -15,6 +15,8 @@ import {
 import { ApiError } from '@/lib/dashboard/api-error'
 import FileUploadSlot from '@/components/associate/FileUploadSlot'
 import PhotoCaptureSlot from '@/components/associate/PhotoCaptureSlot'
+import { OrEquivalentNote, PackageEquipment } from '@/components/pricing/PackageCards'
+import { usePackageCatalogue } from '@/lib/pricing/usePackageCatalogue'
 import PhotosFirstCard from '@/components/associate/PhotosFirstCard'
 import SiteLocationStep, { PhotoLocationPrompt } from '@/components/associate/SiteLocationStep'
 import { usePhotoUploads } from '@/lib/associate/usePhotoUploads'
@@ -111,6 +113,8 @@ export default function OnboardingWizard({
 }) {
   const router = useRouter()
   const siteCopy = useMessages('siteLocation')
+  // Real makes and technology per package (public endpoint); the cards still work without it.
+  const { catalogue } = usePackageCatalogue()
   const draftKey = `gna-onboarding-${existing?.onboarding_id ?? 'new'}`
   const initialDraft: DraftState = existing
     ? {
@@ -503,12 +507,21 @@ export default function OnboardingWizard({
                       }`}
                     >
                       <p className="font-display text-base font-semibold text-[#0e2a63]">{pkg.label}</p>
+                      {(() => {
+                        const detail = catalogue?.packages.find((c) => c.equipment_tier === pkg.equipment_tier)
+                        return detail ? (
+                          <div className="mt-3" data-testid="package-equipment" data-package={detail.package}>
+                            <PackageEquipment pkg={detail} />
+                          </div>
+                        ) : null
+                      })()}
                       {selected && <CheckCircle2 className="mt-2 h-4 w-4 text-[#0e2a63]" />}
                     </button>
                   )
                 })}
               </div>
             </div>
+            {catalogue && <OrEquivalentNote />}
             <div className="rounded-lg bg-[#f7f9fc] p-4">
               <p className="font-utility text-sm font-semibold text-[#0e2a63]">{copy.requirement.dcrTitle}</p>
               <p className="mt-1.5 text-xs text-[#111827]/60 leading-relaxed">{copy.requirement.dcrExplainer}</p>

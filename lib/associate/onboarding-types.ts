@@ -425,6 +425,20 @@ export interface EstimateResult {
   net_cost_range_min: number | null
   net_cost_range_max: number | null
   note?: string | null
+  // PM-A price-list fields. Absent on estimates made before the price list existed,
+  // whose stored result is returned unchanged (and shown the old way).
+  price_status?: 'list_price' | 'custom_quote'
+  custom_quote_reasons?: string[]
+  recommended_kw_exact?: number | string | null
+  priced_kw?: number | string | null
+  priced_kw_differs?: boolean
+  phase?: 'SINGLE' | 'THREE' | null
+  packages?: Record<string, import('@/lib/pricing/price-list').PackagePrice>
+  gst_rule?: import('@/lib/pricing/price-list').GstRule | null
+  price_list_version?: string | null
+  destination?: string | null
+  subsidy_conditions?: string[]
+  chosen_packages?: string[] | null
 }
 
 export interface Estimate {
@@ -432,6 +446,11 @@ export interface Estimate {
   indicative: true
   created_at: string
   created_by: string
+  // List/GET items repeat these at the top level (null before the price list).
+  price_status?: 'list_price' | 'custom_quote' | null
+  price_list_version?: string | null
+  priced_kw?: number | string | null
+  chosen_packages?: string[] | null
   inputs: {
     segment?: string
     state?: string

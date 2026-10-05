@@ -389,6 +389,7 @@ export default function RegisterPanel({
     .sort((a, b) => Number(isUnmatched(b)) - Number(isUnmatched(a)))
   const unmatchedCount = live.filter(isUnmatched).length
   const highlighted = new Set(live.filter((u) => isUnmatched(u) && refusedIds.includes(u.unit_id)).map((u) => u.unit_id))
+  const makeNotInPackage = register.flags.includes('make_not_in_package') || register.units.some((u) => u.flags?.includes('make_not_in_package'))
   const previouslyVoided = register.flags.includes('previously_voided') || register.units.some((u) => u.previously_voided)
 
   async function handleVerify() {
@@ -416,6 +417,7 @@ export default function RegisterPanel({
           <CardTitle className="text-base">Serial register</CardTitle>
           {locked ? <Badge variant="green" data-testid="register-verified"><Lock className="mr-1 h-3 w-3" /> Verified · locked {formatDate(register.verified_at)}</Badge> : <Badge variant="gray">Not verified</Badge>}
           {previouslyVoided && <Badge variant="orange" data-testid="previously-voided-flag">Contains a previously voided serial</Badge>}
+          {makeNotInPackage && <Badge variant="amber" data-testid="make-not-in-package-flag">Contains a make outside the package (advice only)</Badge>}
           {canWrite && !locked && live.length > 0 && (
             <Button size="sm" className="ml-auto" disabled={verify.isPending} onClick={() => void handleVerify()}>Verify register</Button>
           )}
@@ -467,6 +469,12 @@ export default function RegisterPanel({
                 <Badge variant={u.status === 'verified' ? 'green' : 'gray'}>{u.status}</Badge>
                 {u.previously_voided && <Badge variant="orange" data-testid="unit-previously-voided">Previously voided</Badge>}
                 {isUnmatched(u) && <Badge variant="amber" data-testid="unit-unmatched">Needs catalogue match</Badge>}
+                {u.flags?.includes('make_not_in_package') && (
+                  <Badge variant="amber" data-testid="unit-make-not-in-package">Make not in package</Badge>
+                )}
+                {(u.equivalent_reason ?? u.equipment?.equivalent_reason) && (
+                  <span className="text-xs italic text-gray-500" data-testid="unit-equivalent-reason">Equivalent: {u.equivalent_reason ?? u.equipment?.equivalent_reason}</span>
+                )}
                 <span className="text-xs text-gray-500">
                   {u.equipment ? `${u.equipment.brand} ${u.equipment.model_name}` : [u.brand_as_printed, u.model_as_printed].filter(Boolean).length ? `As printed: ${[u.brand_as_printed, u.model_as_printed].filter(Boolean).join(' ')}` : ''}
                   {u.rating_wp ? ` · ${u.rating_wp} Wp` : ''}

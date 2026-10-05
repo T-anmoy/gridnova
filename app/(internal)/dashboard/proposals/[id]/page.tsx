@@ -15,6 +15,7 @@ import {
 } from '@/lib/dashboard/api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import ProposalPricing from '@/components/dashboard/ProposalPricing'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -576,6 +577,10 @@ export default function ProposalDetailPage() {
       )}
 
       {showPlaceholderBanner && proposal.status !== 'sent' && <PlaceholderBanner sections={placeholderSections} />}
+
+      <div className="mb-4">
+        <ProposalPricing content={proposal.content} totalValue={proposal.total_value} />
+      </div>
 
       {/* PDF generating indicator */}
       {proposal.status === 'approved' && !approvedPdfUrl && (

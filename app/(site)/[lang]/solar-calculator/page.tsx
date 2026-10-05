@@ -35,7 +35,7 @@ export default async function SolarCalculatorPage({ params }: LangParams) {
         </div>
 
         {/* The calculator's client components read their text from context. */}
-        <I18nProvider messages={{ calculator: m.calculator }}>
+        <I18nProvider messages={{ calculator: m.calculator, pricing: m.pricing }}>
           <SolarCalculator />
         </I18nProvider>
       </div>

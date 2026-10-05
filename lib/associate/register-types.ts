@@ -11,6 +11,8 @@ export interface UnitEquipment {
   model_name: string
   is_dcr_compliant: boolean
   is_placeholder: boolean
+  // Staff only (PM-A), when the backend returns it.
+  equivalent_reason?: string | null
 }
 
 export interface RegisterUnit {
@@ -35,6 +37,10 @@ export interface RegisterUnit {
   model_as_printed?: string | null
   // Staff only (0041).
   previously_voided?: boolean
+  // Staff only (PM-A): per-unit flags, e.g. `make_not_in_package` (non-blocking), and the
+  // reason an equivalent make was accepted, when the backend returns one.
+  flags?: string[]
+  equivalent_reason?: string | null
 }
 
 export interface Register {

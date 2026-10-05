@@ -3,7 +3,6 @@ import {
   toSegment,
   roofAreaToSizeKw,
   roofLabelToEngineKey,
-  formatINR,
   validateEmail,
   validatePhone,
   validateName,
@@ -25,10 +24,6 @@ describe('solar-calculator/lib', () => {
     expect(roofLabelToEngineKey('RCC / Concrete Flat Roof')).toBe('rcc')
     expect(roofLabelToEngineKey('Not Sure')).toBeUndefined()
     expect(roofLabelToEngineKey('')).toBeUndefined()
-  })
-
-  it('formats INR without decimals', () => {
-    expect(formatINR(264585)).toBe('₹2,64,585')
   })
 
   it.each([

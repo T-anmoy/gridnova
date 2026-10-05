@@ -2,25 +2,6 @@
 // component so the mapping/formatting logic is directly unit-testable
 // without rendering React.
 
-// Camel-cased mirror of POST /api/v1/pricing/instant-estimate's response
-// (see app/api/routes/pricing.py on the backend) — mapped from the raw
-// snake_case JSON at the fetch boundary in SolarCalculator.tsx so the reveal
-// components work with idiomatic field names.
-export interface InstantEstimateResult {
-  recommendedSizeKw: number;
-  baseCost: number;
-  accessDifficultyAdder: number;
-  componentBreakdown: Record<string, number>;
-  subtotalBeforeTax: number;
-  gstAmount: number;
-  subsidyInr: number;
-  netCost: number | null;
-  isIndicativeRange: boolean;
-  netCostRangeMin: number | null;
-  netCostRangeMax: number | null;
-  note: string | null;
-}
-
 export type CustomerType = "residential" | "society";
 // "units" added alongside the existing bill/roof_area split — sizing by known
 // consumption is the most accurate of the three, per the backend's own
@@ -172,14 +153,6 @@ const MAX_SIZE_KW = 500; // sanity ceiling for a mistyped roof area
 export function roofAreaToSizeKw(roofAreaSqFt: number): number {
   const raw = roofAreaSqFt / PLACEHOLDER_ROOF_AREA_SQFT_PER_KW;
   return Math.min(MAX_SIZE_KW, Math.max(MIN_SIZE_KW, Math.round(raw * 10) / 10));
-}
-
-export function formatINR(value: number): string {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(value);
 }
 
 export function validateEmail(value: string, e: ValidationErrors = DEFAULT_VALIDATION_ERRORS): string | undefined {

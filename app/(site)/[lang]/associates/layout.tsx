@@ -22,7 +22,7 @@ export default async function AssociatesLayout({ children, params }: { children:
   if (!ASSOCIATE_PORTAL_OPEN) return <PortalClosed t={m.associates.closed} />
   return (
     <ClerkProvider>
-      <I18nProvider messages={{ portalErrors: m.portalErrors, photoSlot: m.photoSlot, siteLocation: m.siteLocation }}>
+      <I18nProvider messages={{ portalErrors: m.portalErrors, photoSlot: m.photoSlot, siteLocation: m.siteLocation, pricing: m.pricing }}>
         <AssociateQueryProvider signInPath="/associates/sign-in">{children}</AssociateQueryProvider>
       </I18nProvider>
     </ClerkProvider>
