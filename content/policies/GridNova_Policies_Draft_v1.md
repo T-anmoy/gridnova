@@ -65,7 +65,7 @@ Nova is an automated assistant, not a person. When you chat with Nova, your mess
 
 ### 1.6 Who we share it with
 We share personal data only where needed for the purposes above:
-- **Service providers who run our systems for us**, bound by contract to use the data only on our instructions: website hosting (Vercel), application hosting and database ([Google Cloud, India region — confirm at deployment]), secure file storage (Cloudflare R2), email delivery (Resend), sign-in and account security (Clerk), our AI assistant (OpenAI), calendar scheduling (Google), and error monitoring (Sentry).
+- **Service providers who run our systems for us**, bound by contract to use the data only on our instructions: website hosting (Vercel), application hosting and database (Google Cloud, India region), secure file storage (Cloudflare R2), email delivery (Resend), sign-in and account security (Clerk), our AI assistant (OpenAI), calendar scheduling (Google), and error monitoring (Sentry).
 - **Government bodies and your DISCOM**, where you ask us to apply for a scheme, subsidy or grid connection on your behalf.
 - **Our Associates**, limited to the customers they introduced and only what they need to serve those customers.
 - **Banks and payment processors**, to record and verify payments and pay commissions.
@@ -94,7 +94,7 @@ Under the DPDP Act, you can:
 - nominate another person to exercise your rights if you die or become unable to do so;
 - have your grievances addressed.
 
-To use any of these rights, write to **[privacy@gridnova.in]**. We will respond within [30] days. If you are not satisfied with our response, you may approach the Data Protection Board of India.
+To use any of these rights, write to **info@gridnova.in**. We will respond within [30] days. If you are not satisfied with our response, you may approach the Data Protection Board of India.
 
 ### 1.10 Cookies
 We use only essential cookies and similar browser storage needed to run the website securely, remember your language choice, and keep staff and Associates signed in. We do not use advertising cookies. If we introduce analytics in future, we will update this Policy and ask for your consent where required.
@@ -328,7 +328,7 @@ Only authorised Grid Nova staff, and our service providers who store it securely
 While you are an Associate, and afterwards only as long as tax and legal rules require.
 
 **Your choices**
-You can ask to see, correct or erase your data, or withdraw this consent, by writing to [privacy@gridnova.in]. Withdrawing consent ends your association, because we cannot run it without this information.
+You can ask to see, correct or erase your data, or withdraw this consent, by writing to info@gridnova.in. Withdrawing consent ends your association, because we cannot run it without this information.
 
 ☐ I have read this notice and consent to Grid Nova processing my personal data as described.
 
@@ -361,16 +361,14 @@ You can ask Grid Nova to see, correct or delete your information at any time: in
 | 1 | 1.1 | Legal entity name and legal form (partnership firm / LLP / company) |
 | 2 | 1.1 | GSTIN |
 | 3 | All documents | Effective date of each document |
-| 4 | 1.6 | Application hosting and database provider (Google Cloud, India region — confirm at deployment) |
-| 5 | 1.8 | Retention period for chat conversations (draft: 12 months) |
-| 6 | 1.9, 6 | Privacy contact email (draft: privacy@gridnova.in) |
-| 7 | 1.9 | Response time for data requests (draft: 30 days) |
-| 8 | 1.11 | Grievance Officer: name, address, email, phone |
-| 9 | 3 (A7) | Customer attribution lock period (draft: 90 days) |
-| 10 | 3 (A11) | Notice period for an Associate leaving (draft: 15 days) and for termination without cause (draft: 30 days) |
-| 11 | 3 (A14), 4.1 | Notice period for changes to terms and rates (draft: 15 days) |
-| 12 | 4.5 | Commission payout schedule (draft: monthly, by the 10th) |
-| 13 | 4.8 | Window to raise a commission query (draft: 30 days) and response time (draft: 15 working days) |
-| 14 | 5.2 | Bank account name, bank, account number and IFSC |
+| 4 | 1.8 | Retention period for chat conversations (draft: 12 months) |
+| 5 | 1.9 | Response time for data requests (draft: 30 days) |
+| 6 | 1.11 | Grievance Officer: name, address, email, phone |
+| 7 | 3 (A7) | Customer attribution lock period (draft: 90 days) |
+| 8 | 3 (A11) | Notice period for an Associate leaving (draft: 15 days) and for termination without cause (draft: 30 days) |
+| 9 | 3 (A14), 4.1 | Notice period for changes to terms and rates (draft: 15 days) |
+| 10 | 4.5 | Commission payout schedule (draft: monthly, by the 10th) |
+| 11 | 4.8 | Window to raise a commission query (draft: 30 days) and response time (draft: 15 working days) |
+| 12 | 5.2 | Bank account name, bank, account number and IFSC |
 
 *End of draft. Recommended next step: Grid Nova's legal adviser and CA review every bracketed item, and sections 1.6 (service providers), 1.8 (retention periods), 4.5–4.6 (payout and tax) and Part C of document 3, before these are published or shown in the portals.*

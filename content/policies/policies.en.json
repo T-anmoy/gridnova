@@ -134,7 +134,7 @@
             {
               "type": "ul",
               "items": [
-                "**Service providers who run our systems for us**, bound by contract to use the data only on our instructions: website hosting (Vercel), application hosting and database ([Google Cloud, India region — confirm at deployment]), secure file storage (Cloudflare R2), email delivery (Resend), sign-in and account security (Clerk), our AI assistant (OpenAI), calendar scheduling (Google), and error monitoring (Sentry).",
+                "**Service providers who run our systems for us**, bound by contract to use the data only on our instructions: website hosting (Vercel), application hosting and database (Google Cloud, India region), secure file storage (Cloudflare R2), email delivery (Resend), sign-in and account security (Clerk), our AI assistant (OpenAI), calendar scheduling (Google), and error monitoring (Sentry).",
                 "**Government bodies and your DISCOM**, where you ask us to apply for a scheme, subsidy or grid connection on your behalf.",
                 "**Our Associates**, limited to the customers they introduced and only what they need to serve those customers.",
                 "**Banks and payment processors**, to record and verify payments and pay commissions.",
@@ -198,7 +198,7 @@
             },
             {
               "type": "p",
-              "text": "To use any of these rights, write to **[privacy@gridnova.in]**. We will respond within [30] days. If you are not satisfied with our response, you may approach the Data Protection Board of India."
+              "text": "To use any of these rights, write to **info@gridnova.in**. We will respond within [30] days. If you are not satisfied with our response, you may approach the Data Protection Board of India."
             }
           ]
         },
@@ -838,56 +838,46 @@
       ],
       [
         "4",
-        "1.6",
-        "Application hosting and database provider (Google Cloud, India region — confirm at deployment)"
-      ],
-      [
-        "5",
         "1.8",
         "Retention period for chat conversations (draft: 12 months)"
       ],
       [
-        "6",
-        "1.9, 6",
-        "Privacy contact email (draft: privacy@gridnova.in)"
-      ],
-      [
-        "7",
+        "5",
         "1.9",
         "Response time for data requests (draft: 30 days)"
       ],
       [
-        "8",
+        "6",
         "1.11",
         "Grievance Officer: name, address, email, phone"
       ],
       [
-        "9",
+        "7",
         "3 (A7)",
         "Customer attribution lock period (draft: 90 days)"
       ],
       [
-        "10",
+        "8",
         "3 (A11)",
         "Notice period for an Associate leaving (draft: 15 days) and for termination without cause (draft: 30 days)"
       ],
       [
-        "11",
+        "9",
         "3 (A14), 4.1",
         "Notice period for changes to terms and rates (draft: 15 days)"
       ],
       [
-        "12",
+        "10",
         "4.5",
         "Commission payout schedule (draft: monthly, by the 10th)"
       ],
       [
-        "13",
+        "11",
         "4.8",
         "Window to raise a commission query (draft: 30 days) and response time (draft: 15 working days)"
       ],
       [
-        "14",
+        "12",
         "5.2",
         "Bank account name, bank, account number and IFSC"
       ]
