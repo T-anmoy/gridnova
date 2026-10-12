@@ -28,9 +28,11 @@ import OnboardingProgressStaff from '@/components/dashboard/OnboardingProgressSt
 import { ConfirmLocationPrompt, SiteLocationCard } from '@/components/dashboard/SiteLocationStaff'
 import PhotoFlagBadges from '@/components/dashboard/PhotoFlagBadges'
 import ExecutionDetailPanel from '@/components/dashboard/ExecutionDetailPanel'
+import SurveyPanel from '@/components/dashboard/SurveyPanel'
 import StaffPaymentsSection from '@/components/dashboard/StaffPaymentsSection'
 import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { ApiError, wrongAccountOf } from '@/lib/dashboard/api-error'
+import { surveyReviewError } from '@/lib/dashboard/survey-review-ui'
 import { FormalProposalBlockedBanner } from '@/components/dashboard/FormalProposalBlocked'
 import { formatCurrency, formatDatetime } from '@/lib/dashboard/utils'
 import type { SiteLocation } from '@/lib/associate/onboarding-types'
@@ -126,7 +128,7 @@ function FormalProposalSection({ onboardingId, blocked }: { onboardingId: number
       await prepareMutation.mutateAsync({ id: onboardingId, input: email ? { customer_email: email } : undefined })
       toast.success('Formal proposal prepared')
     } catch (err) {
-      toast.error(errorMessage(err, 'Failed to prepare formal proposal'))
+      toast.error(err instanceof ApiError && err.structuredDetail ? surveyReviewError(err, 'Failed to prepare formal proposal') : errorMessage(err, 'Failed to prepare formal proposal'))
     }
   }
 
@@ -137,7 +139,7 @@ function FormalProposalSection({ onboardingId, blocked }: { onboardingId: number
       toast.success('In-person acceptance recorded')
       setAcceptOpen(false)
     } catch (err) {
-      toast.error(errorMessage(err, 'Failed to record acceptance'))
+      toast.error(err instanceof ApiError && err.structuredDetail ? surveyReviewError(err, 'Failed to record acceptance') : errorMessage(err, 'Failed to record acceptance'))
     }
   }
 
@@ -309,6 +311,7 @@ export default function StaffOnboardingDetailPage() {
       return (
         <div className="p-6 md:p-8 space-y-6 max-w-4xl" data-testid="reduced-project-view">
           <h1 className="text-2xl font-bold text-[#091c3c]">Project #{onboardingId}</h1>
+          {role === 'engineer' && <SurveyPanel onboardingId={onboardingId} role={role} />}
           {role === 'accounts' ? (
             <StaffPaymentsSection onboardingId={onboardingId} role={role} />
           ) : (
@@ -360,6 +363,8 @@ export default function StaffOnboardingDetailPage() {
       <VerificationCallSection onboardingId={onboardingId} verification={onboarding.verification} siteLocation={onboarding.site_location} />
 
       <SiteLocationCard onboardingId={onboardingId} location={onboarding.site_location} role={role} />
+
+      <SurveyPanel onboardingId={onboardingId} role={role} />
 
       <ScoreSection score={onboarding.score} />
 

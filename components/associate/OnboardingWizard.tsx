@@ -215,7 +215,7 @@ interface Props {
   portalBase: '/associates/portal' | '/preferred/portal'
   existing?: Onboarding
   // Deep link from a to-do ("add / confirm the house location").
-  initialStep?: 'house' | 'survey'
+  initialStep?: 'connection' | 'bills' | 'house' | 'layout' | 'survey'
 }
 
 /**

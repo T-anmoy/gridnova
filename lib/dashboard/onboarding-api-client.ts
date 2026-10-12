@@ -54,7 +54,7 @@ export function useStaffOnboardings(params?: StaffOnboardingListParams) {
   })
 }
 
-export function useStaffOnboarding(id: number) {
+export function useStaffOnboarding(id: number, enabled = true) {
   const { getToken } = useAuth()
   return useQuery({
     queryKey: ['staff-onboarding', id],
@@ -63,7 +63,7 @@ export function useStaffOnboarding(id: number) {
       if (!token) throw notAuthenticatedError()
       return dashboardFetch<Onboarding>(`${BASE}/${id}`, token)
     },
-    enabled: !!id,
+    enabled: !!id && enabled,
   })
 }
 

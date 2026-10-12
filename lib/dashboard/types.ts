@@ -1,3 +1,5 @@
+import type { ReverificationReason } from "./survey-review-types"
+
 export type Role = 'admin' | 'sales' | 'management' | 'engineer' | 'operations' | 'accounts'
 
 // ── Equipment / SKU master ───────────────────────────────────────────────────
@@ -205,6 +207,9 @@ export interface ProposalSummary {
   accepted_at?: string | null
   has_placeholder_content?: boolean
   placeholder_sections?: string[]
+  // BE-2 §9: a survey change flagged this proposal; it cannot reach the customer until cleared.
+  needs_reverification?: boolean
+  reverification_reason?: ReverificationReason | null
   date_created: string | null
   date_sent: string | null
   lead: {
@@ -272,6 +277,8 @@ export interface ProposalDetail {
   accepted_at?: string | null
   has_placeholder_content?: boolean
   placeholder_sections?: string[]
+  needs_reverification?: boolean
+  reverification_reason?: ReverificationReason | null
   customer: Customer | null
   lead: {
     id: number

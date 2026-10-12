@@ -38,12 +38,15 @@ export function ConnectionSurveyFields({
   options,
   errors,
   common,
+  lockConsumerNumber,
 }: {
   form: SurveyForm
   onChange: Patch
   options: SurveyOptions
   errors: Errors
   common: CommonCopy
+  /** Corrections can never change the consumer number (it is the customer's identity). */
+  lockConsumerNumber?: string
 }) {
   const t = useMessages('survey')
   return (
@@ -90,10 +93,11 @@ export function ConnectionSurveyFields({
           {(p) => <input {...p} name="discom_other" maxLength={100} className={inputClass(!!errors.discom)} value={form.discom_other} onChange={(e) => onChange({ discom_other: e.target.value })} />}
         </FormField>
       )}
-      <FormField label={t.connection.consumerNumberLabel} error={errors.consumer_number}>
+      <FormField label={t.connection.consumerNumberLabel} error={errors.consumer_number} hint={lockConsumerNumber}>
         {(p) => (
           <input
             {...p}
+            readOnly={!!lockConsumerNumber}
             name="consumer_number"
             maxLength={50}
             inputMode="text"

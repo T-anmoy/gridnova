@@ -8,6 +8,9 @@ import { clearAutosaveDraft, readDraft, writeDraft } from './useAutosaveDraft'
 
 export const SERIAL_DRAFT_DEBOUNCE_MS = 600
 
+/** Key prefix of the staff register panel's drafts; wiped on staff sign-out. */
+export const STAFF_REGISTER_DRAFT_PREFIX = 'gna-register-staff-'
+
 /** The stored rows for `key` (rebuilt with `fromStored`), or null when there is no fresh draft. */
 export function readSerialDraft<R>(key: string, fromStored: (stored: Record<string, unknown>) => R): R[] | null {
   if (typeof window === 'undefined') return null

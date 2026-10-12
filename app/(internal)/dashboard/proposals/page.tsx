@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useUser } from '@clerk/nextjs'
 import { useAuth } from '@clerk/nextjs'
 import { Filter, ChevronLeft, ChevronRight, ShieldCheck, Download, CheckCircle, Clock } from 'lucide-react'
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ClickableRow } from '@/components/dashboard/ClickableRow'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatCurrency, formatDate } from '@/lib/dashboard/utils'
 import type { ProposalStatus, Role } from '@/lib/dashboard/types'
@@ -36,7 +37,6 @@ function statusVariant(status: ProposalStatus) {
 const PAGE_SIZE = 50
 
 export default function ProposalsPage() {
-  const router = useRouter()
   const { user } = useUser()
   const { getToken } = useAuth()
   const role = user?.publicMetadata?.role as Role | undefined
@@ -179,17 +179,20 @@ export default function ProposalsPage() {
                       </TableRow>
                     )
                   : items.map((p) => (
-                      <TableRow
+                      <ClickableRow
                         key={p.id}
-                        className="cursor-pointer hover:bg-[#f7f9fc] transition-colors"
-                        onClick={() => router.push(`/dashboard/proposals/${p.id}`)}
+                        href={`/dashboard/proposals/${p.id}`}
+                        className="hover:bg-[#f7f9fc] transition-colors"
                       >
-                        <TableCell className="font-utility font-medium text-[#091c3c]">#{p.id}</TableCell>
+                        <TableCell className="font-utility font-medium text-[#091c3c]">
+                          <Link href={`/dashboard/proposals/${p.id}`} className="hover:underline">#{p.id}</Link>
+                        </TableCell>
                         <TableCell className="font-utility text-sm">{p.customer?.name ?? '—'}</TableCell>
                         <TableCell className="font-utility text-sm text-[#111827]/60">#{p.lead_id}</TableCell>
                         <TableCell className="font-utility text-sm">v{p.version}</TableCell>
                         <TableCell>
                           <Badge variant={statusVariant(p.status)}>{p.status.replace(/_/g, ' ')}</Badge>
+                          {p.needs_reverification && <Badge variant="amber" className="ml-1.5" data-testid="list-reverify-badge">Re-verify</Badge>}
                         </TableCell>
                         <TableCell className="font-utility text-sm">{formatCurrency(p.total_value)}</TableCell>
                         <TableCell>
@@ -207,7 +210,7 @@ export default function ProposalsPage() {
                           )}
                         </TableCell>
                         <TableCell className="font-utility text-sm text-[#111827]/60">{formatDate(p.date_created)}</TableCell>
-                      </TableRow>
+                      </ClickableRow>
                     ))}
               </TableBody>
             </Table>

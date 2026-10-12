@@ -603,5 +603,80 @@
     "locationRequired": "Turn on location to take this photo, then try again.",
     "uploadFailed": "This photo couldn't be uploaded. Please try again.",
     "retryButton": "Retry"
+  },
+  "survey": {
+    "warnings": {
+      "requested_above_suggested": "The customer asked for {requested_kw} kW, but the survey suggests {suggested_kw} kW (limited by {limiting_factor}).",
+      "load_enhancement_needed": "A {required_kw} kW system is more than the sanctioned load of {sanctioned_load_kw} kW allows (up to {max_by_load_kw} kW). The customer may need a load increase.",
+      "implied_tariff_outside_range": "The bills work out to {implied_tariff_inr_per_kwh} per unit, outside the usual {min}–{max}. Please re-check the units and amounts.",
+      "units_bill_mismatch": "The saved {field} ({entered}) differs from the bills ({from_bills}) by more than 25%.",
+      "three_phase_below_min": "{kw} kW is below the {min_kw} kW minimum for a three-phase connection.",
+      "fragile_roof": "This roof ({roof_material}) may need extra structural checks.",
+      "overhead_line": "There is an overhead power line near the roof — a safety check is needed.",
+      "roof_not_owned_no_noc": "The customer doesn't own the roof and there is no NOC from the owner yet.",
+      "society_noc_missing": "The housing society NOC is: {society_noc_status}.",
+      "area_implausible": "Please re-check the roof area: {reason}.",
+      "duplicate_consumer_number": "Another associate already has an open customer with this consumer number. Grid Nova will review it.",
+      "unknown": "Please check this survey detail with Grid Nova."
+    },
+    "limiting": {
+      "area": "roof area",
+      "load": "sanctioned load",
+      "usage": "electricity use"
+    },
+    "fields": {
+      "discom": "DISCOM",
+      "consumer_number": "Consumer number",
+      "connection_phase": "Connection phase",
+      "sanctioned_load_kw": "Sanctioned load",
+      "society_flat_count": "Number of flats",
+      "society_noc_status": "Society NOC",
+      "contract_demand_kva": "Contract demand",
+      "consumption_history": "Electricity bills",
+      "roof_accessible": "Roof access",
+      "roof_material": "Roof material",
+      "roof_material_other": "Roof material (other)",
+      "roof_orientation": "Roof direction",
+      "roof_ownership_confirmed": "Roof ownership",
+      "tenant_noc_available": "Roof owner's NOC",
+      "floors": "Floors",
+      "shading_condition": "Shade",
+      "roof_obstacles": "Things on the roof",
+      "roof_area_sqft": "Total roof area",
+      "shadow_free_area_sqft": "Shade-free area",
+      "roof_sections": "Roof sections",
+      "roofs_considered_count": "Roofs considered",
+      "inverter_location": "Inverter location",
+      "indoor_wall_available": "Indoor wall",
+      "distance_panel_to_inverter_m": "Panels to inverter distance",
+      "distance_inverter_to_lt_panel_m": "Inverter to LT panel distance",
+      "distance_method": "How distances were measured",
+      "water_available": "Water on the roof",
+      "avg_monthly_units_kwh": "Average monthly units",
+      "avg_monthly_bill_inr": "Average monthly bill"
+    },
+    "roofMaterials": {
+      "concrete_flat": "Concrete (flat)",
+      "tin_shed": "Tin shed",
+      "asbestos": "Asbestos",
+      "other": "Other"
+    },
+    "nocStatuses": {
+      "obtained": "Obtained",
+      "in_progress": "In progress",
+      "not_required": "Not required",
+      "not_available": "Not available"
+    },
+    "areaReasons": {
+      "shadow_free_exceeds_total": "the shade-free area is larger than the total roof area",
+      "roof_area_large": "the roof area looks unusually large"
+    },
+    "sections": {
+      "connection": "Connection",
+      "bills": "Electricity bills",
+      "roof": "Roof",
+      "roof_area": "Roof area",
+      "layout": "Equipment layout"
+    }
   }
 }

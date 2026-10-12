@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useRef, useState } from 'react'
+import { useId, useRef, useState, useSyncExternalStore } from 'react'
 import { AlertTriangle, CheckCircle2, CircleDashed, Loader2, WifiOff } from 'lucide-react'
 import { useMessages, useOptionalMessages } from '@/lib/i18n/client'
 import { fmt, type Messages } from '@/lib/i18n/types'
@@ -217,7 +217,7 @@ export function SurveyResultsPanel({ results }: { results: SurveyResults }) {
 
 // ── Signatures (§5) ───────────────────────────────────────────────────────
 
-function SignatureBlock({
+export function SignatureBlock({
   party,
   onboardingId,
   status,
@@ -431,6 +431,41 @@ export default function SurveyStep({
           <SignatureBlock party="associate" onboardingId={onboardingId} status={statusQ.data} maxKb={options.signature_max_kb} online={online} />
         </div>
       )}
+    </div>
+  )
+}
+
+function subscribeOnline(cb: () => void) {
+  window.addEventListener('online', cb)
+  window.addEventListener('offline', cb)
+  return () => {
+    window.removeEventListener('online', cb)
+    window.removeEventListener('offline', cb)
+  }
+}
+
+/**
+ * The signature pads outside the wizard: a verified customer whose signature a
+ * correction cleared signs again here (owner only; the card decides who sees it).
+ */
+export function ResignSignatures({ onboardingId, status, maxKb }: { onboardingId: number; status: SurveyStatus; maxKb: number }) {
+  const t = useMessages('survey')
+  const online = useSyncExternalStore(subscribeOnline, () => navigator.onLine, () => true)
+  const missing = (['customer', 'associate'] as const).filter((p) => !status.signatures[p].signed)
+  return (
+    <div className="space-y-3" data-testid="resign-signatures">
+      <div>
+        <p className="font-display text-base font-semibold text-[#0e2a63]">{t.resign.title}</p>
+        <p className="mt-1 text-sm text-[#111827]/65">{t.resign.body}</p>
+      </div>
+      {!online && (
+        <p className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-sm text-amber-900" role="status">
+          <WifiOff className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /> {t.signatures.offline}
+        </p>
+      )}
+      {missing.map((party) => (
+        <SignatureBlock key={party} party={party} onboardingId={onboardingId} status={status} maxKb={maxKb} online={online} />
+      ))}
     </div>
   )
 }

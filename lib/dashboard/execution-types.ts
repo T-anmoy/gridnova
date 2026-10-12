@@ -82,4 +82,7 @@ export interface WorkQueues {
     receipts_without_email: number
     overdue_milestones: number
   }
+  // BE-2 §11 — admin and engineer only. `overdue` is counted inside `awaiting` too.
+  survey_reviews?: { awaiting: number; overdue: number }
+  survey_corrections?: { pending: number }
 }

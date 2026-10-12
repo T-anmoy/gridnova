@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@clerk/nextjs'
-import { readSerialDraft, useSerialDraftWriter } from '@/lib/associate/serial-draft'
+import { STAFF_REGISTER_DRAFT_PREFIX, readSerialDraft, useSerialDraftWriter } from '@/lib/associate/serial-draft'
 import { AlertTriangle, Check, Lock, Plus, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -91,7 +91,7 @@ function UnitEntry({ onboardingId, locked, isAdmin }: { onboardingId: number; lo
   const { getToken, userId } = useAuth()
   const createUnit = useCreateUnit(onboardingId)
   const bulk = useBulkCreateUnits(onboardingId)
-  const draftKey = `gna-register-staff-${userId ?? 'anon'}-${onboardingId}`
+  const draftKey = `${STAFF_REGISTER_DRAFT_PREFIX}${userId ?? 'anon'}-${onboardingId}`
   const [restoredRows] = useState(() => readSerialDraft(draftKey, restoredRow))
   const [rows, setRows] = useState<DraftRow[]>(() => restoredRows ?? [emptyRow()])
   useSerialDraftWriter(draftKey, rows, { isDirty, toStored: storedRow })

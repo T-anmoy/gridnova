@@ -1,8 +1,8 @@
 // Types for the on-site site survey (S1), exactly as backend
 // `docs/api/site_survey.md` §1–§6 states them. Enums not spelled out there come
 // from the committed `docs/api/openapi.json` (the contract per BE-1 §6).
-// Engineer review, corrections and the report (§8–§11) are deliberately absent:
-// a later session builds them.
+// Engineer review, corrections and the report (§8–§11, BE-2) are typed at the
+// bottom of this file.
 
 export type SurveyVariant = 'individual_house' | 'housing_society' | 'commercial_roof'
 export const SURVEY_VARIANTS: readonly SurveyVariant[] = ['individual_house', 'housing_society', 'commercial_roof']
@@ -100,6 +100,23 @@ export interface SurveySignatureState {
 
 export type SurveyReviewOutcome = 'feasible' | 'feasible_with_conditions' | 'revisit_needed' | 'not_feasible'
 
+export interface SurveyRevisitItem {
+  section: string
+  field: string | null
+  note: string
+}
+
+/** The review block of the survey status (§3 / §8). `reviewed_by` is staff-only. */
+export interface SurveyReview {
+  outcome: SurveyReviewOutcome | null
+  notes: string | null
+  conditions: string[]
+  revisit_items: SurveyRevisitItem[]
+  reviewed_at: string | null
+  revised_after_review: boolean
+  reviewed_by?: string | null
+}
+
 export interface SurveyStatus {
   onboarding_id: number
   variant: SurveyVariant
@@ -109,15 +126,8 @@ export interface SurveyStatus {
   declaration: { name: string | null; declared_at: string | null }
   required_to_submit: boolean
   grandfathered: boolean
-  // Filled by the Engineer review (§8) — read here only, no UI in this session.
-  review?: {
-    outcome: SurveyReviewOutcome | null
-    notes: string | null
-    conditions: string[]
-    revisit_items: { section: string; field: string | null; note: string }[]
-    reviewed_at: string | null
-    revised_after_review: boolean
-  }
+  // Filled by the Engineer review (§8).
+  review?: SurveyReview
   report?: { generated_at: string | null }
 }
 
@@ -226,3 +236,46 @@ export type SignatureErrorCode =
   | 'signature_not_png'
   | 'not_editable'
   | 'storage_not_configured'
+
+// ── Corrections (§9) ──────────────────────────────────────────────────────
+
+export type CorrectionStatus = 'pending' | 'applied' | 'rejected'
+
+export interface SurveyCorrection {
+  correction_id: number
+  onboarding_id: number
+  /** Echoed as sent: survey field → new value. */
+  changes: Record<string, unknown>
+  reason: string
+  status: CorrectionStatus
+  requested_at: string
+  reviewed_at: string | null
+  review_note: string | null
+}
+
+/** A row of the staff queue (§9): the associate shape plus who and which customer. */
+export interface StaffSurveyCorrection extends SurveyCorrection {
+  requested_by: string
+  reviewed_by: string | null
+  client_code: string | null
+  customer_name: string | null
+}
+
+export type CorrectionErrorCode =
+  | 'edit_directly'
+  | 'not_editable'
+  | 'correction_pending'
+  | 'no_changes'
+  | 'reason_required'
+  | 'not_a_survey_field'
+  | 'field_not_correctable'
+  | 'invalid_value'
+
+// ── Report (§10) ──────────────────────────────────────────────────────────
+
+export interface SurveyReportLink {
+  url: string
+  expires_at: string
+  filename: string
+  generated_at: string
+}

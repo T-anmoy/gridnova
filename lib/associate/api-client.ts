@@ -300,9 +300,27 @@ export function useAdminAssociates(params?: AssociateListParams) {
   })
 }
 
-export function useAdminAssociate(associateId: string) {
+/** How long after approval the associate's invite and documents are still being prepared (BE-3, asynchronous). */
+export const PREPARING_WINDOW_MS = 60_000
+export const PREPARING_POLL_MS = 4_000
+
+/**
+ * Approval is asynchronous: right after it, `clerk_invite_status` is null and
+ * there is no ID card yet. Only `'failed'` is a failure — null means "not done yet".
+ */
+export function isPreparing(a: Pick<AdminAssociate, 'clerk_invite_status' | 'documents' | 'approved_at'> | undefined, now = Date.now()): boolean {
+  if (!a) return false
+  // Only a fresh approval is "being prepared"; an old record with a null status is not polled forever.
+  const approved = Date.parse(a.approved_at)
+  if (Number.isFinite(approved) && now - approved > 15 * 60_000) return false
+  return a.clerk_invite_status === null || !a.documents.id_card
+}
+
+export function useAdminAssociate(associateId: string, poll?: { until: number }) {
   const { getToken } = useAuth()
   return useQuery({
+    // Re-read every few seconds, for up to about a minute, until the invite and ID card exist.
+    refetchInterval: poll ? (query) => (isPreparing(query.state.data) && Date.now() < poll.until ? PREPARING_POLL_MS : false) : false,
     queryKey: ['associate', associateId],
     queryFn: async () => {
       const token = await getToken()

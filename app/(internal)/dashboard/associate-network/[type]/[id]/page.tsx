@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth, useUser } from '@clerk/nextjs'
 import { toast } from 'sonner'
@@ -89,6 +90,7 @@ export default function ApplicationDetailPage() {
   const setStatus = useSetApplicationStatus()
   const approve = useApproveApplication()
 
+  const [approvedId, setApprovedId] = useState<string | null>(null)
   const [callCompleted, setCallCompleted] = useState(false)
   const [callNote, setCallNote] = useState('')
   const [rejectOpen, setRejectOpen] = useState(false)
@@ -159,7 +161,8 @@ export default function ApplicationDetailPage() {
         verificationCallCompleted: callCompleted,
         verificationCallNote: callNote.trim(),
       })
-      toast.success(`Approved — Associate ID ${result.associate.associate_id}`)
+      toast.success(`Approved — Associate ID ${result.associate.associate_id}. The invite and documents are being prepared.`)
+      setApprovedId(result.associate.associate_id)
     } catch (err) {
       toast.error(errorMessage(err, 'Failed to approve application'))
     }
@@ -173,6 +176,13 @@ export default function ApplicationDetailPage() {
       <button onClick={() => router.push('/dashboard/associate-network')} className="font-utility text-sm text-[#0e2a63] mb-4">
         ← Back to queue
       </button>
+
+      {approvedId && (
+        <div role="status" className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 font-utility text-sm text-green-800" data-testid="approved-notice">
+          Approved — the invite and documents are being prepared.{' '}
+          <Link href={`/dashboard/associate-network/associates/${approvedId}`} className="font-medium underline">View the associate</Link>
+        </div>
+      )}
 
       <div className="mb-6 flex items-start justify-between">
         <div>

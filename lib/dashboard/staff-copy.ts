@@ -19,3 +19,4 @@ export const STAFF_PAYMENT_COPY = copy.payments
 export const STAFF_EXECUTION_COPY = copy.execution
 export const STAFF_PHOTOS_COPY = copy.photos
 export const STAFF_SITE_LOCATION_COPY = copy.siteLocation
+export const STAFF_SURVEY_COPY = copy.survey

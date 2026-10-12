@@ -23,6 +23,16 @@ export function pickStaffCopy(en) {
     payments: en.associates.portal.payments,
     execution: en.associates.portal.execution,
     photos: en.associates.portal.wizard.photos,
+    // Survey result warnings are shown to staff in the same words as to associates.
+    survey: {
+      warnings: en.survey.warnings,
+      limiting: en.survey.results.limiting,
+      fields: en.survey.fields,
+      roofMaterials: en.survey.roofMaterials,
+      nocStatuses: en.survey.nocStatuses,
+      areaReasons: en.survey.areaReasons,
+      sections: en.survey.status.sections,
+    },
   }
 }
 

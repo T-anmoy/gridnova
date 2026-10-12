@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { SurveyResults, SurveyStatus } from './survey-types'
+import type { SurveyCorrection, SurveyReportLink, SurveyResults, SurveyStatus } from './survey-types'
 
 // Runtime checks for the survey responses (site_survey.md §3–§4), applied at
 // the fetch boundary so a contract drift fails loudly with the field name
@@ -30,6 +30,18 @@ export const surveyStatusSchema = z
     declaration: z.object({ name: z.string().nullable(), declared_at: z.string().nullable() }),
     required_to_submit: z.boolean(),
     grandfathered: z.boolean(),
+    review: z
+      .object({
+        outcome: z.enum(['feasible', 'feasible_with_conditions', 'revisit_needed', 'not_feasible']).nullable(),
+        notes: z.string().nullable(),
+        conditions: z.array(z.string()),
+        revisit_items: z.array(z.object({ section: z.string(), field: z.string().nullable(), note: z.string() }).passthrough()),
+        reviewed_at: z.string().nullable(),
+        revised_after_review: z.boolean(),
+      })
+      .passthrough()
+      .optional(),
+    report: z.object({ generated_at: z.string().nullable() }).passthrough().optional(),
   })
   .passthrough() as unknown as z.ZodType<SurveyStatus>
 
@@ -81,3 +93,24 @@ export const surveyResultsSchema = z
       .optional(),
   })
   .passthrough() as unknown as z.ZodType<SurveyResults>
+
+// §9 corrections and §10 report links.
+const correction = z
+  .object({
+    correction_id: z.number(),
+    onboarding_id: z.number(),
+    changes: z.record(z.string(), z.unknown()),
+    reason: z.string(),
+    status: z.enum(['pending', 'applied', 'rejected']),
+    requested_at: z.string(),
+    reviewed_at: z.string().nullable(),
+    review_note: z.string().nullable(),
+  })
+  .passthrough()
+
+export const surveyCorrectionSchema = correction as unknown as z.ZodType<SurveyCorrection>
+export const surveyCorrectionListSchema = z.object({ items: z.array(correction) }).passthrough() as unknown as z.ZodType<{ items: SurveyCorrection[] }>
+
+export const surveyReportLinkSchema = z
+  .object({ url: z.string(), expires_at: z.string(), filename: z.string(), generated_at: z.string() })
+  .passthrough() as unknown as z.ZodType<SurveyReportLink>

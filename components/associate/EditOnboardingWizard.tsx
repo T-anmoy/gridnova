@@ -17,7 +17,7 @@ export default function EditOnboardingWizard({
   copy: Messages['associates']['portal']['wizard']
   territory: Messages['associates']['territory']
   portalBase: '/associates/portal' | '/preferred/portal'
-  initialStep?: 'house' | 'survey'
+  initialStep?: 'connection' | 'bills' | 'house' | 'layout' | 'survey'
 }) {
   const { data: onboarding, isLoading, error, refetch } = useOnboarding(onboardingId)
 

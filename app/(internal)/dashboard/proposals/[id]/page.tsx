@@ -15,6 +15,8 @@ import {
   useRequestRevision, useSendProposal, useDraftProposal, useAdjustPricing, fetchProposalPdf,
 } from '@/lib/dashboard/api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
+import { ReverificationBanner } from '@/components/dashboard/ReverificationBanner'
+import { fieldList, surveyReviewError } from '@/lib/dashboard/survey-review-ui'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import ProposalPricing from '@/components/dashboard/ProposalPricing'
 import { Badge } from '@/components/ui/badge'
@@ -206,7 +208,8 @@ export default function ProposalDetailPage() {
         toast.error('This proposal still has placeholder content')
         return
       }
-      toast.error(errorMessage(err, 'Failed to send'))
+      // needs_reverification (and any other object detail) → a plain sentence, never [object Object].
+      toast.error(err instanceof ApiError && err.structuredDetail ? surveyReviewError(err, 'Failed to send') : errorMessage(err, 'Failed to send'))
     }
   }
 
@@ -333,6 +336,8 @@ export default function ProposalDetailPage() {
     ? proposal.placeholder_sections ?? []
     : send409?.placeholder_sections ?? []
   const showPlaceholderBanner = proposal.has_placeholder_content || !!send409
+  const needsReverification = proposal.needs_reverification === true
+  const reverifyFields = fieldList(proposal.reverification_reason?.fields)
 
   return (
     <div>
@@ -521,7 +526,22 @@ export default function ProposalDetailPage() {
 
             {/* Approved: send to customer — disabled while placeholder content remains */}
             {proposal.status === 'approved' && (isAdmin || isSales) && (
-              proposal.has_placeholder_content ? (
+              needsReverification ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span tabIndex={0}>
+                        <Button size="sm" disabled data-testid="send-blocked-reverification">
+                          <Send className="mr-1.5 h-4 w-4" /> Send to Customer
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Re-verify the proposal first{reverifyFields ? ` (survey changed: ${reverifyFields})` : ''}.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : proposal.has_placeholder_content ? (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -574,6 +594,12 @@ export default function ProposalDetailPage() {
       {sentPdfState.status === 'error' && (
         <div className="mb-4 rounded-lg bg-red-50 border border-red-100 p-3 flex items-center gap-2 text-red-700 font-utility text-sm">
           <AlertCircle className="h-4 w-4" /> {sentPdfState.message}
+        </div>
+      )}
+
+      {needsReverification && !proposal.accepted_at && (
+        <div className="mb-4">
+          <ReverificationBanner proposalId={proposal.id} reason={proposal.reverification_reason} role={role} />
         </div>
       )}
 

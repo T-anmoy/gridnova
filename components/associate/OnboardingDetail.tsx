@@ -21,6 +21,9 @@ import SurveyCard from '@/components/associate/survey/SurveyCard'
 import EstimateSection from '@/components/associate/EstimateSection'
 import FileUploadSlot from '@/components/associate/FileUploadSlot'
 import { ApiError } from '@/lib/dashboard/api-error'
+import { useMessages } from '@/lib/i18n/client'
+import { useSurveyStatus } from '@/lib/associate/survey-api-client'
+import { isNeedsReverification, proposalGateCode, proposalGateRefuses } from '@/lib/associate/survey-review'
 import { formatCurrency, formatDatetime } from '@/lib/dashboard/utils'
 import type { Messages } from '@/lib/i18n/types'
 
@@ -35,11 +38,18 @@ function ProposalSection({
   onboardingId,
   copy,
   blocked,
+  isOwner,
 }: {
   onboardingId: number
   copy: ProposalCopy
   blocked: boolean
+  // Requesting a proposal and recording an in-person acceptance are owner-only
+  // on the backend: a territory Preferred Associate would only ever get a 403.
+  isOwner: boolean
 }) {
+  const survey = useMessages('survey')
+  const surveyStatus = useSurveyStatus(onboardingId)
+  const [gate, setGate] = useState<'review_required' | 'survey_not_feasible' | null>(null)
   const { data: formalProposal, isLoading } = useOnboardingFormalProposal(onboardingId)
   const requestMutation = useRequestFormalProposal()
   const acceptMutation = useInPersonAcceptance()
@@ -61,12 +71,32 @@ function ProposalSection({
       })
       setAcceptOpen(false)
     } catch (err) {
-      if (err instanceof ApiError && err.structuredDetail?.code) {
+      if (isNeedsReverification(err)) {
+        // The associate never sees internal field names — just the plain reason.
+        setError(survey.gate.needsReverification)
+      } else if (err instanceof ApiError && err.structuredDetail?.code) {
         const code = err.structuredDetail.code as keyof ProposalCopy['acceptance']['errors']
         setError(copy.acceptance.errors[code] ?? err.detail ?? err.message)
       } else {
         setError(err instanceof ApiError ? err.detail || err.message : copy.genericError)
       }
+    }
+  }
+
+  // not_feasible always blocks. Whether a missing review blocks is a Grid Nova setting the app cannot see,
+  // so that case is only shown after the server has refused (below).
+  const gateCode = gate ?? (proposalGateRefuses(surveyStatus.data) ? 'survey_not_feasible' : null)
+  const gateBlocked = gateCode !== null
+
+  async function requestFormal() {
+    setGate(null)
+    setError(null)
+    try {
+      await requestMutation.mutateAsync(onboardingId)
+    } catch (err) {
+      const g = proposalGateCode(err)
+      if (g) setGate(g)
+      else setError(err instanceof ApiError ? (typeof err.detail === 'string' && err.detail) || copy.genericError : copy.genericError)
     }
   }
 
@@ -79,14 +109,22 @@ function ProposalSection({
             {copy.readyMissingFields} {formalProposal.missing_fields.join(', ')}
           </p>
         )}
-        <button
-          type="button"
-          disabled={blocked || requestMutation.isPending}
-          onClick={() => void requestMutation.mutateAsync(onboardingId)}
-          className="mt-3 rounded-lg bg-[#0e2a63] px-4 py-2 text-sm font-semibold text-white font-utility disabled:opacity-40"
-        >
-          {requestMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : copy.requestButton}
-        </button>
+        {isOwner && (
+          <button
+            type="button"
+            disabled={blocked || requestMutation.isPending || gateBlocked}
+            onClick={() => void requestFormal()}
+            className="mt-3 min-h-[44px] rounded-lg bg-[#0e2a63] px-4 py-2 text-sm font-semibold text-white font-utility disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5daa]"
+          >
+            {requestMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : copy.requestButton}
+          </button>
+        )}
+        {gateBlocked && (
+          <p role="alert" className="mt-2 text-sm text-amber-900 font-utility" data-testid="proposal-gate">
+            {survey.gate[gateCode === 'survey_not_feasible' ? 'survey_not_feasible' : 'review_required']}{' '}
+            <span className="text-xs">{survey.gate.seeReview}</span>
+          </p>
+        )}
         {requestMutation.isSuccess && <p className="mt-2 text-xs text-[#111827]/55 font-utility">{copy.requestedNote}</p>}
       </div>
     )
@@ -125,7 +163,7 @@ function ProposalSection({
         </a>
       )}
 
-      {!formalProposal.accepted_at && (
+      {!formalProposal.accepted_at && isOwner && (
         <div className="mt-4">
           <button type="button" onClick={() => setAcceptOpen((o) => !o)} className="rounded-lg border border-[#0e2a63] px-4 py-2 text-sm font-semibold text-[#0e2a63] font-utility">
             {copy.acceptance.title}
@@ -337,6 +375,9 @@ export default function OnboardingDetail({
       <SurveyCard
         onboardingId={onboardingId}
         isOwner={isOwner}
+        portalBase={portalBase}
+        onboardingStatus={onboarding.status}
+        canEdit={!!onboarding.can_edit}
         editHref={isOwner && onboarding.can_edit ? `${portalBase}/customers/${onboardingId}/edit?step=survey` : undefined}
       />
 
@@ -359,7 +400,7 @@ export default function OnboardingDetail({
       </div>
 
       <div className="rounded-2xl border border-[#e4e8ee] bg-white p-5">
-        <ProposalSection onboardingId={onboardingId} copy={proposalCopy} blocked={!!onboarding.formal_proposal_blocked} />
+        <ProposalSection onboardingId={onboardingId} copy={proposalCopy} blocked={!!onboarding.formal_proposal_blocked} isOwner={isOwner} />
       </div>
 
       {/* BE-1 §8: agreement links are owner-only while territory_viewers_see_documents is off

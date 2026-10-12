@@ -15,7 +15,7 @@ import {
 import { QueryProvider } from '@/components/dashboard/QueryProvider'
 import { I18nProvider } from '@/lib/i18n/client'
 import { STAFF_SHARED_MESSAGES } from '@/lib/dashboard/staff-copy'
-import { NAV_ITEMS, canSeeNavItem, queueBadgeCount } from '@/lib/dashboard/nav'
+import { NAV_ITEMS, canSeeNavItem, overdueSurveyCount, queueBadgeCount } from '@/lib/dashboard/nav'
 import { useWorkQueues } from '@/lib/dashboard/execution-api-client'
 import { CommandPalette } from '@/components/dashboard/CommandPalette'
 import { Toaster } from '@/components/ui/sonner'
@@ -25,6 +25,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { useProposals, prefetchLeads, prefetchProposals, defaultLeadListParams } from '@/lib/dashboard/api-client'
 import { cn } from '@/lib/dashboard/utils'
+import { clearDraftsWithPrefix } from '@/lib/associate/useAutosaveDraft'
+import { STAFF_REGISTER_DRAFT_PREFIX } from '@/lib/associate/serial-draft'
 import type { Role } from '@/lib/dashboard/types'
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
@@ -54,6 +56,8 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   }
 
   async function handleSignOut() {
+    // Staff share machines too: typed-in serial rows must not outlive the session.
+    clearDraftsWithPrefix([STAFF_REGISTER_DRAFT_PREFIX])
     await signOut()
     router.push('/')
   }
@@ -113,6 +117,11 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
               {item.queue && queueBadgeCount(item.queue, queues) > 0 && (
                 <Badge variant={active ? 'default' : 'amber'} className="min-w-[1.25rem] justify-center px-1.5 text-[10px]" data-testid={`queue-badge-${item.queue}`}>
                   {queueBadgeCount(item.queue, queues)}
+                </Badge>
+              )}
+              {item.queue === 'survey_reviews' && overdueSurveyCount(queues) > 0 && (
+                <Badge variant="red" className="px-1.5 text-[10px]" data-testid="queue-badge-survey-overdue">
+                  {overdueSurveyCount(queues)} overdue
                 </Badge>
               )}
               {item.badge && pendingCount > 0 && (

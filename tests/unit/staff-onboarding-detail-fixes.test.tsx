@@ -7,6 +7,7 @@ import type { AgreementResponse } from '@/lib/dashboard/onboarding-types'
 
 vi.mock('next/navigation', () => ({ useParams: () => ({ id: '77' }) }))
 vi.mock('@/lib/dashboard/use-staff-role', () => ({ useStaffRole: () => ({ role: 'admin', isLoaded: true }) }))
+vi.mock('@/components/dashboard/SurveyPanel', () => ({ default: () => null }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 const mockUseStaffOnboarding = vi.fn()

@@ -2550,7 +2550,12 @@
           "receipt_available": "Receipt {number} is ready for the customer.",
           "generic": "There is an update for this customer.",
           "site_location_missing": "Add the house location for this customer.",
-          "site_location_unconfirmed": "Confirm the house location for this customer."
+          "site_location_unconfirmed": "Confirm the house location for this customer.",
+          "survey_revisit_edit": "The engineer asked for another look at the survey — update it and sign again.",
+          "survey_revisit_correction": "The engineer asked for another look at the survey — send a correction request.",
+          "survey_resign_needed": "Signatures are needed again: {unsigned}.",
+          "party_customer": "customer",
+          "party_associate": "you (associate)"
         },
         "blocked": {
           "formal_proposal_blocked": "The formal proposal is on hold.",
@@ -3126,7 +3131,25 @@
         "customer": "Customer",
         "associate": "You (associate)"
       },
-      "goToSignatures": "Go to signatures"
+      "goToSignatures": "Go to signatures",
+      "title": "Engineer's review",
+      "pending": "Grid Nova's engineer has not reviewed this survey yet.",
+      "outcomes": {
+        "feasible": "Feasible",
+        "feasible_with_conditions": "Feasible, with conditions",
+        "revisit_needed": "Needs another look",
+        "not_feasible": "Not feasible"
+      },
+      "reviewedAt": "Reviewed {when}",
+      "notesLabel": "Engineer's note",
+      "conditionsTitle": "Conditions",
+      "revisitTitle": "Please check these again",
+      "revisitIntro": "The engineer asked for another look at:",
+      "goToStep": "Open {section}",
+      "correctionVia": "This customer is already verified, so send a correction request to change these details.",
+      "requestCorrection": "Request a correction",
+      "revisedNote": "Details changed after this review. The engineer will review again.",
+      "notFeasibleNote": "Grid Nova cannot go ahead with this site."
     },
     "card": {
       "title": "Site survey",
@@ -3139,7 +3162,79 @@
       "suggestedLabel": "Suggested size",
       "notRequired": "Not required for this customer",
       "readOnlyNote": "View only — the associate who added this customer fills in and signs the survey.",
-      "continue": "Continue the survey"
+      "continue": "Continue the survey",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "corrections": {
+      "title": "Corrections",
+      "empty": "No correction requests yet.",
+      "statuses": {
+        "pending": "Waiting for Grid Nova",
+        "applied": "Applied",
+        "rejected": "Not accepted"
+      },
+      "requestedAt": "Asked {when}",
+      "reasonLabel": "Why is this correction needed?",
+      "reviewerNote": "Grid Nova's note",
+      "pageTitle": "Request a correction",
+      "intro": "This customer is verified, so Grid Nova has to approve any change. Choose what to correct, enter the new values and say why.",
+      "pickAreas": "What needs correcting?",
+      "areas": {
+        "connection": "Connection details",
+        "bills": "Electricity bills",
+        "house": "Roof and area",
+        "layout": "Equipment layout"
+      },
+      "consumerLocked": "The consumer number cannot be corrected.",
+      "reasonRequired": "Tell Grid Nova why this change is needed.",
+      "noChanges": "Change at least one value first.",
+      "reviewChanges": "Changes you are asking for",
+      "now": "Now",
+      "newValue": "New",
+      "resignWarning": "If Grid Nova approves, both signatures are cleared and need to be signed again.",
+      "submit": "Send request",
+      "sending": "Sending…",
+      "sent": "Request sent. Grid Nova will review it.",
+      "pendingBlock": "A request is already waiting. Wait for Grid Nova to decide before sending another.",
+      "notVerified": "Corrections are only for verified customers. Change the details directly instead.",
+      "back": "Back to customer",
+      "ownerOnly": "Only the associate who added this customer can request a correction.",
+      "loading": "Loading…",
+      "loadError": "The corrections could not be loaded.",
+      "errors": {
+        "edit_directly": "This customer is not verified yet. Change the details directly instead.",
+        "not_editable": "This customer can no longer be changed.",
+        "correction_pending": "Only one request at a time. Wait for the current one to be decided.",
+        "no_changes": "Change at least one value first.",
+        "reason_required": "Tell Grid Nova why this change is needed.",
+        "not_a_survey_field": "One of these details cannot be corrected here.",
+        "field_not_correctable": "The consumer number cannot be corrected.",
+        "invalid_value": "One of the values is not valid. Check the highlighted entries.",
+        "offline": "You are offline. Connect to the internet to send the request.",
+        "generic": "The request could not be sent. Please try again."
+      }
+    },
+    "report": {
+      "download": "Download survey report",
+      "opening": "Opening…",
+      "readyAt": "Report ready {when}",
+      "errors": {
+        "report_not_generated": "The report is not ready yet.",
+        "storage_not_configured": "Reports cannot be opened right now. Please try again later.",
+        "forbidden": "You cannot open this report.",
+        "generic": "The report could not be opened."
+      }
+    },
+    "resign": {
+      "title": "Signatures needed again",
+      "body": "A correction was applied, so these signatures were cleared. Sign again to finish."
+    },
+    "gate": {
+      "review_required": "Grid Nova's engineer has to review the survey first.",
+      "survey_not_feasible": "The engineer found this site not feasible, so a formal proposal cannot be prepared.",
+      "seeReview": "See the survey review",
+      "needsReverification": "The survey changed, so Grid Nova has to re-check the proposal before it can be accepted."
     }
   }
 }

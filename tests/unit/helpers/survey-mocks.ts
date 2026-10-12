@@ -7,6 +7,9 @@ import { vi } from 'vitest'
 export const surveyMocks = {
   status: vi.fn((): { data?: unknown; isLoading?: boolean; error?: unknown; refetch?: () => void } => ({ data: undefined, isLoading: false, error: null, refetch: vi.fn() })),
   results: vi.fn((): { data?: unknown; isLoading?: boolean; error?: unknown; refetch?: () => void } => ({ data: undefined, isLoading: false, error: null, refetch: vi.fn() })),
+  corrections: vi.fn((): { data?: unknown; isLoading?: boolean; error?: unknown } => ({ data: { items: [] }, isLoading: false, error: null })),
+  requestCorrection: vi.fn<(...args: unknown[]) => Promise<unknown>>(async () => ({})),
+  reportLink: vi.fn<(...args: unknown[]) => Promise<unknown>>(async () => ({ url: 'https://files.example/report.pdf', expires_at: '', filename: 'r.pdf', generated_at: '' })),
   refresh: vi.fn(async (): Promise<unknown> => undefined),
   sign: vi.fn(async (): Promise<unknown> => ({})),
   signPending: false,
@@ -16,6 +19,7 @@ export const surveyMocks = {
 export function resetSurveyMocks() {
   surveyMocks.status.mockReset().mockImplementation(() => ({ data: undefined, isLoading: false, error: null, refetch: vi.fn() }))
   surveyMocks.results.mockReset().mockImplementation(() => ({ data: undefined, isLoading: false, error: null, refetch: vi.fn() }))
+  surveyMocks.corrections.mockReset().mockImplementation(() => ({ data: { items: [] }, isLoading: false, error: null }))
   surveyMocks.refresh.mockReset().mockImplementation(async () => undefined)
   surveyMocks.sign.mockReset().mockImplementation(async () => ({}))
   surveyMocks.signPending = false
@@ -27,6 +31,10 @@ export const surveyClientModule = {
   surveyResultsKey: (id: number) => ['onboarding-survey-results', id],
   useSurveyStatus: () => surveyMocks.status(),
   useSurveyResults: () => surveyMocks.results(),
+  surveyCorrectionsKey: (id: number) => ['onboarding-survey-corrections', id],
+  useSurveyCorrections: () => surveyMocks.corrections(),
+  useRequestSurveyCorrection: () => ({ mutateAsync: surveyMocks.requestCorrection, isPending: false }),
+  fetchSurveyReportLink: (...a: unknown[]) => surveyMocks.reportLink(...a),
   useRefreshSurvey: () => surveyMocks.refresh,
   useSignSurvey: () => ({ mutateAsync: surveyMocks.sign, isPending: surveyMocks.signPending }),
 }

@@ -11,6 +11,8 @@ import {
   useRetryClerkInvite,
   useRegenerateAssociateDocuments,
   fetchAdminAssociateDocumentLink,
+  isPreparing,
+  PREPARING_WINDOW_MS,
 } from '@/lib/associate/api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { DashboardError } from '@/components/dashboard/DashboardError'
@@ -46,7 +48,9 @@ export default function AssociateDetailPage() {
   const role = user?.publicMetadata?.role as Role | undefined
   const associateId = params.id
 
-  const { data: associate, isLoading, error, refetch } = useAdminAssociate(associateId)
+  // Approval is asynchronous: keep re-reading for about a minute after the page opens.
+  const [pollUntil] = useState(() => Date.now() + PREPARING_WINDOW_MS)
+  const { data: associate, isLoading, error, refetch } = useAdminAssociate(associateId, { until: pollUntil })
   const setStatus = useSetAssociateStatus()
   const retryInvite = useRetryClerkInvite()
   const regenerateDocs = useRegenerateAssociateDocuments()
@@ -124,6 +128,8 @@ export default function AssociateDetailPage() {
     }
   }
 
+  const preparing = isPreparing(associate)
+
   return (
     <div className="max-w-3xl">
       <button onClick={() => router.push('/dashboard/associate-network/associates')} className="font-utility text-sm text-[#0e2a63] mb-4">
@@ -139,6 +145,14 @@ export default function AssociateDetailPage() {
           {associate.status}
         </Badge>
       </div>
+
+      {preparing && (
+        <div role="status" className="mb-4 flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 p-3 font-utility text-sm text-blue-800" data-testid="approval-preparing">
+          <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+          Approved — the invite and documents are being prepared. This page updates by itself.
+          <Button variant="outline" size="sm" className="ml-auto min-h-[44px]" onClick={() => void refetch()}>Check again</Button>
+        </div>
+      )}
 
       {associate.status_reason && (
         <Card className="p-4 mb-4 border-amber-200 bg-amber-50">
@@ -161,7 +175,7 @@ export default function AssociateDetailPage() {
             value={
               associate.clerk_invite_status === 'failed'
                 ? <span className="text-red-600">Failed</span>
-                : associate.clerk_invite_status ?? '—'
+                : associate.clerk_invite_status ?? (preparing ? <span data-testid="invite-preparing">Preparing…</span> : 'Pending')
             }
           />
         </div>

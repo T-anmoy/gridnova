@@ -2,6 +2,7 @@ import { humanize } from '@/lib/associate/execution-labels'
 import { formatInr } from '@/lib/money'
 import type { HomeItem } from '@/lib/associate/home-api-client'
 import type { Messages } from '@/lib/i18n/types'
+import { correctionHref, editStepHref, revisitStep } from '@/lib/associate/survey-review'
 
 type FeedCopy = Messages['associates']['portal']['feed']
 type StageNames = Record<string, string>
@@ -15,6 +16,24 @@ export const TODO_TARGET: Record<string, TodoTarget> = {
   receipt_available: 'payments',
   site_location_missing: 'house',
   site_location_unconfirmed: 'house',
+}
+
+/**
+ * Where a to-do card links. A revisit goes to the wizard step of its first item
+ * while the customer can still be edited, or to the correction request once verified.
+ */
+export function todoHref(item: HomeItem, portalBase: string): string {
+  const base = `${portalBase}/customers/${item.onboarding_id}`
+  if (item.kind === 'survey_revisit_needed') {
+    const p = item.params ?? {}
+    if (p.via === 'correction') return correctionHref(portalBase, item.onboarding_id)
+    const first = Array.isArray(p.revisit_items) ? (p.revisit_items[0] as { section?: unknown } | undefined) : undefined
+    return editStepHref(portalBase, item.onboarding_id, typeof first?.section === 'string' ? revisitStep(first.section) : 'survey')
+  }
+  // survey_resign_needed lands on the detail page, where the signature pads are.
+  const target = TODO_TARGET[item.kind] ?? 'detail'
+  if (target === 'house') return `${base}/edit?step=house`
+  return target === 'detail' ? base : `${base}/${target}`
 }
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : v == null ? '' : String(v))
@@ -54,6 +73,12 @@ export function describeTodo(item: HomeItem, copy: FeedCopy, stageNames: StageNa
       return copy.todo.site_location_missing
     case 'todo.site_location_unconfirmed':
       return copy.todo.site_location_unconfirmed
+    case 'todo.survey_revisit_needed':
+      return p.via === 'correction' ? copy.todo.survey_revisit_correction : copy.todo.survey_revisit_edit
+    case 'todo.survey_resign_needed': {
+      const unsigned = Array.isArray(p.unsigned) ? p.unsigned.map((u) => (u === 'customer' ? copy.todo.party_customer : copy.todo.party_associate)) : []
+      return copy.todo.survey_resign_needed.replace('{unsigned}', unsigned.join(', '))
+    }
     case 'todo.receipt_available':
       return copy.todo.receipt_available.replace('{number}', str(p.receipt_number))
     default:

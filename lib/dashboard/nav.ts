@@ -16,6 +16,8 @@ import {
   Wallet,
   Database,
   Tags,
+  FileSearch,
+  FilePenLine,
 } from 'lucide-react'
 import type { Role } from '@/lib/dashboard/types'
 import type { WorkQueues } from '@/lib/dashboard/execution-types'
@@ -28,7 +30,7 @@ export interface NavItem {
   // The proposals pending-approval badge.
   badge?: boolean
   // A badge fed by GET /dashboard/work-queues (role-scoped by the backend).
-  queue?: 'execution' | 'payments'
+  queue?: 'execution' | 'payments' | 'survey_reviews' | 'survey_corrections'
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -37,6 +39,8 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Onboardings', href: '/dashboard/onboardings', icon: ListChecks, roles: ['admin', 'sales', 'management'] },
   { label: 'Operations', href: '/dashboard/operations', icon: Wrench, roles: ['admin', 'management', 'engineer', 'operations'], queue: 'execution' },
   { label: 'Accounts', href: '/dashboard/accounts', icon: Wallet, roles: ['admin', 'management', 'accounts'], queue: 'payments' },
+  { label: 'Survey reviews', href: '/dashboard/survey-reviews', icon: FileSearch, roles: ['admin', 'management', 'sales', 'engineer'], queue: 'survey_reviews' },
+  { label: 'Survey corrections', href: '/dashboard/survey-corrections', icon: FilePenLine, roles: ['admin', 'management', 'sales', 'engineer'], queue: 'survey_corrections' },
   { label: 'Attribution Flags', href: '/dashboard/attribution-flags', icon: ShieldAlert, roles: ['admin'] },
   { label: 'Meetings', href: '/dashboard/meetings', icon: CalendarClock, roles: ['admin', 'sales', 'management'] },
   { label: 'Site Assessments', href: '/dashboard/site-assessments', icon: ClipboardCheck, roles: ['admin', 'sales'] },
@@ -59,8 +63,19 @@ export function canSeeNavItem(item: NavItem, role: Role | undefined): boolean {
 
 export const visibleNavItems = (role: Role | undefined): NavItem[] => NAV_ITEMS.filter((i) => canSeeNavItem(i, role))
 
-/** Attention count for a nav badge — the sum of every queue the role's response contains. */
-export function queueBadgeCount(queue: 'execution' | 'payments', queues: WorkQueues | undefined): number {
+/**
+ * Attention count for a nav badge. Execution and payments sum every counter in
+ * the role's response. Survey reviews count only `awaiting`: `overdue` is
+ * already inside it, so adding both would count an overdue survey twice.
+ */
+export function queueBadgeCount(queue: NonNullable<NavItem['queue']>, queues: WorkQueues | undefined): number {
+  if (queue === 'survey_reviews') return queues?.survey_reviews?.awaiting ?? 0
+  if (queue === 'survey_corrections') return queues?.survey_corrections?.pending ?? 0
   const q = queues?.[queue]
   return q ? Object.values(q).reduce((sum, n) => sum + (typeof n === 'number' ? n : 0), 0) : 0
+}
+
+/** Overdue surveys (a subset of the awaiting count) for the second badge. */
+export function overdueSurveyCount(queues: WorkQueues | undefined): number {
+  return queues?.survey_reviews?.overdue ?? 0
 }

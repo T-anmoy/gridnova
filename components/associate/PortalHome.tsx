@@ -3,10 +3,10 @@
 import { AlertCircle, ChevronRight, Plus } from 'lucide-react'
 import Link from '@/components/i18n/Link'
 import { useAssociateMe } from '@/lib/associate/api-client'
-import { useAssociateHome, type HomeItem } from '@/lib/associate/home-api-client'
+import { useAssociateHome } from '@/lib/associate/home-api-client'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import PinnedAction from '@/components/associate/PinnedAction'
-import { TODO_TARGET, describeTodo } from '@/lib/onboarding/todo'
+import { describeTodo, todoHref } from '@/lib/onboarding/todo'
 import { fmt, type Messages } from '@/lib/i18n/types'
 
 type HomeCopy = Messages['associates']['portal']['associate']['home']
@@ -17,13 +17,6 @@ const PRIORITY_STYLE: Record<number, string> = {
   1: 'border-[#f7a800] bg-[#fffaf0]',
   2: 'border-[#e4e8ee] bg-white',
   3: 'border-[#e4e8ee] bg-[#f7f9fc]',
-}
-
-function hrefFor(item: HomeItem, portalBase: string): string {
-  const target = TODO_TARGET[item.kind] ?? 'detail'
-  const base = `${portalBase}/customers/${item.onboarding_id}`
-  if (target === 'house') return `${base}/edit?step=house`
-  return target === 'detail' ? base : `${base}/${target}`
 }
 
 function Skeleton() {
@@ -112,7 +105,7 @@ export default function PortalHome({
               {home.items.map((item) => (
                 <li key={`${item.kind}-${item.onboarding_id}-${item.message_key}`}>
                   <Link
-                    href={hrefFor(item, portalBase)}
+                    href={todoHref(item, portalBase)}
                     data-testid="todo-card"
                     data-priority={item.priority}
                     className={`flex min-h-[72px] items-center justify-between gap-3 rounded-2xl border-2 p-4 ${PRIORITY_STYLE[item.priority] ?? PRIORITY_STYLE[3]}`}
