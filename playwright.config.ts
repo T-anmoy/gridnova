@@ -41,10 +41,10 @@ export default defineConfig({
       NEXT_PUBLIC_API_URL: process.env.E2E_API_URL ?? "https://api.e2e.test",
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
         process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ??
-        "pk_test_Y2xlcmsuZXhhbXBsZS5jb20k",
+        "pk_live_Y2xlcmsuZXhhbXBsZS5jb20k",
       CLERK_SECRET_KEY:
         process.env.CLERK_SECRET_KEY ??
-        "sk_test_ZmFrZXNlY3JldGZvcnRlc3Rpbmdvbmx5MDAwMTIz",
+        "sk_live_ZmFrZXNlY3JldGZvcnRlc3Rpbmdvbmx5MDAwMTIz",
     },
   },
 });

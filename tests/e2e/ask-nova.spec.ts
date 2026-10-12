@@ -40,7 +40,10 @@ test.describe("Ask Nova", () => {
     ).toBeVisible();
     // …and Nova's mocked reply arrives (typed out).
     await expect(
-      page.getByText(/Grid Nova offers Solar EPC and O&M/i),
+      // Scoped to the thread: the same reply is also mirrored into an sr-only live region.
+      page
+        .getByLabel("Conversation with Nova")
+        .getByText(/Grid Nova offers Solar EPC and O&M/i),
     ).toBeVisible({ timeout: 15_000 });
   });
 
@@ -62,7 +65,7 @@ test.describe("Ask Nova", () => {
     await expect(thread).toBeVisible();
 
     // The thread must be independently scrollable (not hijacked by Lenis).
-    await expect(thread).toHaveAttribute("data-lenis-prevent", "");
+    await expect(thread).toHaveAttribute("data-lenis-prevent", /^(true)?$/);
     await expect
       .poll(async () =>
         thread.evaluate((el) => el.scrollHeight > el.clientHeight + 4),

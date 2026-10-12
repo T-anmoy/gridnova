@@ -19,9 +19,13 @@ env:
   # local, so CI states one explicitly. Nothing in CI reaches it.
   NEXT_PUBLIC_API_URL: https://api.ci.test
   # Clerk's middleware needs a publishable key at build time on every route.
-  # Well-formed TEST placeholders; override with repo secrets for full builds.
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_Y2xlcmsuZXhhbXBsZS5jb20k' }}
-  CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY || 'sk_test_ci_placeholder_key_000000000000' }}
+  # Well-formed FAKE placeholders (not real keys); override with repo secrets for full builds.
+  # They are deliberately pk_live_/sk_live_: a pk_test_ key marks a Clerk development
+  # instance, so the middleware redirects every browser navigation to that key's dev
+  # domain (here clerk.example.com, which does not exist) and Playwright fails with
+  # net::ERR_NAME_NOT_RESOLVED.
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_live_Y2xlcmsuZXhhbXBsZS5jb20k' }}
+  CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY || 'sk_live_ZmFrZXNlY3JldGZvcnRlc3Rpbmdvbmx5MDAwMTIz' }}
 
 jobs:
   checks:

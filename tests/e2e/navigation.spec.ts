@@ -66,7 +66,8 @@ test.describe("Mobile navigation", () => {
     await openBtn.click();
     await expect(closeBtn).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "About" }),
+      // The menu's own link; the footer also has an "About" link.
+      page.getByRole("navigation").getByRole("link", { name: "About" }),
     ).toBeVisible();
     await closeBtn.click();
     await expect(openBtn).toBeVisible();
