@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { useCreateEstimate, useOnboardingEstimates } from '@/lib/associate/onboarding-api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
-import { formatCurrency } from '@/lib/dashboard/utils'
+import { formatCurrency, formatDatetime } from '@/lib/dashboard/utils'
 import { CustomQuoteNotice, PriceListSummary } from '@/components/pricing/PackageCards'
 import { usePackageCatalogue } from '@/lib/pricing/usePackageCatalogue'
 import { useMessages } from '@/lib/i18n/client'
@@ -47,7 +47,7 @@ function EstimateCard({ estimate, copy, catalogue }: { estimate: Estimate; copy:
             <PriceListSummary fields={fields} catalogue={catalogue} chosenLabel={pricing.packages.chosen} />
           )}
         </div>
-        <p className="mt-3 text-xs text-[#111827]/40 font-utility">{new Date(estimate.created_at).toLocaleString()}</p>
+        <p className="mt-3 text-xs text-[#111827]/40 font-utility">{formatDatetime(estimate.created_at)}</p>
       </div>
     )
   }
@@ -81,7 +81,7 @@ function EstimateCard({ estimate, copy, catalogue }: { estimate: Estimate; copy:
           )}
         </div>
       </div>
-      <p className="mt-3 text-xs text-[#111827]/40 font-utility">{new Date(estimate.created_at).toLocaleString()}</p>
+      <p className="mt-3 text-xs text-[#111827]/40 font-utility">{formatDatetime(estimate.created_at)}</p>
     </div>
   )
 }

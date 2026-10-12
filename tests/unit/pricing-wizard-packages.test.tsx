@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { en, withI18n } from './helpers/i18n'
 import { CATALOGUE } from './fixtures/pricing'
 import type { Onboarding, OnboardingOptions } from '@/lib/associate/onboarding-types'
+import { ONBOARDING_OPTIONS, makeOnboarding } from './fixtures/survey-contract'
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 const mockOptions = vi.fn()
@@ -16,6 +17,8 @@ vi.mock('@/lib/associate/onboarding-api-client', () => ({
   useSetSiteLocation: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useConfirmSiteLocation: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }))
+vi.mock('@/lib/associate/survey-api-client', async () => (await import('./helpers/survey-mocks')).surveyClientModule)
+vi.mock('@/lib/associate/portal-session', async (orig) => ({ ...(await orig<object>()), ...(await import('./helpers/survey-mocks')).portalSessionOverrides }))
 vi.mock('@/lib/associate/api-client', () => ({
   useTerritoryStates: () => ({ data: [{ lgd_code: 19, iso_code: 'WB', name: 'West Bengal' }] }),
   useTerritoryDistricts: () => ({ data: [] }),
@@ -25,32 +28,17 @@ vi.mock('@/lib/associate/api-client', () => ({
 import OnboardingWizard from '@/components/associate/OnboardingWizard'
 
 const copy = en.associates.portal.wizard
-const OPTIONS = {
-  notice: { version: 'v1', text: 'Notice' },
+const OPTIONS: OnboardingOptions = {
+  ...ONBOARDING_OPTIONS,
   equipment_packages: [
     { key: 'nova_assured', label: 'Nova Assured', equipment_tier: 'standard' },
     { key: 'nova_signature', label: 'Nova Signature', equipment_tier: 'premium' },
   ],
   documents: [],
   photo_slots: [],
-  customer_timelines: ['immediate'],
-  attribution_lock_days: 7,
-  site_location: { accuracy_good_m: 20, accuracy_warn_m: 50, accuracy_reject_m: 200, sample_seconds: 10, required_to_submit: true, sources: [], recommended_source: 'photo_gps' },
-} as unknown as OnboardingOptions
+}
 
-const existing = {
-  onboarding_id: 1,
-  status: 'draft',
-  customer: { name: 'A', mobile: '9', email: null },
-  territory: { state: { lgd_code: 19, name: 'WB' }, district: null, block: null },
-  site_location: { present: false, confirmed: false },
-  connection_in_customer_name: true,
-  property_in_customer_name: true,
-  customer_timeline: 'immediate',
-  photos: [],
-  warnings: [],
-  can_edit: true,
-} as unknown as Onboarding
+const existing: Onboarding = makeOnboarding({ onboarding_id: 1 })
 
 beforeEach(() => {
   window.localStorage.clear()
@@ -61,7 +49,7 @@ afterEach(() => vi.unstubAllGlobals())
 async function toPackages() {
   const user = userEvent.setup()
   render(withI18n(<OnboardingWizard copy={copy} territory={en.associates.territory} portalBase="/associates/portal" existing={existing} />))
-  for (let i = 0; i < 4; i++) await user.click(screen.getByRole('button', { name: copy.continueButton }))
+  for (let i = 0; i < 5; i++) await user.click(screen.getByRole('button', { name: copy.continueButton }))
   return user
 }
 

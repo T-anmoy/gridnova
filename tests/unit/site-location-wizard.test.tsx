@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event'
 import { en, withI18n } from './helpers/i18n'
 import { ApiError } from '@/lib/dashboard/api-error'
 import type { Onboarding, OnboardingOptions, SiteLocation } from '@/lib/associate/onboarding-types'
+import { ONBOARDING_OPTIONS, makeOnboarding } from './fixtures/survey-contract'
+import { resetSurveyMocks } from './helpers/survey-mocks'
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 
@@ -23,6 +25,8 @@ vi.mock('@/lib/associate/onboarding-api-client', () => ({
   useSetSiteLocation: () => ({ mutateAsync: setMutateAsync, isPending: false }),
   useConfirmSiteLocation: () => ({ mutateAsync: confirmMutateAsync, isPending: false }),
 }))
+vi.mock('@/lib/associate/survey-api-client', async () => (await import('./helpers/survey-mocks')).surveyClientModule)
+vi.mock('@/lib/associate/portal-session', async (orig) => ({ ...(await orig<object>()), ...(await import('./helpers/survey-mocks')).portalSessionOverrides }))
 vi.mock('@/lib/associate/api-client', () => ({
   useTerritoryStates: () => ({ data: [{ lgd_code: 19, iso_code: 'WB', name: 'West Bengal' }] }),
   useTerritoryDistricts: () => ({ data: [] }),
@@ -34,53 +38,13 @@ import OnboardingWizard from '@/components/associate/OnboardingWizard'
 const copy = en.associates.portal.wizard
 const m = en.siteLocation
 
-const OPTIONS: OnboardingOptions = {
-  notice: { version: 'v1', text: 'Notice text' },
-  equipment_packages: [{ key: 'dcr', label: 'DCR package', equipment_tier: 'standard' }],
-  documents: [{ key: 'electricity_bill', label: 'Electricity bill', required_when: null }],
-  photo_slots: [
-    { key: 'panel_installation_area', label: 'Panel installation area' },
-    { key: 'front', label: 'Front of premises' },
-  ],
-  customer_timelines: ['immediate'],
-  attribution_lock_days: 7,
-  site_location: { accuracy_good_m: 20, accuracy_warn_m: 50, accuracy_reject_m: 200, sample_seconds: 10, required_to_submit: true, sources: ['device_gps', 'photo_gps', 'google_maps_link', 'pasted_coordinates'], recommended_source: 'photo_gps' },
-}
+const OPTIONS: OnboardingOptions = ONBOARDING_OPTIONS
 const NOT_SET: SiteLocation = { present: false, confirmed: false, flags: ['location_missing'] }
 const UNCONFIRMED: SiteLocation = { present: true, confirmed: false, latitude: 22.5726, longitude: 88.3639, source: 'pasted_coordinates', accuracy_m: null, verified: false, flags: ['unverified_source', 'accuracy_unknown'], maps_url: 'https://www.google.com/maps?q=22.5726,88.3639' }
 const CONFIRMED: SiteLocation = { ...UNCONFIRMED, confirmed: true }
 
 function onboarding(over: Partial<Onboarding> = {}): Onboarding {
-  return {
-    onboarding_id: 501,
-    status: 'draft',
-    lead_id: 1,
-    project_reference_id: null,
-    owner: { associate_id: 'GNA-1', full_name: 'Asha Roy', associate_type: 'associate' },
-    customer: { name: 'Bikash Das', mobile: '9800000000', email: null },
-    territory: { state: { lgd_code: 19, name: 'West Bengal' }, district: null, block: null },
-    site_latitude: null,
-    site_longitude: null,
-    site_location: NOT_SET,
-    connection_in_customer_name: true,
-    property_in_customer_name: true,
-    customer_timeline: 'immediate',
-    site_assessment: null,
-    documents: [],
-    photos: [],
-    checklist: { required: [], present: [], missing: [] },
-    notice: { version: 'v1', acknowledged_at: '2026-01-01T00:00:00Z', recorded_by: 'GNA-1' },
-    verification: { completed: false, verified_at: null },
-    attribution: { locked_until: null, under_review: false },
-    score: null,
-    formal_proposal_blocked: null,
-    submitted_at: null,
-    warnings: [],
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-    can_edit: true,
-    ...over,
-  }
+  return makeOnboarding({ site_location: NOT_SET, ...over })
 }
 const resp = (site_location: SiteLocation) => onboarding({ site_location })
 
@@ -92,10 +56,11 @@ function renderWizard(existing: Onboarding, extra: Partial<React.ComponentProps<
 async function goTo(user: ReturnType<typeof userEvent.setup>, clicks: number) {
   for (let i = 0; i < clicks; i++) await user.click(screen.getByRole('button', { name: copy.continueButton }))
 }
-const HOUSE_CLICKS = 5 // notice → customer → connection → property → requirement → house
+const HOUSE_CLICKS = 6 // notice → customer → connection → bills → property → requirement → house
 
 beforeEach(() => {
   vi.clearAllMocks()
+  resetSurveyMocks()
   uploadMutateAsync.mockResolvedValue({})
   prepare.mockImplementation(async (f: File) => ({ file: f, reencoded: false, exifTakenAt: null }))
   mockOptions.mockReturnValue({ data: OPTIONS, isLoading: false })
@@ -132,7 +97,7 @@ describe('wizard — "At the house" step', () => {
     expect(screen.getByTestId('location-state')).toHaveAttribute('data-state', 'confirmedUnverified')
 
     await user.click(screen.getByRole('button', { name: copy.continueButton }))
-    expect(screen.getByText(copy.documents.title)).toBeInTheDocument()
+    expect(screen.getByTestId('survey-layout')).toBeInTheDocument() // house → layout
   })
 
   it('changing a confirmed location resets confirmation and disables Continue again', async () => {
@@ -152,7 +117,7 @@ describe('wizard — "At the house" step', () => {
 
   it('an edit deep link (from the to-do feed) opens on this step', () => {
     renderWizard(onboarding({ site_location: UNCONFIRMED }), { initialStep: 'house' })
-    expect(screen.getByRole('heading', { name: m.title })).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { name: m.title }).length).toBeGreaterThan(0)
   })
 
   it('embeds the first camera photo slot in this step; the other photos stay on the photos step', async () => {
@@ -161,6 +126,7 @@ describe('wizard — "At the house" step', () => {
     const embedded = screen.getByTestId('house-photo-slot')
     expect(embedded).toHaveTextContent('Panel installation area')
     expect(screen.queryByRole('button', { name: m.actions.takePhoto })).not.toBeInTheDocument() // no jump-away button
+    await user.click(screen.getByRole('button', { name: copy.continueButton })) // layout
     await user.click(screen.getByRole('button', { name: copy.continueButton })) // documents
     await user.click(screen.getByRole('button', { name: copy.continueButton })) // photos
     expect(screen.getByText('Front of premises')).toBeInTheDocument()
@@ -201,7 +167,7 @@ describe('wizard — "At the house" step', () => {
     await waitFor(() => expect(continueBtn()).not.toBeDisabled())
     // Tap 4: Continue.
     await user.click(continueBtn())
-    expect(screen.getByText(copy.documents.title)).toBeInTheDocument()
+    expect(screen.getByTestId('survey-layout')).toBeInTheDocument() // house → layout
     vi.unstubAllGlobals()
     // @ts-expect-error test override
     delete navigator.geolocation
@@ -224,7 +190,7 @@ describe('wizard — photos step', () => {
   async function toPhotos() {
     const user = userEvent.setup()
     renderWizard(onboarding({ site_location: CONFIRMED }))
-    await goTo(user, HOUSE_CLICKS + 2) // → house → documents → photos
+    await goTo(user, HOUSE_CLICKS + 3) // → house → layout → documents → photos
     return user
   }
 
@@ -246,7 +212,7 @@ describe('wizard — photos step', () => {
 
 describe('wizard — submit gate', () => {
   async function toReview(user: ReturnType<typeof userEvent.setup>) {
-    await goTo(user, 8) // house confirmed in the fixture
+    await goTo(user, 11) // house confirmed in the fixture
   }
 
   it.each([
@@ -264,7 +230,7 @@ describe('wizard — submit gate', () => {
     expect(block).toHaveTextContent(text)
     expect(screen.getByText('Electricity bill')).toBeInTheDocument() // the documents list is still shown alongside
     await user.click(screen.getByRole('button', { name: m.review.goToStep }))
-    expect(screen.getByRole('heading', { name: m.title })).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { name: m.title }).length).toBeGreaterThan(0)
   })
 
   it('shows no location block when only documents are missing', async () => {

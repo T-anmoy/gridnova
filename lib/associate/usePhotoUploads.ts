@@ -6,10 +6,13 @@ import type { CapturedPhoto, PhotoUploadStatus } from './photo-types'
 import { listPendingPhotos, photoRetryDelayMs, putPendingPhoto, removePendingPhoto, type PendingPhoto } from './photo-queue'
 
 // Transient failures keep the photo queued and retry on their own; anything
-// else (a 4xx the server won't change its mind about) needs the person to act.
+// else (a 4xx the server won't change its mind about, or a bug in the browser
+// code) needs the person to act — retrying it would only re-upload the same
+// stored photo forever.
 export function isTransientUploadError(error: unknown): boolean {
-  if (!(error instanceof ApiError)) return true
-  return error.status === 0 || error.status === 429 || error.status >= 500
+  if (error instanceof ApiError) return error.status === 0 || error.status === 429 || error.status >= 500
+  // fetch() rejects with a TypeError when the network itself fails.
+  return error instanceof TypeError || (error instanceof Error && error.message === 'network')
 }
 
 function toPending(scope: string, slot: string, photo: CapturedPhoto): PendingPhoto {
@@ -49,14 +52,18 @@ function fromPending(p: PendingPhoto): CapturedPhoto {
  * online); photos left over from a previous visit resume on mount.
  */
 export function usePhotoUploads({
-  scope,
+  scope: baseScope,
+  owner,
   upload,
   describeError,
 }: {
   scope: string
+  /** The signed-in user the photos belong to. When given, the queue is scoped to them so a shared phone never uploads one person's photos into another's work. */
+  owner?: string | null
   upload: (slot: string, photo: CapturedPhoto, onProgress: (percent: number) => void) => Promise<unknown>
   describeError: (error: unknown) => string
 }) {
+  const scope = owner ? `${owner}:${baseScope}` : baseScope
   const [photos, setPhotos] = useState<Record<string, CapturedPhoto | null>>({})
   const [status, setStatus] = useState<Record<string, PhotoUploadStatus | undefined>>({})
   const [errors, setErrors] = useState<Record<string, string | undefined>>({})
@@ -181,5 +188,5 @@ export function usePhotoUploads({
     return () => window.removeEventListener('online', onOnline)
   }, [attempt])
 
-  return { photos, status, errors, progress, capture, retry }
+  return { photos, status, errors, progress, capture, retry, scope }
 }

@@ -9,7 +9,9 @@ import { messagesFor, resolveLocale, type LangParams } from '@/lib/i18n/messages
 // Installable as a home-screen app for THIS portal only (no service worker): the
 // manifest is linked from this layout, so no other page of the site advertises it.
 export const metadata: Metadata = { manifest: '/associates.webmanifest', appleWebApp: { capable: true, title: 'Grid Nova', statusBarStyle: 'default' } }
-export const viewport: Viewport = { themeColor: '#0e2a63' }
+// `cover` lets the portal draw under the notch/home bar; the tab bar and pinned
+// action pad themselves with env(safe-area-inset-bottom).
+export const viewport: Viewport = { themeColor: '#0e2a63', viewportFit: 'cover' }
 
 // Scoped to /associates/* only — the rest of the public site stays free of
 // Clerk/react-query so marketing pages don't pay for auth machinery they
@@ -22,7 +24,7 @@ export default async function AssociatesLayout({ children, params }: { children:
   if (!ASSOCIATE_PORTAL_OPEN) return <PortalClosed t={m.associates.closed} />
   return (
     <ClerkProvider>
-      <I18nProvider messages={{ portalErrors: m.portalErrors, photoSlot: m.photoSlot, siteLocation: m.siteLocation, pricing: m.pricing }}>
+      <I18nProvider messages={{ portalErrors: m.portalErrors, photoSlot: m.photoSlot, siteLocation: m.siteLocation, pricing: m.pricing, survey: m.survey }}>
         <AssociateQueryProvider signInPath="/associates/sign-in">{children}</AssociateQueryProvider>
       </I18nProvider>
     </ClerkProvider>

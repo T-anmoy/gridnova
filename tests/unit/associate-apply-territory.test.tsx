@@ -5,6 +5,7 @@ import { ApiError } from "@/lib/dashboard/api-error";
 import AssociateApplyForm from "@/components/associate/AssociateApplyForm";
 
 const refetch = vi.fn();
+vi.mock('@/lib/associate/portal-session', async (orig) => ({ ...(await orig<object>()), ...(await import('./helpers/survey-mocks')).portalSessionOverrides }))
 vi.mock("@/lib/associate/api-client", () => ({
   useTerritoryStates: () => ({
     isError: true,

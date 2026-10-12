@@ -22,11 +22,23 @@ import {
 } from '@/lib/associate/register-entry'
 import type { RegisterWarning, RowError, SerialCheck, UnitCategory } from '@/lib/associate/register-types'
 import type { Messages } from '@/lib/i18n/types'
+import { readSerialDraft, useSerialDraftWriter } from '@/lib/associate/serial-draft'
+import { registerDraftKey, useDraftUserId } from '@/lib/associate/portal-session'
+
+// What survives a discarded tab: the typed values, never a serial-check result.
+const storedRow = (r: DraftRow): Record<string, unknown> => {
+  const rest: Partial<DraftRow> = { ...r }
+  delete rest.key
+  delete rest.check
+  delete rest.checkState
+  return rest
+}
+const restoredRow = (stored: Record<string, unknown>): DraftRow => ({ ...emptyRow(), ...(stored as Partial<DraftRow>), check: null, checkState: 'idle' })
 
 export type EntryCopy = Messages['associates']['portal']['execution']['register']['entry']
 type RegisterCopy = Messages['associates']['portal']['execution']['register']
 
-const field = 'w-full min-h-[44px] rounded-xl border border-[#e4e8ee] bg-white px-3 py-2 text-sm outline-none focus:border-[#2f5daa]'
+const field = 'w-full min-h-[44px] rounded-xl border border-[#e4e8ee] bg-white px-3 py-2 text-base focus:border-[#2f5daa] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#2f5daa]'
 const label = 'mb-1.5 block text-xs uppercase tracking-[0.1em] text-[#111827]/55'
 const chip = (on: boolean) =>
   `min-h-[44px] rounded-full border px-4 text-sm font-semibold ${on ? 'border-[#0e2a63] bg-[#0e2a63] text-white' : 'border-[#e4e8ee] bg-white text-[#0e2a63]'}`
@@ -54,7 +66,11 @@ export default function RegisterEntry({ onboardingId, portalBase, copy }: { onbo
   const { getToken } = useAuth()
   const createUnit = useAssociateCreateUnit(onboardingId)
   const bulk = useAssociateBulkCreateUnits(onboardingId)
-  const [rows, setRows] = useState<DraftRow[]>(() => [emptyRow()])
+  const { userId } = useDraftUserId()
+  const draftKey = registerDraftKey(userId, onboardingId)
+  const [restoredRows] = useState(() => readSerialDraft(draftKey, restoredRow))
+  const [rows, setRows] = useState<DraftRow[]>(() => restoredRows ?? [emptyRow()])
+  useSerialDraftWriter(draftKey, rows, { isDirty, toStored: storedRow })
   const [problems, setProblems] = useState<Record<number, RowProblem[]>>({})
   const [rowErrors, setRowErrors] = useState<Map<number, RowError[]>>(new Map())
   const [looseErrors, setLooseErrors] = useState<RowError[]>([])
@@ -140,6 +156,11 @@ export default function RegisterEntry({ onboardingId, portalBase, copy }: { onbo
         <p className="font-display text-base font-semibold text-[#0e2a63]">{entry.heading}</p>
         <p className="mt-1 text-xs text-[#111827]/60">{entry.intro}</p>
       </div>
+      {restoredRows && rows.some(isDirty) && (
+        <p role="status" className="rounded-lg bg-[#2f5daa]/10 px-3.5 py-2.5 text-sm text-[#0e2a63]" data-testid="serial-draft-restored">
+          {entry.draftRestored}
+        </p>
+      )}
 
       {rows.map((r, i) => {
         const id = `unit-${r.key}`

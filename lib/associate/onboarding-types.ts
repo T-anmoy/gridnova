@@ -275,28 +275,49 @@ export interface OnboardingOptions {
   customer_timelines: string[]
   attribution_lock_days: number
   site_location: SiteLocationOptions
+  // S1 site survey (site_survey.md §2).
+  survey: import('./survey-types').SurveyOptions
 }
 
-// ── POST "" (create) ─────────────────────────────────────────────────────
+// ── POST "" (create) and PATCH ────────────────────────────────────────────
+// Both bodies are FLAT (openapi.json `OnboardingCreate` / `OnboardingUpdate`):
+// `customer_name`, `state_lgd_code`… — never nested `customer` / `territory`
+// objects (the server ignores unknown keys, so a nested body is silently lost).
+
+export type CustomerType = 'individual' | 'organisation'
+export type SiteType = 'rooftop_residential' | 'rooftop_commercial' | 'rooftop_institutional' | 'ground_mounted' | 'carport' | 'other'
+export type ConnectionType = 'on_grid' | 'off_grid' | 'hybrid'
+export type CustomerTimeline = 'within_1_month' | 'within_3_months' | 'within_6_months' | 'later' | 'unsure'
+export const CUSTOMER_TYPES: readonly CustomerType[] = ['individual', 'organisation']
+export const SITE_TYPES: readonly SiteType[] = ['rooftop_residential', 'rooftop_commercial', 'rooftop_institutional', 'ground_mounted', 'carport', 'other']
+export const CONNECTION_TYPES: readonly ConnectionType[] = ['on_grid', 'off_grid', 'hybrid']
 
 export interface CreateOnboardingInput {
   notice_version: string
   notice_acknowledged: true
-  customer: OnboardingCustomer
-  territory: { state_lgd_code: number; district_lgd_code?: number; block_lgd_code?: number }
-  site_latitude?: number
-  site_longitude?: number
+  customer_name: string
+  customer_mobile: string
+  customer_email?: string | null
+  customer_type: CustomerType
+  // The portal is the rooftop checklist: always `rooftop_solar` (decided 12 Oct).
+  project_family: 'rooftop_solar'
+  pin_code: string
+  full_address: string
+  site_type: SiteType
+  connection_type: ConnectionType
+  state_lgd_code: number
+  district_lgd_code: number
+  block_lgd_code?: number
   connection_in_customer_name: boolean
   property_in_customer_name: boolean
-  customer_timeline: string
-  equipment_package: string
+  customer_timeline?: string
+  equipment_package?: string
+  // Any site-assessment / survey field (site_survey.md §1) may ride along.
   [key: string]: unknown
 }
 
-export interface CreateOnboardingResponse {
-  onboarding: Onboarding
-  warnings: OnboardingWarning[]
-}
+/** Create returns the onboarding object itself, with `warnings` beside its fields. */
+export type CreateOnboardingResponse = Onboarding & { warnings: OnboardingWarning[] }
 
 export interface OnboardingListParams {
   status?: OnboardingStatus
@@ -358,6 +379,9 @@ export interface SubmitIncompleteDetail {
   // Both are always present on `incomplete`.
   missing_site_location: boolean
   site_location_unconfirmed: boolean
+  // S1 (site_survey.md §6): always present; both empty when the survey is not required.
+  missing_survey_sections: string[]
+  survey_unsigned: ('customer' | 'associate')[]
 }
 
 // ── Progress ──────────────────────────────────────────────────────────────

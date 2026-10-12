@@ -326,3 +326,30 @@ describe('RegisterReadOnly — unmatched units', () => {
     expect(screen.queryByTestId('waiting-match-chip')).toBeNull()
   })
 })
+
+describe('RegisterEntry — typed serials survive a discarded tab (H9)', () => {
+  const KEY = 'gna-register-anon-5'
+  afterEach(() => window.localStorage.clear())
+
+  it('restores unsaved rows from this device with a notice', () => {
+    window.localStorage.setItem(KEY, JSON.stringify({ savedAt: Date.now(), value: { rows: [{ category: 'other', unlisted: false, equipment: null, brand: '', model: '', serial: 'SN-RESTORED-1', rating: '', dcr: '', warrantyStart: '', warrantyEnd: '' }] } }))
+    entryForm()
+    expect(screen.getByTestId('serial-draft-restored')).toHaveTextContent(entry.draftRestored)
+    expect(screen.getByDisplayValue('SN-RESTORED-1')).toBeInTheDocument()
+  })
+
+  it('ignores a draft older than 24 hours', () => {
+    window.localStorage.setItem(KEY, JSON.stringify({ savedAt: Date.now() - 25 * 3600_000, value: { rows: [{ category: 'other', serial: 'SN-OLD' }] } }))
+    entryForm()
+    expect(screen.queryByTestId('serial-draft-restored')).not.toBeInTheDocument()
+    expect(screen.queryByDisplayValue('SN-OLD')).not.toBeInTheDocument()
+  })
+
+  it('clears the draft once the server has saved the rows', async () => {
+    window.localStorage.setItem(KEY, JSON.stringify({ savedAt: Date.now(), value: { rows: [{ category: 'other', unlisted: false, equipment: null, brand: '', model: '', serial: 'SN-9', rating: '', dcr: '', warrantyStart: '', warrantyEnd: '' }] } }))
+    entryForm()
+    await userEvent.setup().click(screen.getByRole('button', { name: entry.save }))
+    await waitFor(() => expect(h.create).toHaveBeenCalled())
+    await waitFor(() => expect(window.localStorage.getItem(KEY)).toBeNull(), { timeout: 2000 })
+  })
+})

@@ -1788,7 +1788,8 @@
         "help": "Help",
         "territory": "My Territory",
         "signOut": "Sign out",
-        "customers": "My Customers"
+        "customers": "My Customers",
+        "navLabel": "Portal"
       },
       "associate": {
         "home": {
@@ -1926,7 +1927,8 @@
           "blockedPaymentGate": "On hold until an earlier customer payment is confirmed by Grid Nova.",
           "blockedDcrMismatch": "On hold: some modules aren’t DCR-compliant.",
           "blockedGeneric": "This customer is on hold."
-        }
+        },
+        "editLink": "Edit"
       },
       "customers": {
         "title": "My Customers",
@@ -1963,7 +1965,10 @@
           "house": "At the house",
           "documents": "Documents",
           "photos": "Photos",
-          "review": "Review & submit"
+          "review": "Review & submit",
+          "bills": "Bills",
+          "layout": "Layout",
+          "survey": "Survey & signatures"
         },
         "notice": {
           "title": "Read this to the customer",
@@ -1973,18 +1978,47 @@
         "customer": {
           "nameLabel": "Customer name",
           "mobileLabel": "Mobile number",
-          "emailLabel": "Email (optional)"
+          "emailLabel": "Email (optional)",
+          "customerTypeLabel": "Customer type",
+          "customerTypes": {
+            "individual": "Individual",
+            "organisation": "Organisation"
+          },
+          "pinCodeLabel": "PIN code of the site",
+          "fullAddressLabel": "Full address of the site"
         },
         "connection": {
           "stateLabel": "State",
           "districtLabel": "District",
           "blockLabel": "Block",
-          "connectionInCustomerNameLabel": "Is the electricity connection in the customer's name?"
+          "connectionInCustomerNameLabel": "Is the electricity connection in the customer's name?",
+          "siteTypeLabel": "Site type",
+          "siteTypes": {
+            "rooftop_residential": "Rooftop — home",
+            "rooftop_commercial": "Rooftop — business",
+            "rooftop_institutional": "Rooftop — institution",
+            "ground_mounted": "Ground mounted",
+            "carport": "Carport",
+            "other": "Other"
+          },
+          "connectionTypeLabel": "Type of solar system",
+          "connectionTypes": {
+            "on_grid": "On-grid",
+            "off_grid": "Off-grid",
+            "hybrid": "Hybrid"
+          }
         },
         "property": {
           "propertyInCustomerNameLabel": "Is the property in the customer's name?",
           "customerTimelineLabel": "When does the customer want to move ahead?",
-          "siteLocationLabel": "Site location"
+          "siteLocationLabel": "Site location",
+          "customerTimelines": {
+            "within_1_month": "Within 1 month",
+            "within_3_months": "Within 3 months",
+            "within_6_months": "Within 6 months",
+            "later": "Later",
+            "unsure": "Not sure yet"
+          }
         },
         "requirement": {
           "title": "Choose an equipment package",
@@ -2006,7 +2040,9 @@
           "uploadButton": "Choose file",
           "replaceButton": "Replace",
           "uploadFailed": "This document couldn't be uploaded. Please try again.",
-          "retryButton": "Retry"
+          "retryButton": "Retry",
+          "alreadyUploaded": "Already uploaded: {name}",
+          "acceptedTypes": "JPG, PNG or PDF"
         },
         "photos": {
           "title": "Take site photos",
@@ -2022,11 +2058,33 @@
           "title": "Review & submit",
           "submitButton": "Submit customer",
           "incompleteTitle": "A few things are still missing",
-          "missingDocumentsLabel": "Missing documents"
+          "missingDocumentsLabel": "Missing documents",
+          "photosPending": "{count} photo(s) are still uploading. Submit once they finish.",
+          "photosOffline": "{count} photo(s) are saved on this phone and will upload when you're back online. Submit once they finish."
         },
         "editing": {
           "returnedToDraftNotice": "This customer was submitted before — saving your edit returns it to draft until you resubmit.",
           "notEditableNotice": "This customer can no longer be edited from here."
+        },
+        "stepsLabel": "Steps",
+        "stepProgress": "Step {current} of {total}",
+        "yes": "Yes",
+        "no": "No",
+        "selectPlaceholder": "Select…",
+        "saving": "Saving…",
+        "saveFailed": "Couldn't save. Please try again.",
+        "submitFailed": "Couldn't submit. Please try again.",
+        "startOver": "Start over",
+        "startOverConfirm": "Clear this draft from the phone and start a new customer? Anything already saved to Grid Nova stays saved.",
+        "startOverYes": "Yes, start over",
+        "startOverNo": "Keep this draft",
+        "validation": {
+          "required": "This is needed.",
+          "choose": "Choose an option.",
+          "mobile": "Enter a 10-digit mobile number.",
+          "email": "Enter a valid email address.",
+          "pinCode": "Enter a 6-digit PIN code.",
+          "fixErrors": "Please fix the highlighted fields."
         }
       },
       "estimate": {
@@ -2091,7 +2149,8 @@
             "placeholder_content": "This proposal still has placeholder content.",
             "expired": "This proposal has expired."
           }
-        }
+        },
+        "genericError": "Something went wrong. Please try again."
       },
       "agreement": {
         "title": "Agreement",
@@ -2108,7 +2167,8 @@
             "invalid_stamp_paper_number": "Please enter a valid stamp paper number.",
             "invalid_stamp_paper_date": "Please enter a valid stamp paper date."
           }
-        }
+        },
+        "genericError": "Something went wrong. Please try again."
       },
       "checklist": {
         "title": "Documents & photos",
@@ -2337,7 +2397,8 @@
               "register_locked": "Grid Nova has verified these serial numbers, so they can’t be changed here.",
               "reason_required": "Please give a reason.",
               "register_rows_invalid": "Some rows need fixing — nothing was saved."
-            }
+            },
+            "draftRestored": "We restored serial numbers you typed earlier but hadn't saved yet."
           }
         }
       },
@@ -2515,6 +2576,10 @@
       "staffOnAssociate": "You are signed in with a Grid Nova staff account, which can't open the Associate portal.",
       "switchToStaff": "Sign out and go to staff sign-in",
       "switchToAssociate": "Sign out and go to Associate sign-in"
+    },
+    "missingClaims": {
+      "title": "Sign-in not fully set up",
+      "body": "Your sign-in is not fully set up — contact Grid Nova."
     }
   },
   "photoSlot": {
@@ -2531,7 +2596,10 @@
     "uploadingPct": "Uploading {percent}%",
     "uploading": "Uploading…",
     "replace": "Replace photo",
-    "recommendedTag": "Recommended"
+    "recommendedTag": "Recommended",
+    "fileTooLarge": "\"{name}\" is larger than the {max} MB limit.",
+    "removeFile": "Remove {name}",
+    "chooseFileFor": "{action}: {label}"
   },
   "siteLocation": {
     "title": "At the house",
@@ -2745,6 +2813,313 @@
       "size_below_min": "That size is below what our price list covers.",
       "three_phase_below_min": "That size is too small for a three-phase connection in our price list.",
       "generic": "That system size isn’t in our price list."
+    }
+  },
+  "survey": {
+    "requiredBadge": "Needed to submit",
+    "saveErrors": {
+      "generic": "These details couldn't be saved. Please try again.",
+      "offline": "You're offline — your answers are kept on this phone. Connect to the internet to save them.",
+      "fixHighlighted": "Please fix the highlighted fields."
+    },
+    "connection": {
+      "title": "Connection survey",
+      "variantLabel": "Type of site",
+      "variants": {
+        "individual_house": "Individual house",
+        "housing_society": "Housing society",
+        "commercial_roof": "Commercial roof"
+      },
+      "societyFlatCountLabel": "Number of flats",
+      "societyNocLabel": "Society NOC",
+      "contractDemandLabel": "Contract demand (kVA)",
+      "discomLabel": "Electricity company (DISCOM)",
+      "discomOther": "Other",
+      "discomOtherLabel": "DISCOM name",
+      "consumerNumberLabel": "Consumer number (from the bill)",
+      "phaseLabel": "Connection phase",
+      "sanctionedLoadLabel": "Sanctioned load (kW)"
+    },
+    "nocStatuses": {
+      "obtained": "Obtained",
+      "in_progress": "In progress",
+      "not_required": "Not required",
+      "not_available": "Not available"
+    },
+    "phases": {
+      "single_phase": "Single phase",
+      "three_phase": "Three phase"
+    },
+    "bills": {
+      "title": "Electricity bills",
+      "intro": "Enter the units (kWh) from the customer's last {requested} bills. At least {min} months are needed to submit; you can add up to {max}.",
+      "monthLabel": "Month",
+      "unitsLabel": "Units (kWh)",
+      "billLabel": "Bill amount (₹, optional)",
+      "rowHeading": "Bill {n}",
+      "addMonth": "Add a month",
+      "removeMonth": "Remove bill {n}",
+      "recorded": "{count} of {min} months entered",
+      "fewerThanMin": "Add at least {min} months before submitting.",
+      "averagesTitle": "Averages from the saved bills",
+      "avgUnits": "Average units per month",
+      "avgBill": "Average bill per month",
+      "impliedTariff": "Works out to",
+      "perUnit": "{amount} per unit",
+      "averagesPending": "Averages appear here after the bills are saved.",
+      "errors": {
+        "invalid_month": "Choose a valid month.",
+        "future_month": "This month hasn't happened yet.",
+        "duplicate_month": "This month is entered twice.",
+        "units_required": "Enter the units for this month.",
+        "too_many_months": "You can enter at most {max} months.",
+        "invalid_number": "Enter a number of 0 or more."
+      }
+    },
+    "roof": {
+      "title": "Roof survey",
+      "lockedUntilLocation": "Confirm the house location above first, then fill in the roof.",
+      "accessibleLabel": "Can you safely get onto the roof?",
+      "accessNoteLabel": "Access note (optional)",
+      "materialLabel": "Roof material",
+      "materialOtherLabel": "Describe the roof material",
+      "orientationLabel": "Which way does the roof face?",
+      "orientations": {
+        "south": "South",
+        "east": "East",
+        "west": "West",
+        "north": "North",
+        "mixed": "Mixed",
+        "unknown": "Not sure"
+      },
+      "obstaclesLabel": "Anything on or near the roof?",
+      "obstacles": {
+        "water_tank": "Water tank",
+        "stair_room": "Stair room",
+        "trees": "Trees",
+        "nearby_building": "Nearby building",
+        "overhead_line": "Overhead power line",
+        "antenna_dish": "Antenna / dish",
+        "other": "Other"
+      },
+      "obstaclesNone": "None",
+      "ownershipLabel": "Does the customer own the roof?",
+      "tenantNocLabel": "Is there a NOC from the roof owner?",
+      "floorsLabel": "Number of floors",
+      "shadingLabel": "Shade on the roof",
+      "areaTitle": "Roof area",
+      "roofAreaLabel": "Total roof area (sq ft)",
+      "modeLabel": "How do you want to record the shade-free area?",
+      "modeSections": "Measure roof sections",
+      "modeDirect": "Type the shade-free area",
+      "sectionsIntro": "Measure each usable part of the roof. Grid Nova works out the shade-free area when you save.",
+      "sectionHeading": "Section {n}",
+      "sectionLabel": "Name (e.g. Main roof)",
+      "lengthLabel": "Length (m)",
+      "widthLabel": "Width (m)",
+      "obstacleAreaLabel": "Blocked area (m², optional)",
+      "addSection": "Add a section",
+      "removeSection": "Remove section {n}",
+      "maxSections": "Up to {max} sections.",
+      "shadowFreeLabel": "Shade-free area (sq ft)",
+      "derivedShadowFree": "Shade-free area worked out by Grid Nova: {area} sq ft",
+      "derivedPending": "The shade-free area appears here after you save.",
+      "roofsAvailableLabel": "Roofs available",
+      "roofsConsideredLabel": "Roofs considered for panels",
+      "expansionLabel": "Does the customer plan to build on the roof later?",
+      "errors": {
+        "obstacle_exceeds_section": "The blocked area is bigger than this section.",
+        "derived_field": "The shade-free area is worked out from the sections — remove the sections to type it in.",
+        "roofs_considered_exceeds_available": "Roofs considered can't be more than roofs available.",
+        "invalid_number": "Enter a valid number.",
+        "out_of_range": "This is above the allowed maximum.",
+        "sectionIncomplete": "Enter a name, length and width for this section."
+      }
+    },
+    "shading": {
+      "none": "No shade",
+      "partial_morning": "Some shade in the morning",
+      "partial_evening": "Some shade in the evening",
+      "heavy": "Heavy shade"
+    },
+    "roofMaterials": {
+      "concrete_flat": "Concrete (flat)",
+      "tin_shed": "Tin shed",
+      "asbestos": "Asbestos",
+      "other": "Other"
+    },
+    "layout": {
+      "title": "Equipment layout",
+      "inverterLocationLabel": "Where will the inverter go?",
+      "inverterLocations": {
+        "terrace": "Terrace",
+        "indoor_wall": "Indoor wall",
+        "outdoor_wall": "Outdoor wall",
+        "other": "Other"
+      },
+      "indoorWallLabel": "Is there a suitable indoor wall?",
+      "waterLabel": "Is water available on the roof (for cleaning panels)?",
+      "panelToInverterLabel": "Distance: panels to inverter (m)",
+      "inverterToLtLabel": "Distance: inverter to LT panel / meter (m)",
+      "methodLabel": "How were the distances measured?",
+      "methods": {
+        "tape": "Measuring tape",
+        "laser": "Laser meter",
+        "estimated": "Estimated"
+      },
+      "maxDistance": "Up to {max} m.",
+      "errors": {
+        "out_of_range": "This distance is above {max} m.",
+        "invalid_number": "Enter a distance of 0 or more."
+      }
+    },
+    "status": {
+      "title": "Survey checklist",
+      "complete": "Complete",
+      "missing": "Missing",
+      "sections": {
+        "connection": "Connection",
+        "bills": "Electricity bills",
+        "roof": "Roof",
+        "roof_area": "Roof area",
+        "layout": "Equipment layout"
+      },
+      "missingFields": "Still needed: {fields}",
+      "monthsRecorded": "{recorded} of {required} months",
+      "goTo": "Go to {section}",
+      "allComplete": "Every section is complete.",
+      "notRequired": "The site survey isn't required for this customer.",
+      "loading": "Loading the survey…",
+      "loadError": "The survey couldn't be loaded.",
+      "retry": "Retry",
+      "notCreated": "Save the customer first — the survey checklist appears once the customer is created."
+    },
+    "fields": {
+      "discom": "DISCOM",
+      "consumer_number": "Consumer number",
+      "connection_phase": "Connection phase",
+      "sanctioned_load_kw": "Sanctioned load",
+      "society_flat_count": "Number of flats",
+      "society_noc_status": "Society NOC",
+      "contract_demand_kva": "Contract demand",
+      "consumption_history": "Electricity bills",
+      "roof_accessible": "Roof access",
+      "roof_material": "Roof material",
+      "roof_material_other": "Roof material (other)",
+      "roof_orientation": "Roof direction",
+      "roof_ownership_confirmed": "Roof ownership",
+      "tenant_noc_available": "Roof owner's NOC",
+      "floors": "Floors",
+      "shading_condition": "Shade",
+      "roof_obstacles": "Things on the roof",
+      "roof_area_sqft": "Total roof area",
+      "shadow_free_area_sqft": "Shade-free area",
+      "roof_sections": "Roof sections",
+      "roofs_considered_count": "Roofs considered",
+      "inverter_location": "Inverter location",
+      "indoor_wall_available": "Indoor wall",
+      "distance_panel_to_inverter_m": "Panels to inverter distance",
+      "distance_inverter_to_lt_panel_m": "Inverter to LT panel distance",
+      "distance_method": "How distances were measured",
+      "water_available": "Water on the roof",
+      "avg_monthly_units_kwh": "Average monthly units",
+      "avg_monthly_bill_inr": "Average monthly bill"
+    },
+    "results": {
+      "title": "Suggested system size",
+      "suggestedLabel": "Suggested size",
+      "kw": "{kw} kW",
+      "limitingLabel": "Limited by",
+      "limiting": {
+        "area": "roof area",
+        "load": "sanctioned load",
+        "usage": "electricity use"
+      },
+      "byArea": "By roof area",
+      "byLoad": "By sanctioned load",
+      "byUsage": "By electricity use",
+      "notEnough": "Not enough information to suggest a size yet. Fill in the roof area, sanctioned load or bills.",
+      "warningsTitle": "Things to check",
+      "loading": "Working out the size…",
+      "loadError": "The suggested size couldn't be loaded.",
+      "estimateTitle": "Indicative price",
+      "indicativeNote": "Indicative only — the final price comes in Grid Nova's formal proposal.",
+      "forSize": "For a {kw} kW system",
+      "customQuote": "This size needs a custom quote from Grid Nova.",
+      "notEnoughToPrice": "No price yet — a size is needed first."
+    },
+    "warnings": {
+      "requested_above_suggested": "The customer asked for {requested_kw} kW, but the survey suggests {suggested_kw} kW (limited by {limiting_factor}).",
+      "load_enhancement_needed": "A {required_kw} kW system is more than the sanctioned load of {sanctioned_load_kw} kW allows (up to {max_by_load_kw} kW). The customer may need a load increase.",
+      "implied_tariff_outside_range": "The bills work out to {implied_tariff_inr_per_kwh} per unit, outside the usual {min}–{max}. Please re-check the units and amounts.",
+      "units_bill_mismatch": "The saved {field} ({entered}) differs from the bills ({from_bills}) by more than 25%.",
+      "three_phase_below_min": "{kw} kW is below the {min_kw} kW minimum for a three-phase connection.",
+      "fragile_roof": "This roof ({roof_material}) may need extra structural checks.",
+      "overhead_line": "There is an overhead power line near the roof — a safety check is needed.",
+      "roof_not_owned_no_noc": "The customer doesn't own the roof and there is no NOC from the owner yet.",
+      "society_noc_missing": "The housing society NOC is: {society_noc_status}.",
+      "area_implausible": "Please re-check the roof area: {reason}.",
+      "duplicate_consumer_number": "Another associate already has an open customer with this consumer number. Grid Nova will review it.",
+      "unknown": "Please check this survey detail with Grid Nova."
+    },
+    "areaReasons": {
+      "shadow_free_exceeds_total": "the shade-free area is larger than the total roof area",
+      "roof_area_large": "the roof area looks unusually large"
+    },
+    "signatures": {
+      "title": "Signatures",
+      "intro": "The customer and you both sign to confirm the survey details.",
+      "customerTitle": "Customer signature",
+      "declarationNameLabel": "Customer's full name",
+      "confirmLabel": "I confirm these details are correct",
+      "padLabel": "Sign here",
+      "padHint": "Use a finger or stylus.",
+      "clear": "Clear",
+      "associateTitle": "Your signature",
+      "signCustomer": "Save customer signature",
+      "signAssociate": "Save my signature",
+      "saving": "Saving…",
+      "signedAt": "Signed {when}",
+      "signedByAt": "Signed by {name} · {when}",
+      "signAgain": "Sign again",
+      "saved": "Signature saved.",
+      "emptyPad": "Please sign in the box first.",
+      "offline": "You're offline. Connect to the internet to save signatures — they are never saved on the phone.",
+      "tooLargeLocal": "This signature couldn't be made small enough to upload. Clear it and sign again.",
+      "createFirst": "Signatures can be saved once the customer is created.",
+      "resignNotice": "The survey changed after it was signed, so both signatures were cleared. The customer and you need to sign again.",
+      "resignWarning": "Changing survey answers now will clear both signatures.",
+      "errors": {
+        "file_too_large": "The signature image is too large ({max_kb} KB max). Clear it and sign again.",
+        "declaration_name_required": "Type the customer's full name.",
+        "confirmation_required": "The customer needs to tick the confirmation.",
+        "signature_not_png": "The signature couldn't be read. Clear it and sign again.",
+        "not_editable": "This customer can no longer be changed.",
+        "storage_not_configured": "Signatures can't be saved right now. Please try again later.",
+        "generic": "The signature couldn't be saved. Please try again."
+      }
+    },
+    "review": {
+      "surveyMissing": "Finish these survey sections:",
+      "surveyUnsigned": "Still to sign:",
+      "parties": {
+        "customer": "Customer",
+        "associate": "You (associate)"
+      },
+      "goToSignatures": "Go to signatures"
+    },
+    "card": {
+      "title": "Site survey",
+      "complete": "Survey complete",
+      "incomplete": "Survey not complete",
+      "customerSigned": "Customer signed",
+      "associateSigned": "Associate signed",
+      "customerUnsigned": "Customer not signed",
+      "associateUnsigned": "Associate not signed",
+      "suggestedLabel": "Suggested size",
+      "notRequired": "Not required for this customer",
+      "readOnlyNote": "View only — the associate who added this customer fills in and signs the survey.",
+      "continue": "Continue the survey"
     }
   }
 }

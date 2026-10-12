@@ -1788,7 +1788,8 @@
         "help": "सहायता",
         "territory": "मेरा क्षेत्र",
         "signOut": "साइन आउट",
-        "customers": "मेरे ग्राहक"
+        "customers": "मेरे ग्राहक",
+        "navLabel": "पोर्टल"
       },
       "associate": {
         "home": {
@@ -1926,7 +1927,8 @@
           "blockedPaymentGate": "जब तक ग्रिड नोवा पिछला ग्राहक भुगतान पक्का नहीं करता, यह रुका है।",
           "blockedDcrMismatch": "रुका है: कुछ मॉड्यूल DCR-अनुरूप नहीं हैं।",
           "blockedGeneric": "यह ग्राहक रुका हुआ है।"
-        }
+        },
+        "editLink": "बदलें"
       },
       "customers": {
         "title": "मेरे ग्राहक",
@@ -1963,7 +1965,10 @@
           "house": "घर पर",
           "documents": "दस्तावेज़",
           "photos": "तस्वीरें",
-          "review": "समीक्षा और सबमिट करें"
+          "review": "समीक्षा और सबमिट करें",
+          "bills": "बिल",
+          "layout": "उपकरण की जगह",
+          "survey": "सर्वे और हस्ताक्षर"
         },
         "notice": {
           "title": "यह ग्राहक को पढ़कर सुनाएँ",
@@ -1973,18 +1978,47 @@
         "customer": {
           "nameLabel": "ग्राहक का नाम",
           "mobileLabel": "मोबाइल नंबर",
-          "emailLabel": "ईमेल (वैकल्पिक)"
+          "emailLabel": "ईमेल (वैकल्पिक)",
+          "customerTypeLabel": "ग्राहक का प्रकार",
+          "customerTypes": {
+            "individual": "व्यक्ति",
+            "organisation": "संस्था"
+          },
+          "pinCodeLabel": "साइट का पिन कोड",
+          "fullAddressLabel": "साइट का पूरा पता"
         },
         "connection": {
           "stateLabel": "राज्य",
           "districtLabel": "ज़िला",
           "blockLabel": "ब्लॉक",
-          "connectionInCustomerNameLabel": "क्या बिजली कनेक्शन ग्राहक के नाम पर है?"
+          "connectionInCustomerNameLabel": "क्या बिजली कनेक्शन ग्राहक के नाम पर है?",
+          "siteTypeLabel": "साइट का प्रकार",
+          "siteTypes": {
+            "rooftop_residential": "छत — घर",
+            "rooftop_commercial": "छत — व्यवसाय",
+            "rooftop_institutional": "छत — संस्थान",
+            "ground_mounted": "ज़मीन पर",
+            "carport": "कारपोर्ट",
+            "other": "अन्य"
+          },
+          "connectionTypeLabel": "सोलर सिस्टम का प्रकार",
+          "connectionTypes": {
+            "on_grid": "ऑन-ग्रिड",
+            "off_grid": "ऑफ़-ग्रिड",
+            "hybrid": "हाइब्रिड"
+          }
         },
         "property": {
           "propertyInCustomerNameLabel": "क्या संपत्ति ग्राहक के नाम पर है?",
           "customerTimelineLabel": "ग्राहक कब आगे बढ़ना चाहते हैं?",
-          "siteLocationLabel": "साइट का स्थान"
+          "siteLocationLabel": "साइट का स्थान",
+          "customerTimelines": {
+            "within_1_month": "1 महीने में",
+            "within_3_months": "3 महीने में",
+            "within_6_months": "6 महीने में",
+            "later": "बाद में",
+            "unsure": "अभी तय नहीं"
+          }
         },
         "requirement": {
           "title": "एक उपकरण पैकेज चुनें",
@@ -2006,7 +2040,9 @@
           "uploadButton": "फ़ाइल चुनें",
           "replaceButton": "बदलें",
           "uploadFailed": "यह दस्तावेज़ अपलोड नहीं हो सका। कृपया दोबारा प्रयास करें।",
-          "retryButton": "पुनः प्रयास करें"
+          "retryButton": "पुनः प्रयास करें",
+          "alreadyUploaded": "पहले से अपलोड: {name}",
+          "acceptedTypes": "JPG, PNG या PDF"
         },
         "photos": {
           "title": "साइट की तस्वीरें लें",
@@ -2022,11 +2058,33 @@
           "title": "समीक्षा और सबमिट करें",
           "submitButton": "ग्राहक सबमिट करें",
           "incompleteTitle": "अभी कुछ चीज़ें अनुपलब्ध हैं",
-          "missingDocumentsLabel": "अनुपलब्ध दस्तावेज़"
+          "missingDocumentsLabel": "अनुपलब्ध दस्तावेज़",
+          "photosPending": "{count} फ़ोटो अभी अपलोड हो रही हैं। पूरी होने के बाद सबमिट करें।",
+          "photosOffline": "{count} फ़ोटो इस फ़ोन पर सेव हैं और ऑनलाइन होने पर अपलोड होंगी। पूरी होने के बाद सबमिट करें।"
         },
         "editing": {
           "returnedToDraftNotice": "यह ग्राहक पहले सबमिट किया गया था — आपके संपादन को सहेजने से यह फिर से ड्राफ्ट में चला जाता है, जब तक आप इसे फिर से सबमिट न करें।",
           "notEditableNotice": "इस ग्राहक को अब यहाँ से संपादित नहीं किया जा सकता।"
+        },
+        "stepsLabel": "चरण",
+        "stepProgress": "चरण {current} / {total}",
+        "yes": "हाँ",
+        "no": "नहीं",
+        "selectPlaceholder": "चुनें…",
+        "saving": "सहेजा जा रहा है…",
+        "saveFailed": "सहेजा नहीं जा सका। कृपया फिर कोशिश करें।",
+        "submitFailed": "सबमिट नहीं हो सका। कृपया फिर कोशिश करें।",
+        "startOver": "फिर से शुरू करें",
+        "startOverConfirm": "इस फ़ोन से यह ड्राफ़्ट हटाकर नया ग्राहक शुरू करें? Grid Nova में पहले से सहेजा गया सब बना रहेगा।",
+        "startOverYes": "हाँ, फिर से शुरू करें",
+        "startOverNo": "यह ड्राफ़्ट रखें",
+        "validation": {
+          "required": "यह ज़रूरी है।",
+          "choose": "एक विकल्प चुनें।",
+          "mobile": "10 अंकों का मोबाइल नंबर दर्ज करें।",
+          "email": "सही ईमेल पता दर्ज करें।",
+          "pinCode": "6 अंकों का पिन कोड दर्ज करें।",
+          "fixErrors": "कृपया चिह्नित फ़ील्ड ठीक करें।"
         }
       },
       "estimate": {
@@ -2091,7 +2149,8 @@
             "placeholder_content": "इस प्रस्ताव में अभी भी प्लेसहोल्डर सामग्री है।",
             "expired": "इस प्रस्ताव की समय सीमा समाप्त हो गई है।"
           }
-        }
+        },
+        "genericError": "कुछ गलत हो गया। कृपया फिर कोशिश करें।"
       },
       "agreement": {
         "title": "समझौता",
@@ -2108,7 +2167,8 @@
             "invalid_stamp_paper_number": "कृपया एक मान्य स्टाम्प पेपर नंबर दर्ज करें।",
             "invalid_stamp_paper_date": "कृपया एक मान्य स्टाम्प पेपर तारीख दर्ज करें।"
           }
-        }
+        },
+        "genericError": "कुछ गलत हो गया। कृपया फिर कोशिश करें।"
       },
       "checklist": {
         "title": "दस्तावेज़ और तस्वीरें",
@@ -2337,7 +2397,8 @@
               "register_locked": "ग्रिड नोवा ने ये सीरियल नंबर सत्यापित कर दिए हैं, इसलिए इन्हें यहाँ बदला नहीं जा सकता।",
               "reason_required": "कृपया कारण बताएँ।",
               "register_rows_invalid": "कुछ पंक्तियाँ ठीक करनी हैं — कुछ भी सहेजा नहीं गया।"
-            }
+            },
+            "draftRestored": "आपके पहले लिखे पर सहेजे न गए सीरियल नंबर वापस लाए गए हैं।"
           }
         }
       },
@@ -2515,6 +2576,10 @@
       "staffOnAssociate": "आप ग्रिड नोवा स्टाफ खाते से साइन इन हैं, जिससे एसोसिएट पोर्टल नहीं खुल सकता।",
       "switchToStaff": "साइन आउट करें और स्टाफ साइन-इन पर जाएँ",
       "switchToAssociate": "साइन आउट करें और एसोसिएट साइन-इन पर जाएँ"
+    },
+    "missingClaims": {
+      "title": "साइन-इन पूरी तरह सेट नहीं है",
+      "body": "आपका साइन-इन पूरी तरह सेट नहीं है — Grid Nova से संपर्क करें।"
     }
   },
   "photoSlot": {
@@ -2531,7 +2596,10 @@
     "uploadingPct": "अपलोड हो रही है {percent}%",
     "uploading": "अपलोड हो रही है…",
     "replace": "फ़ोटो बदलें",
-    "recommendedTag": "सुझाया गया"
+    "recommendedTag": "सुझाया गया",
+    "fileTooLarge": "\"{name}\" {max} MB की सीमा से बड़ी है।",
+    "removeFile": "{name} हटाएँ",
+    "chooseFileFor": "{action}: {label}"
   },
   "siteLocation": {
     "title": "घर पर",
@@ -2745,6 +2813,313 @@
       "size_below_min": "यह आकार हमारी कीमत सूची से छोटा है।",
       "three_phase_below_min": "यह आकार हमारी सूची में थ्री-फ़ेज़ कनेक्शन के लिए बहुत छोटा है।",
       "generic": "यह सिस्टम आकार हमारी कीमत सूची में नहीं है।"
+    }
+  },
+  "survey": {
+    "requiredBadge": "सबमिट के लिए ज़रूरी",
+    "saveErrors": {
+      "generic": "ये विवरण सहेजे नहीं जा सके। कृपया फिर कोशिश करें।",
+      "offline": "आप ऑफ़लाइन हैं — आपके जवाब इस फ़ोन पर रखे गए हैं। सहेजने के लिए इंटरनेट से जुड़ें।",
+      "fixHighlighted": "कृपया चिह्नित फ़ील्ड ठीक करें।"
+    },
+    "connection": {
+      "title": "कनेक्शन सर्वे",
+      "variantLabel": "साइट का प्रकार",
+      "variants": {
+        "individual_house": "स्वतंत्र मकान",
+        "housing_society": "हाउसिंग सोसाइटी",
+        "commercial_roof": "व्यावसायिक छत"
+      },
+      "societyFlatCountLabel": "फ़्लैटों की संख्या",
+      "societyNocLabel": "सोसाइटी NOC",
+      "contractDemandLabel": "कॉन्ट्रैक्ट डिमांड (kVA)",
+      "discomLabel": "बिजली कंपनी (DISCOM)",
+      "discomOther": "अन्य",
+      "discomOtherLabel": "DISCOM का नाम",
+      "consumerNumberLabel": "उपभोक्ता संख्या (बिल से)",
+      "phaseLabel": "कनेक्शन फ़ेज़",
+      "sanctionedLoadLabel": "स्वीकृत लोड (kW)"
+    },
+    "nocStatuses": {
+      "obtained": "मिल गया",
+      "in_progress": "प्रक्रिया में",
+      "not_required": "ज़रूरी नहीं",
+      "not_available": "उपलब्ध नहीं"
+    },
+    "phases": {
+      "single_phase": "सिंगल फ़ेज़",
+      "three_phase": "थ्री फ़ेज़"
+    },
+    "bills": {
+      "title": "बिजली के बिल",
+      "intro": "ग्राहक के पिछले {requested} बिलों से यूनिट (kWh) दर्ज करें। सबमिट के लिए कम से कम {min} महीने चाहिए; आप {max} तक जोड़ सकते हैं।",
+      "monthLabel": "महीना",
+      "unitsLabel": "यूनिट (kWh)",
+      "billLabel": "बिल राशि (₹, वैकल्पिक)",
+      "rowHeading": "बिल {n}",
+      "addMonth": "एक महीना जोड़ें",
+      "removeMonth": "बिल {n} हटाएँ",
+      "recorded": "{min} में से {count} महीने दर्ज",
+      "fewerThanMin": "सबमिट करने से पहले कम से कम {min} महीने जोड़ें।",
+      "averagesTitle": "सहेजे गए बिलों का औसत",
+      "avgUnits": "प्रति माह औसत यूनिट",
+      "avgBill": "प्रति माह औसत बिल",
+      "impliedTariff": "प्रति यूनिट दर",
+      "perUnit": "{amount} प्रति यूनिट",
+      "averagesPending": "बिल सहेजने के बाद औसत यहाँ दिखेगा।",
+      "errors": {
+        "invalid_month": "सही महीना चुनें।",
+        "future_month": "यह महीना अभी आया नहीं है।",
+        "duplicate_month": "यह महीना दो बार दर्ज है।",
+        "units_required": "इस महीने की यूनिट दर्ज करें।",
+        "too_many_months": "आप अधिकतम {max} महीने दर्ज कर सकते हैं।",
+        "invalid_number": "0 या उससे अधिक संख्या दर्ज करें।"
+      }
+    },
+    "roof": {
+      "title": "छत का सर्वे",
+      "lockedUntilLocation": "पहले ऊपर घर की लोकेशन पक्की करें, फिर छत की जानकारी भरें।",
+      "accessibleLabel": "क्या छत पर सुरक्षित पहुँचा जा सकता है?",
+      "accessNoteLabel": "पहुँच के बारे में नोट (वैकल्पिक)",
+      "materialLabel": "छत की सामग्री",
+      "materialOtherLabel": "छत की सामग्री बताएँ",
+      "orientationLabel": "छत किस दिशा में है?",
+      "orientations": {
+        "south": "दक्षिण",
+        "east": "पूर्व",
+        "west": "पश्चिम",
+        "north": "उत्तर",
+        "mixed": "मिली-जुली",
+        "unknown": "पता नहीं"
+      },
+      "obstaclesLabel": "छत पर या पास में कुछ है?",
+      "obstacles": {
+        "water_tank": "पानी की टंकी",
+        "stair_room": "सीढ़ी घर",
+        "trees": "पेड़",
+        "nearby_building": "पास की इमारत",
+        "overhead_line": "ऊपर से गुज़रती बिजली लाइन",
+        "antenna_dish": "एंटीना / डिश",
+        "other": "अन्य"
+      },
+      "obstaclesNone": "कुछ नहीं",
+      "ownershipLabel": "क्या छत ग्राहक की अपनी है?",
+      "tenantNocLabel": "क्या छत के मालिक से NOC है?",
+      "floorsLabel": "मंज़िलों की संख्या",
+      "shadingLabel": "छत पर छाया",
+      "areaTitle": "छत का क्षेत्रफल",
+      "roofAreaLabel": "कुल छत क्षेत्रफल (वर्ग फ़ुट)",
+      "modeLabel": "छाया-रहित क्षेत्र कैसे दर्ज करना है?",
+      "modeSections": "छत के हिस्से नापें",
+      "modeDirect": "छाया-रहित क्षेत्र सीधे लिखें",
+      "sectionsIntro": "छत के हर उपयोगी हिस्से को नापें। सहेजने पर Grid Nova छाया-रहित क्षेत्र निकालेगा।",
+      "sectionHeading": "हिस्सा {n}",
+      "sectionLabel": "नाम (जैसे मुख्य छत)",
+      "lengthLabel": "लंबाई (मी)",
+      "widthLabel": "चौड़ाई (मी)",
+      "obstacleAreaLabel": "रुका हुआ क्षेत्र (मी², वैकल्पिक)",
+      "addSection": "एक हिस्सा जोड़ें",
+      "removeSection": "हिस्सा {n} हटाएँ",
+      "maxSections": "अधिकतम {max} हिस्से।",
+      "shadowFreeLabel": "छाया-रहित क्षेत्र (वर्ग फ़ुट)",
+      "derivedShadowFree": "Grid Nova द्वारा निकाला गया छाया-रहित क्षेत्र: {area} वर्ग फ़ुट",
+      "derivedPending": "सहेजने के बाद छाया-रहित क्षेत्र यहाँ दिखेगा।",
+      "roofsAvailableLabel": "उपलब्ध छतें",
+      "roofsConsideredLabel": "पैनल के लिए चुनी गई छतें",
+      "expansionLabel": "क्या ग्राहक बाद में छत पर निर्माण करना चाहते हैं?",
+      "errors": {
+        "obstacle_exceeds_section": "रुका हुआ क्षेत्र इस हिस्से से बड़ा है।",
+        "derived_field": "छाया-रहित क्षेत्र हिस्सों से निकाला जाता है — इसे लिखने के लिए हिस्से हटाएँ।",
+        "roofs_considered_exceeds_available": "चुनी गई छतें उपलब्ध छतों से ज़्यादा नहीं हो सकतीं।",
+        "invalid_number": "सही संख्या दर्ज करें।",
+        "out_of_range": "यह अनुमत सीमा से ज़्यादा है।",
+        "sectionIncomplete": "इस हिस्से का नाम, लंबाई और चौड़ाई दर्ज करें।"
+      }
+    },
+    "shading": {
+      "none": "कोई छाया नहीं",
+      "partial_morning": "सुबह कुछ छाया",
+      "partial_evening": "शाम को कुछ छाया",
+      "heavy": "बहुत छाया"
+    },
+    "roofMaterials": {
+      "concrete_flat": "कंक्रीट (समतल)",
+      "tin_shed": "टीन शेड",
+      "asbestos": "एस्बेस्टस",
+      "other": "अन्य"
+    },
+    "layout": {
+      "title": "उपकरण की जगह",
+      "inverterLocationLabel": "इन्वर्टर कहाँ लगेगा?",
+      "inverterLocations": {
+        "terrace": "छत",
+        "indoor_wall": "अंदर की दीवार",
+        "outdoor_wall": "बाहर की दीवार",
+        "other": "अन्य"
+      },
+      "indoorWallLabel": "क्या अंदर कोई उपयुक्त दीवार है?",
+      "waterLabel": "क्या छत पर पानी उपलब्ध है (पैनल साफ़ करने के लिए)?",
+      "panelToInverterLabel": "दूरी: पैनल से इन्वर्टर (मी)",
+      "inverterToLtLabel": "दूरी: इन्वर्टर से LT पैनल / मीटर (मी)",
+      "methodLabel": "दूरी कैसे नापी गई?",
+      "methods": {
+        "tape": "नापने का फ़ीता",
+        "laser": "लेज़र मीटर",
+        "estimated": "अनुमान से"
+      },
+      "maxDistance": "अधिकतम {max} मी।",
+      "errors": {
+        "out_of_range": "यह दूरी {max} मी से ज़्यादा है।",
+        "invalid_number": "0 या उससे अधिक दूरी दर्ज करें।"
+      }
+    },
+    "status": {
+      "title": "सर्वे चेकलिस्ट",
+      "complete": "पूरा",
+      "missing": "अधूरा",
+      "sections": {
+        "connection": "कनेक्शन",
+        "bills": "बिजली के बिल",
+        "roof": "छत",
+        "roof_area": "छत का क्षेत्रफल",
+        "layout": "उपकरण की जगह"
+      },
+      "missingFields": "अभी चाहिए: {fields}",
+      "monthsRecorded": "{required} में से {recorded} महीने",
+      "goTo": "{section} पर जाएँ",
+      "allComplete": "सभी हिस्से पूरे हैं।",
+      "notRequired": "इस ग्राहक के लिए साइट सर्वे ज़रूरी नहीं है।",
+      "loading": "सर्वे लोड हो रहा है…",
+      "loadError": "सर्वे लोड नहीं हो सका।",
+      "retry": "फिर कोशिश करें",
+      "notCreated": "पहले ग्राहक सहेजें — ग्राहक बनने के बाद सर्वे चेकलिस्ट दिखेगी।"
+    },
+    "fields": {
+      "discom": "DISCOM",
+      "consumer_number": "उपभोक्ता संख्या",
+      "connection_phase": "कनेक्शन फ़ेज़",
+      "sanctioned_load_kw": "स्वीकृत लोड",
+      "society_flat_count": "फ़्लैटों की संख्या",
+      "society_noc_status": "सोसाइटी NOC",
+      "contract_demand_kva": "कॉन्ट्रैक्ट डिमांड",
+      "consumption_history": "बिजली के बिल",
+      "roof_accessible": "छत तक पहुँच",
+      "roof_material": "छत की सामग्री",
+      "roof_material_other": "छत की सामग्री (अन्य)",
+      "roof_orientation": "छत की दिशा",
+      "roof_ownership_confirmed": "छत का मालिकाना",
+      "tenant_noc_available": "छत मालिक का NOC",
+      "floors": "मंज़िलें",
+      "shading_condition": "छाया",
+      "roof_obstacles": "छत पर रुकावटें",
+      "roof_area_sqft": "कुल छत क्षेत्रफल",
+      "shadow_free_area_sqft": "छाया-रहित क्षेत्र",
+      "roof_sections": "छत के हिस्से",
+      "roofs_considered_count": "चुनी गई छतें",
+      "inverter_location": "इन्वर्टर की जगह",
+      "indoor_wall_available": "अंदर की दीवार",
+      "distance_panel_to_inverter_m": "पैनल से इन्वर्टर दूरी",
+      "distance_inverter_to_lt_panel_m": "इन्वर्टर से LT पैनल दूरी",
+      "distance_method": "दूरी कैसे नापी गई",
+      "water_available": "छत पर पानी",
+      "avg_monthly_units_kwh": "औसत मासिक यूनिट",
+      "avg_monthly_bill_inr": "औसत मासिक बिल"
+    },
+    "results": {
+      "title": "सुझाया गया सिस्टम आकार",
+      "suggestedLabel": "सुझाया गया आकार",
+      "kw": "{kw} kW",
+      "limitingLabel": "सीमा का कारण",
+      "limiting": {
+        "area": "छत का क्षेत्रफल",
+        "load": "स्वीकृत लोड",
+        "usage": "बिजली की खपत"
+      },
+      "byArea": "छत के क्षेत्रफल से",
+      "byLoad": "स्वीकृत लोड से",
+      "byUsage": "बिजली की खपत से",
+      "notEnough": "आकार सुझाने के लिए अभी पर्याप्त जानकारी नहीं है। छत का क्षेत्रफल, स्वीकृत लोड या बिल भरें।",
+      "warningsTitle": "जाँचने लायक बातें",
+      "loading": "आकार निकाला जा रहा है…",
+      "loadError": "सुझाया गया आकार लोड नहीं हो सका।",
+      "estimateTitle": "अनुमानित कीमत",
+      "indicativeNote": "केवल अनुमान — अंतिम कीमत Grid Nova के औपचारिक प्रस्ताव में आएगी।",
+      "forSize": "{kw} kW सिस्टम के लिए",
+      "customQuote": "इस आकार के लिए Grid Nova से अलग कोटेशन चाहिए।",
+      "notEnoughToPrice": "अभी कोई कीमत नहीं — पहले आकार चाहिए।"
+    },
+    "warnings": {
+      "requested_above_suggested": "ग्राहक ने {requested_kw} kW माँगा है, पर सर्वे {suggested_kw} kW सुझाता है (कारण: {limiting_factor})।",
+      "load_enhancement_needed": "{required_kw} kW सिस्टम {sanctioned_load_kw} kW स्वीकृत लोड से ज़्यादा है (अधिकतम {max_by_load_kw} kW)। ग्राहक को लोड बढ़वाना पड़ सकता है।",
+      "implied_tariff_outside_range": "बिलों से दर {implied_tariff_inr_per_kwh} प्रति यूनिट आती है, जो सामान्य {min}–{max} से बाहर है। कृपया यूनिट और राशि दोबारा जाँचें।",
+      "units_bill_mismatch": "सहेजा गया {field} ({entered}) बिलों ({from_bills}) से 25% से ज़्यादा अलग है।",
+      "three_phase_below_min": "{kw} kW थ्री-फ़ेज़ कनेक्शन के न्यूनतम {min_kw} kW से कम है।",
+      "fragile_roof": "{roof_material} छत की अतिरिक्त ढाँचागत जाँच ज़रूरी हो सकती है।",
+      "overhead_line": "छत के पास ऊपर से बिजली लाइन गुज़रती है — सुरक्षा जाँच ज़रूरी है।",
+      "roof_not_owned_no_noc": "छत ग्राहक की नहीं है और मालिक से अभी NOC नहीं मिला है।",
+      "society_noc_missing": "हाउसिंग सोसाइटी NOC की स्थिति: {society_noc_status}।",
+      "area_implausible": "कृपया छत का क्षेत्रफल दोबारा जाँचें: {reason}।",
+      "duplicate_consumer_number": "इस उपभोक्ता संख्या वाला एक खुला ग्राहक किसी अन्य एसोसिएट के पास पहले से है। Grid Nova इसकी समीक्षा करेगा।",
+      "unknown": "कृपया इस सर्वे विवरण के बारे में Grid Nova से पूछें।"
+    },
+    "areaReasons": {
+      "shadow_free_exceeds_total": "छाया-रहित क्षेत्र कुल छत क्षेत्रफल से बड़ा है",
+      "roof_area_large": "छत का क्षेत्रफल असामान्य रूप से बड़ा लगता है"
+    },
+    "signatures": {
+      "title": "हस्ताक्षर",
+      "intro": "सर्वे विवरण की पुष्टि के लिए ग्राहक और आप दोनों हस्ताक्षर करें।",
+      "customerTitle": "ग्राहक के हस्ताक्षर",
+      "declarationNameLabel": "ग्राहक का पूरा नाम",
+      "confirmLabel": "मैं पुष्टि करता/करती हूँ कि ये विवरण सही हैं",
+      "padLabel": "यहाँ हस्ताक्षर करें",
+      "padHint": "उँगली या स्टाइलस से करें।",
+      "clear": "मिटाएँ",
+      "associateTitle": "आपके हस्ताक्षर",
+      "signCustomer": "ग्राहक के हस्ताक्षर सहेजें",
+      "signAssociate": "मेरे हस्ताक्षर सहेजें",
+      "saving": "सहेजा जा रहा है…",
+      "signedAt": "हस्ताक्षर: {when}",
+      "signedByAt": "{name} द्वारा हस्ताक्षरित · {when}",
+      "signAgain": "फिर से हस्ताक्षर करें",
+      "saved": "हस्ताक्षर सहेजे गए।",
+      "emptyPad": "पहले बॉक्स में हस्ताक्षर करें।",
+      "offline": "आप ऑफ़लाइन हैं। हस्ताक्षर सहेजने के लिए इंटरनेट से जुड़ें — ये फ़ोन पर सेव नहीं होते।",
+      "tooLargeLocal": "यह हस्ताक्षर अपलोड लायक छोटा नहीं हो सका। मिटाकर फिर से करें।",
+      "createFirst": "ग्राहक बनने के बाद हस्ताक्षर सहेजे जा सकते हैं।",
+      "resignNotice": "हस्ताक्षर के बाद सर्वे बदला, इसलिए दोनों हस्ताक्षर हट गए। ग्राहक और आपको फिर से हस्ताक्षर करने होंगे।",
+      "resignWarning": "अब सर्वे के जवाब बदलने पर दोनों हस्ताक्षर हट जाएँगे।",
+      "errors": {
+        "file_too_large": "हस्ताक्षर की इमेज बहुत बड़ी है (अधिकतम {max_kb} KB)। मिटाकर फिर से करें।",
+        "declaration_name_required": "ग्राहक का पूरा नाम लिखें।",
+        "confirmation_required": "ग्राहक को पुष्टि वाले बॉक्स पर टिक करना होगा।",
+        "signature_not_png": "हस्ताक्षर पढ़ा नहीं जा सका। मिटाकर फिर से करें।",
+        "not_editable": "इस ग्राहक में अब बदलाव नहीं हो सकता।",
+        "storage_not_configured": "अभी हस्ताक्षर सहेजे नहीं जा सकते। कृपया बाद में कोशिश करें।",
+        "generic": "हस्ताक्षर सहेजा नहीं जा सका। कृपया फिर कोशिश करें।"
+      }
+    },
+    "review": {
+      "surveyMissing": "ये सर्वे हिस्से पूरे करें:",
+      "surveyUnsigned": "अभी हस्ताक्षर बाकी:",
+      "parties": {
+        "customer": "ग्राहक",
+        "associate": "आप (एसोसिएट)"
+      },
+      "goToSignatures": "हस्ताक्षर पर जाएँ"
+    },
+    "card": {
+      "title": "साइट सर्वे",
+      "complete": "सर्वे पूरा",
+      "incomplete": "सर्वे अधूरा",
+      "customerSigned": "ग्राहक ने हस्ताक्षर किए",
+      "associateSigned": "एसोसिएट ने हस्ताक्षर किए",
+      "customerUnsigned": "ग्राहक के हस्ताक्षर बाकी",
+      "associateUnsigned": "एसोसिएट के हस्ताक्षर बाकी",
+      "suggestedLabel": "सुझाया गया आकार",
+      "notRequired": "इस ग्राहक के लिए ज़रूरी नहीं",
+      "readOnlyNote": "केवल देखने के लिए — जिस एसोसिएट ने ग्राहक जोड़ा, वही सर्वे भरते और हस्ताक्षर करते हैं।",
+      "continue": "सर्वे जारी रखें"
     }
   }
 }

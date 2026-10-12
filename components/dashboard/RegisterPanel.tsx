@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@clerk/nextjs'
+import { readSerialDraft, useSerialDraftWriter } from '@/lib/associate/serial-draft'
 import { AlertTriangle, Check, Lock, Plus, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -30,7 +31,7 @@ const WARNING_TEXT: Record<string, string> = {
   rating_out_of_range: 'The rating looks outside the usual range — please double-check it. (Saved anyway.)',
 }
 const MAX_ROWS = 200
-const field = 'w-full min-h-[44px] rounded-xl border border-[#e4e8ee] bg-white px-3 py-2 text-sm outline-none focus:border-[#2f5daa]'
+const field = 'w-full min-h-[44px] rounded-xl border border-[#e4e8ee] bg-white px-3 py-2 text-base focus:border-[#2f5daa] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#2f5daa]'
 
 interface DraftRow {
   key: number
@@ -47,6 +48,15 @@ interface DraftRow {
 let rowKey = 0
 const emptyRow = (): DraftRow => ({ key: (rowKey += 1), category: 'module', equipment: null, serial: '', rating: '', warranty_start: '', warranty_end: '', check: null, checkError: null })
 const isDirty = (r: DraftRow) => !!(r.serial || r.rating || r.equipment || r.warranty_start || r.warranty_end)
+// What survives a discarded tab: the typed values, never a serial-check result.
+const storedRow = (r: DraftRow): Record<string, unknown> => {
+  const rest: Partial<DraftRow> = { ...r }
+  delete rest.key
+  delete rest.check
+  delete rest.checkError
+  return rest
+}
+const restoredRow = (stored: Record<string, unknown>): DraftRow => ({ ...emptyRow(), ...(stored as Partial<DraftRow>), check: null, checkError: null })
 
 function toInput(r: DraftRow): UnitInput {
   const base: UnitInput = { category: r.category, serial_number: r.serial.trim() }
@@ -78,10 +88,13 @@ function HeldBy({ held }: { held: SerialCheck['held_by'] }) {
 }
 
 function UnitEntry({ onboardingId, locked, isAdmin }: { onboardingId: number; locked: boolean; isAdmin: boolean }) {
-  const { getToken } = useAuth()
+  const { getToken, userId } = useAuth()
   const createUnit = useCreateUnit(onboardingId)
   const bulk = useBulkCreateUnits(onboardingId)
-  const [rows, setRows] = useState<DraftRow[]>(() => [emptyRow()])
+  const draftKey = `gna-register-staff-${userId ?? 'anon'}-${onboardingId}`
+  const [restoredRows] = useState(() => readSerialDraft(draftKey, restoredRow))
+  const [rows, setRows] = useState<DraftRow[]>(() => restoredRows ?? [emptyRow()])
+  useSerialDraftWriter(draftKey, rows, { isDirty, toStored: storedRow })
   const [rowErrors, setRowErrors] = useState<RowError[]>([])
   const [formError, setFormError] = useState<string | null>(null)
   const [warnings, setWarnings] = useState<RegisterWarning[]>([])
@@ -183,6 +196,11 @@ function UnitEntry({ onboardingId, locked, isAdmin }: { onboardingId: number; lo
   return (
     <div className="space-y-4" data-testid="unit-entry">
       <p className="text-sm font-semibold text-gray-800">{locked ? 'Add units (register is locked — reason required)' : 'Add units'}</p>
+      {restoredRows && rows.some(isDirty) && (
+        <p role="status" className="rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-800" data-testid="serial-draft-restored">
+          We restored serial numbers you typed earlier but hadn&apos;t saved yet.
+        </p>
+      )}
       {rows.map((r, i) => (
         <div key={r.key} className="space-y-3 rounded-xl border border-[#e4e8ee] p-3" data-testid="unit-row">
           <div className="grid gap-3 sm:grid-cols-2">

@@ -20,6 +20,10 @@ export interface PendingPhoto {
   createdAt: number
 }
 
+// A queued photo older than this is dropped unread: an abandoned draft on a
+// shared phone must not keep a customer's house photos around indefinitely.
+export const PHOTO_QUEUE_TTL_MS = 3 * 24 * 60 * 60 * 1000
+
 const DB_NAME = 'gna-pending-photos'
 const STORE = 'photos'
 const memory = new Map<string, PendingPhoto>()
@@ -66,19 +70,56 @@ export async function putPendingPhoto(photo: PendingPhoto): Promise<void> {
   }
 }
 
-export async function listPendingPhotos(scope: string): Promise<PendingPhoto[]> {
+export async function listPendingPhotos(scope: string, now: number = Date.now()): Promise<PendingPhoto[]> {
+  const fresh = (p: PendingPhoto) => now - p.createdAt <= PHOTO_QUEUE_TTL_MS
   const fromMemory = [...memory.values()].filter((p) => p.scope === scope)
   const db = await openDb()
-  if (!db) return fromMemory
+  let rows: PendingPhoto[] = []
+  if (db) {
+    try {
+      rows = await tx<PendingPhoto[]>(db, 'readonly', (s) => s.index('scope').getAll(scope))
+    } catch {
+      rows = []
+    } finally {
+      db.close()
+    }
+  }
+  const all = [...rows, ...fromMemory]
+  const stale = all.filter((p) => !fresh(p))
+  for (const p of stale) void removePendingPhoto(p.id)
+  return all.filter(fresh).sort((a, b) => a.createdAt - b.createdAt)
+}
+
+/** Removes every queued photo matching `match` (all of them when omitted). */
+export async function purgePendingPhotos(match: (p: PendingPhoto) => boolean = () => true): Promise<void> {
+  for (const [id, p] of memory) if (match(p)) memory.delete(id)
+  const db = await openDb()
+  if (!db) return
   try {
-    const rows = await tx<PendingPhoto[]>(db, 'readonly', (s) => s.index('scope').getAll(scope))
-    return [...rows, ...fromMemory].sort((a, b) => a.createdAt - b.createdAt)
+    const rows = await tx<PendingPhoto[]>(db, 'readonly', (s) => s.getAll())
+    const ids = rows.filter(match).map((p) => p.id)
+    if (ids.length) {
+      await new Promise<void>((resolve, reject) => {
+        const t = db.transaction(STORE, 'readwrite')
+        const store = t.objectStore(STORE)
+        ids.forEach((id) => store.delete(id))
+        t.oncomplete = () => resolve()
+        t.onerror = () => reject(t.error)
+        t.onabort = () => reject(t.error)
+      })
+    }
   } catch {
-    return fromMemory
+    /* nothing more to do */
   } finally {
     db.close()
   }
 }
+
+/** One scope's photos — e.g. after its onboarding is submitted. */
+export const purgePendingPhotoScope = (scope: string) => purgePendingPhotos((p) => p.scope === scope)
+
+/** Photos past the TTL, whatever their scope. */
+export const purgeExpiredPendingPhotos = (now: number = Date.now()) => purgePendingPhotos((p) => now - p.createdAt > PHOTO_QUEUE_TTL_MS)
 
 export async function removePendingPhoto(id: string): Promise<void> {
   memory.delete(id)

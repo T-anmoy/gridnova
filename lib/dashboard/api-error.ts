@@ -69,6 +69,16 @@ export function wrongAccountOf(error: unknown): WrongAccount | null {
   return null
 }
 
+/**
+ * BE-1 §7: a verified Clerk token whose session token lacks `public_metadata`
+ * → 403 `{code: "session_token_missing_claims"}` on any staff or associate
+ * route. It is a setup problem on Grid Nova's side, not a permission or a
+ * session expiry — retrying or signing in again will not fix it.
+ */
+export function isMissingClaimsError(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 403 && error.structuredDetail?.code === 'session_token_missing_claims'
+}
+
 // Map any thrown error into a classified, display-ready shape.
 export function classifyApiError(error: unknown): ClassifiedError {
   if (error instanceof ApiShapeError) {

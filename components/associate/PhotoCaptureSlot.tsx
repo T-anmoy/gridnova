@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Camera, AlertCircle, MapPin, Loader2, Image as ImageIcon, CloudOff } from 'lucide-react'
 import { useMessages } from '@/lib/i18n/client'
 import { prepareImage, PhotoPrepError, type PhotoPrepErrorCode } from '@/lib/associate/image-prep'
@@ -66,7 +66,15 @@ export default function PhotoCaptureSlot({
   const [prepError, setPrepError] = useState<string | null>(null)
   const [preparing, setPreparing] = useState(false)
   const [pending, setPending] = useState<{ file: File; exif?: string } | null>(null)
-  const previewUrl = value ? URL.createObjectURL(value.file) : null
+  // One object URL per picked file (not per render — progress ticks re-render
+  // often), revoked when the file changes or the slot unmounts.
+  const previewFile = value?.file ?? null
+  const previewUrl = useMemo(() => (previewFile ? URL.createObjectURL(previewFile) : null), [previewFile])
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL?.(previewUrl)
+    }
+  }, [previewUrl])
   const isUploading = status ? status === 'uploading' : !!uploading
 
   function addGallery(file: File, exif?: string) {

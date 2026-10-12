@@ -6,7 +6,7 @@ export default function PinnedAction({ children }: { children: React.ReactNode }
   return (
     <div
       data-testid="pinned-action"
-      className="fixed inset-x-0 bottom-[3.75rem] z-20 border-t border-[#e4e8ee] bg-white/95 px-4 py-3 backdrop-blur sm:static sm:z-auto sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none"
+      className="fixed inset-x-0 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] z-20 border-t border-[#e4e8ee] bg-white/95 px-4 py-3 backdrop-blur sm:static sm:z-auto sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none"
     >
       {children}
     </div>

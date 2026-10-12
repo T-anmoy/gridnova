@@ -9,7 +9,9 @@ import { messagesFor, resolveLocale, type LangParams } from '@/lib/i18n/messages
 // Installable as a home-screen app for THIS portal only (no service worker): the
 // manifest is linked from this layout, so no other page of the site advertises it.
 export const metadata: Metadata = { manifest: '/preferred.webmanifest', appleWebApp: { capable: true, title: 'Grid Nova', statusBarStyle: 'default' } }
-export const viewport: Viewport = { themeColor: '#0e2a63' }
+// `cover` lets the portal draw under the notch/home bar; the tab bar and pinned
+// action pad themselves with env(safe-area-inset-bottom).
+export const viewport: Viewport = { themeColor: '#0e2a63', viewportFit: 'cover' }
 
 // Scoped to /preferred/* only — see app/(site)/[lang]/associates/layout.tsx
 // for why this is a separate provider from both the staff dashboard and the
@@ -19,7 +21,7 @@ export default async function PreferredLayout({ children, params }: { children: 
   if (!ASSOCIATE_PORTAL_OPEN) return <PortalClosed t={m.associates.closed} />
   return (
     <ClerkProvider>
-      <I18nProvider messages={{ portalErrors: m.portalErrors, photoSlot: m.photoSlot, siteLocation: m.siteLocation, pricing: m.pricing }}>
+      <I18nProvider messages={{ portalErrors: m.portalErrors, photoSlot: m.photoSlot, siteLocation: m.siteLocation, pricing: m.pricing, survey: m.survey }}>
         <AssociateQueryProvider signInPath="/preferred/sign-in">{children}</AssociateQueryProvider>
       </I18nProvider>
     </ClerkProvider>

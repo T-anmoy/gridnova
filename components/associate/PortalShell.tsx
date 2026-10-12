@@ -1,11 +1,14 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useClerk } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { Home, IdCard, User, HelpCircle, Map, LogOut, Users } from 'lucide-react'
 import Link from '@/components/i18n/Link'
 import { useLocale } from '@/lib/i18n/client'
 import LanguageSwitcher from '@/components/i18n/LanguageSwitcher'
+import PortalHomeLink from '@/components/associate/PortalHomeLink'
+import { clearPortalDeviceData, purgeStaleDeviceData } from '@/lib/associate/portal-session'
 
 type NavKey = 'home' | 'idCard' | 'profile' | 'help' | 'territory' | 'customers'
 
@@ -28,7 +31,7 @@ export default function PortalShell({
 }: {
   base: '/associates/portal' | '/preferred/portal'
   active: NavKey
-  labels: Record<NavKey, string>
+  labels: Record<NavKey, string> & { navLabel?: string }
   showTerritory: boolean
   signOutLabel: string
   children: React.ReactNode
@@ -46,16 +49,23 @@ export default function PortalShell({
     { key: 'help', href: `${base}/help` },
   ]
 
+  useEffect(() => {
+    purgeStaleDeviceData()
+  }, [])
+
   async function handleSignOut() {
+    // Shared phones: the next person to sign in must not find this one's
+    // drafts or queued customer photos.
+    await clearPortalDeviceData()
     await signOut()
     router.push(locale === 'en' ? '/' : `/${locale}`)
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f9fc] pb-24 md:pb-0">
-      <div className="mx-auto max-w-2xl px-5 pt-[calc(var(--header-h)+2rem)] pb-8 md:flex md:gap-8">
+    <div className="min-h-screen bg-[#f7f9fc] pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0">
+      <div className="mx-auto max-w-2xl px-4 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-8 sm:px-5 md:flex md:gap-8">
         {/* Desktop side nav */}
-        <nav className="hidden md:flex md:w-48 md:flex-col md:gap-1 md:shrink-0">
+        <nav aria-label={labels.navLabel} className="hidden md:flex md:w-48 md:flex-col md:gap-1 md:shrink-0">
           {items.map(({ key, href }) => {
             const Icon = ICONS[key]
             const isActive = key === active
@@ -63,22 +73,24 @@ export default function PortalShell({
               <Link
                 key={key}
                 href={href}
-                className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 font-utility text-sm transition-colors ${
+                aria-current={isActive ? 'page' : undefined}
+                className={`flex min-h-[44px] items-center gap-2.5 rounded-lg px-3 py-2.5 font-utility text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5daa] ${
                   isActive ? 'bg-[#0e2a63] text-white font-semibold' : 'text-[#111827]/60 hover:bg-white'
                 }`}
               >
-                <Icon className="h-4 w-4" /> {labels[key]}
+                <Icon className="h-4 w-4" aria-hidden="true" /> {labels[key]}
               </Link>
             )
           })}
-          <button onClick={() => void handleSignOut()} className="mt-4 flex items-center gap-2.5 rounded-lg px-3 py-2.5 font-utility text-sm text-red-600 hover:bg-white transition-colors">
-            <LogOut className="h-4 w-4" /> {signOutLabel}
+          <button type="button" onClick={() => void handleSignOut()} className="mt-4 flex min-h-[44px] items-center gap-2.5 rounded-lg px-3 py-2.5 font-utility text-sm text-red-600 hover:bg-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5daa]">
+            <LogOut className="h-4 w-4" aria-hidden="true" /> {signOutLabel}
           </button>
         </nav>
 
         <div className="flex-1 min-w-0">
           {/* One tap away on every portal screen — the site header hides it behind the menu on phones. */}
-          <div className="mb-4 flex justify-end" data-testid="portal-language-switcher">
+          <div className="mb-4 flex items-center justify-between gap-3" data-testid="portal-language-switcher">
+            <PortalHomeLink />
             <LanguageSwitcher tone="light" />
           </div>
           {children}
@@ -86,7 +98,11 @@ export default function PortalShell({
       </div>
 
       {/* Phone-first bottom tab bar */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-[#e4e8ee] bg-white md:hidden">
+      <nav
+        aria-label={labels.navLabel}
+        data-testid="portal-tab-bar"
+        className="fixed inset-x-0 bottom-0 z-30 flex border-t border-[#e4e8ee] bg-white pb-[env(safe-area-inset-bottom)] md:hidden"
+      >
         {items.map(({ key, href }) => {
           const Icon = ICONS[key]
           const isActive = key === active
@@ -94,11 +110,12 @@ export default function PortalShell({
             <Link
               key={key}
               href={href}
-              className={`flex flex-1 flex-col items-center gap-1 py-2.5 font-utility text-[10px] ${
+              aria-current={isActive ? 'page' : undefined}
+              className={`flex min-h-[52px] min-w-0 flex-1 flex-col items-center gap-1 px-0.5 py-2 text-center font-utility text-[11px] leading-tight focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#2f5daa] ${
                 isActive ? 'text-[#0e2a63] font-semibold' : 'text-[#111827]/45'
               }`}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
               {labels[key]}
             </Link>
           )

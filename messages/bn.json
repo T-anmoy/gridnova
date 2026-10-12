@@ -1788,7 +1788,8 @@
         "help": "সহায়তা",
         "territory": "আমার অঞ্চল",
         "signOut": "সাইন আউট",
-        "customers": "আমার গ্রাহক"
+        "customers": "আমার গ্রাহক",
+        "navLabel": "পোর্টাল"
       },
       "associate": {
         "home": {
@@ -1926,7 +1927,8 @@
           "blockedPaymentGate": "গ্রিড নোভা আগের গ্রাহক পেমেন্ট নিশ্চিত না করা পর্যন্ত স্থগিত।",
           "blockedDcrMismatch": "স্থগিত: কিছু মডিউল DCR-সম্মত নয়।",
           "blockedGeneric": "এই গ্রাহক স্থগিত আছে।"
-        }
+        },
+        "editLink": "সম্পাদনা"
       },
       "customers": {
         "title": "আমার গ্রাহক",
@@ -1963,7 +1965,10 @@
           "house": "বাড়িতে",
           "documents": "ডকুমেন্ট",
           "photos": "ছবি",
-          "review": "পর্যালোচনা এবং জমা দিন"
+          "review": "পর্যালোচনা এবং জমা দিন",
+          "bills": "বিল",
+          "layout": "বিন্যাস",
+          "survey": "সমীক্ষা ও স্বাক্ষর"
         },
         "notice": {
           "title": "এটি গ্রাহককে পড়ে শোনান",
@@ -1973,18 +1978,47 @@
         "customer": {
           "nameLabel": "গ্রাহকের নাম",
           "mobileLabel": "মোবাইল নম্বর",
-          "emailLabel": "ইমেইল (ঐচ্ছিক)"
+          "emailLabel": "ইমেইল (ঐচ্ছিক)",
+          "customerTypeLabel": "গ্রাহকের ধরন",
+          "customerTypes": {
+            "individual": "ব্যক্তি",
+            "organisation": "প্রতিষ্ঠান"
+          },
+          "pinCodeLabel": "সাইটের পিন কোড",
+          "fullAddressLabel": "সাইটের পুরো ঠিকানা"
         },
         "connection": {
           "stateLabel": "রাজ্য",
           "districtLabel": "জেলা",
           "blockLabel": "ব্লক",
-          "connectionInCustomerNameLabel": "বিদ্যুৎ সংযোগ কি গ্রাহকের নামে?"
+          "connectionInCustomerNameLabel": "বিদ্যুৎ সংযোগ কি গ্রাহকের নামে?",
+          "siteTypeLabel": "সাইটের ধরন",
+          "siteTypes": {
+            "rooftop_residential": "ছাদ — বাড়ি",
+            "rooftop_commercial": "ছাদ — ব্যবসা",
+            "rooftop_institutional": "ছাদ — প্রতিষ্ঠান",
+            "ground_mounted": "মাটিতে বসানো",
+            "carport": "কারপোর্ট",
+            "other": "অন্যান্য"
+          },
+          "connectionTypeLabel": "সোলার সিস্টেমের ধরন",
+          "connectionTypes": {
+            "on_grid": "অন-গ্রিড",
+            "off_grid": "অফ-গ্রিড",
+            "hybrid": "হাইব্রিড"
+          }
         },
         "property": {
           "propertyInCustomerNameLabel": "সম্পত্তি কি গ্রাহকের নামে?",
           "customerTimelineLabel": "গ্রাহক কবে এগিয়ে যেতে চান?",
-          "siteLocationLabel": "সাইটের অবস্থান"
+          "siteLocationLabel": "সাইটের অবস্থান",
+          "customerTimelines": {
+            "within_1_month": "১ মাসের মধ্যে",
+            "within_3_months": "৩ মাসের মধ্যে",
+            "within_6_months": "৬ মাসের মধ্যে",
+            "later": "পরে",
+            "unsure": "এখনও নিশ্চিত নয়"
+          }
         },
         "requirement": {
           "title": "একটি সরঞ্জাম প্যাকেজ বেছে নিন",
@@ -2006,7 +2040,9 @@
           "uploadButton": "ফাইল বেছে নিন",
           "replaceButton": "প্রতিস্থাপন করুন",
           "uploadFailed": "এই ডকুমেন্টটি আপলোড করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
-          "retryButton": "আবার চেষ্টা করুন"
+          "retryButton": "আবার চেষ্টা করুন",
+          "alreadyUploaded": "আগেই আপলোড হয়েছে: {name}",
+          "acceptedTypes": "JPG, PNG বা PDF"
         },
         "photos": {
           "title": "সাইটের ছবি নিন",
@@ -2022,11 +2058,33 @@
           "title": "পর্যালোচনা এবং জমা দিন",
           "submitButton": "গ্রাহক জমা দিন",
           "incompleteTitle": "কিছু তথ্য এখনও অনুপস্থিত",
-          "missingDocumentsLabel": "অনুপস্থিত ডকুমেন্ট"
+          "missingDocumentsLabel": "অনুপস্থিত ডকুমেন্ট",
+          "photosPending": "{count}টি ছবি এখনও আপলোড হচ্ছে। শেষ হলে জমা দিন।",
+          "photosOffline": "{count}টি ছবি এই ফোনে রাখা আছে, অনলাইন হলে আপলোড হবে। শেষ হলে জমা দিন।"
         },
         "editing": {
           "returnedToDraftNotice": "এই গ্রাহক আগে জমা দেওয়া হয়েছিল — আপনার সম্পাদনা সংরক্ষণ করলে এটি পুনরায় জমা না দেওয়া পর্যন্ত ড্রাফটে ফিরে যায়।",
           "notEditableNotice": "এই গ্রাহককে আর এখান থেকে সম্পাদনা করা যাবে না।"
+        },
+        "stepsLabel": "ধাপ",
+        "stepProgress": "ধাপ {current} / {total}",
+        "yes": "হ্যাঁ",
+        "no": "না",
+        "selectPlaceholder": "বেছে নিন…",
+        "saving": "সংরক্ষণ হচ্ছে…",
+        "saveFailed": "সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।",
+        "submitFailed": "জমা দেওয়া যায়নি। আবার চেষ্টা করুন।",
+        "startOver": "নতুন করে শুরু করুন",
+        "startOverConfirm": "এই ফোন থেকে খসড়া মুছে নতুন গ্রাহক শুরু করবেন? Grid Nova-তে আগে সংরক্ষিত সব থেকে যাবে।",
+        "startOverYes": "হ্যাঁ, নতুন করে শুরু করুন",
+        "startOverNo": "এই খসড়া রাখুন",
+        "validation": {
+          "required": "এটি প্রয়োজন।",
+          "choose": "একটি বিকল্প বেছে নিন।",
+          "mobile": "১০ অঙ্কের মোবাইল নম্বর লিখুন।",
+          "email": "সঠিক ইমেল ঠিকানা লিখুন।",
+          "pinCode": "৬ অঙ্কের পিন কোড লিখুন।",
+          "fixErrors": "চিহ্নিত ঘরগুলি ঠিক করুন।"
         }
       },
       "estimate": {
@@ -2091,7 +2149,8 @@
             "placeholder_content": "এই প্রস্তাবে এখনও প্লেসহোল্ডার বিষয়বস্তু আছে।",
             "expired": "এই প্রস্তাবের মেয়াদ শেষ হয়ে গেছে।"
           }
-        }
+        },
+        "genericError": "কিছু ভুল হয়েছে। আবার চেষ্টা করুন।"
       },
       "agreement": {
         "title": "চুক্তি",
@@ -2108,7 +2167,8 @@
             "invalid_stamp_paper_number": "অনুগ্রহ করে একটি বৈধ স্ট্যাম্প পেপার নম্বর দিন।",
             "invalid_stamp_paper_date": "অনুগ্রহ করে একটি বৈধ স্ট্যাম্প পেপারের তারিখ দিন।"
           }
-        }
+        },
+        "genericError": "কিছু ভুল হয়েছে। আবার চেষ্টা করুন।"
       },
       "checklist": {
         "title": "ডকুমেন্ট এবং ছবি",
@@ -2337,7 +2397,8 @@
               "register_locked": "গ্রিড নোভা এই সিরিয়াল নম্বরগুলো যাচাই করেছে, তাই এখানে এগুলো বদলানো যাবে না।",
               "reason_required": "অনুগ্রহ করে কারণ লিখুন।",
               "register_rows_invalid": "কিছু সারি ঠিক করতে হবে — কিছুই সংরক্ষিত হয়নি।"
-            }
+            },
+            "draftRestored": "আগে লেখা কিন্তু সংরক্ষণ না করা সিরিয়াল নম্বরগুলি ফিরিয়ে আনা হয়েছে।"
           }
         }
       },
@@ -2515,6 +2576,10 @@
       "staffOnAssociate": "আপনি একটি গ্রিড নোভা স্টাফ অ্যাকাউন্টে সাইন ইন করেছেন, যা দিয়ে অ্যাসোসিয়েট পোর্টাল খোলা যায় না।",
       "switchToStaff": "সাইন আউট করে স্টাফ সাইন-ইনে যান",
       "switchToAssociate": "সাইন আউট করে অ্যাসোসিয়েট সাইন-ইনে যান"
+    },
+    "missingClaims": {
+      "title": "সাইন-ইন পুরোপুরি সেট হয়নি",
+      "body": "আপনার সাইন-ইন পুরোপুরি সেট হয়নি — Grid Nova-র সঙ্গে যোগাযোগ করুন।"
     }
   },
   "photoSlot": {
@@ -2531,7 +2596,10 @@
     "uploadingPct": "আপলোড হচ্ছে {percent}%",
     "uploading": "আপলোড হচ্ছে…",
     "replace": "ছবি বদলান",
-    "recommendedTag": "প্রস্তাবিত"
+    "recommendedTag": "প্রস্তাবিত",
+    "fileTooLarge": "\"{name}\" {max} MB সীমার চেয়ে বড়।",
+    "removeFile": "{name} সরান",
+    "chooseFileFor": "{action}: {label}"
   },
   "siteLocation": {
     "title": "বাড়িতে",
@@ -2745,6 +2813,313 @@
       "size_below_min": "এই আকার আমাদের দামের তালিকার চেয়ে ছোট।",
       "three_phase_below_min": "আমাদের তালিকায় থ্রি-ফেজ সংযোগের জন্য এই আকার খুব ছোট।",
       "generic": "এই সিস্টেমের আকার আমাদের দামের তালিকায় নেই।"
+    }
+  },
+  "survey": {
+    "requiredBadge": "জমা দিতে লাগবে",
+    "saveErrors": {
+      "generic": "এই তথ্য সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।",
+      "offline": "আপনি অফলাইনে আছেন — উত্তরগুলি এই ফোনে রাখা আছে। সংরক্ষণ করতে ইন্টারনেটে যুক্ত হন।",
+      "fixHighlighted": "চিহ্নিত ঘরগুলি ঠিক করুন।"
+    },
+    "connection": {
+      "title": "সংযোগ সমীক্ষা",
+      "variantLabel": "সাইটের ধরন",
+      "variants": {
+        "individual_house": "একক বাড়ি",
+        "housing_society": "হাউজিং সোসাইটি",
+        "commercial_roof": "বাণিজ্যিক ছাদ"
+      },
+      "societyFlatCountLabel": "ফ্ল্যাটের সংখ্যা",
+      "societyNocLabel": "সোসাইটির NOC",
+      "contractDemandLabel": "কন্ট্র্যাক্ট ডিমান্ড (kVA)",
+      "discomLabel": "বিদ্যুৎ সংস্থা (DISCOM)",
+      "discomOther": "অন্যান্য",
+      "discomOtherLabel": "DISCOM-এর নাম",
+      "consumerNumberLabel": "গ্রাহক নম্বর (বিল থেকে)",
+      "phaseLabel": "সংযোগের ফেজ",
+      "sanctionedLoadLabel": "অনুমোদিত লোড (kW)"
+    },
+    "nocStatuses": {
+      "obtained": "পাওয়া গেছে",
+      "in_progress": "প্রক্রিয়াধীন",
+      "not_required": "প্রয়োজন নেই",
+      "not_available": "পাওয়া যায়নি"
+    },
+    "phases": {
+      "single_phase": "সিঙ্গেল ফেজ",
+      "three_phase": "থ্রি ফেজ"
+    },
+    "bills": {
+      "title": "বিদ্যুতের বিল",
+      "intro": "গ্রাহকের শেষ {requested}টি বিল থেকে ইউনিট (kWh) লিখুন। জমা দিতে অন্তত {min} মাস লাগবে; সর্বোচ্চ {max} মাস যোগ করা যায়।",
+      "monthLabel": "মাস",
+      "unitsLabel": "ইউনিট (kWh)",
+      "billLabel": "বিলের পরিমাণ (₹, ঐচ্ছিক)",
+      "rowHeading": "বিল {n}",
+      "addMonth": "একটি মাস যোগ করুন",
+      "removeMonth": "বিল {n} সরান",
+      "recorded": "{min}-এর মধ্যে {count} মাস লেখা হয়েছে",
+      "fewerThanMin": "জমা দেওয়ার আগে অন্তত {min} মাস যোগ করুন।",
+      "averagesTitle": "সংরক্ষিত বিলের গড়",
+      "avgUnits": "মাসে গড় ইউনিট",
+      "avgBill": "মাসে গড় বিল",
+      "impliedTariff": "প্রতি ইউনিটে দাঁড়ায়",
+      "perUnit": "প্রতি ইউনিট {amount}",
+      "averagesPending": "বিল সংরক্ষণের পরে গড় এখানে দেখা যাবে।",
+      "errors": {
+        "invalid_month": "সঠিক মাস বেছে নিন।",
+        "future_month": "এই মাস এখনও আসেনি।",
+        "duplicate_month": "এই মাস দুবার লেখা হয়েছে।",
+        "units_required": "এই মাসের ইউনিট লিখুন।",
+        "too_many_months": "সর্বোচ্চ {max} মাস লেখা যায়।",
+        "invalid_number": "0 বা তার বেশি সংখ্যা লিখুন।"
+      }
+    },
+    "roof": {
+      "title": "ছাদের সমীক্ষা",
+      "lockedUntilLocation": "আগে ওপরে বাড়ির অবস্থান নিশ্চিত করুন, তারপর ছাদের তথ্য দিন।",
+      "accessibleLabel": "ছাদে কি নিরাপদে ওঠা যায়?",
+      "accessNoteLabel": "ওঠার বিষয়ে নোট (ঐচ্ছিক)",
+      "materialLabel": "ছাদের উপাদান",
+      "materialOtherLabel": "ছাদের উপাদান লিখুন",
+      "orientationLabel": "ছাদ কোন দিকে মুখ করা?",
+      "orientations": {
+        "south": "দক্ষিণ",
+        "east": "পূর্ব",
+        "west": "পশ্চিম",
+        "north": "উত্তর",
+        "mixed": "মিশ্র",
+        "unknown": "নিশ্চিত নই"
+      },
+      "obstaclesLabel": "ছাদে বা কাছে কিছু আছে?",
+      "obstacles": {
+        "water_tank": "জলের ট্যাঙ্ক",
+        "stair_room": "সিঁড়ির ঘর",
+        "trees": "গাছ",
+        "nearby_building": "কাছের বাড়ি",
+        "overhead_line": "ওপর দিয়ে যাওয়া বিদ্যুতের লাইন",
+        "antenna_dish": "অ্যান্টেনা / ডিশ",
+        "other": "অন্যান্য"
+      },
+      "obstaclesNone": "কিছু নেই",
+      "ownershipLabel": "ছাদ কি গ্রাহকের নিজের?",
+      "tenantNocLabel": "ছাদের মালিকের NOC আছে?",
+      "floorsLabel": "তলার সংখ্যা",
+      "shadingLabel": "ছাদে ছায়া",
+      "areaTitle": "ছাদের আয়তন",
+      "roofAreaLabel": "মোট ছাদের আয়তন (বর্গফুট)",
+      "modeLabel": "ছায়াহীন অংশ কীভাবে লিখবেন?",
+      "modeSections": "ছাদের অংশ মাপুন",
+      "modeDirect": "ছায়াহীন আয়তন সরাসরি লিখুন",
+      "sectionsIntro": "ছাদের প্রতিটি ব্যবহারযোগ্য অংশ মাপুন। সংরক্ষণ করলে Grid Nova ছায়াহীন আয়তন হিসাব করবে।",
+      "sectionHeading": "অংশ {n}",
+      "sectionLabel": "নাম (যেমন মূল ছাদ)",
+      "lengthLabel": "দৈর্ঘ্য (মি)",
+      "widthLabel": "প্রস্থ (মি)",
+      "obstacleAreaLabel": "আটকানো অংশ (মি², ঐচ্ছিক)",
+      "addSection": "একটি অংশ যোগ করুন",
+      "removeSection": "অংশ {n} সরান",
+      "maxSections": "সর্বোচ্চ {max}টি অংশ।",
+      "shadowFreeLabel": "ছায়াহীন আয়তন (বর্গফুট)",
+      "derivedShadowFree": "Grid Nova-র হিসাবে ছায়াহীন আয়তন: {area} বর্গফুট",
+      "derivedPending": "সংরক্ষণের পরে ছায়াহীন আয়তন এখানে দেখা যাবে।",
+      "roofsAvailableLabel": "উপলব্ধ ছাদ",
+      "roofsConsideredLabel": "প্যানেলের জন্য বিবেচিত ছাদ",
+      "expansionLabel": "গ্রাহক কি পরে ছাদে নির্মাণ করতে চান?",
+      "errors": {
+        "obstacle_exceeds_section": "আটকানো অংশ এই অংশের চেয়ে বড়।",
+        "derived_field": "ছায়াহীন আয়তন অংশগুলি থেকে হিসাব হয় — সরাসরি লিখতে অংশগুলি সরান।",
+        "roofs_considered_exceeds_available": "বিবেচিত ছাদ উপলব্ধ ছাদের চেয়ে বেশি হতে পারে না।",
+        "invalid_number": "সঠিক সংখ্যা লিখুন।",
+        "out_of_range": "এটি অনুমোদিত সীমার বেশি।",
+        "sectionIncomplete": "এই অংশের নাম, দৈর্ঘ্য ও প্রস্থ লিখুন।"
+      }
+    },
+    "shading": {
+      "none": "কোনো ছায়া নেই",
+      "partial_morning": "সকালে কিছু ছায়া",
+      "partial_evening": "বিকেলে কিছু ছায়া",
+      "heavy": "অনেক ছায়া"
+    },
+    "roofMaterials": {
+      "concrete_flat": "কংক্রিট (সমতল)",
+      "tin_shed": "টিনের চাল",
+      "asbestos": "অ্যাসবেস্টস",
+      "other": "অন্যান্য"
+    },
+    "layout": {
+      "title": "সরঞ্জামের বিন্যাস",
+      "inverterLocationLabel": "ইনভার্টার কোথায় বসবে?",
+      "inverterLocations": {
+        "terrace": "ছাদ",
+        "indoor_wall": "ভেতরের দেওয়াল",
+        "outdoor_wall": "বাইরের দেওয়াল",
+        "other": "অন্যান্য"
+      },
+      "indoorWallLabel": "ভেতরে কি উপযুক্ত দেওয়াল আছে?",
+      "waterLabel": "ছাদে কি জল পাওয়া যায় (প্যানেল পরিষ্কারের জন্য)?",
+      "panelToInverterLabel": "দূরত্ব: প্যানেল থেকে ইনভার্টার (মি)",
+      "inverterToLtLabel": "দূরত্ব: ইনভার্টার থেকে LT প্যানেল / মিটার (মি)",
+      "methodLabel": "দূরত্ব কীভাবে মাপা হয়েছে?",
+      "methods": {
+        "tape": "মাপার ফিতে",
+        "laser": "লেজার মিটার",
+        "estimated": "আনুমানিক"
+      },
+      "maxDistance": "সর্বোচ্চ {max} মি।",
+      "errors": {
+        "out_of_range": "এই দূরত্ব {max} মি-এর বেশি।",
+        "invalid_number": "0 বা তার বেশি দূরত্ব লিখুন।"
+      }
+    },
+    "status": {
+      "title": "সমীক্ষার চেকলিস্ট",
+      "complete": "সম্পূর্ণ",
+      "missing": "বাকি",
+      "sections": {
+        "connection": "সংযোগ",
+        "bills": "বিদ্যুতের বিল",
+        "roof": "ছাদ",
+        "roof_area": "ছাদের আয়তন",
+        "layout": "সরঞ্জামের বিন্যাস"
+      },
+      "missingFields": "এখনও লাগবে: {fields}",
+      "monthsRecorded": "{required}-এর মধ্যে {recorded} মাস",
+      "goTo": "{section}-এ যান",
+      "allComplete": "সব অংশ সম্পূর্ণ।",
+      "notRequired": "এই গ্রাহকের জন্য সাইট সমীক্ষা প্রয়োজন নেই।",
+      "loading": "সমীক্ষা লোড হচ্ছে…",
+      "loadError": "সমীক্ষা লোড করা যায়নি।",
+      "retry": "আবার চেষ্টা করুন",
+      "notCreated": "আগে গ্রাহক সংরক্ষণ করুন — গ্রাহক তৈরি হলে সমীক্ষার চেকলিস্ট দেখা যাবে।"
+    },
+    "fields": {
+      "discom": "DISCOM",
+      "consumer_number": "গ্রাহক নম্বর",
+      "connection_phase": "সংযোগের ফেজ",
+      "sanctioned_load_kw": "অনুমোদিত লোড",
+      "society_flat_count": "ফ্ল্যাটের সংখ্যা",
+      "society_noc_status": "সোসাইটির NOC",
+      "contract_demand_kva": "কন্ট্র্যাক্ট ডিমান্ড",
+      "consumption_history": "বিদ্যুতের বিল",
+      "roof_accessible": "ছাদে ওঠা",
+      "roof_material": "ছাদের উপাদান",
+      "roof_material_other": "ছাদের উপাদান (অন্যান্য)",
+      "roof_orientation": "ছাদের দিক",
+      "roof_ownership_confirmed": "ছাদের মালিকানা",
+      "tenant_noc_available": "ছাদের মালিকের NOC",
+      "floors": "তলা",
+      "shading_condition": "ছায়া",
+      "roof_obstacles": "ছাদের বাধা",
+      "roof_area_sqft": "মোট ছাদের আয়তন",
+      "shadow_free_area_sqft": "ছায়াহীন আয়তন",
+      "roof_sections": "ছাদের অংশ",
+      "roofs_considered_count": "বিবেচিত ছাদ",
+      "inverter_location": "ইনভার্টারের জায়গা",
+      "indoor_wall_available": "ভেতরের দেওয়াল",
+      "distance_panel_to_inverter_m": "প্যানেল থেকে ইনভার্টারের দূরত্ব",
+      "distance_inverter_to_lt_panel_m": "ইনভার্টার থেকে LT প্যানেলের দূরত্ব",
+      "distance_method": "দূরত্ব মাপার পদ্ধতি",
+      "water_available": "ছাদে জল",
+      "avg_monthly_units_kwh": "গড় মাসিক ইউনিট",
+      "avg_monthly_bill_inr": "গড় মাসিক বিল"
+    },
+    "results": {
+      "title": "প্রস্তাবিত সিস্টেমের আকার",
+      "suggestedLabel": "প্রস্তাবিত আকার",
+      "kw": "{kw} kW",
+      "limitingLabel": "সীমিত করছে",
+      "limiting": {
+        "area": "ছাদের আয়তন",
+        "load": "অনুমোদিত লোড",
+        "usage": "বিদ্যুতের ব্যবহার"
+      },
+      "byArea": "ছাদের আয়তন অনুযায়ী",
+      "byLoad": "অনুমোদিত লোড অনুযায়ী",
+      "byUsage": "বিদ্যুতের ব্যবহার অনুযায়ী",
+      "notEnough": "আকার প্রস্তাব করার মতো তথ্য এখনও নেই। ছাদের আয়তন, অনুমোদিত লোড বা বিল দিন।",
+      "warningsTitle": "যা যাচাই করবেন",
+      "loading": "আকার হিসাব হচ্ছে…",
+      "loadError": "প্রস্তাবিত আকার লোড করা যায়নি।",
+      "estimateTitle": "আনুমানিক দাম",
+      "indicativeNote": "শুধু আনুমানিক — চূড়ান্ত দাম Grid Nova-র আনুষ্ঠানিক প্রস্তাবে আসবে।",
+      "forSize": "{kw} kW সিস্টেমের জন্য",
+      "customQuote": "এই আকারের জন্য Grid Nova-র আলাদা কোটেশন লাগবে।",
+      "notEnoughToPrice": "এখনও দাম নেই — আগে আকার দরকার।"
+    },
+    "warnings": {
+      "requested_above_suggested": "গ্রাহক {requested_kw} kW চেয়েছেন, কিন্তু সমীক্ষা {suggested_kw} kW প্রস্তাব করছে (সীমিত করছে: {limiting_factor})।",
+      "load_enhancement_needed": "{required_kw} kW সিস্টেম {sanctioned_load_kw} kW অনুমোদিত লোডের চেয়ে বেশি (সর্বোচ্চ {max_by_load_kw} kW)। গ্রাহকের লোড বাড়ানো লাগতে পারে।",
+      "implied_tariff_outside_range": "বিল থেকে প্রতি ইউনিট {implied_tariff_inr_per_kwh} দাঁড়ায়, যা স্বাভাবিক {min}–{max}-এর বাইরে। ইউনিট ও টাকার পরিমাণ আবার দেখুন।",
+      "units_bill_mismatch": "সংরক্ষিত {field} ({entered}) বিলের ({from_bills}) থেকে ২৫%-এর বেশি আলাদা।",
+      "three_phase_below_min": "{kw} kW থ্রি-ফেজ সংযোগের ন্যূনতম {min_kw} kW-এর কম।",
+      "fragile_roof": "{roof_material} ছাদের অতিরিক্ত কাঠামোগত পরীক্ষা লাগতে পারে।",
+      "overhead_line": "ছাদের কাছে ওপর দিয়ে বিদ্যুতের লাইন গেছে — নিরাপত্তা পরীক্ষা দরকার।",
+      "roof_not_owned_no_noc": "ছাদ গ্রাহকের নিজের নয় এবং মালিকের NOC এখনও নেই।",
+      "society_noc_missing": "হাউজিং সোসাইটির NOC-এর অবস্থা: {society_noc_status}।",
+      "area_implausible": "ছাদের আয়তন আবার দেখুন: {reason}।",
+      "duplicate_consumer_number": "এই গ্রাহক নম্বরের একটি খোলা গ্রাহক আরেকজন অ্যাসোসিয়েটের কাছে আছে। Grid Nova এটি পর্যালোচনা করবে।",
+      "unknown": "এই সমীক্ষার তথ্য নিয়ে Grid Nova-র সঙ্গে কথা বলুন।"
+    },
+    "areaReasons": {
+      "shadow_free_exceeds_total": "ছায়াহীন আয়তন মোট ছাদের আয়তনের চেয়ে বড়",
+      "roof_area_large": "ছাদের আয়তন অস্বাভাবিক বড় মনে হচ্ছে"
+    },
+    "signatures": {
+      "title": "স্বাক্ষর",
+      "intro": "সমীক্ষার তথ্য নিশ্চিত করতে গ্রাহক ও আপনি দুজনেই স্বাক্ষর করুন।",
+      "customerTitle": "গ্রাহকের স্বাক্ষর",
+      "declarationNameLabel": "গ্রাহকের পুরো নাম",
+      "confirmLabel": "আমি নিশ্চিত করছি যে এই তথ্য সঠিক",
+      "padLabel": "এখানে স্বাক্ষর করুন",
+      "padHint": "আঙুল বা স্টাইলাস দিয়ে করুন।",
+      "clear": "মুছুন",
+      "associateTitle": "আপনার স্বাক্ষর",
+      "signCustomer": "গ্রাহকের স্বাক্ষর সংরক্ষণ করুন",
+      "signAssociate": "আমার স্বাক্ষর সংরক্ষণ করুন",
+      "saving": "সংরক্ষণ হচ্ছে…",
+      "signedAt": "স্বাক্ষর: {when}",
+      "signedByAt": "{name} স্বাক্ষর করেছেন · {when}",
+      "signAgain": "আবার স্বাক্ষর করুন",
+      "saved": "স্বাক্ষর সংরক্ষিত হয়েছে।",
+      "emptyPad": "আগে বাক্সে স্বাক্ষর করুন।",
+      "offline": "আপনি অফলাইনে আছেন। স্বাক্ষর সংরক্ষণ করতে ইন্টারনেটে যুক্ত হন — এগুলি ফোনে রাখা হয় না।",
+      "tooLargeLocal": "এই স্বাক্ষর আপলোডের মতো ছোট করা যায়নি। মুছে আবার করুন।",
+      "createFirst": "গ্রাহক তৈরি হলে স্বাক্ষর সংরক্ষণ করা যাবে।",
+      "resignNotice": "স্বাক্ষরের পরে সমীক্ষা বদলেছে, তাই দুটি স্বাক্ষরই মুছে গেছে। গ্রাহক ও আপনাকে আবার স্বাক্ষর করতে হবে।",
+      "resignWarning": "এখন সমীক্ষার উত্তর বদলালে দুটি স্বাক্ষরই মুছে যাবে।",
+      "errors": {
+        "file_too_large": "স্বাক্ষরের ছবি খুব বড় (সর্বোচ্চ {max_kb} KB)। মুছে আবার করুন।",
+        "declaration_name_required": "গ্রাহকের পুরো নাম লিখুন।",
+        "confirmation_required": "গ্রাহককে নিশ্চিতকরণ বাক্সে টিক দিতে হবে।",
+        "signature_not_png": "স্বাক্ষর পড়া যায়নি। মুছে আবার করুন।",
+        "not_editable": "এই গ্রাহকের তথ্য আর বদলানো যাবে না।",
+        "storage_not_configured": "এখন স্বাক্ষর সংরক্ষণ করা যাচ্ছে না। পরে আবার চেষ্টা করুন।",
+        "generic": "স্বাক্ষর সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।"
+      }
+    },
+    "review": {
+      "surveyMissing": "সমীক্ষার এই অংশগুলি শেষ করুন:",
+      "surveyUnsigned": "এখনও স্বাক্ষর বাকি:",
+      "parties": {
+        "customer": "গ্রাহক",
+        "associate": "আপনি (অ্যাসোসিয়েট)"
+      },
+      "goToSignatures": "স্বাক্ষরে যান"
+    },
+    "card": {
+      "title": "সাইট সমীক্ষা",
+      "complete": "সমীক্ষা সম্পূর্ণ",
+      "incomplete": "সমীক্ষা অসম্পূর্ণ",
+      "customerSigned": "গ্রাহক স্বাক্ষর করেছেন",
+      "associateSigned": "অ্যাসোসিয়েট স্বাক্ষর করেছেন",
+      "customerUnsigned": "গ্রাহকের স্বাক্ষর বাকি",
+      "associateUnsigned": "অ্যাসোসিয়েটের স্বাক্ষর বাকি",
+      "suggestedLabel": "প্রস্তাবিত আকার",
+      "notRequired": "এই গ্রাহকের জন্য প্রয়োজন নেই",
+      "readOnlyNote": "শুধু দেখার জন্য — যে অ্যাসোসিয়েট গ্রাহক যোগ করেছেন, তিনিই সমীক্ষা পূরণ ও স্বাক্ষর করেন।",
+      "continue": "সমীক্ষা চালিয়ে যান"
     }
   }
 }

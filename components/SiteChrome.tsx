@@ -8,20 +8,32 @@ import { breadcrumbLd } from "@/lib/seo";
 import { useLocale, useMessages } from "@/lib/i18n/client";
 import { localizeHref } from "@/lib/i18n/config";
 import { useBarePathname } from "@/lib/i18n/navigation";
+import { ASSOCIATE_PORTAL_OPEN } from "@/lib/associates";
 
 // Ask Nova is a below-the-fold floating widget (its bubble appears ~3.5s after
 // load) and is position:fixed, so it never affects layout. Load its JS lazily
 // so it's kept out of the initial bundle on every marketing page.
 const AskNova = dynamic(() => import("@/components/AskNova"), { ssr: false });
 
+// The field portals and their sign-in pages are app screens used on phones: the
+// marketing nav, footer and the fixed Ask Nova launcher would cover their own
+// tab bar and pinned action. While the portal switch is closed those routes
+// show the "opening soon" page, which keeps the site chrome.
+const PORTAL_PREFIXES = ["/associates/portal", "/preferred/portal", "/associates/sign-in", "/preferred/sign-in"];
+
+/** `pathname` is already stripped of its locale prefix (useBarePathname). */
+export function isBareRoute(pathname: string, portalOpen: boolean = ASSOCIATE_PORTAL_OPEN): boolean {
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/proposal/accept")) return true;
+  return portalOpen && PORTAL_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
 export default function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = useBarePathname();
   const locale = useLocale();
   const t = useMessages("nav");
-  // The internal dashboard and the standalone customer-facing proposal accept
-  // page both opt out of the marketing chrome (nav / footer / Ask Nova).
-  const isBareRoute =
-    pathname.startsWith("/dashboard") || pathname.startsWith("/proposal/accept");
+  // The internal dashboard, the standalone customer-facing proposal accept
+  // page and the field portals opt out of the marketing chrome (nav / footer / Ask Nova).
+  const bare = isBareRoute(pathname);
 
   // Human-readable names for the one-level-deep content routes, used to emit a
   // BreadcrumbList (Home → Page) for each without touching every page file.
@@ -29,7 +41,7 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
 
   return (
     <>
-      {!isBareRoute && routeName && (
+      {!bare && routeName && (
         <JsonLd
           data={breadcrumbLd(
             [{ name: routeName, path: localizeHref(pathname, locale) }],
@@ -37,10 +49,10 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
           )}
         />
       )}
-      {!isBareRoute && <Navigation />}
+      {!bare && <Navigation />}
       {children}
-      {!isBareRoute && <Footer />}
-      {!isBareRoute && <AskNova />}
+      {!bare && <Footer />}
+      {!bare && <AskNova />}
     </>
   );
 }

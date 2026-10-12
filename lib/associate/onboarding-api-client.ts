@@ -36,6 +36,10 @@ function buildQS(params: Record<string, string | number | boolean | undefined | 
   return s ? `?${s}` : ''
 }
 
+// An upload that makes no progress for this long is abandoned (and retried by
+// the photo queue) instead of hanging forever on a dead mobile connection.
+export const UPLOAD_STALL_TIMEOUT_MS = 45_000
+
 // Multipart uploads (files, signed scans) can't go through dashboardFetch's
 // JSON-only body handling — this mirrors its auth/error handling for
 // FormData instead. Exported so the staff-side dashboard onboarding client
@@ -57,14 +61,29 @@ export async function dashboardFetchForm<T>(
     if (onProgress && typeof XMLHttpRequest !== 'undefined') {
       const xhr = await new Promise<XMLHttpRequest>((resolve, reject) => {
         const req = new XMLHttpRequest()
+        // A stall (no bytes moving) — not a total-duration cap, so a slow but
+        // moving upload on 2G is never cut off.
+        let stall: ReturnType<typeof setTimeout> | undefined
+        const armStall = () => {
+          clearTimeout(stall)
+          stall = setTimeout(() => req.abort(), UPLOAD_STALL_TIMEOUT_MS)
+        }
+        const settle = (fn: () => void) => {
+          clearTimeout(stall)
+          fn()
+        }
         req.open('POST', `${BACKEND_URL}${path}`)
         req.setRequestHeader('Authorization', `Bearer ${token}`)
         req.upload.onprogress = (e) => {
+          armStall()
           if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
         }
-        req.onload = () => resolve(req)
-        req.onerror = () => reject(new Error('network'))
-        req.ontimeout = () => reject(new Error('network'))
+        req.onprogress = armStall
+        req.onload = () => settle(() => resolve(req))
+        req.onerror = () => settle(() => reject(new Error('network')))
+        req.ontimeout = () => settle(() => reject(new Error('network')))
+        req.onabort = () => settle(() => reject(new Error('network')))
+        armStall()
         req.send(formData)
       })
       status = xhr.status
@@ -101,7 +120,13 @@ export async function dashboardFetchForm<T>(
     }
     throw new ApiError(status, `API error ${status}`, detail || statusText, structuredDetail)
   }
-  return JSON.parse(body) as T
+  try {
+    return JSON.parse(body) as T
+  } catch {
+    // A 2xx whose body is not JSON (a proxy page, a truncated response) is a
+    // server-side problem, not a success the caller can use.
+    throw new ApiError(status, 'Invalid response', 'The server sent a response that could not be read.')
+  }
 }
 
 // ── Reference data ────────────────────────────────────────────────────────
@@ -161,6 +186,7 @@ export function useCreateOnboarding() {
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['onboardings'] })
+      void qc.invalidateQueries({ queryKey: ['home'] })
     },
   })
 }
@@ -177,6 +203,9 @@ export function useUpdateOnboarding() {
     onSuccess: (_data, vars) => {
       void qc.invalidateQueries({ queryKey: ['onboarding', vars.id] })
       void qc.invalidateQueries({ queryKey: ['onboardings'] })
+      // Survey fields ride on the PATCH (site_survey.md §1): status and results change with them.
+      void qc.invalidateQueries({ queryKey: ['onboarding-survey', vars.id] })
+      void qc.invalidateQueries({ queryKey: ['onboarding-survey-results', vars.id] })
     },
   })
 }

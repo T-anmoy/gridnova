@@ -17,6 +17,7 @@ import OnboardingProgressPortal from '@/components/associate/OnboardingProgressP
 import { isExecutionStage } from '@/lib/onboarding/progress'
 import { useAssociateMe } from '@/lib/associate/api-client'
 import LocationDetailCard from '@/components/associate/LocationDetailCard'
+import SurveyCard from '@/components/associate/survey/SurveyCard'
 import EstimateSection from '@/components/associate/EstimateSection'
 import FileUploadSlot from '@/components/associate/FileUploadSlot'
 import { ApiError } from '@/lib/dashboard/api-error'
@@ -64,7 +65,7 @@ function ProposalSection({
         const code = err.structuredDetail.code as keyof ProposalCopy['acceptance']['errors']
         setError(copy.acceptance.errors[code] ?? err.detail ?? err.message)
       } else {
-        setError(err instanceof ApiError ? err.detail || err.message : 'Failed')
+        setError(err instanceof ApiError ? err.detail || err.message : copy.genericError)
       }
     }
   }
@@ -188,7 +189,7 @@ function AgreementSection({ onboardingId, copy }: { onboardingId: number; copy: 
         const code = err.structuredDetail.code as keyof AgreementCopy['uploadSigned']['errors']
         setError(copy.uploadSigned.errors[code] ?? err.detail ?? err.message)
       } else {
-        setError(err instanceof ApiError ? err.detail || err.message : 'Failed')
+        setError(err instanceof ApiError ? err.detail || err.message : copy.genericError)
       }
     }
   }
@@ -294,9 +295,9 @@ export default function OnboardingDetail({
         {onboarding.can_edit && (
           <Link
             href={`${portalBase}/customers/${onboardingId}/edit`}
-            className="flex items-center gap-1.5 rounded-lg border border-[#e4e8ee] px-3 py-2 text-xs font-semibold text-[#0e2a63] font-utility"
+            className="flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[#e4e8ee] px-3 py-2 text-sm font-semibold text-[#0e2a63] font-utility focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5daa]"
           >
-            <Pencil className="h-3.5 w-3.5" /> Edit
+            <Pencil className="h-3.5 w-3.5" aria-hidden="true" /> {sharedCopy.editLink}
           </Link>
         )}
       </div>
@@ -333,6 +334,12 @@ export default function OnboardingDetail({
         />
       )}
 
+      <SurveyCard
+        onboardingId={onboardingId}
+        isOwner={isOwner}
+        editHref={isOwner && onboarding.can_edit ? `${portalBase}/customers/${onboardingId}/edit?step=survey` : undefined}
+      />
+
       <div className="rounded-2xl border border-[#e4e8ee] bg-white p-5">
         <p className="font-display text-base font-semibold text-[#0e2a63]">{checklistCopy.title}</p>
         <p className="mt-2 text-xs text-[#111827]/50 font-utility">
@@ -355,9 +362,13 @@ export default function OnboardingDetail({
         <ProposalSection onboardingId={onboardingId} copy={proposalCopy} blocked={!!onboarding.formal_proposal_blocked} />
       </div>
 
-      <div className="rounded-2xl border border-[#e4e8ee] bg-white p-5">
-        <AgreementSection onboardingId={onboardingId} copy={agreementCopy} />
-      </div>
+      {/* BE-1 §8: agreement links are owner-only while territory_viewers_see_documents is off
+          (its unconfirmed default) — a territory Preferred Associate would only ever get 403. */}
+      {isOwner && (
+        <div className="rounded-2xl border border-[#e4e8ee] bg-white p-5">
+          <AgreementSection onboardingId={onboardingId} copy={agreementCopy} />
+        </div>
+      )}
     </div>
   )
 }

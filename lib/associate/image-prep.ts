@@ -25,11 +25,12 @@ export function isHeic(file: File): boolean {
 export interface PreparedImage {
   file: File
   reencoded: boolean
-  /** Original EXIF DateTimeOriginal as ISO-8601, when it could be read. */
+  /** Original EXIF DateTimeOriginal as ISO-8601 with its offset (`+05:30` unless the camera recorded one), when it could be read. */
   exifTakenAt: string | null
 }
 
-// Minimal JPEG EXIF reader: finds DateTimeOriginal (0x9003) in the Exif IFD.
+// Minimal JPEG EXIF reader: finds DateTimeOriginal (0x9003) — and its
+// OffsetTimeOriginal (0x9011) when the camera wrote one — in the Exif IFD.
 // Returns null for anything it can't parse — the backend then flags
 // `no_metadata`, which is acceptable.
 export async function readExifTakenAt(file: Blob): Promise<string | null> {
@@ -70,12 +71,21 @@ function parseExif(v: DataView, tiff: number): string | null {
   }
   const exifPtr = findTag(u32(4), 0x8769)
   if (!exifPtr) return null
-  const dto = findTag(u32(exifPtr.valueOffset), 0x9003)
+  const exifIfd = u32(exifPtr.valueOffset)
+  const dto = findTag(exifIfd, 0x9003)
   if (!dto || dto.type !== 2 || dto.count < 19) return null
   const m = /^(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/.exec(readAscii(u32(dto.valueOffset), dto.count))
   if (!m) return null
-  // EXIF has no time zone; treat it as UTC so the value is stable and explicit.
-  return `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}Z`
+  // DateTimeOriginal is the camera's LOCAL time. Appending "Z" would shift an
+  // Indian photo by +5:30, so it carries its own offset: OffsetTimeOriginal
+  // when present (an ASCII "+HH:MM" of 7 bytes — stored inline), else IST.
+  let offset = '+05:30'
+  const ot = findTag(exifIfd, 0x9011)
+  if (ot && ot.type === 2 && ot.count === 7) {
+    const raw = readAscii(ot.count > 4 ? u32(ot.valueOffset) : ot.valueOffset, ot.count)
+    if (/^[+-]\d{2}:\d{2}$/.test(raw)) offset = raw
+  }
+  return `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}${offset}`
 }
 
 async function decode(file: File): Promise<{ source: CanvasImageSource; width: number; height: number; close: () => void }> {
@@ -119,20 +129,22 @@ export async function prepareImage(file: File): Promise<PreparedImage> {
   const heic = isHeic(file)
   if (!heic && !NATIVE_TYPES.includes(file.type)) throw new PhotoPrepError('not_an_image')
 
+  // Read for every JPEG, small ones included (a kept original still needs its taken-time sent).
+  const exifTakenAt = heic ? null : await readExifTakenAt(file)
+
   let decoded: Awaited<ReturnType<typeof decode>> | null = null
   try {
     decoded = await decode(file)
   } catch {
     if (heic) throw new PhotoPrepError('heic_conversion_failed')
     // A native type we can't decode: send it as-is when it fits the limit.
-    if (file.size <= MAX_UPLOAD_BYTES) return { file, reencoded: false, exifTakenAt: null }
+    if (file.size <= MAX_UPLOAD_BYTES) return { file, reencoded: false, exifTakenAt }
     throw new PhotoPrepError('too_large')
   }
 
   try {
     const small = Math.max(decoded.width, decoded.height) <= MAX_LONG_SIDE
-    if (!heic && small && file.size <= MAX_UPLOAD_BYTES) return { file, reencoded: false, exifTakenAt: null }
-    const exifTakenAt = heic ? null : await readExifTakenAt(file)
+    if (!heic && small && file.size <= MAX_UPLOAD_BYTES) return { file, reencoded: false, exifTakenAt }
     let out: File
     try {
       out = await reencode(file, decoded.width, decoded.height, decoded.source)

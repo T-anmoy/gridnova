@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { cloneElement, isValidElement, useId, useState } from 'react'
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
 import {
   useKycConsent,
@@ -8,6 +8,7 @@ import {
   submitApplication,
 } from '@/lib/associate/api-client'
 import { clearAutosaveDraft, useAutosaveDraft } from '@/lib/associate/useAutosaveDraft'
+import { applyDraftKey, useDraftUserId } from '@/lib/associate/portal-session'
 import {
   isValidMobile,
   isValidEmail,
@@ -71,12 +72,26 @@ const EMPTY: FormState = {
   reference_1_name: '', reference_1_mobile: '', reference_2_name: '', reference_2_mobile: '',
 }
 
+// Identity, bank and contact numbers never touch the device's storage: a draft
+// on a shared phone must not leak them. They are simply asked again after a reload.
+export const APPLY_DRAFT_EXCLUDED: readonly (keyof FormState)[] = [
+  'aadhaar_number',
+  'pan',
+  'bank_account_number',
+  'bank_ifsc',
+  'date_of_birth',
+  'mobile',
+  'reference_1_mobile',
+  'reference_2_mobile',
+]
+
 type Files = { masked_aadhaar: File | null; pan_card: File | null; photo: File | null; cancelled_cheque: File | null }
 const EMPTY_FILES: Files = { masked_aadhaar: null, pan_card: null, photo: null, cancelled_cheque: null }
 
+// 16px text (iOS never zooms), ≥ 44px tall, a visible focus ring.
 const inputClass = (hasError: boolean) =>
-  `w-full rounded-xl border bg-white px-4 py-3 text-[#111827] text-sm font-utility outline-none transition-all duration-200 focus:ring-2 ${
-    hasError ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : 'border-[#e4e8ee] focus:border-[#2f5daa] focus:ring-[#2f5daa]/10'
+  `w-full min-h-[44px] rounded-xl border bg-white px-4 py-2.5 text-[#111827] text-base font-utility transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#2f5daa] ${
+    hasError ? 'border-red-400' : 'border-[#e4e8ee] focus:border-[#2f5daa]'
   }`
 
 function Field({
@@ -91,18 +106,37 @@ function Field({
   error?: string
   children: React.ReactNode
 }) {
+  // Ties the label, hint and error to the single control inside (id / htmlFor,
+  // aria-invalid, aria-describedby). A caller that already owns the id
+  // (TerritorySelect) passes `htmlFor` and keeps it.
+  const auto = useId()
+  const id = htmlFor ?? auto
+  const whyId = `${id}-why`
+  const errorId = `${id}-error`
+  const describedBy = [why ? whyId : null, error ? errorId : null].filter(Boolean).join(' ') || undefined
+  const control =
+    !htmlFor && isValidElement<Record<string, unknown>>(children)
+      ? cloneElement(children, { id, 'aria-invalid': error ? true : undefined, 'aria-describedby': describedBy })
+      : children
   return (
     <div>
-      <label htmlFor={htmlFor} className="font-utility text-xs text-[#111827]/55 uppercase tracking-[0.1em] mb-1.5 block">{label}</label>
-      {children}
-      {why && <p className="mt-1.5 text-xs text-[#111827]/50 leading-relaxed"><span className="font-semibold text-[#111827]/65">{whyLabel}:</span> {why}</p>}
-      {example && <p className="mt-0.5 text-xs text-[#111827]/40 leading-relaxed">{exampleLabel}: {example}</p>}
-      {error && <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-red-500 font-utility"><AlertCircle className="h-3 w-3 shrink-0" />{error}</p>}
+      <label htmlFor={id} className="font-utility text-xs text-[#111827]/60 uppercase tracking-[0.1em] mb-1.5 block">{label}</label>
+      {control}
+      {why && <p id={whyId} className="mt-1.5 text-xs text-[#111827]/55 leading-relaxed"><span className="font-semibold text-[#111827]/70">{whyLabel}:</span> {why}</p>}
+      {example && <p className="mt-0.5 text-xs text-[#111827]/50 leading-relaxed">{exampleLabel}: {example}</p>}
+      {error && <p id={errorId} className="mt-1.5 flex items-center gap-1.5 text-xs text-red-600 font-utility"><AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{error}</p>}
     </div>
   )
 }
 
+/** Remounts the form per signed-in user so one person's draft never opens for another. */
 export default function AssociateApplyForm({ kind, t }: { kind: Kind; t: Messages['associates'] }) {
+  const { userId } = useDraftUserId()
+  const draftKey = applyDraftKey(kind, userId)
+  return <ApplyForm key={draftKey} kind={kind} t={t} draftKey={draftKey} />
+}
+
+function ApplyForm({ kind, t, draftKey }: { kind: Kind; t: Messages['associates']; draftKey: string }) {
   const common: Common = t.wizard.common
   const fields: Fields = t.wizard.fields
   const docs: Docs = t.wizard.documents
@@ -114,7 +148,7 @@ export default function AssociateApplyForm({ kind, t }: { kind: Kind; t: Message
       : ['personal', 'address', 'territory', 'business', 'references', 'identityBank', 'documents', 'consent', 'review']
 
   const [stepIndex, setStepIndex] = useState(0)
-  const [values, setValues, restored] = useAutosaveDraft<FormState>(`gna-apply-${kind}`, EMPTY)
+  const [values, setValues, restored] = useAutosaveDraft<FormState>(draftKey, EMPTY, { exclude: APPLY_DRAFT_EXCLUDED })
   const [files, setFiles] = useState<Files>(EMPTY_FILES)
   const [consentAccepted, setConsentAccepted] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -267,7 +301,7 @@ export default function AssociateApplyForm({ kind, t }: { kind: Kind; t: Message
       }
 
       const result = await submitApplication(kind, fd)
-      clearAutosaveDraft(`gna-apply-${kind}`)
+      clearAutosaveDraft(draftKey)
       setSubmitted({ id: result.application_id })
     } catch (err) {
       setBannerError(describeError(err, common))
@@ -333,10 +367,10 @@ export default function AssociateApplyForm({ kind, t }: { kind: Kind; t: Message
               <input type="date" className={inputClass(!!errors.date_of_birth)} value={values.date_of_birth} onChange={(e) => set('date_of_birth', e.target.value)} />
             </Field>
             <Field label={fields.mobile.label} why={fields.mobile.why} whyLabel={common.whyWeAsk} example={fields.mobile.example} exampleLabel={common.example} error={errors.mobile}>
-              <input className={inputClass(!!errors.mobile)} value={values.mobile} onChange={(e) => set('mobile', e.target.value)} />
+              <input type="tel" inputMode="tel" autoComplete="tel" maxLength={14} className={inputClass(!!errors.mobile)} value={values.mobile} onChange={(e) => set('mobile', e.target.value)} />
             </Field>
             <Field label={fields.email.label} why={fields.email.why} whyLabel={common.whyWeAsk} example={fields.email.example} exampleLabel={common.example} error={errors.email}>
-              <input type="email" className={inputClass(!!errors.email)} value={values.email} onChange={(e) => set('email', e.target.value)} />
+              <input type="email" inputMode="email" autoCapitalize="none" spellCheck={false} className={inputClass(!!errors.email)} value={values.email} onChange={(e) => set('email', e.target.value)} />
             </Field>
           </div>
         )}
@@ -360,7 +394,7 @@ export default function AssociateApplyForm({ kind, t }: { kind: Kind; t: Message
               )}
             />
             <Field label={fields.pin_code.label} why={fields.pin_code.why} whyLabel={common.whyWeAsk} example={fields.pin_code.example} exampleLabel={common.example} error={errors.pin_code}>
-              <input className={inputClass(!!errors.pin_code)} value={values.pin_code} onChange={(e) => set('pin_code', e.target.value)} />
+              <input inputMode="numeric" autoComplete="postal-code" maxLength={6} className={inputClass(!!errors.pin_code)} value={values.pin_code} onChange={(e) => set('pin_code', e.target.value)} />
             </Field>
           </div>
         )}
@@ -428,13 +462,13 @@ export default function AssociateApplyForm({ kind, t }: { kind: Kind; t: Message
               <input className={inputClass(!!errors.reference_1_name)} value={values.reference_1_name} onChange={(e) => set('reference_1_name', e.target.value)} />
             </Field>
             <Field label={`${fields.reference_mobile.label} 1`} why={fields.reference_mobile.why} whyLabel={common.whyWeAsk} example={fields.reference_mobile.example} exampleLabel={common.example} error={errors.reference_1_mobile}>
-              <input className={inputClass(!!errors.reference_1_mobile)} value={values.reference_1_mobile} onChange={(e) => set('reference_1_mobile', e.target.value)} />
+              <input type="tel" inputMode="tel" autoComplete="off" maxLength={14} className={inputClass(!!errors.reference_1_mobile)} value={values.reference_1_mobile} onChange={(e) => set('reference_1_mobile', e.target.value)} />
             </Field>
             <Field label={`${fields.reference_name.label} 2`} why={fields.reference_name.why} whyLabel={common.whyWeAsk} example={fields.reference_name.example} exampleLabel={common.example} error={errors.reference_2_name}>
               <input className={inputClass(!!errors.reference_2_name)} value={values.reference_2_name} onChange={(e) => set('reference_2_name', e.target.value)} />
             </Field>
             <Field label={`${fields.reference_mobile.label} 2`} why={fields.reference_mobile.why} whyLabel={common.whyWeAsk} example={fields.reference_mobile.example} exampleLabel={common.example} error={errors.reference_2_mobile}>
-              <input className={inputClass(!!errors.reference_2_mobile)} value={values.reference_2_mobile} onChange={(e) => set('reference_2_mobile', e.target.value)} />
+              <input type="tel" inputMode="tel" autoComplete="off" maxLength={14} className={inputClass(!!errors.reference_2_mobile)} value={values.reference_2_mobile} onChange={(e) => set('reference_2_mobile', e.target.value)} />
             </Field>
           </div>
         )}
@@ -442,16 +476,16 @@ export default function AssociateApplyForm({ kind, t }: { kind: Kind; t: Message
         {step === 'identityBank' && (
           <div className="space-y-5">
             <Field label={fields.aadhaar_number.label} why={fields.aadhaar_number.why} whyLabel={common.whyWeAsk} example={fields.aadhaar_number.example} exampleLabel={common.example} error={errors.aadhaar_number}>
-              <input className={inputClass(!!errors.aadhaar_number)} value={values.aadhaar_number} onChange={(e) => set('aadhaar_number', e.target.value)} />
+              <input inputMode="numeric" autoComplete="off" maxLength={14} className={inputClass(!!errors.aadhaar_number)} value={values.aadhaar_number} onChange={(e) => set('aadhaar_number', e.target.value)} />
             </Field>
             <Field label={fields.pan.label} why={fields.pan.why} whyLabel={common.whyWeAsk} example={fields.pan.example} exampleLabel={common.example} error={errors.pan}>
-              <input className={inputClass(!!errors.pan)} value={values.pan} onChange={(e) => set('pan', e.target.value.toUpperCase())} />
+              <input autoCapitalize="characters" spellCheck={false} autoComplete="off" maxLength={10} className={inputClass(!!errors.pan)} value={values.pan} onChange={(e) => set('pan', e.target.value.toUpperCase())} />
             </Field>
             <Field label={fields.bank_account_number.label} why={fields.bank_account_number.why} whyLabel={common.whyWeAsk} example={fields.bank_account_number.example} exampleLabel={common.example} error={errors.bank_account_number}>
-              <input className={inputClass(!!errors.bank_account_number)} value={values.bank_account_number} onChange={(e) => set('bank_account_number', e.target.value)} />
+              <input inputMode="numeric" autoComplete="off" maxLength={18} className={inputClass(!!errors.bank_account_number)} value={values.bank_account_number} onChange={(e) => set('bank_account_number', e.target.value)} />
             </Field>
             <Field label={fields.bank_ifsc.label} why={fields.bank_ifsc.why} whyLabel={common.whyWeAsk} example={fields.bank_ifsc.example} exampleLabel={common.example} error={errors.bank_ifsc}>
-              <input className={inputClass(!!errors.bank_ifsc)} value={values.bank_ifsc} onChange={(e) => set('bank_ifsc', e.target.value.toUpperCase())} />
+              <input autoCapitalize="characters" spellCheck={false} autoComplete="off" maxLength={11} className={inputClass(!!errors.bank_ifsc)} value={values.bank_ifsc} onChange={(e) => set('bank_ifsc', e.target.value.toUpperCase())} />
             </Field>
           </div>
         )}
@@ -462,7 +496,7 @@ export default function AssociateApplyForm({ kind, t }: { kind: Kind; t: Message
             <p className="text-xs text-[#111827]/50 mb-3"><span className="font-semibold text-[#111827]/65">{common.whyWeAsk}:</span> {fields.capability.why}</p>
             {(['sales', 'execution'] as const).map((c) => (
               <label key={c} className={`flex items-center gap-3 rounded-xl border px-4 py-3.5 cursor-pointer transition-colors ${values.capability === c ? 'border-[#f7a800] bg-[#f7a800]/5' : 'border-[#e4e8ee]'}`}>
-                <input type="radio" name="capability" checked={values.capability === c} onChange={() => set('capability', c)} className="h-4 w-4" />
+                <input type="radio" name="capability" checked={values.capability === c} onChange={() => set('capability', c)} className="h-5 w-5 accent-[#0e2a63]" />
                 <span className="font-utility text-sm text-[#091c3c]">{c === 'sales' ? t.wizard.associate.capabilitySales : t.wizard.associate.capabilityExecution}</span>
               </label>
             ))}
@@ -518,7 +552,7 @@ export default function AssociateApplyForm({ kind, t }: { kind: Kind; t: Message
                   {kycConsent?.text}
                 </div>
                 <label className="mt-5 flex items-start gap-3 cursor-pointer">
-                  <input type="checkbox" checked={consentAccepted} onChange={(e) => setConsentAccepted(e.target.checked)} className="mt-0.5 h-4 w-4" />
+                  <input type="checkbox" checked={consentAccepted} onChange={(e) => setConsentAccepted(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-[#0e2a63]" />
                   <span className="font-utility text-sm text-[#091c3c]">{t.consent.acceptLabel}</span>
                 </label>
                 {errors.consent && <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-red-500 font-utility"><AlertCircle className="h-3 w-3 shrink-0" />{errors.consent}</p>}

@@ -4,7 +4,27 @@ import Link from 'next/link'
 import { AlertCircle, Clock, ServerCrash, ShieldOff, WifiOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { WrongAccountNotice } from '@/components/dashboard/WrongAccountNotice'
-import { classifyApiError, wrongAccountOf, type ErrorKind } from '@/lib/dashboard/api-error'
+import { classifyApiError, isMissingClaimsError, wrongAccountOf, type ErrorKind } from '@/lib/dashboard/api-error'
+import { useOptionalMessages } from '@/lib/i18n/client'
+
+const MISSING_CLAIMS_FALLBACK = {
+  title: 'Sign-in not fully set up',
+  body: 'Your sign-in is not fully set up — contact Grid Nova.',
+}
+
+/** One plain message for BE-1's `session_token_missing_claims` — never a retry loop. */
+export function MissingClaimsNotice() {
+  const copy = useOptionalMessages('portalErrors')?.missingClaims ?? MISSING_CLAIMS_FALLBACK
+  return (
+    <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 flex items-start gap-3" role="alert" data-testid="missing-claims">
+      <ShieldOff className="h-5 w-5 shrink-0 mt-0.5 text-amber-600" aria-hidden="true" />
+      <div>
+        <p className="font-utility font-medium text-amber-800">{copy.title}</p>
+        <p className="font-utility text-sm mt-1 text-amber-700">{copy.body}</p>
+      </div>
+    </div>
+  )
+}
 
 const KIND_ICON: Record<ErrorKind, React.ElementType> = {
   wrongAccount: ShieldOff,
@@ -33,6 +53,7 @@ export function DashboardError({
 }) {
   const wrong = wrongAccountOf(error)
   if (wrong) return <WrongAccountNotice kind={wrong} />
+  if (isMissingClaimsError(error)) return <MissingClaimsNotice />
   const c = classifyApiError(error)
   const Icon = KIND_ICON[c.kind]
   const amber = AMBER.includes(c.kind)

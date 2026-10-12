@@ -132,7 +132,7 @@ export default function TerritorySelect({
       )
     } else {
       body = (
-        <select id={id} className={base} value={current} onChange={(e) => pick(e.target.value)}>
+        <select id={id} className={base} value={current} aria-invalid={hasError || undefined} onChange={(e) => pick(e.target.value)}>
           <option value="">{copy.selectPlaceholder}</option>
           {(lookup.data ?? []).map((o) => (
             <option key={o.lgd_code} value={o.lgd_code}>{o.name}</option>

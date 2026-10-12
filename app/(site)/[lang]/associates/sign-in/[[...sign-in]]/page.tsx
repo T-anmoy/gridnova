@@ -1,12 +1,16 @@
 import { SignIn } from '@clerk/nextjs'
+import PortalHomeLink from '@/components/associate/PortalHomeLink'
 import { messagesFor, resolveLocale, type LangParams } from '@/lib/i18n/messages'
 
 export default async function AssociateSignInPage({ params }: LangParams) {
   const m = messagesFor(await resolveLocale(params)).associates.signIn
 
   return (
-    <main className="pt-[calc(var(--header-h)+4rem)] pb-24 min-h-screen bg-[#091c3c] flex items-center justify-center px-6">
+    <main className="pt-[calc(env(safe-area-inset-top)+1rem)] pb-24 min-h-screen bg-[#091c3c] flex flex-col items-center px-4 sm:px-6">
       <div className="w-full max-w-md">
+        <PortalHomeLink tone="dark" />
+      </div>
+      <div className="mt-8 w-full max-w-md">
         <div className="mb-8 text-center">
           <h1 className="font-display text-2xl font-bold text-white">{m.title}</h1>
           <p className="mt-1 font-utility text-sm text-white/50">{m.subtitle}</p>

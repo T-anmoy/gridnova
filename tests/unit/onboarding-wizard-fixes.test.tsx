@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event'
 import { en, withI18n } from './helpers/i18n'
 import { ApiError } from '@/lib/dashboard/api-error'
 import type { Onboarding, OnboardingOptions } from '@/lib/associate/onboarding-types'
+import { ONBOARDING_OPTIONS, makeOnboarding } from './fixtures/survey-contract'
+import { resetSurveyMocks } from './helpers/survey-mocks'
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 
@@ -29,57 +31,30 @@ vi.mock('@/lib/associate/api-client', () => ({
   useTerritoryDistricts: () => ({ data: [] }),
   useTerritoryBlocks: () => ({ data: [] }),
 }))
+vi.mock('@/lib/associate/survey-api-client', async () => (await import('./helpers/survey-mocks')).surveyClientModule)
+vi.mock('@/lib/associate/portal-session', async (orig) => ({ ...(await orig<object>()), ...(await import('./helpers/survey-mocks')).portalSessionOverrides }))
 
 const copy = en.associates.portal.wizard
 
 const OPTIONS: OnboardingOptions = {
-  notice: { version: 'v1', text: 'Notice text' },
-  equipment_packages: [{ key: 'dcr', label: 'DCR package', equipment_tier: 'standard' }],
+  ...ONBOARDING_OPTIONS,
   documents: [
     { key: 'electricity_bill', label: 'Electricity bill', required_when: null },
     { key: 'id_proof', label: 'ID proof', required_when: null },
   ],
   photo_slots: [{ key: 'front', label: 'Front of premises' }],
-  customer_timelines: ['immediate'],
-  attribution_lock_days: 7,
-  site_location: { accuracy_good_m: 20, accuracy_warn_m: 50, accuracy_reject_m: 200, sample_seconds: 10, required_to_submit: true, sources: ['device_gps', 'photo_gps', 'google_maps_link', 'pasted_coordinates'], recommended_source: 'photo_gps' },
 }
 
 function existingOnboarding(over: Partial<Onboarding> = {}): Onboarding {
-  return {
-    onboarding_id: 501,
-    status: 'draft',
-    lead_id: 1,
-    project_reference_id: null,
-    owner: { associate_id: 'GNA-1', full_name: 'Asha Roy', associate_type: 'associate' },
-    customer: { name: 'Bikash Das', mobile: '9800000000', email: null },
-    territory: { state: { lgd_code: 19, name: 'West Bengal' }, district: null, block: null },
-    site_latitude: null,
-    site_longitude: null,
+  return makeOnboarding({
     site_location: { present: true, confirmed: true, latitude: 22.5726, longitude: 88.3639, source: 'device_gps', accuracy_m: 8, captured_at: '2026-01-01T00:00:00Z', verified: true, confirmed_at: '2026-01-01T00:00:00Z', confirmed_by: 'GNA-1', precision: null, flags: [], photo_distance_m: null, maps_url: 'https://www.google.com/maps?q=22.5726,88.3639' },
-    connection_in_customer_name: true,
-    property_in_customer_name: true,
-    customer_timeline: 'immediate',
-    site_assessment: null,
-    documents: [],
-    photos: [],
-    checklist: { required: [], present: [], missing: [] },
-    notice: { version: 'v1', acknowledged_at: '2026-01-01T00:00:00Z', recorded_by: 'GNA-1' },
-    verification: { completed: false, verified_at: null },
-    attribution: { locked_until: null, under_review: false },
-    score: null,
-    formal_proposal_blocked: null,
-    submitted_at: null,
-    warnings: [],
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-    can_edit: true,
     ...over,
-  }
+  })
 }
 
 beforeEach(() => {
   vi.clearAllMocks()
+  resetSurveyMocks()
   window.localStorage.clear()
   mockUseOnboardingOptions.mockReturnValue({ data: OPTIONS, isLoading: false })
   mockUseCreateOnboarding.mockReturnValue({ mutateAsync: vi.fn() })
@@ -113,7 +88,7 @@ describe('OnboardingWizard — warnings never block submission', () => {
     expect(screen.getByText(copy.warnings.attribution_review)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: copy.continueButton })).not.toBeDisabled()
 
-    await goToStep(user, 8) // notice -> ... -> house -> ... -> review
+    await goToStep(user, 11) // notice -> … -> house -> layout -> documents -> photos -> survey -> review
     expect(screen.getByText(copy.warnings.attribution_review)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: copy.review.submitButton })).not.toBeDisabled()
   })
@@ -136,7 +111,7 @@ describe('OnboardingWizard — submit-time missing documents show translated lab
     const user = userEvent.setup()
     render(withI18n(<OnboardingWizard copy={copy} territory={en.associates.territory} portalBase="/associates/portal" existing={existingOnboarding({ onboarding_id: 602 })} />))
 
-    await goToStep(user, 8)
+    await goToStep(user, 11)
     await user.click(screen.getByRole('button', { name: copy.review.submitButton }))
 
     expect(await screen.findByText('Electricity bill')).toBeInTheDocument()
@@ -159,7 +134,7 @@ describe('OnboardingWizard — a document only counts as attached once its uploa
     const { container } = render(
       withI18n(<OnboardingWizard copy={copy} territory={en.associates.territory} portalBase="/associates/portal" existing={existingOnboarding({ onboarding_id: 603 })} />)
     )
-    await goToStep(user, 6) // notice -> customer -> connection -> property -> requirement -> house -> documents
+    await goToStep(user, 8) // notice -> customer -> connection -> bills -> property -> requirement -> house -> layout -> documents
 
     const input = container.querySelector('input[type="file"]') as HTMLInputElement
     const file = new File(['x'], 'bill.pdf', { type: 'application/pdf' })
