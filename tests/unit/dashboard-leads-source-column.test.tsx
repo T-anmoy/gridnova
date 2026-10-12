@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import LeadsPage from '@/app/(internal)/dashboard/leads/page'
+import { navState } from './helpers/mock-navigation'
 import type { LeadSummary } from '@/lib/dashboard/types'
 
 const mockUseUser = vi.fn()
@@ -11,16 +12,17 @@ vi.mock('@clerk/nextjs', () => ({
   useAuth: () => mockUseAuth(),
 }))
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn(), forward: vi.fn(), prefetch: vi.fn() }),
-}))
+vi.mock('next/navigation', async () => (await import('./helpers/mock-navigation')).navigationMock)
 
 const mockUseLeads = vi.fn()
-vi.mock('@/lib/dashboard/api-client', () => ({
-  useLeads: () => mockUseLeads(),
+vi.mock('@/lib/dashboard/api-client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/dashboard/api-client')>()),
+  useLeads: (params: unknown) => mockUseLeads(params),
   useCreateLead: () => ({ mutateAsync: vi.fn(), isPending: false }),
   downloadLeadsCsv: vi.fn(),
 }))
+
+const paged = (items: LeadSummary[]) => ({ items, page: 1, page_size: 25, total: items.length })
 
 const CHAT_LEAD: LeadSummary = {
   id: 1,
@@ -40,6 +42,7 @@ const BOOKING_LEAD: LeadSummary = {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  navState.reset('/dashboard/leads')
   mockUseUser.mockReturnValue({ user: { publicMetadata: { role: 'admin' } } })
   mockUseAuth.mockReturnValue({ getToken: vi.fn() })
   Element.prototype.hasPointerCapture = vi.fn().mockReturnValue(false)
@@ -50,7 +53,7 @@ beforeEach(() => {
 
 describe('LeadsPage — Source column', () => {
   it('shows a distinct, labeled Source badge per lead, not lumped together', () => {
-    mockUseLeads.mockReturnValue({ data: [CHAT_LEAD, BOOKING_LEAD], isLoading: false, error: null, refetch: vi.fn() })
+    mockUseLeads.mockReturnValue({ data: paged([CHAT_LEAD, BOOKING_LEAD]), isLoading: false, error: null, refetch: vi.fn() })
     render(<LeadsPage />)
 
     expect(screen.getByRole('columnheader', { name: 'Source' })).toBeInTheDocument()
@@ -58,22 +61,20 @@ describe('LeadsPage — Source column', () => {
     expect(screen.getByText('Booking')).toBeInTheDocument()
   })
 
-  it('filters the table by source', async () => {
-    mockUseLeads.mockReturnValue({ data: [CHAT_LEAD, BOOKING_LEAD], isLoading: false, error: null, refetch: vi.fn() })
+  it('filters by source on the server: the choice goes to the URL and the request, and resets to page 1', async () => {
+    mockUseLeads.mockReturnValue({ data: paged([CHAT_LEAD, BOOKING_LEAD]), isLoading: false, error: null, refetch: vi.fn() })
+    navState.reset('/dashboard/leads', 'page=3')
     const user = userEvent.setup()
     render(<LeadsPage />)
 
-    expect(screen.getByText('#1')).toBeInTheDocument()
-    expect(screen.getByText('#2')).toBeInTheDocument()
-
     // Assignment filter (admin sees this too, Prompt 03b), Stage, Score,
-    // then Source — the filter comboboxes in DOM order (none but the
-    // assignment one carry an accessible name).
+    // then Source — the filter comboboxes in DOM order.
     const combos = screen.getAllByRole('combobox')
     await user.click(combos[3])
     await user.click(await screen.findByRole('option', { name: 'Booking' }))
 
-    expect(screen.queryByText('#1')).not.toBeInTheDocument()
-    expect(screen.getByText('#2')).toBeInTheDocument()
+    expect(navState.params.get('source')).toBe('website_booking')
+    expect(navState.params.has('page')).toBe(false)
+    expect(mockUseLeads).toHaveBeenLastCalledWith({ page: 1, page_size: 25, source: 'website_booking' })
   })
 })

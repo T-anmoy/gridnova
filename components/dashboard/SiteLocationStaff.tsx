@@ -14,7 +14,7 @@ import { ApiError } from '@/lib/dashboard/api-error'
 import { buildLocationInput, describeSiteLocationError } from '@/lib/associate/site-location'
 import type { Role } from '@/lib/dashboard/types'
 import type { SiteLocation, SiteLocationFlag } from '@/lib/associate/onboarding-types'
-import en from '@/messages/en.json'
+import { STAFF_SITE_LOCATION_COPY } from '@/lib/dashboard/staff-copy'
 
 // The dashboard is English-only: these sentences are for Grid Nova staff.
 const SOURCE: Record<string, string> = {
@@ -55,9 +55,9 @@ function staffError(err: unknown): string {
     if (code === 'not_editable') return 'This customer is closed, so the location can no longer be changed.'
     if (err.status === 403 && err.detail) return err.detail
     if (err.status === 422 && Array.isArray(err.structuredDetail)) return 'Check the link or coordinates and the reason, then try again.'
-    return describeSiteLocationError(err, en.siteLocation.errors).text
+    return describeSiteLocationError(err, STAFF_SITE_LOCATION_COPY.errors).text
   }
-  return en.siteLocation.errors.generic
+  return STAFF_SITE_LOCATION_COPY.errors.generic
 }
 
 function CorrectLocationDialog({ onboardingId, open, onOpenChange }: { onboardingId: number; open: boolean; onOpenChange: (o: boolean) => void }) {

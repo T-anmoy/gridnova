@@ -18,6 +18,29 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Environment matrix
+
+Variables are read in one place each: the backend URL in `lib/config.ts` (an ESLint rule forbids reading `NEXT_PUBLIC_API_URL` anywhere else) and the server-only secrets in `lib/env.ts`. `.env.example` lists every variable with a comment and **no real value**.
+
+`NEXT_PUBLIC_*` values are public and inlined at **build** time (change → rebuild); everything else is server-only. **Secret** = never commit, never prefix with `NEXT_PUBLIC_`.
+
+| Variable | Secret | Production | Preview | Development |
+| --- | :---: | --- | --- | --- |
+| `NEXT_PUBLIC_API_URL` | no | **required** — the production API. The build fails if missing or `localhost` | **required** — a *staging* API, never production | `.env.local` (defaults to `http://localhost:8000`) |
+| `NEXT_PUBLIC_PRODUCTION_API_HOST` | no | the production API host | the production API host (so Preview warns if it points there) | optional |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | no | **required** (live key) | **required** (test key) | test key |
+| `CLERK_SECRET_KEY` | **yes** | **required** | **required** | test key |
+| `RESEND_API_KEY` | **yes** | **required** | optional (use a test key, or leave unset) | optional |
+| `ESTIMATE_NOTIFY_EMAIL` | no | recommended (defaults to `info@gridnova.in`) | set to a test inbox | optional |
+| `INTERNAL_API_KEY` | **yes** | **required** (equals the backend's) | the staging backend's | optional |
+| `NEXT_PUBLIC_ASK_NOVA_ENABLED` | no | unset = **on**; `false` turns it off | same | same |
+| `NEXT_PUBLIC_ASSOCIATE_PORTAL_OPEN` | no | `true` once the backend is deployed | as needed | open by default |
+| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | no | the Search Console `content` token | leave unset | leave unset |
+
+Two safety nets: a **production build fails** when `NEXT_PUBLIC_API_URL` is missing or local, and a **Preview build prints a warning** when its API host equals `NEXT_PUBLIC_PRODUCTION_API_HOST`. Production also logs an error at runtime for each missing server secret. Locally, `next build` reads `.env.local`; if that file points at `localhost`, run `NEXT_PUBLIC_API_URL=https://your-staging-api next build`.
+
+To switch Ask Nova off without a code change: set `NEXT_PUBLIC_ASK_NOVA_ENABLED=false` in Vercel and redeploy.
+
 ## Associate portal switch
 
 `NEXT_PUBLIC_ASSOCIATE_PORTAL_OPEN` (see `.env.example`) controls whether the Associate Network is offered:

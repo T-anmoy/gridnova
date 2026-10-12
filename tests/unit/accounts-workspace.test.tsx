@@ -358,27 +358,49 @@ describe('Accounts workspace — rows say who the customer is (customer_name, pr
       customer_name: name, project_reference_id: code, ...over,
     }) as Milestone
 
-  it('payments queue: row shows the customer name with the project code, and filters by either — with no extra request', async () => {
+  it('payments queue: row shows the customer name with the project code', () => {
     h.list = page([named(11, 'Bikash Das', 'GN-2026-1'), named(12, 'Asha Roy', 'GN-2026-2')])
     render(withI18n(<AccountsPage />))
     const rows = screen.getAllByTestId('payment-row')
     expect(rows[0]).toHaveTextContent('Bikash Das')
     expect(rows[0]).toHaveTextContent('GN-2026-1')
     expect(rows[0]).toHaveTextContent('Payment #11')
-    const calls = h.listParams.length
+  })
+
+  // P8: the search used to filter only the 25 rows already loaded, so a payment
+  // on any other page was "not found". It is now the backend's `q`, applied
+  // before paging.
+  it('payments search: sends the backend `q` after a 300 ms pause (not per keystroke), keeps the other filters, and never filters the loaded page itself', async () => {
+    h.list = page([named(11, 'Bikash Das', 'GN-2026-1'), named(12, 'Asha Roy', 'GN-2026-2')])
+    render(withI18n(<AccountsPage />))
     const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Needs attention' }))
+    const before = h.listParams.length
     await user.type(screen.getByRole('searchbox'), 'asha')
-    expect(screen.getAllByTestId('payment-row')).toHaveLength(1)
-    expect(screen.getByTestId('payment-row')).toHaveTextContent('Asha Roy')
+    // Typing alone sends nothing…
+    expect(h.listParams.slice(before).every((p) => !('q' in (p as { q?: string })) || (p as { q?: string }).q === undefined)).toBe(true)
+    // …and both rows stay: the loaded page is not filtered client-side.
+    expect(screen.getAllByTestId('payment-row')).toHaveLength(2)
+    await waitFor(() => expect(h.listParams.at(-1)).toMatchObject({ q: 'asha', page: 1, needs_attention: true, page_size: 25 }))
+  })
+
+  it('payments search: a new search returns to page 1, and clearing it removes `q`', async () => {
+    h.list = { ...page([named(11, 'Bikash Das', 'GN-2026-1')]), data: { items: [named(11, 'Bikash Das', 'GN-2026-1')], page: 2, page_size: 25, total: 60 } }
+    render(withI18n(<AccountsPage />))
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+    expect(h.listParams.at(-1)).toMatchObject({ page: 2 })
+    await user.type(screen.getByRole('searchbox'), 'GNR-9')
+    await waitFor(() => expect(h.listParams.at(-1)).toMatchObject({ q: 'GNR-9', page: 1 }))
     await user.clear(screen.getByRole('searchbox'))
-    await user.type(screen.getByRole('searchbox'), 'GN-2026-1')
-    expect(screen.getByTestId('payment-row')).toHaveTextContent('Bikash Das')
-    await user.clear(screen.getByRole('searchbox'))
-    await user.type(screen.getByRole('searchbox'), 'zzz')
-    expect(screen.queryAllByTestId('payment-row')).toHaveLength(0)
+    await waitFor(() => expect((h.listParams.at(-1) as { q?: string }).q).toBeUndefined())
+    expect(h.listParams.at(-1)).toMatchObject({ page: 1 })
+  })
+
+  it('payments search: shows the empty state from the server result', () => {
+    h.list = page([])
+    render(withI18n(<AccountsPage />))
     expect(screen.getByText('No payments match.')).toBeInTheDocument()
-    // Filtering is on the loaded page: the list was never re-requested with a search term.
-    expect(h.listParams.slice(calls).every((p) => !('q' in (p as object)))).toBe(true)
   })
 
   it('payments queue: a row without a name or code shows only its payment number, not an invented customer', () => {
@@ -410,7 +432,7 @@ describe('Accounts workspace — rows say who the customer is (customer_name, pr
     expect(within(screen.getByTestId('milestone-row')).getByRole('link', { name: 'Project 9' })).toBeInTheDocument()
   })
 
-  it('receipts view: shows the customer and filters by name or code', async () => {
+  it('receipts view: shows the customer and searches on the server (q) with status=verified kept', async () => {
     const rcpt = { receipt_number: 'GNR-1', email_status: 'sent', emailed_at: null, pdf_available: true, receipt_pending_email: false, held: false, url: 'u' }
     h.list = page([
       { ...named(11, 'Bikash Das', 'GN-2026-1'), status: 'verified', receipt: rcpt },
@@ -422,8 +444,8 @@ describe('Accounts workspace — rows say who the customer is (customer_name, pr
     const rows = screen.getAllByTestId('receipt-row')
     expect(rows[1]).toHaveTextContent('Asha Roy')
     expect(rows[1]).toHaveTextContent('GN-2026-2')
-    await user.type(screen.getByRole('searchbox'), 'bikash')
-    expect(screen.getAllByTestId('receipt-row')).toHaveLength(1)
-    expect(screen.getByTestId('receipt-row')).toHaveTextContent('GNR-1')
+    await user.type(screen.getByRole('searchbox'), 'GNR-1')
+    expect(screen.getAllByTestId('receipt-row')).toHaveLength(2)
+    await waitFor(() => expect(h.listParams.at(-1)).toMatchObject({ status: 'verified', q: 'GNR-1', page: 1 }))
   })
 })

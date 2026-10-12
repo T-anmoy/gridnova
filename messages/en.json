@@ -144,6 +144,9 @@
     "greetingOffline": "Hi, I’m Nova. Live chat is offline right now — tap a quick answer below for instant answers to common questions.",
     "typing": "Nova is typing",
     "error": "Having a little trouble right now — try again in a moment, or reach our team directly.",
+    "errorRateLimit": "Nova is getting a lot of questions right now — please wait a few seconds and try again.",
+    "errorServer": "Nova is having trouble on our side — try again in a moment, or reach our team directly.",
+    "errorNetwork": "Can’t reach Nova — check your internet connection and try again, or reach our team directly.",
     "reachTeam": "Reach our team →",
     "quickAnswers": "Quick answers",
     "placeholder": "Ask a specific question… (Enter to send)",
@@ -995,7 +998,12 @@
       "past": "Please pick a time in the future.",
       "name": "Please enter your name.",
       "email": "Please enter a valid email address.",
-      "phone": "Please enter a valid phone number."
+      "phone": "Please enter a valid phone number.",
+      "timezoneRequired": "We couldn’t read the time zone for that slot. Please pick a time again.",
+      "slotNotOffered": "That time isn’t one of our bookable slots. Please choose one of the available times.",
+      "durationTooLong": "That call is longer than we can book online. Please call or WhatsApp us instead.",
+      "dailyLimit": "You’ve reached the number of calls that can be booked online today. Please call or WhatsApp us.",
+      "rateLimited": "Too many attempts just now — please wait a minute and try again."
     },
     "summary": {
       "carried": "Carried forward from {source}",
@@ -2802,6 +2810,18 @@
       }
     },
     "hidden": "Package prices are not shown online. Send us an estimate request and Grid Nova will share them with you.",
+    "terms": {
+      "warrantyYears": "{years} years from handover",
+      "warrantyYear": "{years} year from handover",
+      "firstYearFree": "First year free",
+      "lifeSpanRange": "{from}–{to} years",
+      "lifeSpanYears": "{years} years",
+      "milestones": {
+        "onOrder": "On Order",
+        "againstMaterialBill": "Against Material Bill",
+        "beforeCommissioning": "Before Commissioning"
+      }
+    },
     "footer": {
       "destination": "Prices are for {destination}.",
       "revise": "Grid Nova may revise prices.",

@@ -1,3 +1,4 @@
+import { notAuthenticatedError } from '@/lib/api/http'
 import { useAuth } from '@clerk/nextjs'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardFetch } from '@/lib/dashboard/api-client'
@@ -31,7 +32,7 @@ export function usePlaceholders() {
     queryKey: ['placeholders'],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<PlaceholdersResponse>('/api/v1/dashboard/placeholders', token)
     },
     staleTime: 60_000,
@@ -44,7 +45,7 @@ export function useResolvePlaceholder() {
   return useMutation({
     mutationFn: async ({ id, note }: { id: string; note: string }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<PlaceholderItem>(`/api/v1/dashboard/placeholders/${encodeURIComponent(id)}/resolve`, token, { method: 'POST', body: JSON.stringify({ note }) })
     },
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['placeholders'] }),

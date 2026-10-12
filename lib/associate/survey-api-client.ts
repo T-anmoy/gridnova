@@ -1,3 +1,4 @@
+import { notAuthenticatedError } from '@/lib/api/http'
 import { useAuth } from '@clerk/nextjs'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardFetch } from '@/lib/dashboard/api-client'
@@ -20,7 +21,7 @@ export function useSurveyStatus(id: number | undefined) {
     queryKey: surveyStatusKey(id ?? 0),
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<SurveyStatus>(`${BASE}/${id}/survey`, token, undefined, surveyStatusSchema)
     },
     enabled: !!id,
@@ -34,7 +35,7 @@ export function useSurveyResults(id: number | undefined, enabled = true) {
     queryKey: surveyResultsKey(id ?? 0),
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<SurveyResults>(`${BASE}/${id}/survey/results`, token, undefined, surveyResultsSchema)
     },
     enabled: !!id && enabled,
@@ -68,7 +69,7 @@ export function useSignSurvey() {
   return useMutation({
     mutationFn: async ({ id, input }: { id: number; input: SignSurveyInput }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetchForm<SurveyStatus>(`${BASE}/${id}/survey/signatures/${input.party}`, token, buildSignatureForm(input))
     },
     onSuccess: (status, vars) => {

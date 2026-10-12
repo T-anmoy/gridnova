@@ -3,6 +3,8 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ProposalInputForm from "@/app/(internal)/proposal/new/ProposalInputForm";
 
+vi.mock("@clerk/nextjs", () => ({ useAuth: () => ({ getToken: async () => "clerk-jwt" }) }));
+
 // Step 4 reads the public package catalogue; keep it out of the scripted fetch calls below.
 vi.mock("@/lib/pricing/usePackageCatalogue", () => ({ usePackageCatalogue: () => ({ catalogue: null, status: "error" }) }));
 
@@ -158,7 +160,7 @@ describe("ProposalInputForm", () => {
     const fetchMock = vi.fn();
     fetchMock
       .mockResolvedValueOnce({ ok: true, status: 201, json: async () => ({ success: true, inputs_id: 501 }) })
-      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ success: true, data: { id: 501 } }) });
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 501, document_refs: [] }), { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
 
     const user = userEvent.setup();
@@ -176,9 +178,12 @@ describe("ProposalInputForm", () => {
     );
 
     // Call 2: the real file, as multipart FormData against the created row —
-    // never JSON.stringify'd, never discarded.
+    // never JSON.stringify'd, never discarded — sent STRAIGHT to the backend
+    // with the Clerk token, not through a Next route (Vercel caps those at 4.5 MB).
     const [uploadUrl, uploadInit] = fetchMock.mock.calls[1];
-    expect(uploadUrl).toBe("/api/proposal-inputs/501/upload");
+    expect(uploadUrl).toBe("http://127.0.0.1:8000/api/v1/proposal-inputs/501/upload");
+    expect(uploadUrl).not.toMatch(/^\/api\//);
+    expect(uploadInit.headers.Authorization).toBe("Bearer clerk-jwt");
     expect(uploadInit.body).toBeInstanceOf(FormData);
     const sentFile = uploadInit.body.get("file") as File;
     expect(sentFile.name).toBe("bill.pdf");
@@ -196,15 +201,12 @@ describe("ProposalInputForm", () => {
     const fetchMock = vi.fn();
     fetchMock
       .mockResolvedValueOnce({ ok: true, status: 201, json: async () => ({ success: true, inputs_id: 501 }) })
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 503,
-        json: async () => ({
-          success: false,
-          code: "storage_not_configured",
-          error: "File storage isn't connected yet — this file was NOT saved. The rest of the assessment was submitted.",
-        }),
-      });
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ detail: { code: "storage_not_configured", message: "R2 storage is not configured" } }),
+          { status: 503 }
+        )
+      );
     vi.stubGlobal("fetch", fetchMock);
 
     const user = userEvent.setup();
@@ -246,7 +248,7 @@ describe("ProposalInputForm", () => {
     const fetchMock = vi.fn();
     fetchMock
       .mockResolvedValueOnce({ ok: true, status: 201, json: async () => ({ success: true, inputs_id: 501 }) })
-      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ success: true, data: { id: 501 } }) });
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 501, document_refs: [] }), { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
 
     const user = userEvent.setup();

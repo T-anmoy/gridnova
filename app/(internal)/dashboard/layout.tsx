@@ -23,7 +23,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
-import { useProposals, prefetchLeads, prefetchProposals } from '@/lib/dashboard/api-client'
+import { useProposals, prefetchLeads, prefetchProposals, defaultLeadListParams } from '@/lib/dashboard/api-client'
 import { cn } from '@/lib/dashboard/utils'
 import type { Role } from '@/lib/dashboard/types'
 
@@ -41,7 +41,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
   // Warm the destination's list cache on hover so the click feels instant.
   function prefetchFor(href: string) {
-    if (href === '/dashboard/leads') void prefetchLeads(qc, getToken)
+    if (href === '/dashboard/leads') void prefetchLeads(qc, getToken, defaultLeadListParams(role))
     else if (href === '/dashboard/proposals') void prefetchProposals(qc, getToken)
   }
 

@@ -1,3 +1,5 @@
+import { API_BASE_URL } from '@/lib/config'
+
 // Grid Nova's price list (backend PM-A). Every amount is an exact decimal
 // string and is only ever displayed — never added, scaled or rounded here.
 
@@ -123,7 +125,7 @@ export function parsePriceListEstimate(data: unknown): (PriceListFields & Record
   } as PriceListFields & Record<string, unknown>
 }
 
-const BASE = () => process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
+const BASE = () => API_BASE_URL
 
 /** GET /api/v1/pricing/packages — public. */
 export async function fetchPackageCatalogue(signal?: AbortSignal): Promise<PackageCatalogue> {

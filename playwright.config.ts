@@ -1,8 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
+import { E2E_ORIGIN, E2E_PORT } from "./tests/e2e/origin";
 
-const PORT = 3100;
-// 127.0.0.1 (not "localhost") so the browser never depends on DNS resolution.
-const BASE_URL = `http://127.0.0.1:${PORT}`;
+const PORT = E2E_PORT;
+const BASE_URL = E2E_ORIGIN;
 
 // E2E runs against a production build (next build && next start) so the tests
 // exercise the same output users get — no dev-only warnings or double effects.
@@ -14,7 +14,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: [["list"]],
+  reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : [["list"]],
   use: {
     baseURL: BASE_URL,
     trace: "on-first-retry",
@@ -35,6 +35,10 @@ export default defineConfig({
     // to well-formed TEST keys so the public-site E2E suite runs without a real
     // Clerk account. Real keys (for dashboard/auth work) still win if present.
     env: {
+      // A production build refuses a missing or localhost API URL (lib/config.ts).
+      // The suite never reaches a real backend (the chat is mocked per test), so
+      // a syntactically valid, non-local placeholder is enough.
+      NEXT_PUBLIC_API_URL: process.env.E2E_API_URL ?? "https://api.e2e.test",
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
         process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ??
         "pk_test_Y2xlcmsuZXhhbXBsZS5jb20k",

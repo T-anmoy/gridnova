@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
 import { useAuth } from '@clerk/nextjs'
 import { toast } from 'sonner'
 import { Search, Filter, Download, Plus } from 'lucide-react'
-import { useLeads, useCreateLead, downloadLeadsCsv } from '@/lib/dashboard/api-client'
+import { useLeads, useCreateLead, downloadLeadsCsv, defaultLeadListParams, LEADS_PAGE_SIZE } from '@/lib/dashboard/api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { useDebouncedValue } from '@/lib/dashboard/use-debounced-value'
 import { DashboardError } from '@/components/dashboard/DashboardError'
@@ -20,7 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { formatDate } from '@/lib/dashboard/utils'
+import { formatDate, istDateKey } from '@/lib/dashboard/utils'
 import type { CreateLeadInput, LeadAssignmentFilter, LeadSource, LeadSummary, ManualProjectType, PipelineStage, LeadScore, Role } from '@/lib/dashboard/types'
 
 function stageBadgeVariant(stage: PipelineStage) {
@@ -229,18 +229,63 @@ function AddLeadDialog() {
   )
 }
 
+const isPipelineStage = (v: string | null): v is PipelineStage => !!v && (PIPELINE_STAGES as string[]).includes(v)
+const isLeadScore = (v: string | null): v is LeadScore => !!v && (LEAD_SCORES as string[]).includes(v)
+const isAssignment = (v: string | null): v is LeadAssignmentFilter => v === 'me' || v === 'unassigned' || v === 'any'
+
+const countFormat = new Intl.NumberFormat('en-IN')
+
 export default function LeadsPage() {
+  // useSearchParams needs a Suspense boundary.
+  return (
+    <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+      <LeadsContent />
+    </Suspense>
+  )
+}
+
+function LeadsContent() {
   const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const { user } = useUser()
   const { getToken } = useAuth()
   const role = user?.publicMetadata?.role as Role | undefined
 
-  const [stageFilter, setStageFilter] = useState<PipelineStage | ''>('')
-  const [scoreFilter, setScoreFilter] = useState<LeadScore | ''>('')
-  const [sourceFilter, setSourceFilter] = useState('')
-  const [idSearch, setIdSearch] = useState('')
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
+  // Filters and the page live in the URL so a reload, a back-navigation or a
+  // shared link restores the exact view.
+  const stageParam = searchParams.get('stage')
+  const scoreParam = searchParams.get('score')
+  const stageFilter: PipelineStage | '' = isPipelineStage(stageParam) ? stageParam : ''
+  const scoreFilter: LeadScore | '' = isLeadScore(scoreParam) ? scoreParam : ''
+  const sourceFilter = LEAD_SOURCES.includes(searchParams.get('source') ?? '') ? (searchParams.get('source') as string) : ''
+  const assignedParam = searchParams.get('assigned')
+  const assignedFilter: LeadAssignmentFilter | '' = isAssignment(assignedParam) ? assignedParam : ''
+  const urlQuery = searchParams.get('q') ?? ''
+  const dateFrom = searchParams.get('from') ?? ''
+  const dateTo = searchParams.get('to') ?? ''
+  const page = Math.max(1, Number.parseInt(searchParams.get('page') ?? '1', 10) || 1)
+
+  function setParams(updates: Record<string, string | undefined>, { keepPage = false } = {}) {
+    const next = new URLSearchParams(searchParams.toString())
+    for (const [k, v] of Object.entries(updates)) {
+      if (v) next.set(k, v)
+      else next.delete(k)
+    }
+    if (!keepPage) next.delete('page')
+    const qs = next.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }
+
+  // The search box keeps its own text; the URL (and so the request) follows
+  // after a 300 ms pause, and a new search always starts at page 1.
+  const [searchText, setSearchText] = useState(urlQuery)
+  const debouncedSearch = useDebouncedValue(searchText.trim(), 300)
+  useEffect(() => {
+    if (debouncedSearch !== urlQuery) setParams({ q: debouncedSearch || undefined })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch])
+
   const [exporting, setExporting] = useState(false)
   const isSales = role === 'sales'
   const isAdmin = role === 'admin'
@@ -250,54 +295,61 @@ export default function LeadsPage() {
   // applied automatically; admin/management see everything until they
   // explicitly filter, matching their existing "see all" default.
   const canFilterByAssignment = isAdmin || isManagement || isSales
-  const [assignedFilter, setAssignedFilter] = useState<LeadAssignmentFilter | ''>('')
   const effectiveAssignedFilter = assignedFilter || (isSales ? 'any' : '')
 
-  const { data: leads, isLoading, error, refetch } = useLeads(
-    canFilterByAssignment && effectiveAssignedFilter ? { assigned: effectiveAssignedFilter } : undefined
-  )
+  const defaults = defaultLeadListParams(role)
+  const { data, isLoading, error, refetch, isPlaceholderData } = useLeads({
+    ...defaults,
+    page,
+    ...(sourceFilter ? { source: sourceFilter } : {}),
+    ...(urlQuery ? { q: urlQuery } : {}),
+    ...(canFilterByAssignment && effectiveAssignedFilter ? { assigned: effectiveAssignedFilter } : {}),
+  })
+  const leads = data?.items
+  const total = data?.total ?? 0
+  const pageSize = data?.page_size ?? LEADS_PAGE_SIZE
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
   const canExport = role === 'admin' || role === 'management'
   const canAddLead = role === 'admin' || role === 'sales' || role === 'management'
+
+  // The export endpoint filters by source only (BE-1 / openapi); search, stage,
+  // score and date are not accepted, so they are not sent — the notice below
+  // tells the user the file is wider than the table in that case.
+  const exportIsWiderThanView = !!(urlQuery || stageFilter || scoreFilter || dateFrom || dateTo || assignedFilter)
 
   async function handleExport() {
     setExporting(true)
     try {
       const token = await getToken()
       if (!token) return
-      await downloadLeadsCsv(
-        {
-          pipeline_stage: stageFilter || undefined,
-          lead_score: scoreFilter || undefined,
-          date_from: dateFrom || undefined,
-          date_to: dateTo || undefined,
-        },
-        token
-      )
+      await downloadLeadsCsv({ source: sourceFilter || undefined }, token)
+    } catch (err) {
+      toast.error(errorMessage(err, 'Export failed'))
     } finally {
       setExporting(false)
     }
   }
 
-  // Debounce the ID search so typing stays responsive and filtering only runs
-  // once the user pauses (300ms) — matters more once search hits the backend.
-  const debouncedIdSearch = useDebouncedValue(idSearch, 300)
-
+  // Stage, score and date are not server-side filters yet, so they refine only
+  // the page that is loaded. The date comparison uses IST calendar days (a
+  // lead created 00:30 IST is "that day" in IST, not the previous UTC day).
   const filtered = (leads ?? []).filter((l: LeadSummary) => {
     if (stageFilter && l.pipeline_stage !== stageFilter) return false
     if (scoreFilter && l.lead_score !== scoreFilter) return false
-    if (sourceFilter && l.source !== sourceFilter) return false
-    if (debouncedIdSearch && !String(l.id).includes(debouncedIdSearch)) return false
-    if (dateFrom && l.created_at < dateFrom) return false
-    if (dateTo && l.created_at > dateTo + 'T23:59:59') return false
+    if (dateFrom || dateTo) {
+      const day = istDateKey(l.created_at)
+      if (dateFrom && day < dateFrom) return false
+      if (dateTo && day > dateTo) return false
+    }
     return true
   })
+  const pageLocalFilterActive = !!(stageFilter || scoreFilter || dateFrom || dateTo)
 
   const isEngineer = role === 'engineer'
 
-  // Compact per-stage counts from the leads already fetched for this view —
-  // never a separate invented total, since the backend contract has no
-  // dedicated stage-count endpoint.
+  // Compact per-stage counts for the page that is loaded — the backend has no
+  // stage-count endpoint, so this is explicitly "this page", never a total.
   const stageCounts = PIPELINE_STAGES.map((stage) => ({
     stage,
     count: (leads ?? []).filter((l) => l.pipeline_stage === stage).length,
@@ -305,11 +357,11 @@ export default function LeadsPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold text-[#091c3c]">Leads</h1>
-          <p className="font-utility text-sm text-[#111827]/50 mt-1">
-            {leads?.length ?? 0} total leads
+          <p className="font-utility text-sm text-[#111827]/50 mt-1" aria-live="polite">
+            {isLoading ? 'Loading…' : `${countFormat.format(total)} ${urlQuery || sourceFilter || effectiveAssignedFilter ? 'matching' : 'total'} leads`}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -328,16 +380,23 @@ export default function LeadsPage() {
           )}
         </div>
       </div>
+      {canExport && exportIsWiderThanView && (
+        <p className="mb-3 font-utility text-xs text-[#111827]/50" role="note">
+          Export CSV includes every lead for the selected source. The server does not yet filter exports by search, stage, score, date or assignment.
+        </p>
+      )}
 
       {/* Stage summary strip */}
       {stageCounts.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-2">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <span className="font-utility text-xs text-[#111827]/40">On this page:</span>
           {stageCounts.map(({ stage, count }) => (
             <button
               key={stage}
               type="button"
-              onClick={() => setStageFilter((s) => (s === stage ? '' : stage))}
-              className={`rounded-full border px-3 py-1 font-utility text-xs transition-colors ${
+              onClick={() => setParams({ stage: stageFilter === stage ? undefined : stage }, { keepPage: true })}
+              aria-pressed={stageFilter === stage}
+              className={`rounded-full border px-3 py-2 min-h-11 font-utility text-xs transition-colors focus-visible:outline-2 focus-visible:outline-[#f7a800] ${
                 stageFilter === stage
                   ? 'border-[#f7a800] bg-[#f7a800]/10 text-[#091c3c] font-semibold'
                   : 'border-[#e4e8ee] bg-white text-[#111827]/60 hover:bg-[#f7f9fc]'
@@ -360,7 +419,7 @@ export default function LeadsPage() {
             {canFilterByAssignment && (
               <Select
                 value={effectiveAssignedFilter || 'all'}
-                onValueChange={(v) => setAssignedFilter(v === 'all' ? '' : (v as LeadAssignmentFilter))}
+                onValueChange={(v) => setParams({ assigned: v === 'all' ? undefined : v })}
               >
                 <SelectTrigger className="w-44">
                   <SelectValue />
@@ -379,13 +438,16 @@ export default function LeadsPage() {
             <div className="relative">
               <Search className="absolute left-2.5 top-2 h-4 w-4 text-[#111827]/40" />
               <Input
-                placeholder="Search by ID"
-                value={idSearch}
-                onChange={(e) => setIdSearch(e.target.value)}
-                className="pl-8 w-36"
+                type="search"
+                aria-label={isEngineer ? 'Search by lead ID' : 'Search by name, email, phone or lead ID'}
+                placeholder={isEngineer ? 'Search by lead ID' : 'Name, email, phone or ID'}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value.slice(0, 100))}
+                className="pl-8 w-full sm:w-60"
+                autoComplete="off"
               />
             </div>
-            <Select value={stageFilter} onValueChange={(v) => setStageFilter(v as PipelineStage | '')}>
+            <Select value={stageFilter} onValueChange={(v) => setParams({ stage: v || undefined }, { keepPage: true })}>
               <SelectTrigger className="w-44">
                 <SelectValue placeholder="Pipeline stage" />
               </SelectTrigger>
@@ -397,7 +459,7 @@ export default function LeadsPage() {
               </SelectContent>
             </Select>
             {!isEngineer && (
-              <Select value={scoreFilter} onValueChange={(v) => setScoreFilter(v as LeadScore | '')}>
+              <Select value={scoreFilter} onValueChange={(v) => setParams({ score: v || undefined }, { keepPage: true })}>
                 <SelectTrigger className="w-36">
                   <SelectValue placeholder="Lead score" />
                 </SelectTrigger>
@@ -409,9 +471,9 @@ export default function LeadsPage() {
                 </SelectContent>
               </Select>
             )}
-            <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-36" title="From date" />
-            <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-36" title="To date" />
-            <Select value={sourceFilter} onValueChange={setSourceFilter}>
+            <Input type="date" value={dateFrom} onChange={(e) => setParams({ from: e.target.value || undefined }, { keepPage: true })} className="w-36" aria-label="From date" title="From date" />
+            <Input type="date" value={dateTo} onChange={(e) => setParams({ to: e.target.value || undefined }, { keepPage: true })} className="w-36" aria-label="To date" title="To date" />
+            <Select value={sourceFilter} onValueChange={(v) => setParams({ source: v || undefined })}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Source" />
               </SelectTrigger>
@@ -422,17 +484,13 @@ export default function LeadsPage() {
                 ))}
               </SelectContent>
             </Select>
-            {(stageFilter || scoreFilter || sourceFilter || idSearch || dateFrom || dateTo) && (
+            {(stageFilter || scoreFilter || sourceFilter || searchText || dateFrom || dateTo || assignedFilter) && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  setStageFilter('')
-                  setScoreFilter('')
-                  setSourceFilter('')
-                  setIdSearch('')
-                  setDateFrom('')
-                  setDateTo('')
+                  setSearchText('')
+                  router.replace(pathname, { scroll: false })
                 }}
               >
                 Clear filters
@@ -476,7 +534,9 @@ export default function LeadsPage() {
                 ? (
                     <TableRow>
                       <TableCell colSpan={isEngineer ? 6 : 7} className="text-center py-12 font-utility text-[#111827]/40">
-                        No leads found
+                        {pageLocalFilterActive && (leads?.length ?? 0) > 0
+                          ? 'No leads on this page match the stage, score or date filter — try another page.'
+                          : 'No leads found'}
                       </TableCell>
                     </TableRow>
                   )
@@ -528,6 +588,34 @@ export default function LeadsPage() {
                   ))}
             </TableBody>
           </Table>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e4e8ee] px-4 py-3">
+            <p className="font-utility text-sm text-[#111827]/60" aria-live="polite">
+              {total === 0
+                ? 'No results'
+                : `Page ${countFormat.format(page)} of ${countFormat.format(totalPages)} · ${countFormat.format(total)} leads`}
+              {pageLocalFilterActive && ' · stage, score and date filters apply to this page only'}
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-h-11 min-w-11"
+                disabled={page <= 1 || isPlaceholderData}
+                onClick={() => setParams({ page: String(page - 1) }, { keepPage: true })}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-h-11 min-w-11"
+                disabled={page >= totalPages || isPlaceholderData}
+                onClick={() => setParams({ page: String(page + 1) }, { keepPage: true })}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
         </Card>
       )}
     </div>

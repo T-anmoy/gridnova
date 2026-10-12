@@ -1,197 +1,46 @@
-import { NextResponse } from "next/server";
-import { Resend } from "resend";
-import { mirrorToBackend } from "@/lib/backend-mirror";
+import { handleLeadRequest } from "@/lib/lead-capture";
+import { configuratorMirrorPayload } from "@/lib/lead-mirror";
+import { configuratorLeadSchema, type ConfiguratorLeadInput } from "@/lib/lead-schemas";
+import type { EmailRow } from "@/lib/lead-email";
 
-interface ConfiguratorLeadBody {
-  customerType: "residential" | "society";
-  name: string;
-  phone: string;
-  email: string;
-  state?: string;
-  city?: string;
-  pinCode?: string;
-  discom?: string;
-  sizingMethod?: string;
-  averageMonthlyBill?: string;
-  monthlyUnits?: string;
-  roofAreaSqFt?: string;
-  connectionPhase?: string;
-  roofType?: string;
-  floors?: string;
-  accessDifficulty?: string;
-  shading?: string;
-  subsidyInterest?: "yes" | "no";
-  indicativeTotalInr?: number;
-  website?: string; // honeypot — real users never fill this
-}
+// The Solar Calculator's lead. Mirrors to the same backend endpoint as the
+// Estimate Form; BE-1 §5 made it accept every field the calculator collects.
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-function toFloat(value: string | undefined): number | undefined {
-  if (!value) return undefined;
-  const n = parseFloat(value);
-  return Number.isFinite(n) ? n : undefined;
-}
-
-// Mirrors app/api/estimate-request/route.ts's own pattern exactly (Resend
-// send first and unconditional, then a separate, isolated, best-effort
-// backend mirror) rather than sharing code with it — that file is out of
-// scope for this change.
-export async function POST(request: Request) {
-  let body: ConfiguratorLeadBody;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json(
-      { success: false, error: "Invalid request body." },
-      { status: 400 }
-    );
-  }
-
-  // Honeypot — bots fill this field, real users never see it. Reject silently
-  // (as a generic success) so bots get no signal their submission was caught.
-  if (body.website) {
-    return NextResponse.json({ success: true });
-  }
-
-  const { customerType, name, phone, email } = body;
-  if (!customerType || !name || !phone || !email) {
-    return NextResponse.json(
-      { success: false, error: "Name, phone, email and customer type are required." },
-      { status: 400 }
-    );
-  }
-
-  const apiKey = process.env.RESEND_API_KEY;
-  const notifyEmail = process.env.ESTIMATE_NOTIFY_EMAIL || "info@gridnova.in";
-  if (!apiKey || !notifyEmail) {
-    console.error(
-      "Solar Calculator lead received but RESEND_API_KEY / ESTIMATE_NOTIFY_EMAIL is not configured."
-    );
-    return NextResponse.json(
-      {
-        success: false,
-        error: "This form is not fully configured yet. Please call or email us directly.",
-      },
-      { status: 503 }
-    );
-  }
-
-  const recipients = notifyEmail
-    .split(",")
-    .map((addr) => addr.trim())
-    .filter(Boolean);
-
-  const rows: [string, string | undefined][] = [
-    ["Customer Type", customerType],
-    ["Name", name],
-    ["Phone", phone],
-    ["Email", email],
-    ["State", body.state],
-    ["City", body.city],
-    ["PIN Code", body.pinCode],
-    ["DISCOM", body.discom],
-    ["Sizing Method", body.sizingMethod],
-    ["Average Monthly Bill", body.averageMonthlyBill],
-    ["Average Monthly Units (kWh)", body.monthlyUnits],
-    ["Roof Area (sq ft)", body.roofAreaSqFt],
-    ["Connection Phase", body.connectionPhase],
-    ["Roof Type", body.roofType],
-    ["Number of Floors", body.floors],
-    ["Site Access Difficulty", body.accessDifficulty],
-    ["Shading Condition", body.shading],
-    ["Interested in PM Surya Ghar Subsidy", body.subsidyInterest === "yes" ? "Yes" : body.subsidyInterest === "no" ? "No" : undefined],
-    [
-      "Indicative Estimate Shown",
-      body.indicativeTotalInr != null ? `₹${body.indicativeTotalInr.toLocaleString("en-IN")}` : undefined,
-    ],
+function rows(d: ConfiguratorLeadInput): EmailRow[] {
+  return [
+    ["Customer Type", d.customerType],
+    ["Name", d.name],
+    ["Phone", d.phone],
+    ["Email", d.email],
+    ["State", d.state],
+    ["City", d.city],
+    ["PIN Code", d.pinCode],
+    ["DISCOM", d.discom],
+    ["Sizing Method", d.sizingMethod],
+    ["Average Monthly Bill", d.averageMonthlyBill],
+    ["Average Monthly Units (kWh)", d.monthlyUnits],
+    ["Roof Area (sq ft)", d.roofAreaSqFt],
+    ["Connection Phase", d.connectionPhase],
+    ["Roof Type", d.roofType],
+    ["Number of Floors", d.floors],
+    ["Site Access Difficulty", d.accessDifficulty],
+    ["Shading Condition", d.shading],
+    ["Interested in PM Surya Ghar Subsidy", d.subsidyInterest === "yes" ? "Yes" : d.subsidyInterest === "no" ? "No" : undefined],
+    ["Indicative Estimate Shown", d.indicativeTotalInr != null ? `₹${d.indicativeTotalInr.toLocaleString("en-IN")}` : undefined],
   ];
+}
 
-  const htmlRows = rows
-    .filter(([, value]) => value)
-    .map(
-      ([label, value]) =>
-        `<tr><td style="padding:6px 12px;color:#555;font-weight:600;">${escapeHtml(
-          label
-        )}</td><td style="padding:6px 12px;">${escapeHtml(String(value))}</td></tr>`
-    )
-    .join("");
-
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;">
-      <h2 style="color:#0e2a63;">New Solar Calculator Lead</h2>
-      <table style="border-collapse:collapse;width:100%;">${htmlRows}</table>
-    </div>
-  `;
-
-  const text = rows
-    .filter(([, value]) => value)
-    .map(([label, value]) => `${label}: ${value}`)
-    .join("\n");
-
-  try {
-    const resend = new Resend(apiKey);
-    const { error } = await resend.emails.send({
+export async function POST(request: Request) {
+  return handleLeadRequest(request, {
+    route: "configurator-lead",
+    schema: configuratorLeadSchema,
+    email: (d) => ({
       from: "Grid Nova Solar Calculator <estimates@gridnova.in>",
-      to: recipients,
-      subject: `New Solar Calculator Lead — ${customerType} — ${name}`,
-      html,
-      text,
-    });
-
-    if (error) {
-      console.error("Resend failed to send Solar Calculator lead email:", error);
-      return NextResponse.json(
-        {
-          success: false,
-          error: "We couldn't send your request right now. Please call us directly.",
-        },
-        { status: 502 }
-      );
-    }
-
-    // Best-effort mirror into the backend, same discipline as
-    // app/api/estimate-request/route.ts (via the shared mirrorToBackend
-    // helper): internal-key/customer-IP headers when configured, a short
-    // timeout, and a server-side log on a non-2xx or network failure instead
-    // of surfacing anything to the caller. Reuses the same backend endpoint
-    // /estimate already mirrors to — its accepted fields already cover
-    // everything this configurator collects, so no new backend
-    // Lead-creation endpoint was needed.
-    await mirrorToBackend(
-      "/api/v1/public/estimate-request",
-      {
-        name,
-        email,
-        phone,
-        customer_type: customerType,
-        state: body.state || undefined,
-        city: body.city || undefined,
-        average_bill: toFloat(body.averageMonthlyBill),
-        roof_type: body.roofType || undefined,
-        roof_area: toFloat(body.roofAreaSqFt),
-        connection_phase: body.connectionPhase || undefined,
-      },
-      request,
-      "Solar Calculator lead"
-    );
-
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("Unexpected error sending Solar Calculator lead email:", err);
-    return NextResponse.json(
-      {
-        success: false,
-        error: "We couldn't send your request right now. Please call us directly.",
-      },
-      { status: 500 }
-    );
-  }
+      subject: `New Solar Calculator Lead — ${d.customerType} — ${d.name}`,
+      heading: "New Solar Calculator Lead",
+      rows: rows(d),
+    }),
+    mirror: { path: "/api/v1/public/estimate-request", label: "Solar Calculator lead", payload: configuratorMirrorPayload },
+    failureMessage: "We couldn't send your request right now. Please call us directly.",
+  });
 }

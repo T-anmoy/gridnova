@@ -1,6 +1,12 @@
+import { API_BASE_URL } from '@/lib/config';
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 
+// NOTE: the wizard no longer uses this route — it uploads straight to the
+// backend from the browser (a Vercel Function rejects bodies over 4.5 MB, below
+// the wizard's 10 MB limit). It is kept, with the same honest
+// storage_not_configured handling, for small server-side callers.
+//
 // Proxies one file upload for an already-created ProposalInputs row to the
 // real backend endpoint (grid-nova-ai-backend's
 // POST /api/v1/proposal-inputs/{id}/upload). A thin pass-through, not a
@@ -9,10 +15,13 @@ import { auth } from "@clerk/nextjs/server";
 // backend decides — including a real 503 when R2 storage isn't configured,
 // which must reach the caller as an honest failure, never a fake success.
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE = API_BASE_URL;
 
 export async function POST(request: Request, ctx: RouteContext<"/api/proposal-inputs/[id]/upload">) {
   const { id } = await ctx.params;
+  if (!/^\d+$/.test(id)) {
+    return NextResponse.json({ success: false, error: "Invalid assessment id." }, { status: 400 });
+  }
 
   const session = await auth();
   const token = await session.getToken();

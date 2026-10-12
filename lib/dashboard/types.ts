@@ -484,16 +484,17 @@ export interface DraftProposalResponse {
   missing_fields: string[]
 }
 
+// GET /dashboard/leads (BE-1 §2). The backend filters only by these; stage,
+// score and date are refined client-side on the loaded page.
 export interface LeadListParams {
-  pipeline_stage?: PipelineStage
-  lead_score?: LeadScore
-  date_from?: string
-  date_to?: string
-  search?: string
-  page_size?: number
+  source?: string
   // Sales-scoping filter (Prompt 02b): 'any' means own + unassigned for
   // Sales specifically — any other role sending a non-empty value gets a 422.
   assigned?: LeadAssignmentFilter
+  // Customer name / email / phone / lead id (≤ 100 chars). Engineers: lead id only.
+  q?: string
+  page?: number
+  page_size?: number
 }
 
 export interface ProposalListParams {

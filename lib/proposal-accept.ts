@@ -114,17 +114,67 @@ export function isExpired(v: AcceptView): boolean {
   return v.status === 'expired'
 }
 
-export type AcceptScreen = 'loading' | 'ready' | 'accepted' | 'notfound' | 'expired' | 'error'
+export type AcceptScreen =
+  | 'loading'
+  | 'ready'
+  | 'accepted'
+  | 'notfound'
+  | 'expired'
+  | 'superseded'
+  | 'unavailable'
+  | 'reverification'
+  | 'error'
 
 // Map an HTTP status from the GET/POST accept endpoints to a customer-safe
 // screen — never a raw error/crash. Per the backend's accept_proposal
 // handler, an already-accepted proposal is a 200 (idempotent success, see
-// `already_accepted`), and 409 is used exclusively for an expired proposal —
-// there is no "already accepted" 409 case to map here.
+// `already_accepted`). This is the fallback for a 409 with no recognised code.
 export function screenForHttpStatus(httpStatus: number): AcceptScreen {
   if (httpStatus >= 200 && httpStatus < 300) return 'ready'
   if (httpStatus === 404) return 'notfound'
   if (httpStatus === 409) return 'expired'
   if (httpStatus === 410) return 'expired'
   return 'error'
+}
+
+// BE-1 §3 / BE-2: 409 bodies are `{detail: {code, message}}`. The codes decide
+// the screen; an unrecognised code (or the old plain-string 409) keeps the
+// previous "expired" mapping.
+export function acceptErrorCode(body: unknown): string | null {
+  const detail = (body as { detail?: unknown } | null)?.detail
+  if (detail && typeof detail === 'object' && !Array.isArray(detail)) {
+    const code = (detail as { code?: unknown }).code
+    return typeof code === 'string' ? code : null
+  }
+  return null
+}
+
+export function screenForAcceptError(httpStatus: number, body: unknown): AcceptScreen {
+  if (httpStatus === 409) {
+    switch (acceptErrorCode(body)) {
+      case 'proposal_superseded':
+        return 'superseded'
+      case 'proposal_not_available':
+        return 'unavailable'
+      case 'proposal_expired':
+        return 'expired'
+      case 'needs_reverification':
+        return 'reverification'
+    }
+  }
+  return screenForHttpStatus(httpStatus)
+}
+
+/** The accept-screen for a valid 2xx view. */
+export function screenForView(v: AcceptView): AcceptScreen {
+  return isAccepted(v) ? 'accepted' : isExpired(v) ? 'expired' : 'ready'
+}
+
+/** The public PDF link; the token is a path segment, so it is always encoded. */
+export function acceptPdfPath(token: string): string {
+  return `/api/v1/public/proposals/${encodeURIComponent(token)}/pdf`
+}
+
+export function acceptApiPath(token: string): string {
+  return `/api/v1/proposals/accept/${encodeURIComponent(token)}`
 }

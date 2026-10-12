@@ -1,7 +1,9 @@
+import { notAuthenticatedError } from '@/lib/api/http'
 import { useAuth } from '@clerk/nextjs'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ApiError, backoffDelay } from '@/lib/dashboard/api-error'
 import { dashboardFetch } from '@/lib/dashboard/api-client'
+import { publicFetch } from '@/lib/api/http'
 import type {
   AdminAssociate,
   AdminTerritoryItem,
@@ -27,38 +29,8 @@ import type {
 } from './types'
 import type { PaginatedResponse } from '@/lib/dashboard/types'
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
-
-// ── Shared plain fetch (no auth) for the public surface ──────────────────────
-
-async function publicFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  let res: Response
-  try {
-    res = await fetch(`${BACKEND_URL}${path}`, options)
-  } catch {
-    throw new ApiError(0, 'Network request failed')
-  }
-  if (!res.ok) {
-    const body = await res.text().catch(() => '')
-    let detail: unknown = body
-    try {
-      const parsed = JSON.parse(body) as { detail?: unknown }
-      detail = parsed.detail ?? body
-    } catch {
-      /* not JSON — keep raw text */
-    }
-    const structuredDetail =
-      detail && typeof detail === 'object' && !Array.isArray(detail) ? (detail as Record<string, unknown>) : undefined
-    const message =
-      typeof detail === 'string'
-        ? detail
-        : structuredDetail && typeof structuredDetail.message === 'string'
-          ? structuredDetail.message
-          : res.statusText
-    throw new ApiError(res.status, `API error ${res.status}`, message, structuredDetail ?? (Array.isArray(detail) ? { fieldErrors: detail } : undefined))
-  }
-  return (await res.json()) as T
-}
+// Shared plain fetch (no auth) for the public surface — see lib/api/http.ts.
+export { publicFetch }
 
 // ── Public reference data ────────────────────────────────────────────────────
 
@@ -170,7 +142,7 @@ export function useAssociateMe() {
     queryKey: ['associate-me'],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<AssociateMe>('/api/v1/associate/me', token)
     },
   })
@@ -182,7 +154,7 @@ export function useTerritoryMembers(params: TerritoryMemberListParams) {
     queryKey: ['territory-members', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = new URLSearchParams()
       for (const [k, v] of Object.entries(params)) if (v !== undefined) qs.set(k, String(v))
       const q = qs.toString()
@@ -216,7 +188,7 @@ export function useAssociateApplications(params?: ApplicationListParams) {
     queryKey: ['associate-applications', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
       return dashboardFetch<PaginatedResponse<ApplicationListItem>>(`/api/v1/dashboard/associate-applications${qs}`, token)
     },
@@ -230,7 +202,7 @@ export function useAssociateApplication(applicationType: ApplicationType, id: nu
     queryKey: ['associate-application', applicationType, id],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<ApplicationDetail>(`/api/v1/dashboard/associate-applications/${applicationType}/${id}`, token)
     },
     enabled: !!id,
@@ -262,7 +234,7 @@ export function useSetApplicationStatus() {
       note?: string
     }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch(`/api/v1/dashboard/associate-applications/${applicationType}/${id}/status`, token, {
         method: 'POST',
         body: JSON.stringify({ status, note }),
@@ -291,7 +263,7 @@ export function useApproveApplication() {
       verificationCallNote: string
     }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<{ application: ApplicationDetail; associate: AdminAssociate }>(
         `/api/v1/dashboard/associate-applications/${applicationType}/${id}/approve`,
         token,
@@ -320,7 +292,7 @@ export function useAdminAssociates(params?: AssociateListParams) {
     queryKey: ['associates', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
       return dashboardFetch<PaginatedResponse<AdminAssociate>>(`/api/v1/dashboard/associates${qs}`, token)
     },
@@ -334,7 +306,7 @@ export function useAdminAssociate(associateId: string) {
     queryKey: ['associate', associateId],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<AdminAssociate>(`/api/v1/dashboard/associates/${associateId}`, token)
     },
     enabled: !!associateId,
@@ -355,7 +327,7 @@ export function useSetAssociateStatus() {
       reason?: string
     }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<AdminAssociate>(`/api/v1/dashboard/associates/${associateId}/status`, token, {
         method: 'POST',
         body: JSON.stringify({ status, reason }),
@@ -375,7 +347,7 @@ export function useRetryClerkInvite() {
   return useMutation({
     mutationFn: async (associateId: string) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch(`/api/v1/dashboard/associates/${associateId}/clerk-invite`, token, { method: 'POST' })
     },
     onSuccess: (_data, associateId) => {
@@ -390,7 +362,7 @@ export function useRegenerateAssociateDocuments() {
   return useMutation({
     mutationFn: async (associateId: string) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch(`/api/v1/dashboard/associates/${associateId}/documents/regenerate`, token, { method: 'POST' })
     },
     onSuccess: (_data, associateId) => {
@@ -409,13 +381,13 @@ export async function fetchAdminAssociateDocumentLink(
 
 // ── Admin: territories and seats ─────────────────────────────────────────────
 
-export function useAdminTerritories(level: 'states' | 'districts' | 'blocks', parentLgdCode?: number) {
+export function useAdminTerritories(level: AdminTerritoryLevel, parentLgdCode?: number) {
   const { getToken } = useAuth()
   return useQuery({
     queryKey: ['admin-territories', level, parentLgdCode],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS({ parent_lgd_code: parentLgdCode })
       return dashboardFetch<{ items: AdminTerritoryItem[] }>(`/api/v1/dashboard/territories/${level}${qs}`, token).then(
         (r) => r.items
@@ -425,13 +397,58 @@ export function useAdminTerritories(level: 'states' | 'districts' | 'blocks', pa
   })
 }
 
+export type AdminTerritoryLevel = 'states' | 'districts' | 'blocks'
+
+// POST /dashboard/territories/districts | blocks — add a territory missing from
+// the seed data, by its official LGD code (Admin only). The 201 body has no
+// documented schema, so nothing is read from it: the lists are refetched.
+export type AddTerritoryInput =
+  | { level: 'districts'; state_lgd_code: number; lgd_code: number; name: string }
+  | { level: 'blocks'; district_lgd_code: number; lgd_code: number; name: string }
+
+function invalidateTerritories(qc: ReturnType<typeof useQueryClient>) {
+  void qc.invalidateQueries({ queryKey: ['admin-territories'] })
+  // A renamed / switched-off / added territory changes the registration pickers too.
+  for (const key of ['territory-states', 'territory-districts', 'territory-blocks']) void qc.invalidateQueries({ queryKey: [key] })
+}
+
+export function useAddTerritory() {
+  const { getToken } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (input: AddTerritoryInput) => {
+      const token = await getToken()
+      if (!token) throw notAuthenticatedError()
+      const { level, ...body } = input
+      return dashboardFetch(`/api/v1/dashboard/territories/${level}`, token, { method: 'POST', body: JSON.stringify(body) })
+    },
+    onSuccess: () => invalidateTerritories(qc),
+  })
+}
+
+// PATCH /dashboard/territories/{level}/{lgd_code} — rename, or switch off / on.
+// Only `name` and `is_active` exist on the request: an LGD code is the identity
+// and is never editable.
+export function useUpdateTerritory() {
+  const { getToken } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ level, lgdCode, ...patch }: { level: AdminTerritoryLevel; lgdCode: number; name?: string; is_active?: boolean }) => {
+      const token = await getToken()
+      if (!token) throw notAuthenticatedError()
+      return dashboardFetch(`/api/v1/dashboard/territories/${level}/${lgdCode}`, token, { method: 'PATCH', body: JSON.stringify(patch) })
+    },
+    onSuccess: () => invalidateTerritories(qc),
+  })
+}
+
 export function useTerritorySeats(params: { state_lgd_code?: number; level?: AssociateLevel; include_released?: boolean }) {
   const { getToken } = useAuth()
   return useQuery({
     queryKey: ['territory-seats', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS(params as Record<string, string | number | boolean | undefined | null>)
       return dashboardFetch<{ items: TerritorySeat[] }>(`/api/v1/dashboard/territory-seats${qs}`, token).then((r) => r.items)
     },
@@ -444,7 +461,7 @@ export function useReleaseTerritorySeat() {
   return useMutation({
     mutationFn: async ({ seatId, reason }: { seatId: number; reason: string }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch(`/api/v1/dashboard/territory-seats/${seatId}/release`, token, {
         method: 'POST',
         body: JSON.stringify({ reason }),

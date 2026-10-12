@@ -1,5 +1,6 @@
 'use client'
 
+import { notAuthenticatedError } from '@/lib/api/http'
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useUser, useAuth } from '@clerk/nextjs'
@@ -55,7 +56,7 @@ function FileRow({ inputId, file }: { inputId: number; file: ProposalInputDetail
     setDownloading(true)
     try {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       // Signed URLs expire — always fetch a fresh one on click, never cache it.
       const { url } = await fetchProposalInputFileUrl(inputId, file.file_ref, token)
       window.open(url, '_blank', 'noopener,noreferrer')

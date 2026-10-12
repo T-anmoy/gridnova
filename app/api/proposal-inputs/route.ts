@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/lib/config';
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
@@ -15,7 +16,7 @@ import type { ProposalFormValues } from "@/app/(internal)/proposal/new/types";
 // row, so the client uploads each file separately once this call returns a
 // real `inputs_id` (see app/api/proposal-inputs/[id]/upload/route.ts).
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE = API_BASE_URL;
 
 // Required fields mirror app/proposal/new/validation.ts's STEP_FIELDS —
 // keep the two in sync if the form's required-field set changes.

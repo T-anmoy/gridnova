@@ -1,3 +1,4 @@
+import { notAuthenticatedError } from '@/lib/api/http'
 import { useAuth } from '@clerk/nextjs'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardFetch } from '@/lib/dashboard/api-client'
@@ -22,7 +23,7 @@ function useAssociateMutation<TInput, TOut>(onboardingId: number, run: (token: s
   return useMutation({
     mutationFn: async (input: TInput) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return run(token, input)
     },
     // The register rides along on the execution status, so refetch that.
@@ -78,7 +79,7 @@ export function useAssociateCatalogue(category: Exclude<UnitCategory, 'other'>, 
     queryKey: ['associate-catalogue', category, term],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const params = new URLSearchParams({ category })
       if (term) params.set('q', term)
       return dashboardFetch<{ items: CatalogueItem[] }>(`${BASE}/equipment?${params.toString()}`, token).then((r) => r.items)

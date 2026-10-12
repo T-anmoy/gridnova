@@ -1,6 +1,8 @@
+import { notAuthenticatedError } from '@/lib/api/http'
 import { useAuth } from '@clerk/nextjs'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardFetch } from '@/lib/dashboard/api-client'
+import { apiDownload } from '@/lib/api/http'
 import type { FileLinkResponse } from '@/lib/associate/onboarding-types'
 import type { Milestone, PaymentTotals, StaffMilestone, StaffPayment } from '@/lib/associate/payment-types'
 import type { PaymentProject } from './payments-api-client'
@@ -24,6 +26,9 @@ export interface PaymentListParams {
   onboarding_id?: number
   date_from?: string
   date_to?: string
+  // Customer name, payment reference, project reference or receipt number
+  // (backend search, ≤ 100 chars, applied before paging).
+  q?: string
   page?: number
   page_size?: number
 }
@@ -45,7 +50,7 @@ function useStaffGet<T>(key: unknown[], path: string, enabled = true) {
     queryKey: key,
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<T>(path, token)
     },
     enabled,
@@ -76,7 +81,7 @@ function useAction<TInput, TOut>(run: (token: string, input: TInput) => Promise<
   return useMutation({
     mutationFn: async (input: TInput) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return run(token, input)
     },
     onSuccess: () => {
@@ -111,19 +116,6 @@ export async function fetchStaffPaymentProofLink(paymentId: number, token: strin
 // Authenticated CSV download as a blob (never a bare link: the endpoint needs the bearer token).
 export type ExportKind = 'payments' | 'receipts' | 'ledger'
 export async function downloadExport(kind: ExportKind, token: string, range: { date_from?: string; date_to?: string }): Promise<void> {
-  const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
-  const res = await fetch(`${base}${BASE}/exports/${kind}.csv${qs(range)}`, { headers: { Authorization: `Bearer ${token}` } })
-  if (!res.ok) {
-    const { ApiError } = await import('@/lib/dashboard/api-error')
-    throw new ApiError(res.status, `API error ${res.status}`, (await res.text().catch(() => '')) || res.statusText)
-  }
-  const blob = await res.blob()
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `grid-nova-${kind}${range.date_from ? `-${range.date_from}` : ''}${range.date_to ? `-to-${range.date_to}` : ''}.csv`
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
-  URL.revokeObjectURL(url)
+  const fallback = `grid-nova-${kind}${range.date_from ? `-${range.date_from}` : ''}${range.date_to ? `-to-${range.date_to}` : ''}.csv`
+  await apiDownload(`${BASE}/exports/${kind}.csv${qs(range)}`, token, fallback)
 }

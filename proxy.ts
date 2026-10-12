@@ -59,9 +59,15 @@ export default clerkMiddleware(async (auth, req) => {
   return localeRouting(req)
 })
 
+// Next internals and real static assets are skipped; everything else — including
+// dynamic routes whose last segment merely looks like a file (/dashboard/leads/1.html,
+// /dashboard/exports/x.csv) — goes through clerkMiddleware, so a crafted suffix can
+// never bypass the protection above. Documents/data extensions (html, csv, docx,
+// xlsx, zip) are deliberately NOT in this list.
+// (The matcher must stay a literal: Next analyses it statically at build time.)
 export const config = {
   matcher: [
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/((?!_next|[^?]*\\.(?:css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|webmanifest)).*)',
     '/(api|trpc)(.*)',
   ],
 }

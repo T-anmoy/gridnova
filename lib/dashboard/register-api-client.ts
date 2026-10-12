@@ -1,3 +1,4 @@
+import { notAuthenticatedError } from '@/lib/api/http'
 import { useAuth } from '@clerk/nextjs'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { dashboardFetch, useEquipment } from '@/lib/dashboard/api-client'
@@ -22,7 +23,7 @@ function useRegisterMutation<TInput, TOut>(onboardingId: number, run: (token: st
   return useMutation({
     mutationFn: async (input: TInput) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return run(token, input)
     },
     onSuccess: () => {
@@ -83,7 +84,7 @@ export function useCreateCatalogueItem(onboardingId: number) {
   return useMutation({
     mutationFn: async (input: CatalogueItemInput) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<CatalogueItemResult>(`${unitsPath(onboardingId)}/catalogue`, token, body(input))
     },
     onSuccess: () => {

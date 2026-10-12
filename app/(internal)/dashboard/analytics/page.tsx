@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { useUser } from '@clerk/nextjs'
 import { AlertCircle, TrendingUp } from 'lucide-react'
 import { useAnalytics } from '@/lib/dashboard/api-client'
+import { istDateKey } from '@/lib/dashboard/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -83,11 +84,11 @@ export default function AnalyticsPage() {
   const employeeId = isSales ? (user?.id ?? undefined) : undefined
 
   const [dateFrom, setDateFrom] = useState(() => {
-    const d = new Date()
-    d.setDate(d.getDate() - 30)
-    return d.toISOString().split('T')[0]
+    // IST calendar days — toISOString() would give the UTC date, a day behind
+    // for the first 5½ hours of every IST day.
+    return istDateKey(new Date(Date.now() - 30 * 86_400_000))
   })
-  const [dateTo, setDateTo] = useState(() => new Date().toISOString().split('T')[0])
+  const [dateTo, setDateTo] = useState(() => istDateKey(new Date()))
 
   const { data, isLoading, error, refetch } = useAnalytics({
     date_from: dateFrom || undefined,

@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/lib/config';
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 
@@ -11,7 +12,7 @@ import { auth } from "@clerk/nextjs/server";
 // can pre-fill. The real GET /api/v1/dashboard/leads/{id} customer shape has
 // no phone field, so `phone` here is always null — never fabricated.
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE = API_BASE_URL;
 
 interface DashboardLeadDetail {
   lead_id: number;
@@ -20,6 +21,9 @@ interface DashboardLeadDetail {
 
 export async function GET(_request: Request, ctx: RouteContext<"/api/proposal-inputs/lead/[id]">) {
   const { id } = await ctx.params;
+  if (!/^\d+$/.test(id)) {
+    return NextResponse.json({ success: false, error: "Invalid lead id." }, { status: 400 });
+  }
 
   const session = await auth();
   const token = await session.getToken();

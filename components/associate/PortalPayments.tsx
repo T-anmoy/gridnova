@@ -21,6 +21,7 @@ import {
 import { ApiError, wrongAccountOf } from '@/lib/dashboard/api-error'
 import { formatDate } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
+import { useMilestoneLabel } from '@/lib/pricing/useMilestoneLabel'
 import type { Milestone, Payment, PaymentOverview } from '@/lib/associate/payment-types'
 
 const CHIP: Record<string, string> = {
@@ -82,6 +83,7 @@ function Instructions({ copy }: { copy: PaymentCopy }) {
 }
 
 function Milestones({ milestones, copy }: { milestones: Milestone[]; copy: PaymentCopy }) {
+  const milestoneLabel = useMilestoneLabel()
   if (milestones.length === 0) return null
   return (
     <Card>
@@ -93,7 +95,7 @@ function Milestones({ milestones, copy }: { milestones: Milestone[]; copy: Payme
           return (
             <li key={m.milestone_id} className="rounded-xl border border-[#e4e8ee] p-3" data-testid="milestone">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="font-utility text-sm font-semibold text-[#091c3c]">{m.label}</p>
+                <p className="font-utility text-sm font-semibold text-[#091c3c]">{milestoneLabel(m.label)}</p>
                 <span
                   className={`rounded-full px-2.5 py-1 font-utility text-xs font-semibold ${
                     m.overdue ? 'bg-red-100 text-red-800' : m.due_status === 'paid' ? 'bg-emerald-100 text-emerald-800' : collect ? 'bg-[#f7a800]/15 text-[#7a5200]' : 'bg-[#111827]/10 text-[#111827]/60'
@@ -129,6 +131,7 @@ function PaymentRow({
   onboardingId: number
   copy: PaymentCopy
 }) {
+  const milestoneLabel = useMilestoneLabel()
   const { getToken } = useAuth()
   const upload = useUploadPaymentProof(onboardingId)
   const cancel = useCancelCustomerPayment(onboardingId)
@@ -175,7 +178,7 @@ function PaymentRow({
       <p className="mt-1 text-xs text-[#111827]/60">
         {copy.modes[payment.mode as keyof PaymentCopy['modes']] ?? humanize(payment.mode)} · {payment.reference} · {formatDate(payment.recorded_at)}
       </p>
-      {milestone && <p className="mt-1 text-xs text-[#111827]/50">{copy.forMilestone.replace('{label}', milestone.label)}</p>}
+      {milestone && <p className="mt-1 text-xs text-[#111827]/50">{copy.forMilestone.replace('{label}', milestoneLabel(milestone.label))}</p>}
       {payment.previous_payment_id != null && (
         <p className="mt-1 text-xs text-[#111827]/60" data-testid="replaces">{copy.replaces.replace('{id}', String(payment.previous_payment_id))}</p>
       )}

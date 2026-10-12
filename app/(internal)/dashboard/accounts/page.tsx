@@ -1,6 +1,8 @@
 'use client'
 
+import { notAuthenticatedError } from '@/lib/api/http'
 import { useState } from 'react'
+import { useDebouncedValue } from '@/lib/dashboard/use-debounced-value'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@clerk/nextjs'
@@ -56,6 +58,32 @@ function WhoCell({ name, code, fallback }: { name?: string | null; code?: string
   )
 }
 
+// Backend search for the payment lists (`q`, BE-1 A4): typed text is debounced
+// 300 ms, then sent to the server, which filters BEFORE paging — so a match on
+// page 7 is found, and `total` is the filtered count. A changed search returns
+// to page 1 (state adjusted during render, React's documented alternative to an
+// effect); the other filters stay as they are.
+function useSearchedPage() {
+  const [text, setText] = useState('')
+  const q = useDebouncedValue(text.trim(), 300)
+  const [page, setPage] = useState(1)
+  const [lastQ, setLastQ] = useState(q)
+  if (q !== lastQ) {
+    setLastQ(q)
+    setPage(1)
+  }
+  return { text, setText, q, page, setPage }
+}
+
+function SearchBox({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <label className="flex items-center gap-1.5 text-xs text-gray-500">
+      <span className="sr-only">Search by customer, payment reference, project code or receipt number</span>
+      <Input type="search" className="h-11 w-full sm:h-9 sm:w-72" placeholder="Customer, reference, project or receipt no." maxLength={100} autoComplete="off" value={value} onChange={(e) => onChange(e.target.value)} />
+    </label>
+  )
+}
+
 // Filters the rows already on this page by customer name or project code — no extra request.
 function RowFilter({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
@@ -81,14 +109,14 @@ function PaymentsTab() {
   const [needsAttention, setNeedsAttention] = useState(false)
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
-  const [filter, setFilter] = useState('')
-  const [page, setPage] = useState(1)
+  const { text, setText, q, page, setPage } = useSearchedPage()
   const { data, isLoading, error, refetch } = usePaymentList({
     status: status || undefined,
     mode: mode || undefined,
     needs_attention: needsAttention || undefined,
     date_from: from || undefined,
     date_to: to || undefined,
+    q: q || undefined,
     page,
     page_size: 25,
   })
@@ -115,7 +143,7 @@ function PaymentsTab() {
         </Select>
         <label className="flex items-center gap-1.5 text-xs text-gray-500">From <Input type="date" className="h-9 w-40" value={from} onChange={(e) => { setFrom(e.target.value); reset() }} /></label>
         <label className="flex items-center gap-1.5 text-xs text-gray-500">To <Input type="date" className="h-9 w-40" value={to} onChange={(e) => { setTo(e.target.value); reset() }} /></label>
-        <RowFilter value={filter} onChange={setFilter} />
+        <SearchBox value={text} onChange={setText} />
       </div>
       {error && <DashboardError error={error} onRetry={() => void refetch()} />}
       <Card>
@@ -129,7 +157,7 @@ function PaymentsTab() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data?.items.filter((p) => matchesFilter(filter, p.customer_name, p.project_reference_id)).map((p) => (
+                {data?.items.map((p) => (
                   <TableRow key={p.payment_id} className="cursor-pointer" data-testid="payment-row" onClick={() => router.push(`/dashboard/accounts/payments/${p.payment_id}`)}>
                     <TableCell className="text-sm">
                       <WhoCell name={p.customer_name} code={p.project_reference_id} fallback={null} />
@@ -143,7 +171,7 @@ function PaymentsTab() {
                     <TableCell className="text-sm text-gray-500">{formatDate(p.recorded_at)}</TableCell>
                   </TableRow>
                 ))}
-                {data && !data.items.some((p) => matchesFilter(filter, p.customer_name, p.project_reference_id)) && <TableRow><TableCell colSpan={7} className="py-10 text-center text-sm text-gray-500">No payments match.</TableCell></TableRow>}
+                {data && data.items.length === 0 && <TableRow><TableCell colSpan={7} className="py-10 text-center text-sm text-gray-500">No payments match.</TableCell></TableRow>}
               </TableBody>
             </Table>
           )}
@@ -214,10 +242,9 @@ function MilestonesTab() {
 // Receipts are derived from verified payments (there is no separate list endpoint).
 function ReceiptsTab({ canAct }: { canAct: boolean }) {
   const [needsAttention, setNeedsAttention] = useState(false)
-  const [filter, setFilter] = useState('')
-  const [page, setPage] = useState(1)
+  const { text, setText, q, page, setPage } = useSearchedPage()
   const [notice, setNotice] = useState<string | null>(null)
-  const { data, isLoading, error, refetch } = usePaymentList({ status: 'verified', needs_attention: needsAttention || undefined, page, page_size: 25 })
+  const { data, isLoading, error, refetch } = usePaymentList({ status: 'verified', needs_attention: needsAttention || undefined, q: q || undefined, page, page_size: 25 })
   const resend = useResendReceipt()
   const release = useReleaseHeldReceipts()
 
@@ -247,7 +274,7 @@ function ReceiptsTab({ canAct }: { canAct: boolean }) {
           Needs attention
         </Button>
         {canAct && <Button variant="outline" size="sm" disabled={release.isPending} onClick={() => void handleRelease()}>Release held receipts</Button>}
-        <RowFilter value={filter} onChange={setFilter} />
+        <SearchBox value={text} onChange={setText} />
       </div>
       {notice && <p role="status" className="rounded-lg border border-[#e4e8ee] bg-white px-4 py-2 text-sm text-gray-700">{notice}</p>}
       {error && <DashboardError error={error} onRetry={() => void refetch()} />}
@@ -259,7 +286,7 @@ function ReceiptsTab({ canAct }: { canAct: boolean }) {
                 <TableRow><TableHead>Receipt</TableHead><TableHead>Customer</TableHead><TableHead>Payment</TableHead><TableHead>Amount</TableHead><TableHead>Customer email</TableHead><TableHead>State</TableHead><TableHead /></TableRow>
               </TableHeader>
               <TableBody>
-                {data?.items.filter((p) => matchesFilter(filter, p.customer_name, p.project_reference_id)).map((p) => {
+                {data?.items.map((p) => {
                   const r = p.receipt
                   const reasons = (p.attention_reasons ?? []).filter((x) => x.startsWith('receipt_'))
                   return (
@@ -282,7 +309,7 @@ function ReceiptsTab({ canAct }: { canAct: boolean }) {
                     </TableRow>
                   )
                 })}
-                {data && !data.items.some((p) => matchesFilter(filter, p.customer_name, p.project_reference_id)) && <TableRow><TableCell colSpan={7} className="py-10 text-center text-sm text-gray-500">No receipts match.</TableCell></TableRow>}
+                {data && data.items.length === 0 && <TableRow><TableCell colSpan={7} className="py-10 text-center text-sm text-gray-500">No receipts match.</TableCell></TableRow>}
               </TableBody>
             </Table>
           )}
@@ -304,7 +331,7 @@ function ExportPanel() {
     setBusy(kind)
     try {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       await downloadExport(kind, token, { date_from: from || undefined, date_to: to || undefined })
     } catch (err) {
       setError(staffPaymentError(err))

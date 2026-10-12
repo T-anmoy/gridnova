@@ -11,7 +11,10 @@ import { REGISTER_ERRORS, registerErrorMessage } from '@/lib/dashboard/register-
 import type { StaffRegisterUnit } from '@/lib/dashboard/register-staff-types'
 
 const label = 'mb-1.5 block text-xs uppercase tracking-[0.1em] text-gray-500'
-const CATEGORIES: [EquipmentCategory, string][] = [['module', 'Module'], ['inverter', 'Inverter'], ['structure', 'Structure'], ['bos_component', 'BOS component']]
+// A unit is only ever matched to an item of its own kind (the server answers
+// equipment_category_mismatch otherwise), so the add-model form is locked to
+// that category rather than offering all four EquipmentCategory values.
+const CATEGORY_LABEL: Partial<Record<EquipmentCategory, string>> = { module: 'Module', inverter: 'Inverter' }
 const field = 'w-full min-h-[44px] rounded-xl border border-[#e4e8ee] bg-white px-3 py-2 text-sm outline-none focus:border-[#2f5daa]'
 
 /**
@@ -32,7 +35,7 @@ export default function MatchUnitDialog({ onboardingId, unit, locked, onClose }:
   // "Add this model to the catalogue": create the item, then match the unit to it.
   const create = useCreateCatalogueItem(onboardingId)
   const [adding, setAdding] = useState(false)
-  const [category, setCategory] = useState<EquipmentCategory>(unit.category === 'inverter' ? 'inverter' : 'module')
+  const category: EquipmentCategory = unit.category === 'inverter' ? 'inverter' : 'module'
   const [brand, setBrand] = useState(unit.brand_as_printed ?? '')
   const [model, setModel] = useState(unit.model_as_printed ?? '')
   const [spec, setSpec] = useState('')
@@ -112,9 +115,10 @@ export default function MatchUnitDialog({ onboardingId, unit, locked, onClose }:
               <p className="text-sm font-semibold">Add this model to the catalogue</p>
               <div>
                 <label htmlFor="cat-category" className={label}>Category *</label>
-                <select id="cat-category" className={field} value={category} disabled={createdId != null} onChange={(e) => setCategory(e.target.value as EquipmentCategory)}>
-                  {CATEGORIES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                <select id="cat-category" className={field} value={category} disabled aria-describedby="cat-category-note">
+                  <option value={category}>{CATEGORY_LABEL[category]}</option>
                 </select>
+                <p id="cat-category-note" className="mt-1 text-xs text-gray-500">Fixed to this unit’s kind — a unit can only be matched to an item of the same kind.</p>
               </div>
               <div>
                 <label htmlFor="cat-brand" className={label}>Brand *</label>

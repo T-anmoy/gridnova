@@ -10,7 +10,7 @@ import { fontClassesFor } from "@/lib/fonts";
 import { I18nProvider } from "@/lib/i18n/client";
 import { LOCALES, LOCALE_META } from "@/lib/i18n/config";
 import { chromeMessages, isMachineDraft, messagesFor, resolveLocale, type LangParams } from "@/lib/i18n/messages";
-import { OG_IMAGE, SITE_URL, languageAlternates } from "@/lib/seo";
+import { OG_IMAGE, SITE_URL, googleSiteVerification, languageAlternates } from "@/lib/seo";
 import { organizationSchema, localBusinessSchema, patnaLocalBusinessSchema } from "@/lib/structured-data";
 
 // Root layout for the public site. `[lang]` is en | hi | bn; the proxy maps
@@ -30,6 +30,8 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
     description: m.description,
     keywords: m.keywords,
     alternates: { languages: languageAlternates("/") },
+    // Search Console ownership tag — present only when the env var is set.
+    ...(googleSiteVerification() ? { verification: { google: googleSiteVerification() } } : {}),
     openGraph: {
       title: m.title,
       description: m.ogDescription,

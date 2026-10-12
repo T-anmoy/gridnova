@@ -1,3 +1,4 @@
+import { notAuthenticatedError } from '@/lib/api/http'
 import { useAuth } from '@clerk/nextjs'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardFetch } from '@/lib/dashboard/api-client'
@@ -24,110 +25,11 @@ import type {
   UploadSignedAgreementInput,
 } from './onboarding-types'
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 const BASE = '/api/v1/associate/onboardings'
 
-function buildQS(params: Record<string, string | number | boolean | undefined | null>): string {
-  const qs = new URLSearchParams()
-  for (const [k, v] of Object.entries(params)) {
-    if (v !== undefined && v !== null && v !== '') qs.set(k, String(v))
-  }
-  const s = qs.toString()
-  return s ? `?${s}` : ''
-}
-
-// An upload that makes no progress for this long is abandoned (and retried by
-// the photo queue) instead of hanging forever on a dead mobile connection.
-export const UPLOAD_STALL_TIMEOUT_MS = 45_000
-
-// Multipart uploads (files, signed scans) can't go through dashboardFetch's
-// JSON-only body handling — this mirrors its auth/error handling for
-// FormData instead. Exported so the staff-side dashboard onboarding client
-// (which shares this same signed-agreement endpoint shape) doesn't need its
-// own copy.
-export async function dashboardFetchForm<T>(
-  path: string,
-  token: string,
-  formData: FormData,
-  // When given, the upload goes through XMLHttpRequest so progress (0–100) can
-  // be reported — fetch can't observe upload progress.
-  onProgress?: (percent: number) => void
-): Promise<T> {
-  const { ApiError } = await import('@/lib/dashboard/api-error')
-  let status: number
-  let statusText: string
-  let body: string
-  try {
-    if (onProgress && typeof XMLHttpRequest !== 'undefined') {
-      const xhr = await new Promise<XMLHttpRequest>((resolve, reject) => {
-        const req = new XMLHttpRequest()
-        // A stall (no bytes moving) — not a total-duration cap, so a slow but
-        // moving upload on 2G is never cut off.
-        let stall: ReturnType<typeof setTimeout> | undefined
-        const armStall = () => {
-          clearTimeout(stall)
-          stall = setTimeout(() => req.abort(), UPLOAD_STALL_TIMEOUT_MS)
-        }
-        const settle = (fn: () => void) => {
-          clearTimeout(stall)
-          fn()
-        }
-        req.open('POST', `${BACKEND_URL}${path}`)
-        req.setRequestHeader('Authorization', `Bearer ${token}`)
-        req.upload.onprogress = (e) => {
-          armStall()
-          if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
-        }
-        req.onprogress = armStall
-        req.onload = () => settle(() => resolve(req))
-        req.onerror = () => settle(() => reject(new Error('network')))
-        req.ontimeout = () => settle(() => reject(new Error('network')))
-        req.onabort = () => settle(() => reject(new Error('network')))
-        armStall()
-        req.send(formData)
-      })
-      status = xhr.status
-      statusText = xhr.statusText
-      body = xhr.responseText
-    } else {
-      const res = await fetch(`${BACKEND_URL}${path}`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      })
-      status = res.status
-      statusText = res.statusText
-      body = await res.text().catch(() => '')
-    }
-  } catch {
-    throw new ApiError(0, 'Network request failed')
-  }
-  if (status < 200 || status >= 300) {
-    let detail = body
-    let structuredDetail: Record<string, unknown> | undefined
-    try {
-      const parsed = JSON.parse(body) as { detail?: unknown }
-      const d = parsed.detail
-      if (typeof d === 'string' && d) {
-        detail = d
-      } else if (d && typeof d === 'object') {
-        structuredDetail = d as Record<string, unknown>
-        const msg = (d as Record<string, unknown>).message
-        detail = typeof msg === 'string' ? msg : statusText
-      }
-    } catch {
-      /* not JSON */
-    }
-    throw new ApiError(status, `API error ${status}`, detail || statusText, structuredDetail)
-  }
-  try {
-    return JSON.parse(body) as T
-  } catch {
-    // A 2xx whose body is not JSON (a proxy page, a truncated response) is a
-    // server-side problem, not a success the caller can use.
-    throw new ApiError(status, 'Invalid response', 'The server sent a response that could not be read.')
-  }
-}
+// Transport lives in lib/api/http.ts; re-exported so existing imports keep working.
+export { UPLOAD_STALL_TIMEOUT_MS, buildQS, apiFetchForm as dashboardFetchForm } from '@/lib/api/http'
+import { apiFetchForm as dashboardFetchForm, buildQS } from '@/lib/api/http'
 
 // ── Reference data ────────────────────────────────────────────────────────
 
@@ -137,7 +39,7 @@ export function useOnboardingOptions() {
     queryKey: ['onboarding-options'],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<OnboardingOptions>(`${BASE}/options`, token)
     },
     staleTime: 5 * 60_000,
@@ -152,7 +54,7 @@ export function useOnboardings(params?: OnboardingListParams) {
     queryKey: ['onboardings', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
       return dashboardFetch<PaginatedOnboardings>(`${BASE}${qs}`, token)
     },
@@ -166,7 +68,7 @@ export function useOnboarding(id: number) {
     queryKey: ['onboarding', id],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<Onboarding>(`${BASE}/${id}`, token)
     },
     enabled: !!id,
@@ -181,7 +83,7 @@ export function useCreateOnboarding() {
   return useMutation({
     mutationFn: async (input: CreateOnboardingInput) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<CreateOnboardingResponse>(BASE, token, { method: 'POST', body: JSON.stringify(input) })
     },
     onSuccess: () => {
@@ -197,7 +99,7 @@ export function useUpdateOnboarding() {
   return useMutation({
     mutationFn: async ({ id, patch }: { id: number; patch: Record<string, unknown> }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<Onboarding>(`${BASE}/${id}`, token, { method: 'PATCH', body: JSON.stringify(patch) })
     },
     onSuccess: (_data, vars) => {
@@ -216,7 +118,7 @@ export function useSubmitOnboarding() {
   return useMutation({
     mutationFn: async (id: number) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<Onboarding>(`${BASE}/${id}/submit`, token, { method: 'POST' })
     },
     onSuccess: (_data, id) => {
@@ -237,7 +139,7 @@ export function useSetSiteLocation() {
   return useMutation({
     mutationFn: async ({ id, input }: { id: number; input: SetSiteLocationInput }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<SiteLocationResponse>(`${BASE}/${id}/site-location`, token, { method: 'POST', body: JSON.stringify(input) })
     },
     onSuccess: (_data, vars) => {
@@ -254,7 +156,7 @@ export function useConfirmSiteLocation() {
   return useMutation({
     mutationFn: async (id: number) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<SiteLocationResponse>(`${BASE}/${id}/site-location/confirm`, token, { method: 'POST' })
     },
     onSuccess: (_data, id) => {
@@ -290,7 +192,7 @@ export function useUploadOnboardingFile() {
   return useMutation({
     mutationFn: async ({ id, input }: { id: number; input: UploadFileInput }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const formData = buildUploadForm(input)
       return dashboardFetchForm<Onboarding>(`${BASE}/${id}/files`, token, formData, input.onProgress)
     },
@@ -312,7 +214,7 @@ export function useOnboardingProgress(id: number) {
     queryKey: ['onboarding-progress', id],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<ProgressResponse>(`${BASE}/${id}/progress`, token)
     },
     enabled: !!id,
@@ -327,7 +229,7 @@ export function useCreateEstimate() {
   return useMutation({
     mutationFn: async ({ id, input }: { id: number; input: CreateEstimateInput }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<Estimate>(`${BASE}/${id}/estimates`, token, { method: 'POST', body: JSON.stringify(input) })
     },
     onSuccess: (_data, vars) => {
@@ -342,7 +244,7 @@ export function useOnboardingEstimates(id: number) {
     queryKey: ['onboarding-estimates', id],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<EstimateListResponse>(`${BASE}/${id}/estimates`, token).then((r) => r.items)
     },
     enabled: !!id,
@@ -357,7 +259,7 @@ export function useRequestFormalProposal() {
   return useMutation({
     mutationFn: async (id: number) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<RequestFormalProposalResponse>(`${BASE}/${id}/request-formal-proposal`, token, { method: 'POST' })
     },
     onSuccess: (_data, id) => {
@@ -374,7 +276,7 @@ export function useOnboardingFormalProposal(id: number) {
     queryKey: ['onboarding-formal-proposal', id],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<FormalProposalReadResponse>(`${BASE}/${id}/formal-proposal`, token)
     },
     enabled: !!id,
@@ -389,7 +291,7 @@ export function useInPersonAcceptance() {
   return useMutation({
     mutationFn: async ({ id, input }: { id: number; input: InPersonAcceptanceInput }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<InPersonAcceptanceResponse>(`${BASE}/${id}/proposal/in-person-acceptance`, token, {
         method: 'POST',
         body: JSON.stringify(input),
@@ -411,7 +313,7 @@ export function useOnboardingAgreement(id: number) {
     queryKey: ['onboarding-agreement', id],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<AgreementResponse>(`${BASE}/${id}/agreement`, token)
     },
     enabled: !!id,
@@ -424,7 +326,7 @@ export function useUploadSignedAgreement() {
   return useMutation({
     mutationFn: async ({ id, input }: { id: number; input: UploadSignedAgreementInput }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const formData = new FormData()
       formData.set('file', input.file)
       formData.set('stamp_paper_number', input.stamp_paper_number)

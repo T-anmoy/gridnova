@@ -1,3 +1,4 @@
+import { notAuthenticatedError } from '@/lib/api/http'
 import { useAuth } from '@clerk/nextjs'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardFetch } from '@/lib/dashboard/api-client'
@@ -27,12 +28,14 @@ export function useWorkQueues() {
   const { getToken } = useAuth()
   return useQuery({
     queryKey: ['work-queues'],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
-      return dashboardFetch<WorkQueues>(`${BASE}/work-queues`, token)
+      if (!token) throw notAuthenticatedError()
+      return dashboardFetch<WorkQueues>(`${BASE}/work-queues`, token, { signal })
     },
     staleTime: 60_000,
+    // A work queue: stale badges mislead, so refresh when the tab regains focus.
+    refetchOnWindowFocus: true,
     refetchInterval: 120_000,
   })
 }
@@ -45,7 +48,7 @@ export function useExecutionQueue(params: ExecutionQueueParams) {
     queryKey: ['staff-execution-queue', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<PaginatedExecutionQueue>(`${BASE}/execution${qs(params as Record<string, string | number | boolean | undefined>)}`, token)
     },
     staleTime: 30_000,
@@ -58,7 +61,7 @@ export function useStaffExecution(onboardingId: number, enabled = true) {
     queryKey: ['staff-execution', onboardingId],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<StaffExecutionDetail>(detailPath(onboardingId), token)
     },
     enabled: enabled && !!onboardingId,
@@ -72,7 +75,7 @@ function useDetailMutation<TInput>(onboardingId: number, run: (token: string, in
   return useMutation({
     mutationFn: async (input: TInput) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return run(token, input)
     },
     onSuccess: (detail) => {
@@ -124,7 +127,7 @@ export function useUploadStaffExecutionFile(onboardingId: number) {
   return useMutation({
     mutationFn: async (input: UploadFileInput) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetchForm<StaffExecutionDetail>(`${detailPath(onboardingId)}/files`, token, buildUploadForm(input), input.onProgress)
     },
     onSuccess: (detail) => qc.setQueryData(['staff-execution', onboardingId], detail),

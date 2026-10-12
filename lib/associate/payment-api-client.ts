@@ -1,3 +1,4 @@
+import { notAuthenticatedError } from '@/lib/api/http'
 import { useAuth } from '@clerk/nextjs'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardFetch } from '@/lib/dashboard/api-client'
@@ -16,7 +17,7 @@ export function usePaymentInstructions() {
     queryKey: ['payment-instructions'],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<PaymentInstructions>('/api/v1/associate/payments/instructions', token)
     },
     staleTime: 5 * 60_000,
@@ -29,7 +30,7 @@ export function useCustomerPayments(onboardingId: number) {
     queryKey: ['payments', onboardingId],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<PaymentOverview>(`${ONBOARDINGS}/${onboardingId}/payments`, token)
     },
     enabled: !!onboardingId,
@@ -42,7 +43,7 @@ export function useRecordCustomerPayment(onboardingId: number) {
   return useMutation({
     mutationFn: async (input: RecordPaymentInput) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<RecordPaymentResponse>(`${ONBOARDINGS}/${onboardingId}/payments`, token, { method: 'POST', body: JSON.stringify(input) })
     },
     onSuccess: ({ payment, ...overview }) => {
@@ -59,7 +60,7 @@ export function useUploadPaymentProof(onboardingId: number) {
   return useMutation({
     mutationFn: async ({ paymentId, file, onProgress }: { paymentId: number; file: File; onProgress?: (percent: number) => void }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const form = new FormData()
       form.set('file', file)
       return dashboardFetchForm<Payment>(`${ONBOARDINGS}/${onboardingId}/payments/${paymentId}/proof`, token, form, onProgress)
@@ -74,7 +75,7 @@ export function useCancelCustomerPayment(onboardingId: number) {
   return useMutation({
     mutationFn: async ({ paymentId, reason }: { paymentId: number; reason: string }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<Payment>(`${ONBOARDINGS}/${onboardingId}/payments/${paymentId}/cancel`, token, {
         method: 'POST',
         body: JSON.stringify({ reason }),

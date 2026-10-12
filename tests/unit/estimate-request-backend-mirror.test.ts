@@ -50,7 +50,6 @@ afterEach(() => {
 
 describe('POST /api/estimate-request — backend mirror graceful degradation', () => {
   it('still sends the email and returns success when the backend is unreachable', async () => {
-    vi.stubEnv('NEXT_PUBLIC_API_URL', 'http://127.0.0.1:8001')
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('fetch failed')))
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -61,9 +60,8 @@ describe('POST /api/estimate-request — backend mirror graceful degradation', (
     expect(await res.json()).toEqual({ success: true })
     expect(sendMock).toHaveBeenCalledTimes(1)
     // The failure is logged server-side, never surfaced to the caller.
-    expect(errorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Backend estimate-request mirror failed (non-fatal'),
-      expect.any(Error)
+    await vi.waitFor(() =>
+      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Backend estimate-request mirror failed'), expect.any(Error))
     )
   })
 

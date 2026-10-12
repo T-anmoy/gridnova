@@ -1,12 +1,15 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { API_BASE_URL } from '@/lib/config';
+import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { CalendarClock, CheckCircle2, Loader2, RefreshCcw } from "lucide-react";
 import CountUp from "@/components/CountUp";
 import { useMessages } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/types";
 import { ApiShapeError } from "@/lib/dashboard/api-error";
+import { istDateKey } from "@/lib/dashboard/utils";
+import { bookingErrorKey } from "@/lib/booking-errors";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   bookingAvailabilityResponseSchema,
@@ -15,7 +18,7 @@ import {
   formatZodError,
 } from "@/lib/dashboard/schemas";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE = API_BASE_URL;
 
 // Same shape check the backend itself uses (public_booking.py's _EMAIL_RE) —
 // mirrored here so a bad address is caught before the round trip, not after.
@@ -87,14 +90,6 @@ function buildRequestedInstant(dateStr: string, timeStr: string): Date {
 // date/time keys the ask form itself uses, regardless of the visitor's own
 // browser timezone. en-CA formats as YYYY-MM-DD directly; hour12:false on
 // en-GB gives a 24h "HH:MM" matching TIME_OPTIONS' own value format.
-function istDateKey(date: Date): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Kolkata",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
-}
 function istTimeKey(date: Date): string {
   return new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Kolkata",
@@ -192,6 +187,8 @@ export default function BookingWidget({
         const res = await fetch(`${API_BASE}/api/v1/public/booking/availability`);
         if (!res.ok) {
           const body = (await res.json().catch(() => ({}))) as { detail?: unknown };
+          const key = bookingErrorKey(res.status, body.detail);
+          if (key) throw new Error(t.errors[key]);
           const { message } = extractErrorMessage(body.detail, `Error ${res.status}`);
           throw new Error(message);
         }
@@ -212,9 +209,22 @@ export default function BookingWidget({
   const totalNumber = estimatedTotal ? Number(estimatedTotal) : undefined;
   const hasTotal = totalNumber != null && Number.isFinite(totalNumber) && totalNumber > 0;
 
-  const now = new Date();
-  const todayStr = now.toISOString().slice(0, 10);
-  const maxDateStr = new Date(now.getTime() + ASK_MAX_DAYS_AHEAD * 86_400_000).toISOString().slice(0, 10);
+  // IST calendar days, computed after mount: the server's clock and the
+  // visitor's differ, and `toISOString()` is the UTC date (wrong for the first
+  // 5½ hours of every IST day). Left unset until then so server and client
+  // markup match.
+  const [dateBounds, setDateBounds] = useState<{ today: string; max: string } | null>(null);
+  useEffect(() => {
+    // Deferred out of the effect body (react-hooks/set-state-in-effect).
+    const id = setTimeout(() => {
+      const now = new Date();
+      setDateBounds({
+        today: istDateKey(now),
+        max: istDateKey(new Date(now.getTime() + ASK_MAX_DAYS_AHEAD * 86_400_000)),
+      });
+    });
+    return () => clearTimeout(id);
+  }, []);
 
   // Fires as soon as a (real, not-already-past) date is picked — fetches
   // real availability and buckets it by IST date so the time Select can
@@ -225,7 +235,7 @@ export default function BookingWidget({
     setAskDate(value);
     setAskTime("");
     setAskError("");
-    if (!value || value < todayStr) {
+    if (!value || value < istDateKey(new Date())) {
       setDateSlotsStatus("idle");
       setDateSlotsFor("");
       setDateOpenTimes(new Set());
@@ -371,6 +381,20 @@ export default function BookingWidget({
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { detail?: unknown };
         const { message, code } = extractErrorMessage(body.detail, `Error ${res.status}`);
+        const key = bookingErrorKey(res.status, body.detail);
+        if (key === "slotNotOffered") {
+          // Not a slot the availability grid offers (e.g. stale page): show
+          // the real nearby options instead of a dead end.
+          if (lastRequested) {
+            availabilityPromiseRef.current = null;
+            checkAvailability(lastRequested, "no-exact-match");
+          } else {
+            setAskError(t.errors.slotNotOffered);
+            backToAsk();
+          }
+          return;
+        }
+        if (key) throw new Error(t.errors[key]);
         if (res.status === 409 || code === "slot_unavailable") {
           // The slot vanished between the ask-check and the submit. The 409
           // body already names the exact requested time and carries nearby
@@ -507,8 +531,8 @@ export default function BookingWidget({
                 id="booking-date"
                 type="date"
                 value={askDate}
-                min={todayStr}
-                max={maxDateStr}
+                min={dateBounds?.today}
+                max={dateBounds?.max}
                 onChange={(e) => handleDateChange(e.target.value)}
                 aria-invalid={!!askError}
                 aria-describedby={askError ? "booking-ask-error" : undefined}

@@ -4,6 +4,7 @@ import { CheckCircle2 } from 'lucide-react'
 import { useMessages } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/types'
 import { formatInr } from '@/lib/money'
+import { localizeLifeSpan, localizeOandM, localizeWarranty } from '@/lib/pricing/terms'
 import {
   fractionToPercent,
   orderedPackageIds,
@@ -34,14 +35,17 @@ function Group({ label, group }: { label: string; group: MakesGroup | undefined 
   )
 }
 
+const localized = (text: string | null, translate: (v: string) => string) => (text === null ? null : translate(text))
+
 /** The makes / technology / terms rows of one package. */
 export function PackageEquipment({ pkg, terms }: { pkg: CataloguePackage; terms?: PackageCatalogue['terms'] }) {
-  const m = useMessages('pricing').packages
+  const t = useMessages('pricing')
+  const m = t.packages
   const tech = pkg.equipment.solar_panel?.technology ?? []
   const extra: [string, string | null][] = [
-    [m.warranty, termText(terms?.standard_warranty)],
-    [m.om, termText(terms?.o_and_m)],
-    [m.life, termText(terms?.solar_panel_life_span)],
+    [m.warranty, localized(termText(terms?.standard_warranty), (v) => localizeWarranty(v, t.terms))],
+    [m.om, localized(termText(terms?.o_and_m), (v) => localizeOandM(v, t.terms))],
+    [m.life, localized(termText(terms?.solar_panel_life_span), (v) => localizeLifeSpan(v, t.terms))],
   ]
   return (
     <dl className="space-y-2.5">

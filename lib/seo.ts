@@ -3,6 +3,16 @@ import { LOCALES, LOCALE_META, localizeHref, type Locale } from '@/lib/i18n/conf
 
 export const SITE_URL = 'https://www.gridnova.in'
 
+/**
+ * Google Search Console "HTML tag" verification token, from
+ * NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION. Read at call time and emitted only when
+ * set, so an environment without it (Preview, local) carries no tag.
+ */
+export function googleSiteVerification(): string | undefined {
+  const token = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim()
+  return token || undefined
+}
+
 // Default social-share image — a real brand hero photo (2560×1441, 16:9).
 export const OG_IMAGE = {
   url: '/hero/hero-desktop.webp',

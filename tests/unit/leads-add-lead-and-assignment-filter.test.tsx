@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import LeadsPage from '@/app/(internal)/dashboard/leads/page'
+import { navState, push as pushMock } from './helpers/mock-navigation'
 import type { LeadSummary } from '@/lib/dashboard/types'
 
 const mockUseUser = vi.fn()
@@ -11,18 +12,18 @@ vi.mock('@clerk/nextjs', () => ({
   useAuth: () => mockUseAuth(),
 }))
 
-const pushMock = vi.fn()
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: pushMock, replace: vi.fn(), back: vi.fn(), forward: vi.fn(), prefetch: vi.fn() }),
-}))
+vi.mock('next/navigation', async () => (await import('./helpers/mock-navigation')).navigationMock)
 
 const mockUseLeads = vi.fn()
 const mockCreateLead = vi.fn()
-vi.mock('@/lib/dashboard/api-client', () => ({
+vi.mock('@/lib/dashboard/api-client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/dashboard/api-client')>()),
   useLeads: (params: unknown) => mockUseLeads(params),
   useCreateLead: () => ({ mutateAsync: mockCreateLead, isPending: false }),
   downloadLeadsCsv: vi.fn(),
 }))
+
+const paged = (items: LeadSummary[]) => ({ items, page: 1, page_size: 25, total: items.length })
 
 const LEAD: LeadSummary = {
   id: 1,
@@ -36,8 +37,9 @@ const LEAD: LeadSummary = {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  navState.reset('/dashboard/leads')
   mockUseAuth.mockReturnValue({ getToken: vi.fn().mockResolvedValue('token') })
-  mockUseLeads.mockReturnValue({ data: [LEAD], isLoading: false, error: null, refetch: vi.fn() })
+  mockUseLeads.mockReturnValue({ data: paged([LEAD]), isLoading: false, error: null, refetch: vi.fn() })
   Element.prototype.hasPointerCapture = vi.fn().mockReturnValue(false)
   Element.prototype.setPointerCapture = vi.fn()
   Element.prototype.releasePointerCapture = vi.fn()
@@ -50,7 +52,7 @@ describe('LeadsPage — assignment filter (admin, management and sales)', () => 
     const user = userEvent.setup()
     render(<LeadsPage />)
 
-    expect(mockUseLeads).toHaveBeenLastCalledWith({ assigned: 'any' })
+    expect(mockUseLeads).toHaveBeenLastCalledWith({ page: 1, page_size: 25, assigned: 'any' })
 
     // The assignment filter is the first combobox in this view — the others
     // (stage/score/source) render after it.
@@ -59,7 +61,7 @@ describe('LeadsPage — assignment filter (admin, management and sales)', () => 
     await user.click(await screen.findByRole('option', { name: 'Assigned to me' }))
 
     await waitFor(() => {
-      expect(mockUseLeads).toHaveBeenLastCalledWith({ assigned: 'me' })
+      expect(mockUseLeads).toHaveBeenLastCalledWith({ page: 1, page_size: 25, assigned: 'me' })
     })
   })
 
@@ -70,27 +72,28 @@ describe('LeadsPage — assignment filter (admin, management and sales)', () => 
 
     // Admin/management default to seeing everything — no `assigned` param
     // sent until they explicitly pick one.
-    expect(mockUseLeads).toHaveBeenLastCalledWith(undefined)
+    expect(mockUseLeads).toHaveBeenLastCalledWith({ page: 1, page_size: 25 })
     expect(screen.getByText('All leads')).toBeInTheDocument()
 
     const trigger = screen.getAllByRole('combobox')[0]
     await user.click(trigger)
     await user.click(await screen.findByRole('option', { name: 'Unassigned' }))
     await waitFor(() => {
-      expect(mockUseLeads).toHaveBeenLastCalledWith({ assigned: 'unassigned' })
+      expect(mockUseLeads).toHaveBeenLastCalledWith({ page: 1, page_size: 25, assigned: 'unassigned' })
     })
     unmount()
+    navState.reset('/dashboard/leads')
 
     mockUseUser.mockReturnValue({ user: { publicMetadata: { role: 'management' } } })
     render(<LeadsPage />)
-    expect(mockUseLeads).toHaveBeenLastCalledWith(undefined)
+    expect(mockUseLeads).toHaveBeenLastCalledWith({ page: 1, page_size: 25 })
     expect(screen.getByText('All leads')).toBeInTheDocument()
   })
 
   it('never shows the filter to Engineer — it does not list leads that way', () => {
     mockUseUser.mockReturnValue({ user: { publicMetadata: { role: 'engineer' } } })
     render(<LeadsPage />)
-    expect(mockUseLeads).toHaveBeenLastCalledWith(undefined)
+    expect(mockUseLeads).toHaveBeenLastCalledWith({ page: 1, page_size: 25 })
     expect(screen.queryByText('All leads')).not.toBeInTheDocument()
     expect(screen.queryByText('Mine + unassigned')).not.toBeInTheDocument()
   })
@@ -160,7 +163,7 @@ describe('LeadsPage — stage summary strip', () => {
   it('shows real per-stage counts derived from the fetched leads, not an invented total', () => {
     mockUseUser.mockReturnValue({ user: { publicMetadata: { role: 'admin' } } })
     mockUseLeads.mockReturnValue({
-      data: [LEAD, { ...LEAD, id: 2, pipeline_stage: 'new' }, { ...LEAD, id: 3, pipeline_stage: 'won' }],
+      data: paged([LEAD, { ...LEAD, id: 2, pipeline_stage: 'new' }, { ...LEAD, id: 3, pipeline_stage: 'won' }]),
       isLoading: false,
       error: null,
       refetch: vi.fn(),

@@ -166,6 +166,26 @@ describe('MatchUnitDialog — add this model to the catalogue', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   })
 
+  // P6: the form used to offer all four EquipmentCategory values, so choosing
+  // e.g. "Structure" created a catalogue item the unit could never be matched
+  // to (equipment_category_mismatch) — an orphaned, mis-filed catalogue entry.
+  it('only offers the category of the unit being matched (a module unit cannot create a structure item)', async () => {
+    const user = await openForm()
+    const category = screen.getByLabelText(/^Category/) as HTMLSelectElement
+    expect(Array.from(category.options).map((o) => o.value)).toEqual(['module'])
+    expect(category).toBeDisabled()
+    h.create.mockResolvedValue(created())
+    h.match.mockResolvedValue({})
+    await submit(user)
+    expect(h.create).toHaveBeenCalledWith(expect.objectContaining({ category: 'module' }))
+  })
+
+  it('an inverter unit can only create an inverter item', async () => {
+    await openForm(register([unmatched({ category: 'inverter', is_dcr: null })]))
+    const category = screen.getByLabelText(/^Category/) as HTMLSelectElement
+    expect(Array.from(category.options).map((o) => o.value)).toEqual(['inverter'])
+  })
+
   it('asks for the equivalent reason after make_not_approved, listing the approved makes, and sends it', async () => {
     h.create.mockRejectedValueOnce(new ApiError(422, 'x', undefined, { code: 'make_not_approved', message: 'en', approved_makes: ['Waaree', 'Adani'], package: 'NOVA_ASSURED' }))
     h.create.mockResolvedValueOnce(created())

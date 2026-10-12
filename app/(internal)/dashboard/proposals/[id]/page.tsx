@@ -1,5 +1,6 @@
 'use client'
 
+import { notAuthenticatedError } from '@/lib/api/http'
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
@@ -238,7 +239,7 @@ export default function ProposalDetailPage() {
     setSentPdfState({ status: 'loading' })
     try {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const result = await fetchProposalPdf(proposalId, token)
       if (result.pdf_url) {
         setSentPdfState({ status: 'ready', url: result.pdf_url })

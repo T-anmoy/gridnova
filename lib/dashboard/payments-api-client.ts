@@ -1,3 +1,4 @@
+import { notAuthenticatedError } from '@/lib/api/http'
 import { useAuth } from '@clerk/nextjs'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardFetch } from '@/lib/dashboard/api-client'
@@ -37,7 +38,7 @@ export function useStaffOnboardingPayments(onboardingId: number, enabled = true)
     queryKey: ['staff-payments', onboardingId],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<StaffPaymentOverview>(`${BASE}/onboardings/${onboardingId}/payments`, token)
     },
     enabled: enabled && !!onboardingId,
@@ -51,7 +52,7 @@ export function useRecordStaffPayment(onboardingId: number) {
   return useMutation({
     mutationFn: async (input: RecordPaymentInput) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<StaffPayment>(`${BASE}/onboardings/${onboardingId}/payments`, token, { method: 'POST', body: JSON.stringify(input) })
     },
     onSuccess: () => {
@@ -68,7 +69,7 @@ export function useUploadStaffPaymentProof(onboardingId?: number) {
   return useMutation({
     mutationFn: async ({ paymentId, file, onProgress }: { paymentId: number; file: File; onProgress?: (percent: number) => void }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const form = new FormData()
       form.set('file', file)
       return dashboardFetchForm<StaffPayment>(`${BASE}/payments/${paymentId}/proof`, token, form, onProgress)

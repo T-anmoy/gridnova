@@ -1,3 +1,4 @@
+import { notAuthenticatedError } from '@/lib/api/http'
 import { useAuth } from '@clerk/nextjs'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardFetch } from './api-client'
@@ -45,7 +46,7 @@ export function useStaffOnboardings(params?: StaffOnboardingListParams) {
     queryKey: ['staff-onboardings', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
       return dashboardFetch<PaginatedOnboardings>(`${BASE}${qs}`, token)
     },
@@ -59,7 +60,7 @@ export function useStaffOnboarding(id: number) {
     queryKey: ['staff-onboarding', id],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<Onboarding>(`${BASE}/${id}`, token)
     },
     enabled: !!id,
@@ -74,7 +75,7 @@ export function useVerificationCall() {
   return useMutation({
     mutationFn: async ({ id, input }: { id: number; input: VerificationCallInput }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<Onboarding>(`${BASE}/${id}/verification-call`, token, {
         method: 'POST',
         body: JSON.stringify(input),
@@ -95,7 +96,7 @@ export function useCorrectSiteLocation() {
   return useMutation({
     mutationFn: async ({ id, input }: { id: number; input: CorrectSiteLocationInput }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<SiteLocationResponse>(`${BASE}/${id}/site-location`, token, { method: 'POST', body: JSON.stringify(input) })
     },
     onSuccess: (_data, vars) => {
@@ -113,7 +114,7 @@ export function useStaffOnboardingProgress(id: number) {
     queryKey: ['staff-onboarding-progress', id],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<ProgressResponse>(`${BASE}/${id}/progress`, token)
     },
     enabled: !!id,
@@ -126,7 +127,7 @@ export function usePortalAgreementApproved() {
   return useMutation({
     mutationFn: async ({ id, input }: { id: number; input: PortalAgreementApprovedInput }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<ProgressResponse>(`${BASE}/${id}/progress/portal_agreement_approved`, token, {
         method: 'POST',
         body: JSON.stringify(input),
@@ -147,7 +148,7 @@ export function useStaffOnboardingEstimates(id: number) {
     queryKey: ['staff-onboarding-estimates', id],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<EstimateListResponse>(`${BASE}/${id}/estimates`, token).then((r) => r.items)
     },
     enabled: !!id,
@@ -162,7 +163,7 @@ export function usePrepareFormalProposal() {
   return useMutation({
     mutationFn: async ({ id, input }: { id: number; input?: PrepareFormalProposalInput }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<PrepareFormalProposalResponse>(`${BASE}/${id}/formal-proposal`, token, {
         method: 'POST',
         body: JSON.stringify(input ?? {}),
@@ -183,7 +184,7 @@ export function useStaffOnboardingFormalProposal(id: number) {
     queryKey: ['staff-onboarding-formal-proposal', id],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<FormalProposalReadResponse>(`${BASE}/${id}/formal-proposal`, token)
     },
     enabled: !!id,
@@ -198,7 +199,7 @@ export function useStaffInPersonAcceptance() {
   return useMutation({
     mutationFn: async ({ id, input }: { id: number; input: InPersonAcceptanceInput }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<InPersonAcceptanceResponse>(`${BASE}/${id}/proposal/in-person-acceptance`, token, {
         method: 'POST',
         body: JSON.stringify(input),
@@ -220,7 +221,7 @@ export function useStaffOnboardingAgreement(id: number) {
     queryKey: ['staff-onboarding-agreement', id],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<AgreementResponse>(`${BASE}/${id}/agreement`, token)
     },
     enabled: !!id,
@@ -233,7 +234,7 @@ export function useUploadStaffSignedAgreement() {
   return useMutation({
     mutationFn: async ({ id, input }: { id: number; input: UploadSignedAgreementInput }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const formData = new FormData()
       formData.set('file', input.file)
       formData.set('stamp_paper_number', input.stamp_paper_number)
@@ -253,7 +254,7 @@ export function useGenerateAgreement() {
   return useMutation({
     mutationFn: async (id: number) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch(`${BASE}/${id}/agreement`, token, { method: 'POST' })
     },
     onSuccess: (_data, id) => {
@@ -270,7 +271,7 @@ export function useAttributionFlags(params?: AttributionFlagListParams) {
     queryKey: ['attribution-flags', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS((params as Record<string, string | undefined>) ?? {})
       return dashboardFetch<{ items: AttributionFlag[] }>(`/api/v1/dashboard/attribution-flags${qs}`, token).then(
         (r) => r.items
@@ -285,7 +286,7 @@ export function useResolveAttributionFlag() {
   return useMutation({
     mutationFn: async ({ flagId, input }: { flagId: number; input: ResolveAttributionFlagInput }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<AttributionFlag>(`/api/v1/dashboard/attribution-flags/${flagId}/resolve`, token, {
         method: 'POST',
         body: JSON.stringify(input),

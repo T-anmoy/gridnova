@@ -83,7 +83,13 @@ const leadSummarySchema = z.object({
   assigned_employee_id: z.string().nullable().optional(),
   project_reference_id: z.string().nullable().optional(),
 })
-export const leadListResponseSchema = z.array(leadSummarySchema)
+// BE-1 §2: the standard paged envelope (it used to be a bare array).
+export const leadListResponseSchema = z.object({
+  items: z.array(leadSummarySchema),
+  page: z.number(),
+  page_size: z.number(),
+  total: z.number(),
+})
 
 const meetingCustomerSchema = z.object({
   id: z.number(),
@@ -162,10 +168,21 @@ export const proposalAcceptResponseSchema = z.object({
 })
 
 // Ask Nova's chat endpoint.
+// BE-1 §1: the conversation is identified only by `session_token`; lead_id and
+// customer_id are no longer returned.
 export const chatMessageResponseSchema = z.object({
   reply: z.string(),
-  lead_id: z.number().nullable(),
-  customer_id: z.number().nullable(),
+  session_token: z.string().min(1),
+  is_qualified: z.boolean().optional(),
+  missing_fields: z.array(z.string()).optional(),
+  meeting_booked: z
+    .object({
+      meeting_id: z.number(),
+      scheduled_at: z.string(),
+      meet_link: z.string().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
 })
 
 // /book-a-call's public booking endpoints.

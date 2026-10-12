@@ -130,7 +130,6 @@ describe("POST /api/contact", () => {
   });
 
   it("still returns success to the visitor when the CRM mirror is unreachable", async () => {
-    vi.stubEnv("NEXT_PUBLIC_API_URL", "http://127.0.0.1:8001");
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -139,6 +138,9 @@ describe("POST /api/contact", () => {
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ success: true });
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("Backend contact mirror failed (non-fatal"), expect.any(Error));
+    // The CRM mirror runs alongside (and after) the response, so wait for its log.
+    await vi.waitFor(() =>
+      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("Backend contact mirror failed"), expect.any(Error))
+    );
   });
 });

@@ -1,9 +1,8 @@
+import { notAuthenticatedError } from '@/lib/api/http'
 import { useAuth } from '@clerk/nextjs'
-import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
-import type { z } from 'zod'
-import { ApiError, ApiShapeError } from './api-error'
+import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { apiDownload, apiFetch as dashboardFetch, buildQS } from '@/lib/api/http'
 import {
-  formatZodError,
   overviewStatsSchema,
   activityFeedResponseSchema,
   conversionBySourceResponseSchema,
@@ -96,106 +95,51 @@ function optimisticProposalUpdate<V>(
   }
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
-
 // List views change slowly relative to how often staff navigate between them;
 // a 60s stale window means bouncing Leads ↔ Proposals ↔ Overview doesn't
 // refetch every time, while still staying fresh within a working session.
 const LIST_STALE_TIME = 60_000
 
-export async function dashboardFetch<T>(
-  path: string,
-  token: string,
-  options?: RequestInit,
-  // Optional runtime shape check. When provided, a 2xx response that doesn't
-  // match throws ApiShapeError identifying exactly which field didn't match,
-  // instead of returning data the caller's type wrongly promises is safe.
-  schema?: z.ZodType<T>
-): Promise<T> {
-  let res: Response
-  try {
-    res = await fetch(`${BACKEND_URL}${path}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-        ...(options?.headers ?? {}),
-      },
-    })
-  } catch {
-    // True network failure (server unreachable, DNS, offline) — status 0.
-    throw new ApiError(0, 'Network request failed')
-  }
-  if (!res.ok) {
-    // Prefer a structured { detail } body (FastAPI style), else raw text.
-    const body = await res.text().catch(() => '')
-    let detail = body
-    let structuredDetail: Record<string, unknown> | undefined
-    try {
-      const parsed = JSON.parse(body) as { detail?: unknown; message?: unknown }
-      const d = parsed.detail ?? parsed.message
-      if (typeof d === 'string' && d) {
-        detail = d
-      } else if (d && typeof d === 'object') {
-        // Structured detail (e.g. { code, message, ... }) — never stringify
-        // the raw object into the display message (that renders as
-        // "[object Object]"); prefer its own `message` field, and keep the
-        // full object on the error for callers that need the structured
-        // fields (see ApiError.structuredDetail).
-        structuredDetail = d as Record<string, unknown>
-        const msg = (d as Record<string, unknown>).message
-        detail = typeof msg === 'string' ? msg : res.statusText
-      }
-    } catch {
-      /* not JSON — keep raw text */
-    }
-    throw new ApiError(res.status, `API error ${res.status}`, detail || res.statusText, structuredDetail)
-  }
-  const data: unknown = await res.json()
-  if (!schema) return data as T
-  const parsed = schema.safeParse(data)
-  if (!parsed.success) {
-    throw new ApiShapeError(path, formatZodError(parsed.error))
-  }
-  return parsed.data
-}
-
-function buildQS(params: Record<string, string | number | boolean | undefined | null>): string {
-  const qs = new URLSearchParams()
-  for (const [k, v] of Object.entries(params)) {
-    if (v !== undefined && v !== null && v !== '') {
-      qs.set(k, String(v))
-    }
-  }
-  const s = qs.toString()
-  return s ? `?${s}` : ''
-}
+// Re-exported so existing imports keep working; the implementation lives in
+// lib/api/http.ts (the single transport layer).
+export { apiFetch as dashboardFetch, buildQS } from '@/lib/api/http'
 
 // ── Hooks ──────────────────────────────────────────────────────────────────────
+
+export const LEADS_PAGE_SIZE = 25
+
+/** The list query a role lands on with no filters set — shared by the page and the sidebar prefetch so the cache keys match. */
+export function defaultLeadListParams(role: Role | undefined): LeadListParams {
+  return { page: 1, page_size: LEADS_PAGE_SIZE, ...(role === 'sales' ? { assigned: 'any' as const } : {}) }
+}
 
 export function useLeads(params?: LeadListParams) {
   const { getToken } = useAuth()
   return useQuery({
     queryKey: ['leads', params],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
-      return dashboardFetch(`/api/v1/dashboard/leads${qs}`, token, undefined, leadListResponseSchema) as Promise<LeadSummary[]>
+      return dashboardFetch(`/api/v1/dashboard/leads${qs}`, token, { signal }, leadListResponseSchema) as Promise<PaginatedResponse<LeadSummary>>
     },
     staleTime: LIST_STALE_TIME,
+    // Keep the old page on screen while the next one loads.
+    placeholderData: keepPreviousData,
   })
 }
 
 // Prefetch helpers — used to warm list caches on sidebar link hover so the
-// destination renders from cache instantly. Keys mirror the hooks exactly.
-export function prefetchLeads(qc: QueryClient, getToken: () => Promise<string | null>) {
+// destination renders from cache instantly. The key must equal the one the
+// page builds for the same (unfiltered) view, hence the shared params.
+export function prefetchLeads(qc: QueryClient, getToken: () => Promise<string | null>, params?: LeadListParams) {
   return qc.prefetchQuery({
-    queryKey: ['leads', undefined],
+    queryKey: ['leads', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
-      return dashboardFetch<LeadSummary[]>('/api/v1/dashboard/leads', token)
+      if (!token) throw notAuthenticatedError()
+      const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
+      return dashboardFetch('/api/v1/dashboard/leads' + qs, token, undefined, leadListResponseSchema) as Promise<PaginatedResponse<LeadSummary>>
     },
     staleTime: LIST_STALE_TIME,
   })
@@ -215,7 +159,7 @@ export function prefetchProposals(qc: QueryClient, getToken: () => Promise<strin
     queryKey: ['proposals', DEFAULT_PROPOSALS_PARAMS],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS(DEFAULT_PROPOSALS_PARAMS as Record<string, string | number | boolean | undefined | null>)
       return dashboardFetch<PaginatedResponse<ProposalSummary>>(`/api/v1/dashboard/proposals${qs}`, token)
     },
@@ -229,7 +173,7 @@ export function useLead(id: number) {
     queryKey: ['lead', id],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<LeadDetail>(`/api/v1/dashboard/leads/${id}`, token)
     },
     enabled: !!id,
@@ -242,7 +186,7 @@ export function useChangeLeadStage() {
   return useMutation({
     mutationFn: async ({ leadId, stage, reason }: { leadId: number; stage: PipelineStage; reason?: string | null }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<LeadStageChangeResponse>(
         `/api/v1/dashboard/leads/${leadId}/stage`,
         token,
@@ -262,7 +206,7 @@ export function useReassignLead() {
   return useMutation({
     mutationFn: async ({ leadId, employeeId }: { leadId: number; employeeId: string }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<LeadReassignResponse>(
         `/api/v1/dashboard/leads/${leadId}/assign`,
         token,
@@ -282,7 +226,7 @@ export function useCreateLead() {
   return useMutation({
     mutationFn: async (input: CreateLeadInput) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<CreateLeadResponse>(
         '/api/v1/dashboard/leads',
         token,
@@ -301,7 +245,7 @@ export function useUpdateLeadFields() {
   return useMutation({
     mutationFn: async ({ leadId, fields }: { leadId: number; fields: Record<string, unknown> }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<UpdateLeadFieldsResponse>(
         `/api/v1/dashboard/leads/${leadId}/fields`,
         token,
@@ -321,7 +265,7 @@ export function useProposals(params?: ProposalListParams) {
     queryKey: ['proposals', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
       return dashboardFetch(`/api/v1/dashboard/proposals${qs}`, token, undefined, proposalListResponseSchema) as unknown as Promise<PaginatedResponse<ProposalSummary>>
     },
@@ -335,7 +279,7 @@ export function useProposal(id: number) {
     queryKey: ['proposal', id],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<ProposalDetail>(`/api/v1/dashboard/proposals/${id}`, token)
     },
     enabled: !!id,
@@ -348,7 +292,7 @@ export function useProposalPdf(id: number, enabled: boolean) {
     queryKey: ['proposal-pdf', id],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<ProposalPdfResponse>(`/api/v1/dashboard/proposals/${id}/pdf`, token)
     },
     enabled: enabled && !!id,
@@ -377,7 +321,7 @@ export function useAnalytics(params?: AnalyticsParams) {
     queryKey: ['analytics', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
       return dashboardFetch<AnalyticsResponse>(`/api/v1/dashboard/analytics${qs}`, token)
     },
@@ -393,7 +337,7 @@ export function useConversionBySource(params?: AnalyticsParams) {
     queryKey: ['analytics-conversion-by-source', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
       // Backend wraps the list in an envelope ({ by_source: [...] }), not a bare array.
       const res = await dashboardFetch(`/api/v1/dashboard/analytics/conversion-by-source${qs}`, token, undefined, conversionBySourceResponseSchema)
@@ -408,7 +352,7 @@ export function useDealSizeByTier(params?: AnalyticsParams) {
     queryKey: ['analytics-deal-size-by-tier', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
       // Backend wraps the list in an envelope ({ by_tier: [...] }), not a bare array.
       const res = await dashboardFetch(`/api/v1/dashboard/analytics/deal-size-by-tier${qs}`, token, undefined, dealSizeByTierResponseSchema)
@@ -423,7 +367,7 @@ export function useRepPerformance(params?: AnalyticsParams) {
     queryKey: ['analytics-rep-performance', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
       // Backend wraps the list in an envelope ({ reps: [...] }), not a bare array.
       const res = await dashboardFetch(`/api/v1/dashboard/analytics/rep-performance${qs}`, token, undefined, repPerformanceResponseSchema)
@@ -438,7 +382,7 @@ export function usePipelineTrend(params?: AnalyticsParams) {
     queryKey: ['analytics-pipeline-trend', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
       // Backend wraps the list in an envelope ({ weeks: [...] }), not a bare array.
       const res = await dashboardFetch(`/api/v1/dashboard/analytics/pipeline-trend${qs}`, token, undefined, pipelineTrendResponseSchema)
@@ -453,7 +397,7 @@ export function useEmployees(options?: { enabled?: boolean }) {
     queryKey: ['employees'],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<Employee[]>('/api/v1/dashboard/employees', token)
     },
     enabled: options?.enabled ?? true,
@@ -468,7 +412,7 @@ export function useAssignableEmployees(options?: { enabled?: boolean }) {
     queryKey: ['employees-assignable'],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<AssignableEmployee[]>('/api/v1/dashboard/employees/assignable', token)
     },
     enabled: options?.enabled ?? true,
@@ -483,7 +427,7 @@ export function useEmployeeMe() {
     queryKey: ['employee-me'],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<EmployeeMe>('/api/v1/dashboard/employees/me', token)
     },
   })
@@ -494,7 +438,7 @@ export function useConnectCalendar() {
   return useMutation({
     mutationFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<{ authorization_url: string }>(
         '/api/v1/dashboard/employees/me/calendar/connect',
         token
@@ -511,7 +455,7 @@ export function useGovernanceAgents() {
     queryKey: ['governance-agents'],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<GovernanceAgentsResponse>('/api/v1/governance/agents', token)
     },
   })
@@ -523,7 +467,7 @@ export function useAgentAudit(agentId: AgentId) {
     queryKey: ['agent-audit', agentId],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<AgentAuditResponse>(`/api/v1/governance/agents/${agentId}/audit`, token)
     },
   })
@@ -537,7 +481,7 @@ export function useEquipment(params?: EquipmentListParams) {
     queryKey: ['equipment', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
       const res = await dashboardFetch<{ items: Equipment[] }>(`/api/v1/equipment/${qs}`, token)
       return res.items
@@ -551,7 +495,7 @@ export function useCreateEquipment() {
   return useMutation({
     mutationFn: async (input: EquipmentCreateInput) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<Equipment>('/api/v1/equipment/', token, {
         method: 'POST',
         body: JSON.stringify(input),
@@ -569,7 +513,7 @@ export function useSetEquipmentActive() {
   return useMutation({
     mutationFn: async ({ id, isActive }: { id: number; isActive: boolean }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<Equipment>(`/api/v1/equipment/${id}`, token, {
         method: 'PATCH',
         body: JSON.stringify({ is_active: isActive }),
@@ -587,7 +531,7 @@ export function useAuditLog(params?: AuditLogParams) {
     queryKey: ['audit-log', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
       return dashboardFetch<PaginatedResponse<AuditLog>>(`/api/v1/dashboard/audit-log${qs}`, token)
     },
@@ -602,7 +546,7 @@ export function useProposalInputs(params?: { status?: string; page?: number; pag
     queryKey: ['proposal-inputs', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
       return dashboardFetch<{ items: ProposalInputSummary[]; page: number; page_size: number; total: number }>(
         `/api/v1/proposal-inputs/${qs}`,
@@ -619,7 +563,7 @@ export function useProposalInput(id: number) {
     queryKey: ['proposal-input', id],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<ProposalInputDetail>(`/api/v1/proposal-inputs/${id}`, token)
     },
     enabled: !!id,
@@ -642,7 +586,7 @@ export function useReviewProposalInput() {
       rejectionReason?: string
     }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<ReviewProposalInputResponse>(
         `/api/v1/proposal-inputs/${inputId}/review`,
         token,
@@ -674,7 +618,7 @@ export function useMeetings(params?: MeetingListParams) {
     queryKey: ['meetings', params],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
       return dashboardFetch(`/api/v1/dashboard/meetings${qs}`, token, undefined, meetingListResponseSchema) as unknown as Promise<PaginatedResponse<MeetingSummary>>
     },
@@ -687,7 +631,7 @@ export function useOverviewStats() {
     queryKey: ['overview-stats'],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch('/api/v1/dashboard/overview-stats', token, undefined, overviewStatsSchema) as Promise<OverviewStats>
     },
     staleTime: 30_000,
@@ -698,15 +642,16 @@ export function useActivityFeed() {
   const { getToken } = useAuth()
   return useQuery({
     queryKey: ['activity-feed'],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       // Backend wraps the list in an envelope ({ items: [...] }), not a bare array.
-      const res = await dashboardFetch('/api/v1/dashboard/activity/recent', token, undefined, activityFeedResponseSchema)
+      const res = await dashboardFetch('/api/v1/dashboard/activity/recent', token, { signal }, activityFeedResponseSchema)
       return res.items as ActivityItem[]
     },
     staleTime: 30_000,
     refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
   })
 }
 
@@ -716,9 +661,11 @@ export function useLeadSearch(query: string) {
     queryKey: ['lead-search', query],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
-      const qs = buildQS({ search: query, page_size: 5 })
-      return dashboardFetch<LeadSummary[]>(`/api/v1/dashboard/leads${qs}`, token)
+      if (!token) throw notAuthenticatedError()
+      // `q` is the backend's search parameter (BE-1 §2); the response is the paged envelope.
+      const qs = buildQS({ q: query, page_size: 5 })
+      const res = await dashboardFetch(`/api/v1/dashboard/leads${qs}`, token, undefined, leadListResponseSchema)
+      return res.items as LeadSummary[]
     },
     enabled: query.length > 1,
     staleTime: 15_000,
@@ -731,7 +678,7 @@ export function useProposalSearch(query: string) {
     queryKey: ['proposal-search', query],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       const qs = buildQS({ search: query, page_size: 5 })
       return dashboardFetch<PaginatedResponse<ProposalSummary>>(`/api/v1/dashboard/proposals${qs}`, token)
     },
@@ -740,49 +687,14 @@ export function useProposalSearch(query: string) {
   })
 }
 
-function triggerDownload(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
-}
-
 export async function downloadLeadsCsv(params: LeadListParams, token: string): Promise<void> {
   const qs = buildQS(params as Record<string, string | number | boolean | undefined | null>)
-  let res: Response
-  try {
-    res = await fetch(`${BACKEND_URL}/api/v1/dashboard/leads/export${qs}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-  } catch {
-    throw new ApiError(0, 'Network request failed')
-  }
-  if (!res.ok) throw new ApiError(res.status, `Export failed ${res.status}`)
-  const blob = await res.blob()
-  const disposition = res.headers.get('Content-Disposition') ?? ''
-  const filename = disposition.match(/filename="?([^";\n]+)"?/i)?.[1]?.trim() ?? 'leads.csv'
-  triggerDownload(blob, filename)
+  await apiDownload(`/api/v1/dashboard/leads/export${qs}`, token, 'leads.csv')
 }
 
 export async function downloadProposalsCsv(params: ProposalListParams, token: string): Promise<void> {
   const qs = buildQS(params as Record<string, string | number | boolean | undefined | null>)
-  let res: Response
-  try {
-    res = await fetch(`${BACKEND_URL}/api/v1/dashboard/proposals/export${qs}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-  } catch {
-    throw new ApiError(0, 'Network request failed')
-  }
-  if (!res.ok) throw new ApiError(res.status, `Export failed ${res.status}`)
-  const blob = await res.blob()
-  const disposition = res.headers.get('Content-Disposition') ?? ''
-  const filename = disposition.match(/filename="?([^";\n]+)"?/i)?.[1]?.trim() ?? 'proposals.csv'
-  triggerDownload(blob, filename)
+  await apiDownload(`/api/v1/dashboard/proposals/export${qs}`, token, 'proposals.csv')
 }
 
 // ── Mutation hooks ─────────────────────────────────────────────────────────────
@@ -793,7 +705,7 @@ export function useApproveProposal() {
   return useMutation({
     mutationFn: async (proposalId: number) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<{ status: string; proposal_id: number }>(
         `/api/v1/dashboard/proposals/${proposalId}/approve`,
         token,
@@ -816,7 +728,7 @@ export function useManagerSignOff() {
   return useMutation({
     mutationFn: async (proposalId: number) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<{ status: string; proposal_id: number; signoff_by: string }>(
         `/api/v1/dashboard/proposals/${proposalId}/manager-sign-off`,
         token,
@@ -833,7 +745,7 @@ export function useRequestRevision() {
   return useMutation({
     mutationFn: async ({ proposalId, reason }: { proposalId: number; reason: string }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<{ status: string; proposal_id: number; reason: string }>(
         `/api/v1/dashboard/proposals/${proposalId}/request-revision`,
         token,
@@ -854,7 +766,7 @@ export function useSendProposal() {
   return useMutation({
     mutationFn: async (proposalId: number) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<SendProposalResponse>(
         `/api/v1/dashboard/proposals/${proposalId}/send`,
         token,
@@ -871,7 +783,7 @@ export function useAdjustPricing() {
   return useMutation({
     mutationFn: async ({ proposalId, newValue, reason }: { proposalId: number; newValue: number; reason: string }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<AdjustPricingResponse>(
         `/api/v1/dashboard/proposals/${proposalId}/adjust-pricing`,
         token,
@@ -894,7 +806,7 @@ export function useDraftProposal() {
   return useMutation({
     mutationFn: async ({ lead_id, customer_id }: { lead_id: number; customer_id: number }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<DraftProposalResponse>(
         '/api/v1/dashboard/proposals/draft',
         token,
@@ -914,7 +826,7 @@ export function useUpdateEmployeeRole() {
   return useMutation({
     mutationFn: async ({ employeeId, role }: { employeeId: string; role: Role }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<{ employee_id: string; role: Role; clerk_synced: boolean; local_mirror: boolean }>(
         `/api/v1/dashboard/employees/${employeeId}/role`,
         token,
@@ -933,7 +845,7 @@ export function useDeactivateEmployee() {
   return useMutation({
     mutationFn: async (employeeId: string) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<{ employee_id: string; is_active: boolean }>(
         `/api/v1/dashboard/employees/${employeeId}/deactivate`,
         token,
@@ -952,7 +864,7 @@ export function useReactivateEmployee() {
   return useMutation({
     mutationFn: async (employeeId: string) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<{ employee_id: string; is_active: boolean }>(
         `/api/v1/dashboard/employees/${employeeId}/reactivate`,
         token,
@@ -971,7 +883,7 @@ export function useToggleAgent() {
   return useMutation({
     mutationFn: async ({ agentId, enabled }: { agentId: AgentId; enabled: boolean }) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<{ agent_id: string; enabled: boolean; updated_by: string }>(
         `/api/v1/governance/agents/${agentId}`,
         token,

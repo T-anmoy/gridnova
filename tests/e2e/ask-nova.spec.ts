@@ -14,8 +14,10 @@ test.describe("Ask Nova", () => {
         contentType: "application/json",
         body: JSON.stringify({
           reply: "Grid Nova offers Solar EPC and O&M across West Bengal.",
-          lead_id: 1,
-          customer_id: null,
+          session_token: "e2e-session-token",
+          is_qualified: false,
+          missing_fields: [],
+          meeting_booked: null,
         }),
       });
     });

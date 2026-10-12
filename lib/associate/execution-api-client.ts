@@ -1,3 +1,4 @@
+import { notAuthenticatedError } from '@/lib/api/http'
 import { useAuth } from '@clerk/nextjs'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardFetch } from '@/lib/dashboard/api-client'
@@ -16,7 +17,7 @@ export function useExecution(id: number) {
     queryKey: ['execution', id],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<ExecutionStatus>(executionPath(id), token)
     },
     enabled: !!id,
@@ -29,7 +30,7 @@ export function useExecutionSubmissions(id: number) {
     queryKey: ['execution-submissions', id],
     queryFn: async () => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<SubmissionsResponse>(`${executionPath(id)}/submissions`, token).then((r) => r.items)
     },
     enabled: !!id,
@@ -44,7 +45,7 @@ export function useUploadExecutionFile(id: number) {
   return useMutation({
     mutationFn: async (input: UploadFileInput) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetchForm<ExecutionStatus>(`${executionPath(id)}/files`, token, buildUploadForm(input), input.onProgress)
     },
     onSuccess: (status) => {
@@ -59,7 +60,7 @@ export function useSubmitExecutionStage(id: number) {
   return useMutation({
     mutationFn: async (input: SubmitStageInput) => {
       const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
+      if (!token) throw notAuthenticatedError()
       return dashboardFetch<StageSubmission>(`${executionPath(id)}/submissions`, token, { method: 'POST', body: JSON.stringify(input) })
     },
     onSuccess: () => {

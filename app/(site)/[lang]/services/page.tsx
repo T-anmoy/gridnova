@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import Link from "@/components/i18n/Link";
 import CTASection from "@/components/CTASection";
+import JsonLd from "@/components/JsonLd";
 import ServicesContent from "@/components/ServicesContent";
 import { messagesFor, resolveLocale, type LangParams } from "@/lib/i18n/messages";
 import { localizedMetadata } from "@/lib/i18n/metadata";
@@ -31,10 +32,7 @@ export default async function ServicesPage({ params }: LangParams) {
   const t = m.services;
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
-      />
+      <JsonLd data={serviceSchema} />
       <main>
         <ServicesContent t={t} />
 

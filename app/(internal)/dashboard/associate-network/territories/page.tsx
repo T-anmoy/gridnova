@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { formatDate } from '@/lib/dashboard/utils'
+import TerritoryAdmin from '@/components/dashboard/TerritoryAdmin'
 import type { AssociateLevel, TerritorySeat } from '@/lib/associate/types'
 import type { Role } from '@/lib/dashboard/types'
 
@@ -189,6 +190,8 @@ export default function TerritoriesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {role === 'admin' && <TerritoryAdmin />}
     </div>
   )
 }

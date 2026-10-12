@@ -6,17 +6,19 @@ import { Sparkles, X, Send } from "lucide-react";
 import Link from "@/components/i18n/Link";
 import { useMessages } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/types";
-import { ApiShapeError } from "@/lib/dashboard/api-error";
-import { chatMessageResponseSchema, formatZodError } from "@/lib/dashboard/schemas";
+import { ASK_NOVA_ENABLED } from "@/lib/config";
+import {
+  classifyChatError,
+  nextRevealLength,
+  readSessionToken,
+  REVEAL_TICK_MS,
+  sendChatMessage,
+  writeSessionToken,
+} from "@/lib/ask-nova/chat";
 
-// sessionStorage keys — per-tab, cleared on tab close (matches existing site convention)
-const LEAD_ID_KEY = "nova_lead_id";
-const CUSTOMER_ID_KEY = "nova_customer_id";
-
-// Production kill-switch: set NEXT_PUBLIC_ASK_NOVA_ENABLED=false to disable
-// the live, backend-connected chat and fall back to FAQ-only quick answers
-// (no network call). Enabled by default — only an explicit "false" disables it.
-const ASK_NOVA_ENABLED = process.env.NEXT_PUBLIC_ASK_NOVA_ENABLED !== "false";
+// Production kill-switch: NEXT_PUBLIC_ASK_NOVA_ENABLED=false disables the live,
+// backend-connected chat and falls back to FAQ-only quick answers (no network
+// call). On by default — see lib/config.ts and .env.example.
 
 const MAX_CHARS = 2_000;
 const WARN_CHARS = 1_800;
@@ -62,8 +64,11 @@ export default function AskNova() {
   // ── Real chat state ───────────────────────────────────────────────────────
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [leadId, setLeadId] = useState<number | null>(null);
-  const [customerId, setCustomerId] = useState<number | null>(null);
+  // The chat session token (BE-1 §1). Kept in memory so a conversation survives
+  // even when sessionStorage is unavailable; mirrored to sessionStorage.
+  const sessionTokenRef = useRef<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const launcherRef = useRef<HTMLButtonElement>(null);
 
   const reduced = usePrefersReducedMotion();
   const idRef = useRef(0);
@@ -78,6 +83,25 @@ export default function AskNova() {
 
   // Keep openRef current so closure-captured effects can read it
   useEffect(() => { openRef.current = open; }, [open]);
+
+  // Abort an in-flight request when the widget unmounts.
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  // Close the panel and hand focus back to the launcher (keyboard / button paths).
+  const closePanel = useCallback(() => {
+    setOpen(false);
+    requestAnimationFrame(() => launcherRef.current?.focus());
+  }, []);
+
+  // ── Escape closes the panel ──────────────────────────────────────────────
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closePanel();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, closePanel]);
 
   // ── Outside-click / outside-tap: close panel when pointer lands outside ──
   useEffect(() => {
@@ -94,19 +118,6 @@ export default function AskNova() {
       document.removeEventListener("touchstart", handler);
     };
   }, [open]);
-
-  // ── Session continuity: restore lead/customer IDs from sessionStorage ─────
-  // Defer setState per lint rule (same pattern as GlobalLoader).
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const t = setTimeout(() => {
-      const lid = sessionStorage.getItem(LEAD_ID_KEY);
-      const cid = sessionStorage.getItem(CUSTOMER_ID_KEY);
-      if (lid) setLeadId(Number(lid));
-      if (cid) setCustomerId(Number(cid));
-    });
-    return () => clearTimeout(t);
-  }, []);
 
   // ── Accessibility: focus input when panel opens ───────────────────────────
   useEffect(() => {
@@ -167,10 +178,19 @@ export default function AskNova() {
     let cancelled = false;
     const sleep = (ms: number) =>
       new Promise<void>((res) => setTimeout(res, ms));
+    // Don't burn timers while the tab is hidden.
+    const whileHidden = () =>
+      document.hidden
+        ? new Promise<void>((res) =>
+            document.addEventListener("visibilitychange", () => res(), { once: true }),
+          )
+        : Promise.resolve();
 
     (async () => {
       let qi = 0;
       while (!cancelled) {
+        await whileHidden();
+        if (cancelled) return;
         bubbleIndexRef.current = qi;
         const q = questions[qi];
         if (reduced) {
@@ -203,11 +223,12 @@ export default function AskNova() {
       setThread((prev) =>
         prev.map((m) => {
           if (m.id !== last.id) return m;
-          const shown = m.full.slice(0, m.shown.length + 1);
+          // Reveal by word, with a capped total duration (see nextRevealLength).
+          const shown = m.full.slice(0, nextRevealLength(m.full, m.shown.length));
           return { ...m, shown, done: shown.length >= m.full.length };
         }),
       );
-    }, 20);
+    }, REVEAL_TICK_MS);
     return () => clearTimeout(t);
   }, [thread]);
 
@@ -238,79 +259,53 @@ export default function AskNova() {
       { id: loadingId, role: "loading", full: "", shown: "", done: false },
     ]);
 
-    try {
-      const body: Record<string, unknown> = { message: text };
-      if (customerId) {
-        body.customer_id = customerId;
-        if (leadId) body.lead_id = leadId;
-      }
-
-      const apiBase =
-        process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-      const res = await fetch(`${apiBase}/api/v1/chat/message`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as {
-          detail?: string;
-        };
-        throw new Error(err.detail ?? `Error ${res.status}`);
-      }
-
-      const rawData: unknown = await res.json();
-      const parsed = chatMessageResponseSchema.safeParse(rawData);
-      if (!parsed.success) {
-        throw new ApiShapeError(
-          "/api/v1/chat/message",
-          formatZodError(parsed.error),
-        );
-      }
-      const data = parsed.data;
-
-      // Persist IDs for conversation continuity
-      if (data.lead_id) {
-        setLeadId(data.lead_id);
-        sessionStorage.setItem(LEAD_ID_KEY, String(data.lead_id));
-      }
-      if (data.customer_id) {
-        setCustomerId(data.customer_id);
-        sessionStorage.setItem(CUSTOMER_ID_KEY, String(data.customer_id));
-      }
-
-      const reply = data.reply ?? "";
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const settleWith = (role: "nova" | "error", text: string) =>
       setThread((prev) =>
         prev.map((m) =>
           m.id === loadingId
             ? {
                 id: loadingId,
-                role: "nova" as const,
-                full: reply,
-                shown: reduced ? reply : "",
-                done: reduced,
+                role,
+                full: text,
+                shown: role === "nova" && !reduced ? "" : text,
+                done: role === "error" || reduced,
               }
             : m,
         ),
       );
-    } catch {
-      const errMsg = t.error;
-      setThread((prev) =>
-        prev.map((m) =>
-          m.id === loadingId
-            ? {
-                id: loadingId,
-                role: "error" as const,
-                full: errMsg,
-                shown: errMsg,
-                done: true,
-              }
-            : m,
-        ),
+
+    try {
+      const data = await sendChatMessage({
+        message: text,
+        sessionToken: sessionTokenRef.current ?? readSessionToken(),
+        signal: controller.signal,
+      });
+      // Only the token continues the conversation — keep the one the backend
+      // returned (a new one when the old session expired).
+      sessionTokenRef.current = data.session_token;
+      writeSessionToken(data.session_token);
+      settleWith("nova", data.reply ?? "");
+    } catch (err) {
+      if (controller.signal.aborted) return; // widget unmounted
+      const kind = classifyChatError(err);
+      settleWith(
+        "error",
+        kind === "rate_limit"
+          ? t.errorRateLimit
+          : kind === "server"
+            ? t.errorServer
+            : kind === "network"
+              ? t.errorNetwork
+              : t.error,
       );
     } finally {
-      setSending(false);
+      if (!controller.signal.aborted) {
+        setSending(false);
+        // Keep the keyboard open: focus never left, but make sure of it.
+        inputRef.current?.focus();
+      }
     }
   };
 
@@ -347,6 +342,8 @@ export default function AskNova() {
         {open && (
           <motion.div
             key="panel"
+            role="dialog"
+            aria-label={t.title}
             initial={{ opacity: 0, scale: reduced ? 1 : 0.88, y: reduced ? 0 : 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: reduced ? 1 : 0.92, y: reduced ? 0 : 12 }}
@@ -378,9 +375,10 @@ export default function AskNova() {
                 </div>
               </div>
               <button
-                onClick={() => setOpen(false)}
+                type="button"
+                onClick={closePanel}
                 aria-label={t.close}
-                className="h-8 w-8 rounded-full hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors active:scale-[0.95]"
+                className="h-11 w-11 -mt-2 -mr-2 rounded-full hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors active:scale-[0.95] focus-visible:outline-2 focus-visible:outline-[#f7a800]"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -392,6 +390,11 @@ export default function AskNova() {
               <div
                 ref={scrollRef}
                 data-lenis-prevent
+                role="log"
+                // Completed replies are announced once by the status region
+                // above; the log must not read out half-typed text.
+                aria-live="off"
+                tabIndex={0}
                 aria-label={t.conversationLabel}
                 className="px-5 py-3 flex-1 min-h-0 overflow-y-auto flex flex-col gap-3"
               >
@@ -409,6 +412,7 @@ export default function AskNova() {
                         <div
                           key={m.id}
                           className="self-start flex gap-2"
+                          role="status"
                           aria-label={t.typing}
                         >
                           <div className="h-6 w-6 mt-1 rounded-full bg-[#f7a800]/90 flex items-center justify-center shrink-0">
@@ -511,9 +515,10 @@ export default function AskNova() {
                     {ASK_NOVA_FAQ.map((faq, i) => (
                       <button
                         key={faq.q}
+                        type="button"
                         onClick={() => ask(i)}
                         disabled={sending}
-                        className="text-left px-3 py-2 rounded-xl text-white/65 text-[12px] font-utility transition-all duration-200 hover:text-white hover:border-[#f7a800]/35 active:scale-[0.99] disabled:opacity-40"
+                        className="text-left px-3 py-3 min-h-11 rounded-xl text-white/65 text-[12px] font-utility transition-colors duration-200 hover:text-white hover:border-[#f7a800]/35 active:scale-[0.99] disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-[#f7a800]"
                         style={{
                           background: "rgba(255,255,255,0.03)",
                           border: "1px solid rgba(255,255,255,0.08)",
@@ -542,7 +547,14 @@ export default function AskNova() {
                           el.style.height = `${Math.min(el.scrollHeight, 96)}px`;
                         }}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
+                          // isComposing / keyCode 229: Enter that commits a Hindi or
+                          // Bengali IME candidate must not send the message.
+                          if (
+                            e.key === "Enter" &&
+                            !e.shiftKey &&
+                            !e.nativeEvent.isComposing &&
+                            e.keyCode !== 229
+                          ) {
                             e.preventDefault();
                             sendRealMessage();
                           }
@@ -550,16 +562,21 @@ export default function AskNova() {
                         }}
                         placeholder={t.placeholder}
                         rows={1}
-                        disabled={sending}
+                        // readOnly (not disabled) while sending: a disabled field
+                        // drops focus and closes the mobile keyboard.
+                        readOnly={sending}
+                        aria-busy={sending}
+                        enterKeyHint="send"
                         aria-label={t.inputLabel}
-                        className="flex-1 min-w-0 resize-none bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-[13px] font-utility text-white/90 placeholder-white/25 focus:outline-none focus:border-[#f7a800]/40 transition-colors leading-snug disabled:opacity-50"
+                        className="flex-1 min-w-0 resize-none bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-base font-utility text-white/90 placeholder-white/25 focus-visible:outline-2 focus-visible:outline-[#f7a800] focus:border-[#f7a800]/40 transition-colors leading-snug read-only:opacity-60"
                         style={{ maxHeight: "96px", overflowY: "auto" }}
                       />
                       <button
+                        type="button"
                         onClick={sendRealMessage}
                         disabled={!input.trim() || sending}
                         aria-label={t.send}
-                        className="h-9 w-9 mb-0.5 shrink-0 rounded-xl bg-[#f7a800] text-[#091c3c] flex items-center justify-center transition-all hover:bg-white active:scale-[0.93] disabled:opacity-35 disabled:cursor-not-allowed"
+                        className="h-11 w-11 shrink-0 rounded-xl bg-[#f7a800] text-[#091c3c] flex items-center justify-center transition-colors hover:bg-white active:scale-[0.93] disabled:opacity-35 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                       >
                         <Send className="h-3.5 w-3.5" />
                       </button>
@@ -660,12 +677,15 @@ export default function AskNova() {
 
       {/* ── Launcher button ───────────────────────────────────────────────── */}
       <motion.button
+        ref={launcherRef}
+        type="button"
         onClick={toggle}
+        aria-expanded={open}
         aria-label={open ? t.close : t.open}
         whileHover={reduced ? undefined : { scale: 1.08 }}
         whileTap={reduced ? undefined : { scale: 0.94 }}
         transition={{ type: "spring", stiffness: 400, damping: 20 }}
-        className="nova-pulse h-14 w-14 rounded-full bg-[#f7a800] text-[#091c3c] flex items-center justify-center shadow-lg shrink-0"
+        className="nova-pulse h-14 w-14 rounded-full bg-[#f7a800] text-[#091c3c] flex items-center justify-center shadow-lg shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
         <AnimatePresence mode="wait" initial={false}>
           {open ? (

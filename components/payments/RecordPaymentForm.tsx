@@ -7,6 +7,7 @@ import ProofUpload from '@/components/payments/ProofUpload'
 import { paymentErrorMessage, type PaymentCopy } from '@/components/payments/payment-errors'
 import { humanize } from '@/lib/associate/execution-labels'
 import { isAmountShapeValid } from '@/lib/money'
+import { useMilestoneLabel } from '@/lib/pricing/useMilestoneLabel'
 import type { Milestone, Payment, RecordPaymentInput } from '@/lib/associate/payment-types'
 
 // Modes that are written on a physical instrument and so need its bank and date.
@@ -42,6 +43,7 @@ export default function RecordPaymentForm({
   onRecord: (input: RecordPaymentInput) => Promise<Payment>
   onUploadProof: (paymentId: number, file: File, onProgress: (percent: number) => void) => Promise<unknown>
 }) {
+  const milestoneLabel = useMilestoneLabel()
   // A half-filled form survives a refresh or a back-press (this device only).
   const draftKey = `gna-payment-form-${idPrefix}`
   const [v, setV] = useAutosaveDraft(draftKey, { ...EMPTY, payer_name: defaultPayerName ?? '' })
@@ -163,7 +165,7 @@ export default function RecordPaymentForm({
           <select id={`${idPrefix}-milestone`} className={field} value={v.milestone_id} onChange={(e) => set('milestone_id', e.target.value)}>
             <option value="">{copy.milestoneNone}</option>
             {milestones.map((m) => (
-              <option key={m.milestone_id} value={m.milestone_id}>{m.label}</option>
+              <option key={m.milestone_id} value={m.milestone_id}>{milestoneLabel(m.label)}</option>
             ))}
           </select>
         </div>

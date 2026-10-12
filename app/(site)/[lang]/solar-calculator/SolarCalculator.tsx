@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/config";
 import { useEffect, useState } from "react";
 import Link from "@/components/i18n/Link";
 import { useMessages } from "@/lib/i18n/client";
@@ -77,8 +78,30 @@ export default function SolarCalculator() {
   const [subsidyInterest, setSubsidyInterest] = useState<"yes" | "no">("yes");
 
   // Step D — Instant Estimate
-  const [estimateStatus, setEstimateStatus] = useState<EstimateStatus>("idle");
-  const [estimateResult, setEstimateResult] = useState<(PriceListFields & Record<string, unknown>) | null>(null);
+  // The estimate is only valid for the exact inputs it was computed from. It is
+  // stored with a key derived from every input that reaches the pricing call; a
+  // result whose key no longer matches reads as "idle" (never shown, never
+  // emailed), so going back, changing an input and returning cannot show — or
+  // send — the previous price.
+  const inputsKey = JSON.stringify([
+    customerType,
+    state,
+    sizingMethod,
+    sizingMethod === "bill" ? averageMonthlyBill : sizingMethod === "units" ? monthlyUnits : roofAreaSqFt,
+    connectionPhase,
+    roofTypeLabel,
+    floors,
+    shadingLabel,
+    accessDifficultyLabel,
+  ]);
+  const [estimate, setEstimate] = useState<{
+    key: string;
+    status: EstimateStatus;
+    result: (PriceListFields & Record<string, unknown>) | null;
+  }>({ key: "", status: "idle", result: null });
+  const estimateFresh = estimate.key === inputsKey;
+  const estimateStatus: EstimateStatus = estimateFresh ? estimate.status : "idle";
+  const estimateResult = estimateFresh ? estimate.result : null;
 
   // Step E — Capture
   const [fullName, setFullName] = useState("");
@@ -104,12 +127,18 @@ export default function SolarCalculator() {
   // pattern AskNova.tsx already uses for its own public endpoint, no Clerk
   // token involved since there's nothing to authenticate here.
   useEffect(() => {
-    if (step !== 3 || estimateStatus !== "idle") return;
+    if (step !== 3) return;
+    // Already loading or loaded for exactly these inputs — nothing to do. An
+    // earlier failure for the same inputs is retried on re-entry.
+    if (estimate.key === inputsKey && (estimate.status === "loading" || estimate.status === "success")) return;
+
+    const key = inputsKey;
+    const controller = new AbortController();
 
     async function fetchEstimate() {
-      setEstimateStatus("loading");
+      setEstimate({ key, status: "loading", result: null });
       try {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+        const apiBase = API_BASE_URL;
         const sizingValue: Record<string, number> =
           sizingMethod === "bill"
             ? { monthly_bill_inr: parseFloat(averageMonthlyBill) }
@@ -133,26 +162,34 @@ export default function SolarCalculator() {
             is_remote: false,
             is_housing_society: customerType === "society",
           }),
-          signal: AbortSignal.timeout(6000),
+          signal: AbortSignal.any([controller.signal, AbortSignal.timeout(6000)]),
         });
 
         if (!res.ok) throw new Error(`Pricing endpoint returned ${res.status}`);
 
         const parsed = parsePriceListEstimate(await res.json());
         if (!parsed) throw new Error("Unexpected pricing response shape");
-        setEstimateResult(parsed);
-        setEstimateStatus("success");
+        setEstimate({ key, status: "success", result: parsed });
       } catch {
+        if (controller.signal.aborted) {
+          // The visitor left step 3 (or changed an input) mid-request: forget the
+          // half-finished attempt so coming back fetches again.
+          setEstimate((prev) => (prev.key === key && prev.status === "loading" ? { key: "", status: "idle", result: null } : prev));
+          return;
+        }
         // Never let an unreachable/slow pricing endpoint strand the visitor —
         // the rest of the flow (and Lead creation) works exactly the same
         // either way; only the live number is unavailable.
-        setEstimateStatus("error");
+        setEstimate({ key, status: "error", result: null });
       }
     }
 
     void fetchEstimate();
+    return () => controller.abort();
+    // `estimate` is read only to skip a redundant fetch; re-running on its own
+    // updates would loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  }, [step, inputsKey]);
 
   function goNext() {
     setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));

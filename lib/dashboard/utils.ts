@@ -26,6 +26,17 @@ export function formatCurrency(value: number | null | undefined): string {
 // one place that conversion happens, so every call site gets it for free.
 export const IST_TIME_ZONE = 'Asia/Kolkata'
 
+/** The IST calendar day (YYYY-MM-DD) of an instant — never the browser's own zone. */
+export function istDateKey(input: Date | string): string {
+  const date = typeof input === 'string' ? new Date(input) : input
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: IST_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date)
+}
+
 export function formatDate(iso: string | null | undefined): string {
   if (!iso) return '—'
   try {

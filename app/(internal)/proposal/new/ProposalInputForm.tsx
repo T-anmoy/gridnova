@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { apiFetchForm, getTokenOrThrow } from "@/lib/api/http";
+import { ApiError } from "@/lib/dashboard/api-error";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 import Step1CustomerProject from "./steps/Step1CustomerProject";
@@ -43,7 +46,11 @@ interface UploadOutcome {
   storageNotConfigured?: boolean;
 }
 
+// Uploads go straight from the browser to the backend with the staff member's
+// Clerk token — never through a Vercel Function, whose 4.5 MB body limit is
+// below this form's 10 MB file limit.
 async function uploadOneFile(
+  getToken: () => Promise<string | null>,
   inputsId: number,
   file: File,
   documentType: string
@@ -54,19 +61,26 @@ async function uploadOneFile(
   form.set("document_type", documentType);
 
   try {
-    const res = await fetch(`/api/proposal-inputs/${inputsId}/upload`, { method: "POST", body: form });
-    const data = await res.json().catch(() => null);
-    if (!res.ok || !data?.success) {
-      return {
-        fileName: file.name,
-        ok: false,
-        error: data?.error || `Upload failed (${res.status})`,
-        storageNotConfigured: data?.code === "storage_not_configured",
-      };
-    }
+    const token = await getTokenOrThrow(getToken);
+    await apiFetchForm(`/api/v1/proposal-inputs/${inputsId}/upload`, token, form);
     return { fileName: file.name, ok: true };
-  } catch {
-    return { fileName: file.name, ok: false, error: "Network error during upload." };
+  } catch (err) {
+    if (err instanceof ApiError) {
+      if (err.status === 0) return { fileName: file.name, ok: false, error: "Network error during upload." };
+      if (err.structuredDetail?.code === "storage_not_configured") {
+        return {
+          fileName: file.name,
+          ok: false,
+          storageNotConfigured: true,
+          error: "File storage isn't connected yet — this file was NOT saved. The rest of the assessment was submitted.",
+        };
+      }
+      if (err.status === 401) {
+        return { fileName: file.name, ok: false, error: "Your session expired — sign in again to upload files." };
+      }
+      return { fileName: file.name, ok: false, error: err.detail || `Upload failed (${err.status})` };
+    }
+    return { fileName: file.name, ok: false, error: "Upload failed." };
   }
 }
 
@@ -80,6 +94,7 @@ interface ProposalInputFormProps {
 }
 
 export default function ProposalInputForm({ initialLeadId }: ProposalInputFormProps) {
+  const { getToken } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [values, setValues] = useState<ProposalFormValues>(() =>
     initialLeadId ? { ...DEFAULT_VALUES, referenceLeadId: initialLeadId } : DEFAULT_VALUES
@@ -225,7 +240,7 @@ export default function ProposalInputForm({ initialLeadId }: ProposalInputFormPr
     const uploadTasks: Promise<UploadOutcome>[] = [];
     for (const { field, documentType } of DOCUMENT_UPLOAD_FIELDS) {
       for (const file of files[field]) {
-        uploadTasks.push(uploadOneFile(inputsId, file, documentType));
+        uploadTasks.push(uploadOneFile(getToken, inputsId, file, documentType));
       }
     }
     const outcomes = await Promise.all(uploadTasks);

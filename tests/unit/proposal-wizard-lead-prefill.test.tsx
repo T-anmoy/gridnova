@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import ProposalInputForm from "@/app/(internal)/proposal/new/ProposalInputForm";
 
+vi.mock("@clerk/nextjs", () => ({ useAuth: () => ({ getToken: async () => "clerk-jwt" }) }));
+
 beforeEach(() => {
   window.scrollTo = vi.fn();
 });

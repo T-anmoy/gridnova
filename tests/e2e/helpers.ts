@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { isOwnOrigin } from "./origin";
 
 // Public marketing routes. The /dashboard tree is Clerk-protected and excluded.
 export const PUBLIC_ROUTES = [
@@ -28,7 +29,9 @@ export function collectConsoleErrors(page: Page): string[] {
     if (msg.type() !== "error") return;
     const url = msg.location().url ?? "";
     // Only count messages from our own origin (or with no attributable URL).
-    if (url === "" || url.includes("localhost")) {
+    // Matching the exact origin — not a substring — is what keeps this honest:
+    // the suite serves from 127.0.0.1, so a "localhost" check dropped them all.
+    if (isOwnOrigin(url)) {
       errors.push(`console.error: ${msg.text()} (${url})`);
     }
   });

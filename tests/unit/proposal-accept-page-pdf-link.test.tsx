@@ -1,17 +1,13 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import ProposalAcceptPage from '@/app/(internal)/proposal/accept/[token]/page'
 
 vi.mock('next/navigation', () => ({
-  useParams: () => ({ token: 'tok_abc123' }),
+  useRouter: () => ({ refresh: vi.fn() }),
 }))
-
-beforeEach(() => {
-  vi.resetModules()
-})
 
 afterEach(() => {
   vi.unstubAllGlobals()
-  vi.unstubAllEnvs()
   vi.restoreAllMocks()
 })
 
@@ -25,30 +21,28 @@ const READY_RESPONSE = {
   scope: 'Rooftop install',
 }
 
+// The page is an async Server Component: await it, then render the result.
+async function renderPage(token = 'tok_abc123') {
+  render(await ProposalAcceptPage({ params: Promise.resolve({ token }) }))
+}
+
 describe('ProposalAcceptPage — PDF availability', () => {
   it('shows a Download proposal (PDF) link pointing to the public PDF endpoint when pdf_available is true', async () => {
-    vi.stubEnv('NEXT_PUBLIC_API_URL', 'http://127.0.0.1:8000')
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue(new Response(JSON.stringify({ ...READY_RESPONSE, pdf_available: true }), { status: 200 }))
     )
-    const { default: ProposalAcceptPage } = await import('@/app/(internal)/proposal/accept/[token]/page')
-    render(<ProposalAcceptPage />)
+    await renderPage()
 
-    const link = await screen.findByRole('link', { name: /download proposal \(pdf\)/i })
+    const link = screen.getByRole('link', { name: /download proposal \(pdf\)/i })
     expect(link).toHaveAttribute('href', 'http://127.0.0.1:8000/api/v1/public/proposals/tok_abc123/pdf')
   })
 
   it('shows no download link when pdf_available is false or absent', async () => {
-    vi.stubEnv('NEXT_PUBLIC_API_URL', 'http://127.0.0.1:8000')
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(new Response(JSON.stringify(READY_RESPONSE), { status: 200 }))
-    )
-    const { default: ProposalAcceptPage } = await import('@/app/(internal)/proposal/accept/[token]/page')
-    render(<ProposalAcceptPage />)
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(READY_RESPONSE), { status: 200 })))
+    await renderPage()
 
-    await screen.findByText(/review & accept your proposal|proposal for/i)
+    expect(screen.getByText(/proposal for ravi sharma/i)).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /download proposal/i })).not.toBeInTheDocument()
   })
 })

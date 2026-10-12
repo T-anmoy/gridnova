@@ -66,13 +66,12 @@ describe("mirrorToBackend", () => {
   });
 
   it("never throws — a network failure is logged, not propagated", async () => {
-    vi.stubEnv("NEXT_PUBLIC_API_URL", "http://127.0.0.1:8001");
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     await expect(
       mirrorToBackend("/api/v1/public/contact", { name: "Ravi" }, new Request("http://localhost/"), "contact")
-    ).resolves.toBeUndefined();
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("Backend contact mirror failed (non-fatal"), expect.any(Error));
+    ).resolves.toBe(false);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("Backend contact mirror failed"), expect.any(Error));
   });
 });

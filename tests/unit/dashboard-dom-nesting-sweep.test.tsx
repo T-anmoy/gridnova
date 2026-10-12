@@ -63,6 +63,8 @@ vi.mock('@/lib/dashboard/api-client', () => ({
   useOverviewStats: () => mockUseOverviewStats(),
   useActivityFeed: () => mockUseActivityFeed(),
   useLeads: () => mockUseLeads(),
+  defaultLeadListParams: () => ({ page: 1, page_size: 25 }),
+  LEADS_PAGE_SIZE: 25,
   downloadLeadsCsv: vi.fn(),
   useLead: () => mockUseLead(),
   useDraftProposal: () => mockUseDraftProposal(),
@@ -173,7 +175,7 @@ const LEAD_SUMMARY: LeadSummary = {
 
 describe('Leads (list) — DOM validity', () => {
   it('empty', () => {
-    mockUseLeads.mockReturnValue({ data: [], isLoading: false, error: null, refetch: vi.fn() })
+    mockUseLeads.mockReturnValue({ data: { items: [], page: 1, page_size: 25, total: 0 }, isLoading: false, error: null, refetch: vi.fn() })
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
         render(<LeadsPage />)
     expect(screen.getByText('No leads found')).toBeInTheDocument()
@@ -182,7 +184,7 @@ describe('Leads (list) — DOM validity', () => {
   })
 
   it('populated', () => {
-    mockUseLeads.mockReturnValue({ data: [LEAD_SUMMARY], isLoading: false, error: null, refetch: vi.fn() })
+    mockUseLeads.mockReturnValue({ data: { items: [LEAD_SUMMARY], page: 1, page_size: 25, total: 1 }, isLoading: false, error: null, refetch: vi.fn() })
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
         render(<LeadsPage />)
     expect(screen.getByText('#1')).toBeInTheDocument()
