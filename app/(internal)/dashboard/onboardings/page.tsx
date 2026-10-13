@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense } from 'react'
+import { useUrlParams } from '@/lib/dashboard/use-url-params'
 import { useStaffOnboardings } from '@/lib/dashboard/onboarding-api-client'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { Card, CardContent } from '@/components/ui/card'
@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ClickableRow } from '@/components/dashboard/ClickableRow'
+import Link from 'next/link'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { FormalProposalBlockedBadge } from '@/components/dashboard/FormalProposalBlocked'
 import { formatDate } from '@/lib/dashboard/utils'
@@ -21,10 +23,21 @@ function bandVariant(band: 'hot' | 'warm' | 'cold') {
 }
 
 export default function OnboardingsListPage() {
-  const router = useRouter()
-  const [status, setStatus] = useState<OnboardingStatus | ''>('')
-  const [needsAttention, setNeedsAttention] = useState(false)
-  const [page, setPage] = useState(1)
+  // useSearchParams needs a Suspense boundary.
+  return (
+    <Suspense fallback={<Skeleton className="m-6 h-64" />}>
+      <OnboardingsList />
+    </Suspense>
+  )
+}
+
+function OnboardingsList() {
+  // Filters and page live in the URL (?status=…&attention=1&page=2).
+  const url = useUrlParams()
+  const rawStatus = url.get('status')
+  const status: OnboardingStatus | '' = (STATUSES as string[]).includes(rawStatus) ? (rawStatus as OnboardingStatus) : ''
+  const needsAttention = url.get('attention') === '1'
+  const page = url.page
 
   const { data, isLoading, error, refetch } = useStaffOnboardings({
     status: status || undefined,
@@ -40,7 +53,7 @@ export default function OnboardingsListPage() {
       </div>
 
       <div className="flex items-center gap-3">
-        <Select value={status || 'all'} onValueChange={(v) => setStatus(v === 'all' ? '' : (v as OnboardingStatus))}>
+        <Select value={status || 'all'} onValueChange={(v) => url.set({ status: v === 'all' ? undefined : v })}>
           <SelectTrigger className="w-40">
             <SelectValue />
           </SelectTrigger>
@@ -57,10 +70,8 @@ export default function OnboardingsListPage() {
         <Button
           variant={needsAttention ? 'default' : 'outline'}
           size="sm"
-          onClick={() => {
-            setNeedsAttention((v) => !v)
-            setPage(1)
-          }}
+          aria-pressed={needsAttention}
+          onClick={() => url.set({ attention: needsAttention ? undefined : '1' })}
         >
           Needs attention
         </Button>
@@ -90,14 +101,15 @@ export default function OnboardingsListPage() {
               </TableHeader>
               <TableBody>
                 {data?.items.map((o) => (
-                  <TableRow
+                  <ClickableRow
                     key={o.onboarding_id}
-                    className="cursor-pointer"
-                    onClick={() => router.push(`/dashboard/onboardings/${o.onboarding_id}`)}
+                    href={`/dashboard/onboardings/${o.onboarding_id}`}
                   >
                     <TableCell>
-                      <p className="font-medium">{o.customer.name}</p>
-                      <p className="text-xs text-gray-500">{o.customer.mobile}</p>
+                      <Link href={`/dashboard/onboardings/${o.onboarding_id}`} className="hover:underline">
+                        <p className="font-medium">{o.customer.name}</p>
+                        <p className="text-xs text-gray-500">{o.customer.mobile}</p>
+                      </Link>
                     </TableCell>
                     <TableCell>{o.owner.full_name}</TableCell>
                     <TableCell>
@@ -117,7 +129,7 @@ export default function OnboardingsListPage() {
                       </div>
                     </TableCell>
                     <TableCell>{formatDate(o.created_at)}</TableCell>
-                  </TableRow>
+                  </ClickableRow>
                 ))}
                 {data && data.items.length === 0 && (
                   <TableRow>
@@ -134,13 +146,13 @@ export default function OnboardingsListPage() {
 
       {data && data.total > data.page_size && (
         <div className="flex items-center justify-between">
-          <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+          <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => url.setPage(page - 1)}>
             Previous
           </Button>
           <p className="text-sm text-gray-500">
             Page {data.page} of {Math.ceil(data.total / data.page_size)}
           </p>
-          <Button variant="outline" size="sm" disabled={page * data.page_size >= data.total} onClick={() => setPage((p) => p + 1)}>
+          <Button variant="outline" size="sm" disabled={page * data.page_size >= data.total} onClick={() => url.setPage(page + 1)}>
             Next
           </Button>
         </div>

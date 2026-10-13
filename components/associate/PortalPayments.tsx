@@ -104,18 +104,18 @@ function Milestones({ milestones, copy }: { milestones: Milestone[]; copy: Payme
                   {copy.due[status as keyof PaymentCopy['due']] ?? humanize(status)}
                 </span>
               </div>
-              <p className="mt-1 text-xs text-[#111827]/50">{copy.milestonePercent.replace('{percent}', String(m.percent))}</p>
+              <p className="mt-1 text-xs text-[#111827]/65">{copy.milestonePercent.replace('{percent}', String(m.percent))}</p>
               <dl className="mt-2 grid grid-cols-3 gap-2 text-xs">
-                <div><dt className="text-[#111827]/50">{copy.amountDue}</dt><dd className="font-semibold">{formatInr(m.amount_due)}</dd></div>
-                <div><dt className="text-[#111827]/50">{copy.paidToward}</dt><dd className="font-semibold">{formatInr(m.paid_toward)}</dd></div>
-                <div><dt className="text-[#111827]/50">{copy.outstanding}</dt><dd className="font-semibold">{formatInr(m.outstanding)}</dd></div>
+                <div><dt className="text-[#111827]/65">{copy.amountDue}</dt><dd className="font-semibold">{formatInr(m.amount_due)}</dd></div>
+                <div><dt className="text-[#111827]/65">{copy.paidToward}</dt><dd className="font-semibold">{formatInr(m.paid_toward)}</dd></div>
+                <div><dt className="text-[#111827]/65">{copy.outstanding}</dt><dd className="font-semibold">{formatInr(m.outstanding)}</dd></div>
               </dl>
               {collect && <p className="mt-2 font-utility text-sm font-semibold text-[#7a5200]" data-testid="collect-this">{copy.collectThis}</p>}
             </li>
           )
         })}
       </ul>
-      <p className="mt-3 text-[11px] text-[#111827]/45">{copy.milestoneNote}</p>
+      <p className="mt-3 text-[11px] text-[#111827]/65">{copy.milestoneNote}</p>
     </Card>
   )
 }
@@ -178,14 +178,14 @@ function PaymentRow({
       <p className="mt-1 text-xs text-[#111827]/60">
         {copy.modes[payment.mode as keyof PaymentCopy['modes']] ?? humanize(payment.mode)} · {payment.reference} · {formatDate(payment.recorded_at)}
       </p>
-      {milestone && <p className="mt-1 text-xs text-[#111827]/50">{copy.forMilestone.replace('{label}', milestoneLabel(milestone.label))}</p>}
+      {milestone && <p className="mt-1 text-xs text-[#111827]/65">{copy.forMilestone.replace('{label}', milestoneLabel(milestone.label))}</p>}
       {payment.previous_payment_id != null && (
         <p className="mt-1 text-xs text-[#111827]/60" data-testid="replaces">{copy.replaces.replace('{id}', String(payment.previous_payment_id))}</p>
       )}
       {payment.status === 'dishonoured' && payment.dishonour_reason && (
         <p className="mt-1 text-xs text-red-700">{copy.bouncedReason.replace('{reason}', payment.dishonour_reason)}</p>
       )}
-      {payment.status === 'cancelled' && payment.cancel_reason && <p className="mt-1 text-xs text-[#111827]/50">{payment.cancel_reason}</p>}
+      {payment.status === 'cancelled' && payment.cancel_reason && <p className="mt-1 text-xs text-[#111827]/65">{payment.cancel_reason}</p>}
 
       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
         {proofNeeded && (
@@ -204,7 +204,7 @@ function PaymentRow({
               {copy.receipt.replace('{number}', receipt.receipt_number)}
             </a>
           ) : (
-            <span className="font-utility text-xs text-[#111827]/50">{copy.receiptPending}</span>
+            <span className="font-utility text-xs text-[#111827]/65">{copy.receiptPending}</span>
           )
         )}
       </div>
@@ -215,7 +215,7 @@ function PaymentRow({
         <div className="mt-2">
           {cancelling ? (
             <div className="space-y-2">
-              <label htmlFor={`cancel-${payment.payment_id}`} className="block font-utility text-xs text-[#111827]/55">{copy.cancelReason}</label>
+              <label htmlFor={`cancel-${payment.payment_id}`} className="block font-utility text-xs text-[#111827]/65">{copy.cancelReason}</label>
               <input id={`cancel-${payment.payment_id}`} value={reason} onChange={(e) => setReason(e.target.value)} className="w-full min-h-[44px] rounded-xl border border-[#e4e8ee] px-4 py-2 text-sm" />
               <div className="flex gap-3">
                 <button type="button" onClick={() => void handleCancel()} disabled={cancel.isPending} className="min-h-[44px] rounded-lg bg-red-700 px-4 text-sm font-semibold text-white disabled:opacity-50">{copy.cancelConfirm}</button>
@@ -292,10 +292,10 @@ export default function PortalPayments({
       <Card>
         <p className="font-display text-base font-semibold text-[#0e2a63]">{copy.totalsTitle}</p>
         <dl className="mt-3 grid grid-cols-2 gap-3 text-sm" data-testid="totals">
-          <div><dt className="text-xs text-[#111827]/50">{copy.total}</dt><dd className="font-semibold">{formatInr(data.totals.accepted_total)}</dd></div>
-          <div><dt className="text-xs text-[#111827]/50">{copy.paidVerified}</dt><dd className="font-semibold">{formatInr(data.totals.paid_verified)}</dd></div>
-          <div><dt className="text-xs text-[#111827]/50">{copy.awaiting}</dt><dd className="font-semibold">{formatInr(data.totals.awaiting_verification)}</dd></div>
-          <div><dt className="text-xs text-[#111827]/50">{copy.balance}</dt><dd className="font-semibold">{formatInr(data.totals.balance)}</dd></div>
+          <div><dt className="text-xs text-[#111827]/65">{copy.total}</dt><dd className="font-semibold">{formatInr(data.totals.accepted_total)}</dd></div>
+          <div><dt className="text-xs text-[#111827]/65">{copy.paidVerified}</dt><dd className="font-semibold">{formatInr(data.totals.paid_verified)}</dd></div>
+          <div><dt className="text-xs text-[#111827]/65">{copy.awaiting}</dt><dd className="font-semibold">{formatInr(data.totals.awaiting_verification)}</dd></div>
+          <div><dt className="text-xs text-[#111827]/65">{copy.balance}</dt><dd className="font-semibold">{formatInr(data.totals.balance)}</dd></div>
         </dl>
       </Card>
 
@@ -316,7 +316,7 @@ export default function PortalPayments({
       <Card>
         <p className="font-display text-base font-semibold text-[#0e2a63]">{copy.listTitle}</p>
         {data.payments.length === 0 ? (
-          <p className="mt-3 text-sm text-[#111827]/55">{copy.empty}</p>
+          <p className="mt-3 text-sm text-[#111827]/65">{copy.empty}</p>
         ) : (
           <ul className="mt-3 space-y-3">
             {data.payments.map((p) => (

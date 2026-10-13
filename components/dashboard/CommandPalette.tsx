@@ -128,7 +128,7 @@ export function CommandPalette() {
                     <span className="flex-1 min-w-0 truncate">
                       {lead.customer_name ?? `Lead #${lead.id}`}
                     </span>
-                    <span className="ml-2 shrink-0 text-xs text-[#111827]/40">
+                    <span className="ml-2 shrink-0 text-xs text-[#111827]/65">
                       #{lead.id} · {lead.pipeline_stage.replace(/_/g, ' ')}
                     </span>
                   </CommandItem>
@@ -155,7 +155,7 @@ export function CommandPalette() {
                     <span className="flex-1 min-w-0 truncate">
                       {p.customer?.name ?? `Proposal #${p.id}`}
                     </span>
-                    <span className="ml-2 shrink-0 text-xs text-[#111827]/40">
+                    <span className="ml-2 shrink-0 text-xs text-[#111827]/65">
                       #{p.id} · {p.status.replace(/_/g, ' ')}
                     </span>
                   </CommandItem>
@@ -178,7 +178,7 @@ export function CommandPalette() {
               </CommandItem>
               <div className="px-2 py-1">
                 <input
-                  className="w-full rounded border border-[#e4e8ee] px-2 py-1 text-xs font-utility outline-none focus:ring-1 focus:ring-[#f7a800]"
+                  className="w-full rounded border border-[#e4e8ee] px-2 py-1 text-xs font-utility outline-none focus-visible:ring-2 focus-visible:ring-[#f7a800]"
                   placeholder="Enter lead ID"
                   value={leadIdSearch}
                   onChange={(e) => setLeadIdSearch(e.target.value)}
@@ -202,7 +202,7 @@ export function CommandPalette() {
               </CommandItem>
               <div className="px-2 py-1">
                 <input
-                  className="w-full rounded border border-[#e4e8ee] px-2 py-1 text-xs font-utility outline-none focus:ring-1 focus:ring-[#f7a800]"
+                  className="w-full rounded border border-[#e4e8ee] px-2 py-1 text-xs font-utility outline-none focus-visible:ring-2 focus-visible:ring-[#f7a800]"
                   placeholder="Enter proposal ID"
                   value={proposalIdSearch}
                   onChange={(e) => setProposalIdSearch(e.target.value)}

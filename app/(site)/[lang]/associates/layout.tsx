@@ -20,7 +20,7 @@ export const viewport: Viewport = { themeColor: '#0e2a63', viewportFit: 'cover' 
 // sign-in destination on session expiry. While the portal switch is closed
 // every route here shows the "opening soon" page instead.
 export default async function AssociatesLayout({ children, params }: { children: React.ReactNode } & LangParams) {
-  const m = messagesFor(await resolveLocale(params))
+  const m = (await messagesFor(await resolveLocale(params)))
   if (!ASSOCIATE_PORTAL_OPEN) return <PortalClosed t={m.associates.closed} />
   return (
     <ClerkProvider>

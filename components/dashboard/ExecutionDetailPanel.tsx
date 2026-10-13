@@ -93,7 +93,7 @@ function EvidenceViewer({ onboardingId, detail, submission }: { onboardingId: nu
           {docs.map(([k, f]) => (
             <li key={k} className="flex flex-wrap items-center gap-2">
               <span className="text-gray-700">{labelFor(copy.documents, k)}</span>
-              {f ? <ViewFile onboardingId={onboardingId} file={f} /> : <span className="text-xs text-gray-400">not on file</span>}
+              {f ? <ViewFile onboardingId={onboardingId} file={f} /> : <span className="text-xs text-gray-500">not on file</span>}
             </li>
           ))}
         </ul>
@@ -109,7 +109,7 @@ function EvidenceViewer({ onboardingId, detail, submission }: { onboardingId: nu
                   <PhotoFlagBadges captureMethod={f.capture_method} locationVerified={f.location_verified} flags={f.flags} />
                 </>
               ) : (
-                <span className="text-xs text-gray-400">not on file</span>
+                <span className="text-xs text-gray-500">not on file</span>
               )}
             </li>
           ))}
@@ -136,10 +136,10 @@ function StageRow({
   return (
     <li className="flex gap-3" data-testid={`stage-${stage.stage}`}>
       <div className="mt-0.5 shrink-0">
-        {stage.recorded ? <Check className="h-4 w-4 text-green-600" /> : <Circle className={`h-4 w-4 ${isCurrent ? 'text-amber-500' : 'text-gray-300'}`} />}
+        {stage.recorded ? <Check className="h-4 w-4 text-green-600" /> : <Circle className={`h-4 w-4 ${isCurrent ? 'text-amber-500' : 'text-gray-500'}`} />}
       </div>
       <div className="min-w-0">
-        <p className={`text-sm font-medium ${stage.recorded ? 'text-gray-900' : isCurrent ? 'text-amber-700' : 'text-gray-400'}`}>
+        <p className={`text-sm font-medium ${stage.recorded ? 'text-gray-900' : isCurrent ? 'text-amber-700' : 'text-gray-500'}`}>
           {stageName(stage)}
           {sub && !stage.recorded && (
             <Badge className="ml-2" variant={sub.status === 'pending' ? 'amber' : 'red'}>
@@ -278,7 +278,7 @@ export default function ExecutionDetailPanel({ onboardingId, role }: { onboardin
               {d.customer.associate.mobile ? ` · ${d.customer.associate.mobile}` : ''}
             </p>
           )}
-          {d.started_at && <p className="text-xs text-gray-400">Started {formatDate(d.started_at)}</p>}
+          {d.started_at && <p className="text-xs text-gray-500">Started {formatDate(d.started_at)}</p>}
         </CardContent>
       </Card>
 
@@ -286,7 +286,7 @@ export default function ExecutionDetailPanel({ onboardingId, role }: { onboardin
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
-              Review: {stageName(reviewStage)} <span className="text-xs font-normal text-gray-400">submitted {formatDatetime(pending.submitted_at)} by {pending.submitted_by}</span>
+              Review: {stageName(reviewStage)} <span className="text-xs font-normal text-gray-500">submitted {formatDatetime(pending.submitted_at)} by {pending.submitted_by}</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">

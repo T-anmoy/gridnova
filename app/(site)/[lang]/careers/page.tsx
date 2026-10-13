@@ -42,12 +42,12 @@ function PortalButton({
 }
 
 export default async function CareersPage({ params }: LangParams) {
-  const m = messagesFor(await resolveLocale(params));
+  const m = (await messagesFor(await resolveLocale(params)));
   const t = m.careers;
   const pending = (text: string) => <WithPending text={text} label={t.pendingLabel} />;
 
   return (
-    <main>
+    <main id="main-content">
       {/* Opening — two paths */}
       <section className="pt-[calc(var(--header-h)+4rem)] pb-16 md:pb-24 bg-white border-b border-[#e4e8ee]">
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
@@ -223,7 +223,7 @@ export default async function CareersPage({ params }: LangParams) {
                     </li>
                   ))}
                 </ol>
-                <p className="mt-4 text-xs text-[#111827]/50">{t.guidelines.portalNote}</p>
+                <p className="mt-4 text-xs text-[#111827]/65">{t.guidelines.portalNote}</p>
               </div>
             </ScrollReveal>
           </div>
@@ -331,7 +331,7 @@ export default async function CareersPage({ params }: LangParams) {
 
           <ScrollReveal y={28}>
             <div className="mt-16 max-w-[640px] rounded-2xl border border-[#e4e8ee] bg-white p-7 md:p-9">
-              <p className="font-utility text-[11px] tracking-[0.18em] text-[#111827]/40 uppercase mb-4">{t.jobs.openingsLabel}</p>
+              <p className="font-utility text-[11px] tracking-[0.18em] text-[#111827]/65 uppercase mb-4">{t.jobs.openingsLabel}</p>
               <h3 className="font-display text-[#0e2a63] text-2xl font-semibold">{t.jobs.openingsTitle}</h3>
               <p className="mt-4 text-[#111827]/60 leading-relaxed max-w-[50ch]">{t.jobs.openingsBody}</p>
               <div className="mt-8 flex flex-wrap gap-4">

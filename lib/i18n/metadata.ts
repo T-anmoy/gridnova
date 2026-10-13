@@ -13,7 +13,7 @@ type PageKey = keyof Messages["meta"]["pages"];
 export function localizedMetadata(key: PageKey, path: string) {
   return async function generateMetadata({ params }: LangParams): Promise<Metadata> {
     const locale = await resolveLocale(params);
-    const { title, description } = messagesFor(locale).meta.pages[key];
+    const { title, description } = (await messagesFor(locale)).meta.pages[key];
     return pageMetadata({ title, description, path, locale });
   };
 }

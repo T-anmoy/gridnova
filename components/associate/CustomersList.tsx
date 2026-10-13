@@ -41,7 +41,7 @@ function CustomerCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-display text-base font-semibold text-[#0e2a63] truncate">{onboarding.customer.name}</p>
-          <p className="mt-0.5 text-xs text-[#111827]/50 font-utility">{onboarding.customer.mobile}</p>
+          <p className="mt-0.5 text-xs text-[#111827]/65 font-utility">{onboarding.customer.mobile}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {onboarding.score && (
@@ -49,7 +49,7 @@ function CustomerCard({
               {copy.band[onboarding.score.band]}
             </span>
           )}
-          <ChevronRight className="h-4 w-4 text-[#111827]/30" />
+          <ChevronRight className="h-4 w-4 text-[#111827]/65" />
         </div>
       </div>
 
@@ -86,7 +86,7 @@ function NextStepLine({
           {actionNeededLabel}
         </span>
       )}
-      <p className={`text-xs font-utility ${stalled ? 'text-amber-700' : 'text-[#111827]/55'}`}>{text}</p>
+      <p className={`text-xs font-utility ${stalled ? 'text-amber-700' : 'text-[#111827]/65'}`}>{text}</p>
     </div>
   )
 }
@@ -137,7 +137,7 @@ export default function CustomersList({
       {data && data.items.length === 0 && (
         <div className="mt-8 rounded-2xl border border-dashed border-[#e4e8ee] bg-white p-8 text-center">
           <p className="font-display text-lg font-semibold text-[#0e2a63]">{copy.empty.title}</p>
-          <p className="mt-2 text-sm text-[#111827]/55 leading-relaxed max-w-md mx-auto">{copy.empty.body}</p>
+          <p className="mt-2 text-sm text-[#111827]/65 leading-relaxed max-w-md mx-auto">{copy.empty.body}</p>
         </div>
       )}
 

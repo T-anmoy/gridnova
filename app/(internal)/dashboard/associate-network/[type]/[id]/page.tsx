@@ -41,7 +41,7 @@ function errorMessage(err: unknown, fallback: string): string {
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
-      <p className="font-utility text-[11px] uppercase tracking-wide text-[#111827]/40">{label}</p>
+      <p className="font-utility text-[11px] uppercase tracking-wide text-[#111827]/65">{label}</p>
       <p className="font-utility text-sm text-[#091c3c] mt-0.5">{value ?? '—'}</p>
     </div>
   )
@@ -102,7 +102,7 @@ export default function ApplicationDetailPage() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <ShieldOff className="h-12 w-12 text-[#111827]/20 mx-auto mb-4" />
+          <ShieldOff className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
           <p className="font-display text-lg font-semibold text-[#091c3c]">Access Denied</p>
         </div>
       </div>
@@ -187,7 +187,7 @@ export default function ApplicationDetailPage() {
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-[#091c3c]">{app.full_name}</h1>
-          <p className="font-utility text-sm text-[#111827]/50 mt-1">
+          <p className="font-utility text-sm text-[#111827]/65 mt-1">
             {app.application_type === 'preferred_associate' ? 'Preferred Associate' : 'Associate'} application #{app.application_id}
           </p>
         </div>

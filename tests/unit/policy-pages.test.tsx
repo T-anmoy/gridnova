@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { render, screen } from "@testing-library/react";
 import PolicyDocument from "@/components/legal/PolicyDocument";
 import {
@@ -10,7 +11,8 @@ import {
 } from "@/content/policies";
 import { en, withI18n } from "./helpers/i18n";
 
-const draft = readFileSync("content/policies/GridNova_Policies_Draft_v1.md", "utf8");
+const root = path.resolve(__dirname, "../..");
+const draft = readFileSync(path.resolve(root, "content/policies/GridNova_Policies_Draft_v1.md"), "utf8");
 
 describe("policy pages", () => {
   for (const slug of POLICY_SLUGS) {
@@ -43,8 +45,8 @@ describe("policy pages", () => {
   it("keeps documents 6 and 7 as content for the portals, not as public pages", () => {
     expect(ASSOCIATE_KYC_CONSENT_NOTICE.sections[0].blocks.length).toBeGreaterThan(5);
     expect(JSON.stringify(CUSTOMER_INFORMATION_NOTICE)).toMatch(/never to any individual/);
-    expect(existsSync("app/(site)/[lang]/associate-kyc-consent")).toBe(false);
-    expect(existsSync("app/(site)/[lang]/customer-information-notice")).toBe(false);
+    expect(existsSync(path.resolve(root, "app/(site)/[lang]/associate-kyc-consent"))).toBe(false);
+    expect(existsSync(path.resolve(root, "app/(site)/[lang]/customer-information-notice"))).toBe(false);
   });
 
   it("is generated from the supplied draft (v1.1)", () => {

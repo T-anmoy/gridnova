@@ -18,7 +18,7 @@ export type PhotosCopy = Messages['associates']['portal']['wizard']['photos']
 const ACCEPT_DOCS = 'image/jpeg,image/png,image/webp,application/pdf'
 const MAX_MB = 10
 export const evidenceInputClass =
-  'w-full min-h-[44px] rounded-xl border border-[#e4e8ee] bg-white px-4 py-3 text-[#111827] text-sm font-utility outline-none focus:border-[#2f5daa] focus:ring-2 focus:ring-[#2f5daa]/10'
+  'w-full min-h-[44px] rounded-xl border border-[#e4e8ee] bg-white px-4 py-3 text-[#111827] text-sm font-utility outline-none focus-visible:border-[#2f5daa] focus-visible:ring-2 focus-visible:ring-[#2f5daa]/25'
 
 export function executionErrorMessage(err: unknown, copy: ExecutionCopy): string {
   if (err instanceof ApiError) {
@@ -181,7 +181,7 @@ export default function ExecutionEvidenceForm({
   return (
     <div className="space-y-5">
       <div>
-        <p className="font-utility text-xs uppercase tracking-wide text-[#111827]/45">{copy.currentStep}</p>
+        <p className="font-utility text-xs uppercase tracking-wide text-[#111827]/65">{copy.currentStep}</p>
         <h2 className="font-display text-xl font-semibold text-[#0e2a63]">{stageName}</h2>
       </div>
 
@@ -216,7 +216,7 @@ export default function ExecutionEvidenceForm({
           <div className="mt-3 space-y-4">
             {ev.text.map((k) => (
               <div key={k}>
-                <label htmlFor={`exec-text-${k}`} className="mb-1.5 block font-utility text-xs uppercase tracking-[0.1em] text-[#111827]/55">
+                <label htmlFor={`exec-text-${k}`} className="mb-1.5 block font-utility text-xs uppercase tracking-[0.1em] text-[#111827]/65">
                   {labelFor(copy.text, k)} <span className="normal-case">({copy.required})</span>
                 </label>
                 <input id={`exec-text-${k}`} className={evidenceInputClass} value={text[k] ?? ''} onChange={(e) => setText((t) => ({ ...t, [k]: e.target.value }))} />
@@ -234,7 +234,7 @@ export default function ExecutionEvidenceForm({
               const onFile = status.files.documents[k]
               return (
                 <div key={k}>
-                  <p className="font-utility text-xs text-[#111827]/55">
+                  <p className="font-utility text-xs text-[#111827]/65">
                     {req ? copy.required : copy.optional} · {onFile ? `${copy.onFile}: ${onFile.filename}` : copy.notYet}
                   </p>
                   <FileUploadSlot
@@ -268,7 +268,7 @@ export default function ExecutionEvidenceForm({
               const onFile = status.files.photos[k]
               return (
                 <div key={k}>
-                  <p className="font-utility text-xs text-[#111827]/55">
+                  <p className="font-utility text-xs text-[#111827]/65">
                     {copy.required} · {onFile ? `${copy.onFile}: ${onFile.filename}` : copy.notYet}
                   </p>
                   <PhotoCaptureSlot
@@ -301,7 +301,7 @@ export default function ExecutionEvidenceForm({
       )}
 
       <div>
-        <label htmlFor="exec-note" className="mb-1.5 block font-utility text-xs uppercase tracking-[0.1em] text-[#111827]/55">
+        <label htmlFor="exec-note" className="mb-1.5 block font-utility text-xs uppercase tracking-[0.1em] text-[#111827]/65">
           {copy.noteLabel}
         </label>
         <textarea id="exec-note" rows={2} className={evidenceInputClass} value={note} onChange={(e) => setNote(e.target.value)} />

@@ -126,7 +126,7 @@ export function SurveyResultsPanel({ results }: { results: SurveyResults }) {
           <p className="mt-1 text-sm text-[#111827]/65" data-testid="survey-not-enough">{r.notEnough}</p>
         ) : (
           <div className="mt-2 rounded-xl bg-[#f7f9fc] p-4">
-            <p className="text-xs text-[#111827]/55 font-utility">{r.suggestedLabel}</p>
+            <p className="text-xs text-[#111827]/65 font-utility">{r.suggestedLabel}</p>
             <p className="font-display text-2xl font-bold text-[#0e2a63]" data-testid="suggested-kw">{fmt(r.kw, { kw: formatKw(results.suggested_kw) })}</p>
             {results.limiting_factor && (
               <p className="mt-0.5 text-sm text-[#111827]/70">
@@ -140,7 +140,7 @@ export function SurveyResultsPanel({ results }: { results: SurveyResults }) {
                 [r.byUsage, results.recommended_by_usage_kw],
               ] as const).map(([label, v]) => (
                 <div key={label}>
-                  <dt className="text-xs text-[#111827]/55">{label}</dt>
+                  <dt className="text-xs text-[#111827]/65">{label}</dt>
                   <dd className="font-utility text-[#111827]/85">{v == null ? '—' : fmt(r.kw, { kw: formatKw(v) })}</dd>
                 </div>
               ))}

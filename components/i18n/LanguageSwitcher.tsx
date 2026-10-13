@@ -40,10 +40,15 @@ export default function LanguageSwitcher({
 
   const base =
     tone === "dark"
-      ? "text-white/65 hover:text-white"
-      : "text-[#0e2a63]/60 hover:text-[#0e2a63]";
+      ? "text-white/80 hover:text-white"
+      : "text-[#0e2a63]/75 hover:text-[#0e2a63]";
   const active = tone === "dark" ? "text-[#091c3c] bg-white" : "text-white bg-[#0e2a63]";
-  const pad = size === "md" ? "px-3.5 py-2 text-sm" : "px-2.5 py-1 text-[12px]";
+  // Touch targets are 44px: "md" is padded to 44px tall; the compact "sm" pills keep
+  // their look but carry an invisible 44px hit area (the ::after).
+  const pad =
+    size === "md"
+      ? "min-h-[44px] min-w-[44px] px-3.5 py-2 text-sm"
+      : "relative min-w-[40px] px-2 py-1 text-center text-[12px] after:absolute after:inset-x-[-2px] after:inset-y-[-9px] after:content-['']";
 
   return (
     <div
@@ -61,7 +66,7 @@ export default function LanguageSwitcher({
           aria-pressed={l === locale}
           aria-label={LOCALE_META[l].label}
           onClick={() => choose(l)}
-          className={`rounded-full font-utility whitespace-nowrap transition-colors duration-200 ${pad} ${
+          className={`rounded-full font-utility whitespace-nowrap transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f7a800] ${pad} ${
             l === locale ? active : base
           }`}
         >

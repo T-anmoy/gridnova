@@ -70,7 +70,7 @@ export default function LeadershipPreview({
                   <p className="font-display text-[#0e2a63] font-semibold text-[15px] leading-snug group-hover:text-[#2f5daa] transition-colors duration-300">
                     {l.name}
                   </p>
-                  <p className="mt-0.5 text-[#111827]/55 text-xs font-utility leading-snug">
+                  <p className="mt-0.5 text-[#111827]/65 text-xs font-utility leading-snug">
                     {leaders[l.key].role}
                   </p>
                 </div>

@@ -35,10 +35,10 @@ const LEADERS: Leader[] = [
 ];
 
 export default async function LeadershipPage({ params }: LangParams) {
-  const m = messagesFor(await resolveLocale(params));
+  const m = (await messagesFor(await resolveLocale(params)));
   const t = m.leadershipPage;
   return (
-    <main>
+    <main id="main-content">
       {/* Header — editorial, not a grid of avatar cards */}
       <section className="bg-[#f7f9fc] pt-[calc(var(--header-h)+3rem)] pb-0 border-b border-[#e4e8ee]">
         <div className="mx-auto max-w-[1280px] px-6 md:px-10 pb-12">

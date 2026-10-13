@@ -49,7 +49,7 @@ function StatCard({ title, value, sub }: { title: string; value: string | number
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-display font-bold text-[#091c3c]">{value}</div>
-        {sub && <p className="text-xs font-utility text-[#111827]/40 mt-1">{sub}</p>}
+        {sub && <p className="text-xs font-utility text-[#111827]/65 mt-1">{sub}</p>}
       </CardContent>
     </Card>
   )
@@ -101,9 +101,9 @@ export default function AnalyticsPage() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-[#111827]/20 mx-auto mb-4" />
+          <AlertCircle className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
           <p className="font-display text-lg font-semibold text-[#091c3c]">Access Restricted</p>
-          <p className="font-utility text-sm text-[#111827]/50 mt-1">Analytics is not available for your role.</p>
+          <p className="font-utility text-sm text-[#111827]/65 mt-1">Analytics is not available for your role.</p>
         </div>
       </div>
     )
@@ -128,7 +128,7 @@ export default function AnalyticsPage() {
         <div>
           <h1 className="font-display text-2xl font-bold text-[#091c3c]">Analytics</h1>
           {isSales && (
-            <p className="font-utility text-sm text-[#111827]/50 mt-1">Showing your metrics</p>
+            <p className="font-utility text-sm text-[#111827]/65 mt-1">Showing your metrics</p>
           )}
         </div>
         {!isSales && (
@@ -158,9 +158,9 @@ export default function AnalyticsPage() {
         </div>
       ) : allZero ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <TrendingUp className="h-12 w-12 text-[#111827]/20 mx-auto mb-4" />
+          <TrendingUp className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
           <p className="font-display text-lg font-semibold text-[#091c3c]">No data for this period</p>
-          <p className="font-utility text-sm text-[#111827]/50 mt-1">Try adjusting the date range.</p>
+          <p className="font-utility text-sm text-[#111827]/65 mt-1">Try adjusting the date range.</p>
         </div>
       ) : (
         <>

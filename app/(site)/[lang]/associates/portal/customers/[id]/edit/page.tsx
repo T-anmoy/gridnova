@@ -12,7 +12,7 @@ export default async function AssociatePortalEditCustomerPage({
 }) {
   const resolved = await params
   const step = (await searchParams).step
-  const m = messagesFor(await resolveLocale(params)).associates
+  const m = (await messagesFor(await resolveLocale(params))).associates
   return (
     <PortalShell base="/associates/portal" active="customers" showTerritory={false} labels={m.portal.nav} signOutLabel={m.portal.nav.signOut}>
       <EditOnboardingWizard onboardingId={Number(resolved.id)} copy={m.portal.wizard} territory={m.territory} portalBase="/associates/portal" initialStep={asDeepStep(step)} />

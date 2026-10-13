@@ -122,8 +122,8 @@ function Field({
     <div>
       <label htmlFor={id} className="font-utility text-xs text-[#111827]/60 uppercase tracking-[0.1em] mb-1.5 block">{label}</label>
       {control}
-      {why && <p id={whyId} className="mt-1.5 text-xs text-[#111827]/55 leading-relaxed"><span className="font-semibold text-[#111827]/70">{whyLabel}:</span> {why}</p>}
-      {example && <p className="mt-0.5 text-xs text-[#111827]/50 leading-relaxed">{exampleLabel}: {example}</p>}
+      {why && <p id={whyId} className="mt-1.5 text-xs text-[#111827]/65 leading-relaxed"><span className="font-semibold text-[#111827]/70">{whyLabel}:</span> {why}</p>}
+      {example && <p className="mt-0.5 text-xs text-[#111827]/65 leading-relaxed">{exampleLabel}: {example}</p>}
       {error && <p id={errorId} className="mt-1.5 flex items-center gap-1.5 text-xs text-red-600 font-utility"><AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{error}</p>}
     </div>
   )
@@ -316,7 +316,7 @@ function ApplyForm({ kind, t, draftKey }: { kind: Kind; t: Messages['associates'
         <CheckCircle2 className="h-14 w-14 mx-auto text-green-600" />
         <h1 className="mt-6 font-display text-3xl font-semibold text-[#0e2a63]">{copy.success.title}</h1>
         <p className="mt-3 text-[#111827]/65 leading-relaxed">{copy.success.body}</p>
-        <p className="mt-1 font-utility text-sm text-[#111827]/40">#{submitted.id}</p>
+        <p className="mt-1 font-utility text-sm text-[#111827]/65">#{submitted.id}</p>
         <div className="mt-10 rounded-2xl border border-[#e4e8ee] bg-[#f7f9fc] p-7 text-left">
           <h2 className="font-display text-lg font-semibold text-[#0e2a63]">{copy.success.nextStepsTitle}</h2>
           <ol className="mt-4 space-y-3">
@@ -342,11 +342,11 @@ function ApplyForm({ kind, t, draftKey }: { kind: Kind; t: Messages['associates'
       <div className="mt-6 flex items-center gap-3">
         <div className="h-1.5 flex-1 rounded-full bg-[#e4e8ee] overflow-hidden">
           <div
-            className="h-full bg-[#f7a800] transition-all duration-300"
+            className="h-full bg-[#f7a800] transition-[width] duration-300 motion-reduce:transition-none"
             style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }}
           />
         </div>
-        <span className="font-utility text-xs text-[#111827]/50 shrink-0">
+        <span className="font-utility text-xs text-[#111827]/65 shrink-0">
           {fmtStep(common.stepOf, stepIndex + 1, steps.length)}
         </span>
       </div>
@@ -429,7 +429,7 @@ function ApplyForm({ kind, t, draftKey }: { kind: Kind; t: Messages['associates'
               />
             )}
             {seatParams && (
-              <p className={`text-xs font-utility ${seatAvailability && !seatAvailability.available ? 'text-red-600' : 'text-[#111827]/50'}`}>
+              <p className={`text-xs font-utility ${seatAvailability && !seatAvailability.available ? 'text-red-600' : 'text-[#111827]/65'}`}>
                 {seatChecking ? common.seatCheckingLabel : seatAvailability?.available ? common.seatAvailableLabel : seatAvailability ? common.seatFullLabel : ''}
               </p>
             )}
@@ -492,8 +492,8 @@ function ApplyForm({ kind, t, draftKey }: { kind: Kind; t: Messages['associates'
 
         {step === 'capability' && (
           <div className="space-y-3">
-            <p className="font-utility text-xs text-[#111827]/55 uppercase tracking-[0.1em] mb-1">{fields.capability.label}</p>
-            <p className="text-xs text-[#111827]/50 mb-3"><span className="font-semibold text-[#111827]/65">{common.whyWeAsk}:</span> {fields.capability.why}</p>
+            <p className="font-utility text-xs text-[#111827]/65 uppercase tracking-[0.1em] mb-1">{fields.capability.label}</p>
+            <p className="text-xs text-[#111827]/65 mb-3"><span className="font-semibold text-[#111827]/65">{common.whyWeAsk}:</span> {fields.capability.why}</p>
             {(['sales', 'execution'] as const).map((c) => (
               <label key={c} className={`flex items-center gap-3 rounded-xl border px-4 py-3.5 cursor-pointer transition-colors ${values.capability === c ? 'border-[#f7a800] bg-[#f7a800]/5' : 'border-[#e4e8ee]'}`}>
                 <input type="radio" name="capability" checked={values.capability === c} onChange={() => set('capability', c)} className="h-5 w-5 accent-[#0e2a63]" />
@@ -542,12 +542,12 @@ function ApplyForm({ kind, t, draftKey }: { kind: Kind; t: Messages['associates'
             <span className="ref-tag text-[#2f5daa]">{t.consent.eyebrow}</span>
             <h2 className="mt-3 font-display text-xl font-semibold text-[#0e2a63]">{t.consent.title}</h2>
             {kycLoading ? (
-              <p className="mt-4 flex items-center gap-2 text-sm text-[#111827]/50 font-utility"><Loader2 className="h-4 w-4 animate-spin" /> {t.consent.loading}</p>
+              <p className="mt-4 flex items-center gap-2 text-sm text-[#111827]/65 font-utility"><Loader2 className="h-4 w-4 animate-spin" /> {t.consent.loading}</p>
             ) : kycError ? (
               <p className="mt-4 text-sm text-red-600 font-utility">{t.consent.error}</p>
             ) : (
               <>
-                <p className="mt-1 font-utility text-xs text-[#111827]/40">{t.consent.versionLabel}: {kycConsent?.version}</p>
+                <p className="mt-1 font-utility text-xs text-[#111827]/65">{t.consent.versionLabel}: {kycConsent?.version}</p>
                 <div className="mt-4 max-h-72 overflow-y-auto rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] p-5 text-sm text-[#111827]/70 leading-relaxed whitespace-pre-wrap">
                   {kycConsent?.text}
                 </div>
@@ -564,11 +564,11 @@ function ApplyForm({ kind, t, draftKey }: { kind: Kind; t: Messages['associates'
         {step === 'review' && (
           <div>
             <h2 className="font-display text-xl font-semibold text-[#0e2a63]">{common.reviewTitle}</h2>
-            <p className="mt-1 text-sm text-[#111827]/55">{common.reviewNote}</p>
+            <p className="mt-1 text-sm text-[#111827]/65">{common.reviewNote}</p>
             <dl className="mt-5 divide-y divide-[#e4e8ee]">
               {reviewRows(kind, values, fields, t).map(({ label, value }) => (
                 <div key={label} className="flex justify-between gap-4 py-2.5 text-sm">
-                  <dt className="text-[#111827]/50 font-utility">{label}</dt>
+                  <dt className="text-[#111827]/65 font-utility">{label}</dt>
                   <dd className="text-[#091c3c] font-utility text-right">{value || '—'}</dd>
                 </div>
               ))}
@@ -582,7 +582,7 @@ function ApplyForm({ kind, t, draftKey }: { kind: Kind; t: Messages['associates'
         )}
       </div>
 
-      <p className="mt-4 text-center text-xs font-utility text-[#111827]/40">{common.autosaveNote}</p>
+      <p className="mt-4 text-center text-xs font-utility text-[#111827]/65">{common.autosaveNote}</p>
 
       <div className="mt-6 flex items-center justify-between gap-3">
         <button

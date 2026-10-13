@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "../globals.css";
 import SiteChrome from "@/components/SiteChrome";
+import MotionProvider from "@/components/MotionProvider";
 import { LATIN_FONT_CLASSES } from "@/lib/fonts";
 import { I18nProvider } from "@/lib/i18n/client";
 import { chromeMessages, messagesFor } from "@/lib/i18n/dictionaries";
@@ -16,9 +17,12 @@ export const metadata: Metadata = {
     default: "Grid Nova Energy | Engineering India's Clean Energy Future",
     template: "%s | Grid Nova Energy",
   },
+  // Staff dashboard, the proposal wizard and the tokenised customer accept
+  // pages are private: never indexed (robots.txt disallows them too).
+  robots: { index: false, follow: false },
 };
 
-export default function InternalRootLayout({
+export default async function InternalRootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
@@ -30,8 +34,10 @@ export default function InternalRootLayout({
             dashboard and the customer accept page, where Lenis would hijack wheel
             scrolling in tables and dialogs and the JSON-LD would describe the
             wrong page. scrollToTop() falls back to native scrolling. */}
-        <I18nProvider locale="en" messages={chromeMessages(messagesFor("en"))}>
-          <SiteChrome>{children}</SiteChrome>
+        <I18nProvider locale="en" messages={chromeMessages((await messagesFor("en")))}>
+          <MotionProvider>
+            <SiteChrome>{children}</SiteChrome>
+          </MotionProvider>
         </I18nProvider>
       </body>
     </html>

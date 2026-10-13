@@ -46,7 +46,7 @@ export default function CataloguePicker({
   errorText?: string
   retryLabel?: string
 }) {
-  const field = 'w-full min-h-[44px] rounded-xl border border-[#e4e8ee] bg-white px-3 py-2 text-sm outline-none focus:border-[#2f5daa]'
+  const field = 'w-full min-h-[44px] rounded-xl border border-[#e4e8ee] bg-white px-3 py-2 text-sm outline-none focus-visible:border-[#2f5daa] focus-visible:ring-2 focus-visible:ring-[#2f5daa]/25'
   let body: React.ReactNode
   if (source.isLoading) {
     body = <div role="status" aria-busy="true" className="h-[46px] animate-pulse rounded-xl border border-[#e4e8ee] bg-[#eef1f6]" />

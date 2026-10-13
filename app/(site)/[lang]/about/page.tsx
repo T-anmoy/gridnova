@@ -11,10 +11,10 @@ import { localizedMetadata } from "@/lib/i18n/metadata";
 export const generateMetadata = localizedMetadata("about", "/about");
 
 export default async function AboutPage({ params }: LangParams) {
-  const m = messagesFor(await resolveLocale(params));
+  const m = (await messagesFor(await resolveLocale(params)));
   const t = m.about;
   return (
-    <main>
+    <main id="main-content">
       <AboutHero t={t.hero} />
       <CompanyOverview t={t.overview} />
       <CompetitiveAdvantage t={t.advantage} />

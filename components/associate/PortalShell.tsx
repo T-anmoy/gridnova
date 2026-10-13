@@ -5,7 +5,8 @@ import { useClerk } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { Home, IdCard, User, HelpCircle, Map, LogOut, Users } from 'lucide-react'
 import Link from '@/components/i18n/Link'
-import { useLocale } from '@/lib/i18n/client'
+import { useLocale, useOptionalMessages } from '@/lib/i18n/client'
+import OfflineBanner from '@/components/OfflineBanner'
 import LanguageSwitcher from '@/components/i18n/LanguageSwitcher'
 import PortalHomeLink from '@/components/associate/PortalHomeLink'
 import { clearPortalDeviceData, purgeStaleDeviceData } from '@/lib/associate/portal-session'
@@ -39,6 +40,7 @@ export default function PortalShell({
   const { signOut } = useClerk()
   const router = useRouter()
   const locale = useLocale()
+  const skipLabel = useOptionalMessages('common')?.skipToContent ?? 'Skip to main content'
 
   const items: { key: NavKey; href: string }[] = [
     { key: 'home', href: base },
@@ -63,6 +65,12 @@ export default function PortalShell({
 
   return (
     <div className="min-h-screen bg-[#f7f9fc] pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:rounded-md focus:bg-white focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-[#091c3c] focus:shadow-lg"
+      >
+        {skipLabel}
+      </a>
       <div className="mx-auto max-w-2xl px-4 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-8 sm:px-5 md:flex md:gap-8">
         {/* Desktop side nav */}
         <nav aria-label={labels.navLabel} className="hidden md:flex md:w-48 md:flex-col md:gap-1 md:shrink-0">
@@ -75,7 +83,7 @@ export default function PortalShell({
                 href={href}
                 aria-current={isActive ? 'page' : undefined}
                 className={`flex min-h-[44px] items-center gap-2.5 rounded-lg px-3 py-2.5 font-utility text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5daa] ${
-                  isActive ? 'bg-[#0e2a63] text-white font-semibold' : 'text-[#111827]/60 hover:bg-white'
+                  isActive ? 'bg-[#0e2a63] text-white font-semibold' : 'text-[#111827]/70 hover:bg-white'
                 }`}
               >
                 <Icon className="h-4 w-4" aria-hidden="true" /> {labels[key]}
@@ -93,7 +101,10 @@ export default function PortalShell({
             <PortalHomeLink />
             <LanguageSwitcher tone="light" />
           </div>
-          {children}
+          <OfflineBanner />
+          <main id="main-content" tabIndex={-1} className="outline-none">
+            {children}
+          </main>
         </div>
       </div>
 
@@ -112,7 +123,7 @@ export default function PortalShell({
               href={href}
               aria-current={isActive ? 'page' : undefined}
               className={`flex min-h-[52px] min-w-0 flex-1 flex-col items-center gap-1 px-0.5 py-2 text-center font-utility text-[11px] leading-tight focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#2f5daa] ${
-                isActive ? 'text-[#0e2a63] font-semibold' : 'text-[#111827]/45'
+                isActive ? 'text-[#0e2a63] font-semibold' : 'text-[#111827]/65'
               }`}
             >
               <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />

@@ -26,7 +26,7 @@ function Group({ label, group }: { label: string; group: MakesGroup | undefined 
   if (!group || group.makes.length === 0) return null
   return (
     <div>
-      <dt className="font-utility text-xs uppercase tracking-[0.08em] text-[#111827]/50">{label}</dt>
+      <dt className="font-utility text-xs uppercase tracking-[0.08em] text-[#111827]/65">{label}</dt>
       <dd className="mt-0.5 font-utility text-sm text-[#111827]/85">
         {group.makes.join(', ')}
         {group.or_equivalent && <span className="text-[#111827]/60"> — {m.orEquivalent}</span>}
@@ -52,7 +52,7 @@ export function PackageEquipment({ pkg, terms }: { pkg: CataloguePackage; terms?
       <Group label={m.panels} group={pkg.equipment.solar_panel} />
       {tech.length > 0 && (
         <div>
-          <dt className="font-utility text-xs uppercase tracking-[0.08em] text-[#111827]/50">{m.technology}</dt>
+          <dt className="font-utility text-xs uppercase tracking-[0.08em] text-[#111827]/65">{m.technology}</dt>
           <dd className="mt-0.5 font-utility text-sm text-[#111827]/85">{tech.join(', ')}</dd>
         </div>
       )}
@@ -61,7 +61,7 @@ export function PackageEquipment({ pkg, terms }: { pkg: CataloguePackage; terms?
       {extra.map(([label, value]) =>
         value ? (
           <div key={label}>
-            <dt className="font-utility text-xs uppercase tracking-[0.08em] text-[#111827]/50">{label}</dt>
+            <dt className="font-utility text-xs uppercase tracking-[0.08em] text-[#111827]/65">{label}</dt>
             <dd className="mt-0.5 font-utility text-sm text-[#111827]/85">{value}</dd>
           </div>
         ) : null
@@ -246,7 +246,7 @@ export function PriceListSummary({
 
       {fields.note && <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 font-utility text-sm text-amber-800">{fields.note}</p>}
 
-      <p data-testid="price-footer" className="font-utility text-xs text-[#111827]/55">
+      <p data-testid="price-footer" className="font-utility text-xs text-[#111827]/65">
         {destination && <>{fmt(m.footer.destination, { destination })} </>}
         {m.footer.revise}
         {version && <> {fmt(m.footer.version, { version })}</>}

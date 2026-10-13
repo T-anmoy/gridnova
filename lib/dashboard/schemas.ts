@@ -1,3 +1,4 @@
+import '@/lib/zod-config'
 import { z } from 'zod'
 
 // Runtime shape validation for backend responses, applied at the fetch boundary

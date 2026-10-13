@@ -218,7 +218,7 @@ export default function ServicesContent({ t }: { t: Messages["services"] }) {
               />
             </div>
             <div className="s03-text">
-              <span className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase">{t.gridScale.label}</span>
+              <span className="font-utility text-[11px] tracking-[0.22em] text-white/60 uppercase">{t.gridScale.label}</span>
               <h2
                 className="mt-5 font-display text-white font-semibold leading-[1.05]"
                 style={{ fontSize: "clamp(1.8rem,4.5vw,3rem)" }}
@@ -269,7 +269,7 @@ export default function ServicesContent({ t }: { t: Messages["services"] }) {
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
           <div className="s05om-header flex flex-col md:flex-row md:items-end gap-8 md:gap-20 mb-16">
             <div className="shrink-0">
-              <span className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase">{t.om.label}</span>
+              <span className="font-utility text-[11px] tracking-[0.22em] text-white/60 uppercase">{t.om.label}</span>
               <h2
                 className="mt-5 font-display text-white font-semibold leading-[1.0]"
                 style={{ fontSize: "clamp(1.8rem,4.5vw,3rem)" }}
@@ -327,7 +327,7 @@ export default function ServicesContent({ t }: { t: Messages["services"] }) {
       <section className="s07 bg-[#091c3c] py-16 md:py-20 border-t border-white/10">
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
           <div className="s07-body max-w-[70ch]">
-            <span className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase">{t.ahead.label}</span>
+            <span className="font-utility text-[11px] tracking-[0.22em] text-white/60 uppercase">{t.ahead.label}</span>
             <p className="mt-5 text-white/55 leading-relaxed">
               {t.ahead.body}
             </p>

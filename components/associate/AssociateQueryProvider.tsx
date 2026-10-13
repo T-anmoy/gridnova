@@ -2,7 +2,7 @@
 
 import { QueryCache, QueryClient, QueryClientProvider, MutationCache } from '@tanstack/react-query'
 import { useState } from 'react'
-import { isRetryableError, backoffDelay } from '@/lib/dashboard/api-error'
+import { queryDefaults } from '@/lib/api/retry-policy'
 import { createAuthExpiryHandler } from '@/lib/api/auth-expiry'
 
 // Same shape as the staff dashboard's QueryProvider, but the session-expiry
@@ -20,14 +20,7 @@ export function AssociateQueryProvider({
     return new QueryClient({
       queryCache: new QueryCache({ onError: handleAuthExpiry }),
       mutationCache: new MutationCache({ onError: handleAuthExpiry }),
-      defaultOptions: {
-        queries: {
-          staleTime: 30_000,
-          refetchOnWindowFocus: false,
-          retry: (failureCount, error) => isRetryableError(error) && failureCount < 3,
-          retryDelay: (attemptIndex) => backoffDelay(attemptIndex),
-        },
-      },
+      defaultOptions: { queries: queryDefaults },
     })
   })
   return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>

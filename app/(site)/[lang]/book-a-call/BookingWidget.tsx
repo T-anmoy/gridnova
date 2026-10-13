@@ -2,7 +2,7 @@
 
 import { API_BASE_URL } from '@/lib/config';
 import { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { CalendarClock, CheckCircle2, Loader2, RefreshCcw } from "lucide-react";
 import CountUp from "@/components/CountUp";
 import { useMessages } from "@/lib/i18n/client";
@@ -458,7 +458,7 @@ export default function BookingWidget({
     return (
       <div className={`${cardClass} text-center min-h-[420px] flex flex-col items-center justify-center`} role="alert">
         <p className="font-display text-[#0e2a63] text-lg font-semibold">{t.loadErrorTitle}</p>
-        <p className="mt-2 text-[#111827]/50 text-sm max-w-[42ch]">
+        <p className="mt-2 text-[#111827]/65 text-sm max-w-[42ch]">
           {loadErrorMessage || t.loadErrorBody}
         </p>
         <div className="mt-6 flex items-center gap-4">
@@ -473,7 +473,7 @@ export default function BookingWidget({
           <button
             type="button"
             onClick={backToAsk}
-            className="text-sm font-medium text-[#111827]/50 hover:text-[#0e2a63] transition-colors"
+            className="text-sm font-medium text-[#111827]/65 hover:text-[#0e2a63] transition-colors"
           >
             {t.changeTime}
           </button>
@@ -484,7 +484,7 @@ export default function BookingWidget({
 
   if (stage === "success" && confirmed) {
     return (
-      <motion.div {...revealProps} className={`${cardClass} text-center`} role="status">
+      <m.div {...revealProps} className={`${cardClass} text-center`} role="status">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#f7a800]/10">
           <CheckCircle2 className="h-6 w-6 text-[#f7a800]" />
         </div>
@@ -509,7 +509,7 @@ export default function BookingWidget({
             {t.videoLink}
           </a>
         )}
-      </motion.div>
+      </m.div>
     );
   }
 
@@ -536,7 +536,7 @@ export default function BookingWidget({
                 onChange={(e) => handleDateChange(e.target.value)}
                 aria-invalid={!!askError}
                 aria-describedby={askError ? "booking-ask-error" : undefined}
-                className="rounded-xl border border-[#e4e8ee] px-4 py-2.5 text-sm focus:outline-none focus:border-[#2f5daa] transition-colors"
+                className="rounded-xl border border-[#e4e8ee] px-4 py-2.5 text-base outline-none focus-visible:border-[#2f5daa] focus-visible:ring-2 focus-visible:ring-[#2f5daa]/25 transition-colors"
               />
             </div>
             <div>
@@ -548,7 +548,7 @@ export default function BookingWidget({
                   id="booking-time"
                   aria-invalid={!!askError}
                   aria-describedby={askError ? "booking-ask-error" : undefined}
-                  className="h-auto w-[140px] rounded-full border-[#e4e8ee] bg-white px-4 py-2.5 text-sm font-utility font-medium text-[#0e2a63] shadow-none hover:border-[#2f5daa] focus:outline-none focus:ring-0 focus:border-[#2f5daa] data-[state=open]:border-[#2f5daa] data-[placeholder]:text-[#111827]/40 data-[placeholder]:font-normal transition-colors"
+                  className="h-auto w-[140px] rounded-full border-[#e4e8ee] bg-white px-4 py-2.5 text-base font-utility font-medium text-[#0e2a63] shadow-none hover:border-[#2f5daa] outline-none focus-visible:border-[#2f5daa] focus-visible:ring-2 focus-visible:ring-[#2f5daa]/25 data-[state=open]:border-[#2f5daa] data-[placeholder]:text-[#111827]/65 data-[placeholder]:font-normal transition-colors"
                 >
                   <SelectValue placeholder={t.timePlaceholder} />
                 </SelectTrigger>
@@ -588,16 +588,16 @@ export default function BookingWidget({
               {askError}
             </p>
           )}
-          <p className="mt-3 text-[#111827]/50 text-sm">
+          <p className="mt-3 text-[#111827]/65 text-sm">
             {t.askHint}
           </p>
         </>
       )}
 
       {stage === "alternatives" && (
-        <motion.div {...revealProps} className="mt-8 pt-8 border-t border-[#e4e8ee]">
+        <m.div {...revealProps} className="mt-8 pt-8 border-t border-[#e4e8ee]">
           {alternatives.length === 0 ? (
-            <p className="text-[#111827]/50 text-sm">
+            <p className="text-[#111827]/65 text-sm">
               {t.noSlots}
             </p>
           ) : (
@@ -622,17 +622,17 @@ export default function BookingWidget({
               <button
                 type="button"
                 onClick={backToAsk}
-                className="mt-4 text-sm font-medium text-[#111827]/50 hover:text-[#0e2a63] transition-colors"
+                className="mt-4 text-sm font-medium text-[#111827]/65 hover:text-[#0e2a63] transition-colors"
               >
                 {t.tryDifferent}
               </button>
             </>
           )}
-        </motion.div>
+        </m.div>
       )}
 
       {(stage === "form" || stage === "submitting") && selected && (
-        <motion.div {...revealProps} className="mt-8 pt-8 border-t border-[#e4e8ee]">
+        <m.div {...revealProps} className="mt-8 pt-8 border-t border-[#e4e8ee]">
           <p className="mb-5 text-sm text-[#111827]/60">
             {t.booking} <span className="font-semibold text-[#0e2a63]">{selected.label}</span>
           </p>
@@ -658,7 +658,7 @@ export default function BookingWidget({
                 aria-invalid={!!nameError}
                 aria-describedby={nameError ? "booking-name-error" : undefined}
                 disabled={stage === "submitting"}
-                className="w-full rounded-xl border border-[#e4e8ee] px-4 py-2.5 text-sm focus:outline-none focus:border-[#2f5daa] transition-colors disabled:opacity-50"
+                className="w-full rounded-xl border border-[#e4e8ee] px-4 py-2.5 text-base outline-none focus-visible:border-[#2f5daa] focus-visible:ring-2 focus-visible:ring-[#2f5daa]/25 transition-colors disabled:opacity-50"
               />
               {nameError && (
                 <p id="booking-name-error" className="mt-1.5 text-xs text-red-600">
@@ -680,7 +680,7 @@ export default function BookingWidget({
                 aria-invalid={!!emailError}
                 aria-describedby={emailError ? "booking-email-error" : undefined}
                 disabled={stage === "submitting"}
-                className="w-full rounded-xl border border-[#e4e8ee] px-4 py-2.5 text-sm focus:outline-none focus:border-[#2f5daa] transition-colors disabled:opacity-50"
+                className="w-full rounded-xl border border-[#e4e8ee] px-4 py-2.5 text-base outline-none focus-visible:border-[#2f5daa] focus-visible:ring-2 focus-visible:ring-[#2f5daa]/25 transition-colors disabled:opacity-50"
               />
               {emailError && (
                 <p id="booking-email-error" className="mt-1.5 text-xs text-red-600">
@@ -691,7 +691,7 @@ export default function BookingWidget({
 
             <div>
               <label htmlFor="booking-phone" className="block text-sm font-medium text-[#0e2a63] mb-1.5">
-                {t.phone} <span className="text-[#111827]/40 font-normal">{t.optional}</span>
+                {t.phone} <span className="text-[#111827]/65 font-normal">{t.optional}</span>
               </label>
               <input
                 id="booking-phone"
@@ -702,7 +702,7 @@ export default function BookingWidget({
                 aria-invalid={!!phoneError}
                 aria-describedby={phoneError ? "booking-phone-error" : undefined}
                 disabled={stage === "submitting"}
-                className="w-full rounded-xl border border-[#e4e8ee] px-4 py-2.5 text-sm focus:outline-none focus:border-[#2f5daa] transition-colors disabled:opacity-50"
+                className="w-full rounded-xl border border-[#e4e8ee] px-4 py-2.5 text-base outline-none focus-visible:border-[#2f5daa] focus-visible:ring-2 focus-visible:ring-[#2f5daa]/25 transition-colors disabled:opacity-50"
               />
               {phoneError && (
                 <p id="booking-phone-error" className="mt-1.5 text-xs text-red-600">
@@ -730,13 +730,13 @@ export default function BookingWidget({
                 type="button"
                 onClick={backToAsk}
                 disabled={stage === "submitting"}
-                className="text-sm font-medium text-[#111827]/50 hover:text-[#0e2a63] transition-colors disabled:opacity-50"
+                className="text-sm font-medium text-[#111827]/65 hover:text-[#0e2a63] transition-colors disabled:opacity-50"
               >
                 {t.changeTime}
               </button>
             </div>
           </form>
-        </motion.div>
+        </m.div>
       )}
     </div>
   );

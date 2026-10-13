@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { m, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { Menu, X, ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "@/components/i18n/Link";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
-import headerLogo from "@/public/brand/header-logo.png";
-import { scrollToTop } from "@/lib/lenis";
+import headerLogo from "@/public/brand/header-logo.webp";
+import { getLenis, scrollToTop } from "@/lib/lenis";
 import { useMessages } from "@/lib/i18n/client";
 import { useBarePathname } from "@/lib/i18n/navigation";
 
@@ -37,9 +37,38 @@ export default function Navigation() {
     setScrolled(latest > 24);
   });
 
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const wasOpen = useRef(false);
+
+  // Scroll lock while the drawer is open: the body (native scroll) and Lenis
+  // (which drives its own scroll) must both be paused, and resumed on close.
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    const lenis = getLenis();
+    if (open) lenis?.stop();
+    return () => {
+      document.body.style.overflow = "";
+      lenis?.start();
+    };
+  }, [open]);
+
+  // Focus moves into the drawer on open and back to the toggle on close;
+  // Escape closes it.
+  useEffect(() => {
+    if (open) {
+      wasOpen.current = true;
+      panelRef.current?.querySelector<HTMLElement>("a")?.focus();
+      const onKey = (e: KeyboardEvent) => {
+        if (e.key === "Escape") setOpen(false);
+      };
+      document.addEventListener("keydown", onKey);
+      return () => document.removeEventListener("keydown", onKey);
+    }
+    if (wasOpen.current) {
+      wasOpen.current = false;
+      toggleRef.current?.focus();
+    }
   }, [open]);
 
   const activeHref = NAV_LINKS.find(
@@ -57,7 +86,7 @@ export default function Navigation() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-[60] flex justify-center px-4 xs:px-6 pt-[max(1rem,env(safe-area-inset-top))]">
-      <motion.div
+      <m.div
         initial={false}
         animate={{
           // Real content need (logo + 8 nav links + language switcher +
@@ -111,18 +140,17 @@ export default function Navigation() {
                 href={link.href}
                 onMouseEnter={() => setHovered(link.href)}
                 onClick={(e) => handleNavClick(e, link.href)}
-                className={`relative whitespace-nowrap px-2.5 2xl:px-3.5 py-2 rounded text-[13px] font-utility transition-colors duration-300 active:scale-[0.97] ${
+                className={`relative whitespace-nowrap px-2.5 2xl:px-3.5 py-2 rounded text-[13px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f7a800] font-utility transition-colors duration-300 active:scale-[0.97] ${
                   isActive ? "text-white" : "text-white/75 hover:text-white"
                 }`}
               >
                 {t.links[link.key]}
-                {showIndicator && (
-                  <motion.span
-                    layoutId="nav-underline"
-                    className="absolute left-2.5 right-2.5 2xl:left-3.5 2xl:right-3.5 bottom-1 h-px bg-[#f7a800]"
-                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
-                  />
-                )}
+                <span
+                  aria-hidden="true"
+                  className={`absolute left-2.5 right-2.5 2xl:left-3.5 2xl:right-3.5 bottom-1 h-px origin-left bg-[#f7a800] transition-transform duration-300 motion-reduce:transition-none ${
+                    showIndicator ? "scale-x-100" : "scale-x-0"
+                  }`}
+                />
               </Link>
             );
           })}
@@ -159,20 +187,24 @@ export default function Navigation() {
               the mobile layout (tablets are often used with a trackpad, e.g.
               iPad + Magic Keyboard, where hover feedback actually registers). */}
           <button
+            ref={toggleRef}
+            type="button"
             aria-label={open ? t.closeMenu : t.openMenu}
+            aria-expanded={open}
+            aria-controls="site-mobile-nav"
             onClick={() => setOpen((v) => !v)}
-            className="xl:hidden flex items-center justify-center h-11 w-11 md:h-12 md:w-12 rounded-full text-white hover:bg-white/10 active:scale-[0.97] transition-all duration-300"
+            className="xl:hidden flex items-center justify-center h-11 w-11 md:h-12 md:w-12 rounded-full text-white hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f7a800] active:scale-[0.97] transition-[background-color,transform] duration-300 motion-reduce:transition-none"
           >
-            {open ? <X className="h-5 w-5 md:h-6 md:w-6" /> : <Menu className="h-5 w-5 md:h-6 md:w-6" />}
+            {open ? <X className="h-5 w-5 md:h-6 md:w-6" aria-hidden="true" /> : <Menu className="h-5 w-5 md:h-6 md:w-6" aria-hidden="true" />}
           </button>
         </div>
-      </motion.div>
+      </m.div>
 
       <AnimatePresence>
         {open && (
           <>
             {/* Backdrop — tapping anywhere outside the panel closes the menu */}
-            <motion.div
+            <m.div
               key="nav-backdrop"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -182,8 +214,10 @@ export default function Navigation() {
               aria-hidden="true"
               className="fixed inset-0 z-10 xl:hidden bg-[#040e28]/40"
             />
-          <motion.div
+          <m.div
             key="nav-panel"
+            id="site-mobile-nav"
+            ref={panelRef}
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
@@ -208,7 +242,7 @@ export default function Navigation() {
                   }`}
                 >
                   {t.links[link.key]}
-                  <ArrowUpRight className="h-4 w-4 text-white/40" />
+                  <ArrowUpRight className="h-4 w-4 text-white/60" aria-hidden="true" />
                 </Link>
               ))}
             </nav>
@@ -230,10 +264,10 @@ export default function Navigation() {
               </Link>
             </div>
             <div className="mt-5 pt-5 border-t border-white/10 flex items-center justify-between gap-3">
-              <span className="text-white/50 text-xs font-utility">{t.language}</span>
+              <span className="text-white/70 text-xs font-utility">{t.language}</span>
               <LanguageSwitcher size="md" onSwitch={() => setOpen(false)} />
             </div>
-          </motion.div>
+          </m.div>
           </>
         )}
       </AnimatePresence>

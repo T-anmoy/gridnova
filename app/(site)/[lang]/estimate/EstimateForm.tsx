@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useRef, useState } from "react";
+import { m, AnimatePresence } from "framer-motion";
+import { FormFieldLabel, fieldA11y, fieldClass, focusFirstInvalid } from "@/components/forms/FormField";
 import { ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 import Link from "@/components/i18n/Link";
 import { fmt, type Messages } from "@/lib/i18n/types";
@@ -67,48 +68,6 @@ function validateField(field: RequiredField, value: string, e: T["errors"]): str
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function FloatLabel({
-  id,
-  label,
-  error,
-  optional,
-}: {
-  id: string;
-  label: string;
-  error?: string;
-  /** The localized "(optional)" suffix, when the field is optional. */
-  optional?: string;
-}) {
-  return (
-    <div className="flex items-center justify-between mb-1.5">
-      <label htmlFor={id} className="font-utility text-xs text-[#111827]/55 uppercase tracking-[0.12em]">
-        {label}
-        {optional && <span className="normal-case text-[#111827]/35"> {optional}</span>}
-      </label>
-      <AnimatePresence>
-        {error && (
-          <motion.span
-            key={error}
-            initial={{ opacity: 0, x: 8 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 8 }}
-            className="flex items-center gap-1 text-[11px] text-red-500 font-utility"
-          >
-            <AlertCircle className="h-3 w-3" />
-            {error}
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-const inputClass = (hasError: boolean) =>
-  `w-full rounded-xl border bg-white px-4 py-3.5 text-[#111827] text-sm font-utility outline-none transition-all duration-200 focus:ring-2 ${
-    hasError
-      ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-      : "border-[#e4e8ee] focus:border-[#2f5daa] focus:ring-[#2f5daa]/10"
-  }`;
 
 // ── Main form ─────────────────────────────────────────────────────────────────
 
@@ -128,10 +87,11 @@ export default function EstimateForm({ t }: { t: T }) {
   });
   const [errors, setErrors] = useState<Partial<Record<RequiredField, string>>>({});
   const [touched, setTouched] = useState<Partial<Record<RequiredField, boolean>>>({});
-  const [focused, setFocused] = useState<Field | null>(null);
   // Honeypot: invisible to real users, bots fill it, submission silently rejected
   const [honeypot, setHoneypot] = useState("");
 
+  const formRef = useRef<HTMLFormElement>(null);
+  const successRef = useRef<HTMLHeadingElement>(null);
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -144,7 +104,6 @@ export default function EstimateForm({ t }: { t: T }) {
   }
 
   function handleBlur(field: RequiredField, currentValue: string) {
-    setFocused(null);
     setTouched((t) => ({ ...t, [field]: true }));
     const err = validateField(field, currentValue, t.errors);
     setErrors((e) => ({ ...e, [field]: err }));
@@ -164,6 +123,7 @@ export default function EstimateForm({ t }: { t: T }) {
     setTouched(Object.fromEntries(REQUIRED_FIELDS.map((f) => [f, true])) as Record<RequiredField, boolean>);
     if (Object.keys(errs).length) {
       setErrors(errs);
+      requestAnimationFrame(() => focusFirstInvalid(formRef.current, Object.keys(errs)));
       return;
     }
 
@@ -185,6 +145,7 @@ export default function EstimateForm({ t }: { t: T }) {
       }
 
       setStatus("success");
+      requestAnimationFrame(() => successRef.current?.focus());
     } catch {
       setStatus("error");
       setSubmitError(t.failed);
@@ -195,7 +156,7 @@ export default function EstimateForm({ t }: { t: T }) {
 
   if (status === "success") {
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
@@ -204,14 +165,14 @@ export default function EstimateForm({ t }: { t: T }) {
         <div className="mx-auto h-14 w-14 rounded-full bg-[#f7a800]/10 flex items-center justify-center">
           <CheckCircle2 className="h-7 w-7 text-[#f7a800]" />
         </div>
-        <h2 className="mt-6 font-display text-[#0e2a63] text-2xl font-semibold">
+        <h2 ref={successRef} tabIndex={-1} className="mt-6 font-display text-[#0e2a63] text-2xl font-semibold outline-none">
           {fmt(t.successTitle, { name: values.name.split(" ")[0] })}
         </h2>
         <p className="mt-3 text-[#111827]/65 leading-relaxed max-w-[48ch] mx-auto">
           {t.successBody}
         </p>
         <div className="mt-6 pt-6 border-t border-[#e4e8ee]">
-          <p className="text-[#111827]/50 text-sm">
+          <p className="text-[#111827]/65 text-sm">
             {t.dontWait}{" "}
             <Link
               href="/book-a-call?source=estimate"
@@ -222,12 +183,13 @@ export default function EstimateForm({ t }: { t: T }) {
             </Link>
           </p>
         </div>
-      </motion.div>
+      </m.div>
     );
   }
 
   return (
     <form
+      ref={formRef}
       onSubmit={handleSubmit}
       noValidate
       className="bg-white rounded-2xl border border-[#e4e8ee] p-7 md:p-9 space-y-6"
@@ -264,10 +226,10 @@ export default function EstimateForm({ t }: { t: T }) {
 
       {/* Customer type toggle */}
       <div>
-        <p className="font-utility text-xs text-[#111827]/55 uppercase tracking-[0.12em] mb-2.5">
+        <p id="customer-type-label" className="font-utility text-xs text-[#111827]/70 uppercase tracking-[0.12em] mb-2.5">
           {t.enquiringAs}
         </p>
-        <div className="inline-flex rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] p-1">
+        <div role="group" aria-labelledby="customer-type-label" className="inline-flex rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] p-1">
           {(
             [
               ["residential", t.residential],
@@ -278,17 +240,18 @@ export default function EstimateForm({ t }: { t: T }) {
               key={value}
               type="button"
               onClick={() => setCustomerType(value)}
-              className={`relative rounded-lg px-5 py-2.5 font-utility text-sm font-semibold transition-colors duration-200 ${
+              aria-pressed={customerType === value}
+              className={`relative min-h-[44px] rounded-lg px-5 py-2.5 font-utility text-sm font-semibold transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5daa] ${
                 customerType === value
                   ? "bg-[#0e2a63] text-white"
-                  : "text-[#111827]/55 hover:text-[#0e2a63]"
+                  : "text-[#111827]/70 hover:text-[#0e2a63]"
               }`}
             >
               {label}
             </button>
           ))}
         </div>
-        <p className="mt-3 text-[#111827]/50 text-sm leading-relaxed">
+        <p className="mt-3 text-[#111827]/65 text-sm leading-relaxed">
           {customerType === "residential"
             ? t.residentialHint
             : t.societyHint}
@@ -297,201 +260,170 @@ export default function EstimateForm({ t }: { t: T }) {
 
       <div className="grid sm:grid-cols-2 gap-5">
         <div>
-          <FloatLabel id="name" label={t.name} error={visible("name")} />
-          <motion.input
-            id="name"
+          <FormFieldLabel id="name" label={t.name} error={visible("name")} />
+          <input
+            {...fieldA11y("name", visible("name"))}
+            autoComplete="name"
             type="text"
             placeholder={t.namePlaceholder}
             value={values.name}
             onChange={(e) => set("name", e.target.value)}
-            onFocus={() => setFocused("name")}
             onBlur={(e) => handleBlur("name", e.target.value)}
-            animate={{ scale: focused === "name" ? 1.005 : 1 }}
-            transition={{ duration: 0.1 }}
-            className={inputClass(!!visible("name"))}
+            className={fieldClass(!!visible("name"))}
           />
         </div>
         <div>
-          <FloatLabel id="email" label={t.email} error={visible("email")} />
-          <motion.input
-            id="email"
+          <FormFieldLabel id="email" label={t.email} error={visible("email")} />
+          <input
+            {...fieldA11y("email", visible("email"))}
+            autoComplete="email" spellCheck={false} autoCapitalize="none"
             type="email"
             placeholder="ravi@company.in"
             value={values.email}
             onChange={(e) => set("email", e.target.value)}
-            onFocus={() => setFocused("email")}
             onBlur={(e) => handleBlur("email", e.target.value)}
-            animate={{ scale: focused === "email" ? 1.005 : 1 }}
-            transition={{ duration: 0.1 }}
-            className={inputClass(!!visible("email"))}
+            className={fieldClass(!!visible("email"))}
           />
         </div>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-5">
         <div>
-          <FloatLabel id="phone" label={t.phone} error={visible("phone")} />
-          <motion.input
-            id="phone"
+          <FormFieldLabel id="phone" label={t.phone} error={visible("phone")} />
+          <input
+            {...fieldA11y("phone", visible("phone"))}
+            autoComplete="tel" inputMode="tel"
             type="tel"
             placeholder="+91 98700 00000"
             value={values.phone}
             onChange={(e) => set("phone", e.target.value)}
-            onFocus={() => setFocused("phone")}
             onBlur={(e) => handleBlur("phone", e.target.value)}
-            animate={{ scale: focused === "phone" ? 1.005 : 1 }}
-            transition={{ duration: 0.1 }}
-            className={inputClass(!!visible("phone"))}
+            className={fieldClass(!!visible("phone"))}
           />
         </div>
         <div>
-          <FloatLabel id="state" label={t.state} optional={t.optional} />
-          <motion.input
+          <FormFieldLabel id="state" label={t.state} optional={t.optional} />
+          <input
             id="state"
+            autoComplete="address-level1"
             type="text"
             placeholder={t.statePlaceholder}
             value={values.state}
             onChange={(e) => set("state", e.target.value)}
-            onFocus={() => setFocused("state")}
-            onBlur={() => setFocused(null)}
-            animate={{ scale: focused === "state" ? 1.005 : 1 }}
-            transition={{ duration: 0.1 }}
-            className={inputClass(false)}
+                        className={fieldClass(false)}
           />
         </div>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-5">
         <div>
-          <FloatLabel id="cityOrPin" label={t.city} optional={t.optional} />
-          <motion.input
+          <FormFieldLabel id="cityOrPin" label={t.city} optional={t.optional} />
+          <input
             id="cityOrPin"
+            autoComplete="address-level2"
             type="text"
             placeholder={t.cityPlaceholder}
             value={values.cityOrPin}
             onChange={(e) => set("cityOrPin", e.target.value)}
-            onFocus={() => setFocused("cityOrPin")}
-            onBlur={() => setFocused(null)}
-            animate={{ scale: focused === "cityOrPin" ? 1.005 : 1 }}
-            transition={{ duration: 0.1 }}
-            className={inputClass(false)}
+                        className={fieldClass(false)}
           />
         </div>
         <div>
-          <FloatLabel id="averageMonthlyBill" label={t.bill} optional={t.optional} />
-          <motion.input
+          <FormFieldLabel id="averageMonthlyBill" label={t.bill} optional={t.optional} />
+          <input
             id="averageMonthlyBill"
             type="text"
             inputMode="numeric"
             placeholder="3000"
             value={values.averageMonthlyBill}
             onChange={(e) => set("averageMonthlyBill", e.target.value)}
-            onFocus={() => setFocused("averageMonthlyBill")}
-            onBlur={() => setFocused(null)}
-            animate={{ scale: focused === "averageMonthlyBill" ? 1.005 : 1 }}
-            transition={{ duration: 0.1 }}
-            className={inputClass(false)}
+                        className={fieldClass(false)}
           />
         </div>
       </div>
 
-      <p className="text-[#111827]/50 text-xs font-utility leading-relaxed -mt-1">
+      <p className="text-[#111827]/65 text-xs font-utility leading-relaxed -mt-1">
         {t.serviceArea}
       </p>
 
       <div className="grid sm:grid-cols-2 gap-5">
         <div>
-          <FloatLabel id="roofType" label={t.roofType} optional={t.optional} />
-          <motion.select
+          <FormFieldLabel id="roofType" label={t.roofType} optional={t.optional} />
+          <select
             id="roofType"
             value={values.roofType}
             onChange={(e) => set("roofType", e.target.value)}
-            onFocus={() => setFocused("roofType")}
-            onBlur={() => setFocused(null)}
-            animate={{ scale: focused === "roofType" ? 1.005 : 1 }}
-            transition={{ duration: 0.1 }}
-            className={`${inputClass(false)} cursor-pointer appearance-none`}
+                        className={`${fieldClass(false)} cursor-pointer appearance-none`}
           >
             <option value="">{t.roofTypePlaceholder}</option>
             {ROOF_TYPES.map((r, i) => (
               <option key={r} value={r}>{t.roofTypes[i]}</option>
             ))}
-          </motion.select>
+          </select>
         </div>
         <div>
-          <FloatLabel id="connectionPhase" label={t.phase} optional={t.optional} />
-          <motion.select
+          <FormFieldLabel id="connectionPhase" label={t.phase} optional={t.optional} />
+          <select
             id="connectionPhase"
             value={values.connectionPhase}
             onChange={(e) => set("connectionPhase", e.target.value)}
-            onFocus={() => setFocused("connectionPhase")}
-            onBlur={() => setFocused(null)}
-            animate={{ scale: focused === "connectionPhase" ? 1.005 : 1 }}
-            transition={{ duration: 0.1 }}
-            className={`${inputClass(false)} cursor-pointer appearance-none`}
+                        className={`${fieldClass(false)} cursor-pointer appearance-none`}
           >
             <option value="">{t.phasePlaceholder}</option>
             {CONNECTION_PHASES.map((c, i) => (
               <option key={c} value={c}>{t.phases[i]}</option>
             ))}
-          </motion.select>
+          </select>
         </div>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-5">
         <div>
-          <FloatLabel id="roofAreaSqFt" label={t.roofArea} optional={t.optional} />
-          <motion.input
+          <FormFieldLabel id="roofAreaSqFt" label={t.roofArea} optional={t.optional} />
+          <input
             id="roofAreaSqFt"
             type="text"
             inputMode="numeric"
             placeholder="800"
             value={values.roofAreaSqFt}
             onChange={(e) => set("roofAreaSqFt", e.target.value)}
-            onFocus={() => setFocused("roofAreaSqFt")}
-            onBlur={() => setFocused(null)}
-            animate={{ scale: focused === "roofAreaSqFt" ? 1.005 : 1 }}
-            transition={{ duration: 0.1 }}
-            className={inputClass(false)}
+                        className={fieldClass(false)}
           />
         </div>
         <div>
-          <FloatLabel id="floors" label={t.floors} optional={t.optional} />
-          <motion.input
+          <FormFieldLabel id="floors" label={t.floors} optional={t.optional} />
+          <input
             id="floors"
             type="text"
             inputMode="numeric"
             placeholder="2"
             value={values.floors}
             onChange={(e) => set("floors", e.target.value)}
-            onFocus={() => setFocused("floors")}
-            onBlur={() => setFocused(null)}
-            animate={{ scale: focused === "floors" ? 1.005 : 1 }}
-            transition={{ duration: 0.1 }}
-            className={inputClass(false)}
+                        className={fieldClass(false)}
           />
         </div>
       </div>
 
       <AnimatePresence>
         {status === "error" && submitError && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 font-utility"
+            role="alert"
+            className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-utility"
           >
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
             {submitError}
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
       <div className="flex items-center justify-between gap-4 pt-2">
-        <p className="text-[#111827]/40 text-xs font-utility leading-snug max-w-[32ch]">
+        <p className="text-[#111827]/60 text-xs font-utility leading-snug max-w-[32ch]">
           {t.noPrice}
         </p>
-        <motion.button
+        <m.button
           type="submit"
           disabled={status === "submitting"}
           whileTap={{ scale: 0.97 }}
@@ -499,7 +431,7 @@ export default function EstimateForm({ t }: { t: T }) {
         >
           {status === "submitting" ? t.sending : t.submit}
           <ArrowRight className="h-4 w-4" />
-        </motion.button>
+        </m.button>
       </div>
     </form>
   );

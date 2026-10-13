@@ -1,13 +1,13 @@
 "use client";
 
-// Shared field primitives for the proposal wizard steps — extracted rather
-// than duplicated per-step because this form has ~40 fields across 5 files.
-// Visual output matches app/estimate/EstimateForm.tsx exactly: same
-// FloatLabel, same inputClass, same toggle-pill pattern, same focus-scale
-// micro-interaction.
+// Shared field primitives for the proposal wizard steps and the public solar
+// calculator — extracted rather than duplicated per-step because this form has
+// ~40 fields across 5 files. Labels, errors and ARIA wiring come from the shared
+// public-form module (components/forms/FormField.tsx) so every form behaves
+// the same for keyboard and screen-reader users.
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useId } from "react";
+import { fieldA11y, fieldClass, errorId } from "@/components/forms/FormField";
 import { AlertCircle } from "lucide-react";
 
 export function FloatLabel({
@@ -25,39 +25,26 @@ export function FloatLabel({
   optionalLabel?: string;
 }) {
   return (
-    <div className="flex items-center justify-between mb-1.5">
-      <label htmlFor={id} className="font-utility text-xs text-[#111827]/55 uppercase tracking-[0.12em]">
+    <div className="mb-1.5 flex flex-wrap items-center justify-between gap-x-3">
+      <label htmlFor={id} className="font-utility text-xs uppercase tracking-[0.12em] text-[#111827]/70">
         {label}
         {optional ? (
-          <span className="normal-case text-[#111827]/35"> {optionalLabel}</span>
+          <span className="normal-case text-[#111827]/60"> {optionalLabel}</span>
         ) : (
-          <span className="text-[#f7a800]"> *</span>
+          <span className="text-[#8a5a00]" aria-hidden="true"> *</span>
         )}
       </label>
-      <AnimatePresence>
-        {error && (
-          <motion.span
-            key={error}
-            initial={{ opacity: 0, x: 8 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 8 }}
-            className="flex items-center gap-1 text-[11px] text-red-500 font-utility"
-          >
-            <AlertCircle className="h-3 w-3" />
-            {error}
-          </motion.span>
-        )}
-      </AnimatePresence>
+      {error && (
+        <span id={errorId(id)} role="alert" className="flex items-center gap-1 font-utility text-xs text-red-700">
+          <AlertCircle className="h-3 w-3" aria-hidden="true" />
+          {error}
+        </span>
+      )}
     </div>
   );
 }
 
-export const inputClass = (hasError: boolean) =>
-  `w-full rounded-xl border bg-white px-4 py-3.5 text-[#111827] text-sm font-utility outline-none transition-all duration-200 focus:ring-2 ${
-    hasError
-      ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-      : "border-[#e4e8ee] focus:border-[#2f5daa] focus:ring-[#2f5daa]/10"
-  }`;
+export const inputClass = fieldClass;
 
 interface FieldBaseProps {
   id: string;
@@ -69,6 +56,7 @@ interface FieldBaseProps {
   optional?: boolean;
   placeholder?: string;
   optionalLabel?: string;
+  autoComplete?: string;
 }
 
 export function TextField({
@@ -83,29 +71,27 @@ export function TextField({
   placeholder,
   type = "text",
   inputMode,
+  autoComplete,
   disabled,
-}: FieldBaseProps & { type?: string; inputMode?: "text" | "numeric" | "tel" | "email"; disabled?: boolean }) {
-  const [focused, setFocused] = useState(false);
+}: FieldBaseProps & { type?: string; inputMode?: "text" | "numeric" | "tel" | "email" | "decimal"; disabled?: boolean }) {
+  const isEmail = type === "email";
   return (
     <div>
       <FloatLabel id={id} label={label} error={error} optional={optional} optionalLabel={optionalLabel} />
-      <motion.input
-        id={id}
+      <input
+        {...fieldA11y(id, error)}
         name={id}
         type={type}
         inputMode={inputMode}
+        autoComplete={autoComplete ?? (type === "tel" ? "tel" : isEmail ? "email" : undefined)}
+        spellCheck={isEmail ? false : undefined}
+        autoCapitalize={isEmail ? "none" : undefined}
         placeholder={placeholder}
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => {
-          setFocused(false);
-          onBlur?.();
-        }}
-        animate={{ scale: focused ? 1.005 : 1 }}
-        transition={{ duration: 0.1 }}
-        className={`${inputClass(!!error)} ${disabled ? "cursor-not-allowed opacity-70" : ""}`}
+        onBlur={() => onBlur?.()}
+        className={`${fieldClass(!!error)} ${disabled ? "cursor-not-allowed opacity-70" : ""}`}
       />
     </div>
   );
@@ -122,25 +108,18 @@ export function TextAreaField({
   placeholder,
   rows = 4,
 }: FieldBaseProps & { rows?: number }) {
-  const [focused, setFocused] = useState(false);
   return (
     <div>
       <FloatLabel id={id} label={label} error={error} optional={optional} />
-      <motion.textarea
-        id={id}
+      <textarea
+        {...fieldA11y(id, error)}
         name={id}
         rows={rows}
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => {
-          setFocused(false);
-          onBlur?.();
-        }}
-        animate={{ scale: focused ? 1.002 : 1 }}
-        transition={{ duration: 0.1 }}
-        className={`${inputClass(!!error)} resize-none`}
+        onBlur={() => onBlur?.()}
+        className={`${fieldClass(!!error)} resize-none`}
       />
     </div>
   );
@@ -158,28 +137,23 @@ export function SelectField({
   options,
   labels,
   placeholder = "Select…",
+  autoComplete,
 }: FieldBaseProps & {
   options: string[];
   /** Display text per option value; the value itself is still what's submitted. */
   labels?: Record<string, string>;
 }) {
-  const [focused, setFocused] = useState(false);
   return (
     <div>
       <FloatLabel id={id} label={label} error={error} optional={optional} optionalLabel={optionalLabel} />
-      <motion.select
-        id={id}
+      <select
+        {...fieldA11y(id, error)}
         name={id}
+        autoComplete={autoComplete}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => {
-          setFocused(false);
-          onBlur?.();
-        }}
-        animate={{ scale: focused ? 1.005 : 1 }}
-        transition={{ duration: 0.1 }}
-        className={`${inputClass(!!error)} cursor-pointer appearance-none`}
+        onBlur={() => onBlur?.()}
+        className={`${fieldClass(!!error)} cursor-pointer appearance-none`}
       >
         <option value="">{placeholder}</option>
         {options.map((o) => (
@@ -187,7 +161,7 @@ export function SelectField({
             {labels?.[o] ?? o}
           </option>
         ))}
-      </motion.select>
+      </select>
     </div>
   );
 }
@@ -209,23 +183,25 @@ export function ToggleGroup<T extends string>({
   note?: string;
   optional?: boolean;
 }) {
+  const groupId = useId();
   return (
     <div>
-      <p className="font-utility text-xs text-[#111827]/55 uppercase tracking-[0.12em] mb-2.5">
+      <p id={groupId} className="font-utility text-xs text-[#111827]/70 uppercase tracking-[0.12em] mb-2.5">
         {label}
-        {!optional && <span className="text-[#f7a800]"> *</span>}
+        {!optional && <span className="text-[#8a5a00]" aria-hidden="true"> *</span>}
       </p>
-      <div className="inline-flex flex-wrap gap-1 rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] p-1">
+      <div role="group" aria-labelledby={groupId} className="inline-flex flex-wrap gap-1 rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] p-1">
         {options.map(([val, lbl]) => (
           <button
             key={val}
             type="button"
             disabled={disabled}
             onClick={() => onChange(val)}
-            className={`relative rounded-lg px-5 py-2.5 font-utility text-sm font-semibold transition-colors duration-200 ${
+            aria-pressed={value === val}
+            className={`relative min-h-[44px] rounded-lg px-5 py-2.5 font-utility text-sm font-semibold transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5daa] ${
               value === val
                 ? "bg-[#0e2a63] text-white"
-                : "text-[#111827]/55 hover:text-[#0e2a63]"
+                : "text-[#111827]/70 hover:text-[#0e2a63]"
             } ${disabled ? "cursor-not-allowed opacity-70" : ""}`}
           >
             {lbl}
@@ -233,7 +209,7 @@ export function ToggleGroup<T extends string>({
         ))}
       </div>
       {note && (
-        <p className="mt-2.5 text-[#111827]/50 text-xs font-utility leading-relaxed max-w-[52ch]">
+        <p className="mt-2.5 text-[#111827]/65 text-xs font-utility leading-relaxed max-w-[52ch]">
           {note}
         </p>
       )}

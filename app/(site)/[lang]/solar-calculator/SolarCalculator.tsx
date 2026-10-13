@@ -1,11 +1,11 @@
 "use client";
 
 import { API_BASE_URL } from "@/lib/config";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "@/components/i18n/Link";
 import { useMessages } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/types";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ArrowLeft, ArrowRight, AlertCircle, CheckCircle2, Zap } from "lucide-react";
 import {
   TextField,
@@ -47,6 +47,11 @@ function labelMap(values: readonly string[], labels: readonly string[]): Record<
   return Object.fromEntries(values.map((v, i) => [v, labels[i] ?? v]));
 }
 
+function scrollToTopRespectingMotion() {
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+}
+
 type EstimateStatus = "idle" | "loading" | "success" | "error";
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
 
@@ -54,6 +59,17 @@ export default function SolarCalculator() {
   const t = useMessages("calculator");
   const STEP_NAMES = t.stepNames;
   const [step, setStep] = useState(0);
+  // Each step swaps the form content, so keyboard and screen-reader users are
+  // moved to the new step (skipped on first render, which must not steal focus).
+  const stepRef = useRef<HTMLDivElement>(null);
+  const firstStepRender = useRef(true);
+  useEffect(() => {
+    if (firstStepRender.current) {
+      firstStepRender.current = false;
+      return;
+    }
+    stepRef.current?.focus({ preventScroll: true });
+  }, [step]);
 
   // Step A — Basics
   const [customerType, setCustomerType] = useState<CustomerType>("residential");
@@ -193,12 +209,12 @@ export default function SolarCalculator() {
 
   function goNext() {
     setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    scrollToTopRespectingMotion();
   }
 
   function goBack() {
     setStep((s) => Math.max(s - 1, 0));
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    scrollToTopRespectingMotion();
   }
 
   const step0Valid = !!state && !!city.trim() && !validatePinCode(pinCode, t.errors);
@@ -271,7 +287,7 @@ export default function SolarCalculator() {
 
   if (submitStatus === "success") {
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
@@ -286,7 +302,7 @@ export default function SolarCalculator() {
         <p className="mt-3 text-[#111827]/65 leading-relaxed max-w-[48ch] mx-auto">
           {t.successBody}
         </p>
-      </motion.div>
+      </m.div>
     );
   }
 
@@ -312,15 +328,22 @@ export default function SolarCalculator() {
       {/* Progress indicator */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3">
-          <p className="font-utility text-xs text-[#111827]/55 uppercase tracking-[0.12em]">
+          <p className="font-utility text-xs text-[#111827]/70 uppercase tracking-[0.12em]">
             {fmt(t.stepOf, { step: step + 1, total: TOTAL_STEPS, name: STEP_NAMES[step] })}
           </p>
-          <p className="font-utility text-xs text-[#111827]/35">
+          <p className="font-utility text-xs text-[#111827]/60">
             {Math.round(((step + 1) / TOTAL_STEPS) * 100)}%
           </p>
         </div>
-        <div className="h-1.5 w-full rounded-full bg-[#e4e8ee] overflow-hidden">
-          <motion.div
+        <div
+          role="progressbar"
+          aria-valuemin={1}
+          aria-valuemax={TOTAL_STEPS}
+          aria-valuenow={step + 1}
+          aria-valuetext={fmt(t.stepOf, { step: step + 1, total: TOTAL_STEPS, name: STEP_NAMES[step] })}
+          className="h-1.5 w-full rounded-full bg-[#e4e8ee] overflow-hidden"
+        >
+          <m.div
             className="h-full rounded-full bg-[#f7a800]"
             initial={false}
             animate={{ width: `${((step + 1) / TOTAL_STEPS) * 100}%` }}
@@ -329,7 +352,7 @@ export default function SolarCalculator() {
         </div>
       </div>
 
-      <motion.div key={step} initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.25, ease: "easeOut" }}>
+      <m.div key={step} ref={stepRef} tabIndex={-1} aria-live="polite" className="outline-none" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.25, ease: "easeOut" }}>
         {step === 0 && (
           <div className="space-y-6">
             <SectionHeading>{t.basics.heading}</SectionHeading>
@@ -354,6 +377,7 @@ export default function SolarCalculator() {
               />
               <TextField
                 id="sc-city"
+                autoComplete="address-level2"
                 label={t.basics.city}
                 value={city}
                 onChange={setCity}
@@ -363,6 +387,7 @@ export default function SolarCalculator() {
             <div className="grid sm:grid-cols-2 gap-5">
               <TextField
                 id="sc-pin"
+                autoComplete="postal-code"
                 label={t.basics.pin}
                 value={pinCode}
                 onChange={(v) => setPinCode(v.replace(/\D/g, "").slice(0, 6))}
@@ -428,7 +453,7 @@ export default function SolarCalculator() {
                   inputMode="numeric"
                 />
                 {!!roofAreaSqFt && Number(roofAreaSqFt) > 0 && (
-                  <p className="mt-1.5 text-[#111827]/45 text-xs font-utility">
+                  <p className="mt-1.5 text-[#111827]/65 text-xs font-utility">
                     {fmt(t.sizing.roofAreaHint, { kw: roofAreaToSizeKw(Number(roofAreaSqFt)) })}
                   </p>
                 )}
@@ -504,7 +529,7 @@ export default function SolarCalculator() {
               noLabel={t.no}
               note={t.site.subsidyNote}
             />
-            <p className="text-[#111827]/50 text-xs font-utility leading-relaxed rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] px-4 py-3.5">
+            <p className="text-[#111827]/65 text-xs font-utility leading-relaxed rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] px-4 py-3.5">
               {t.site.shareDocs}{" "}
               <a href="tel:+919874774440" className="text-[#0e2a63] font-medium hover:underline">
                 +91 98747 74440
@@ -524,8 +549,8 @@ export default function SolarCalculator() {
 
             {estimateStatus === "loading" && (
               <div className="rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] p-10 text-center">
-                <Zap className="h-6 w-6 text-[#f7a800] mx-auto animate-pulse" />
-                <p className="mt-3 font-utility text-sm text-[#111827]/55">{t.result.loading}</p>
+                <Zap className="h-6 w-6 text-[#f7a800] mx-auto animate-pulse motion-reduce:animate-none" aria-hidden="true" />
+                <p className="mt-3 font-utility text-sm text-[#111827]/70">{t.result.loading}</p>
               </div>
             )}
 
@@ -539,7 +564,7 @@ export default function SolarCalculator() {
                 <p className="mt-3 font-utility text-sm text-[#0e2a63] font-medium">
                   {t.result.errorTitle}
                 </p>
-                <p className="mt-1.5 text-[#111827]/50 text-xs font-utility leading-relaxed max-w-[42ch] mx-auto">
+                <p className="mt-1.5 text-[#111827]/65 text-xs font-utility leading-relaxed max-w-[42ch] mx-auto">
                   {t.result.errorBody}
                 </p>
               </div>
@@ -550,12 +575,13 @@ export default function SolarCalculator() {
         {step === 4 && (
           <div className="space-y-6">
             <SectionHeading>{t.contact.heading}</SectionHeading>
-            <p className="text-[#111827]/50 text-sm font-utility -mt-4">
+            <p className="text-[#111827]/65 text-sm font-utility -mt-4">
               {t.contact.intro}
             </p>
             <div className="grid sm:grid-cols-2 gap-5">
               <TextField
                 id="sc-name"
+                autoComplete="name"
                 label={t.contact.name}
                 value={fullName}
                 onChange={setFullName}
@@ -586,14 +612,14 @@ export default function SolarCalculator() {
             />
 
             {submitStatus === "error" && submitError && (
-              <div className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 font-utility">
-                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+              <div role="alert" className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-utility">
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
                 {submitError}
               </div>
             )}
           </div>
         )}
-      </motion.div>
+      </m.div>
 
       <div className="mt-9 pt-6 border-t border-[#e4e8ee] flex items-center justify-between gap-4">
         {step > 0 ? (
@@ -671,7 +697,7 @@ export default function SolarCalculator() {
           </button>
         ) : null}
         {step === 4 && (
-          <motion.button
+          <m.button
             type="button"
             onClick={() => void handleSubmit()}
             disabled={submitStatus === "submitting"}
@@ -680,7 +706,7 @@ export default function SolarCalculator() {
           >
             {submitStatus === "submitting" ? t.sending : t.contact.submit}
             <ArrowRight className="h-4 w-4" />
-          </motion.button>
+          </m.button>
         )}
       </div>
     </div>

@@ -3,10 +3,10 @@ import PortalHomeLink from '@/components/associate/PortalHomeLink'
 import { messagesFor, resolveLocale, type LangParams } from '@/lib/i18n/messages'
 
 export default async function PreferredSignInPage({ params }: LangParams) {
-  const m = messagesFor(await resolveLocale(params)).associates.preferredSignIn
+  const m = (await messagesFor(await resolveLocale(params))).associates.preferredSignIn
 
   return (
-    <main className="pt-[calc(env(safe-area-inset-top)+1rem)] pb-24 min-h-screen bg-[#091c3c] flex flex-col items-center px-4 sm:px-6">
+    <main id="main-content" className="pt-[calc(env(safe-area-inset-top)+1rem)] pb-24 min-h-screen bg-[#091c3c] flex flex-col items-center px-4 sm:px-6">
       <div className="w-full max-w-md">
         <PortalHomeLink tone="dark" />
       </div>
@@ -38,8 +38,8 @@ export default async function PreferredSignInPage({ params }: LangParams) {
               headerSubtitle: 'text-white/55 font-utility',
               formFieldLabel: 'text-white/75 font-utility text-sm',
               formFieldInput:
-                'bg-white/[0.07] border-white/20 text-white placeholder:text-white/30 focus:border-[#f7a800] focus:ring-1 focus:ring-[#f7a800]/30',
-              formFieldInputShowPasswordButton: 'text-white/40 hover:text-white/80',
+                'bg-white/[0.07] border-white/20 text-white placeholder:text-white/55 focus:border-[#f7a800] focus:ring-1 focus:ring-[#f7a800]/30',
+              formFieldInputShowPasswordButton: 'text-white/60 hover:text-white/80',
               formFieldAction: 'text-[#f7a800] hover:text-[#ffd27a] font-utility',
               formButtonPrimary:
                 'bg-[#f7a800] hover:bg-[#ffd27a] text-[#091c3c] font-utility font-semibold shadow-none',
@@ -48,10 +48,10 @@ export default async function PreferredSignInPage({ params }: LangParams) {
               socialButtonsBlockButtonText: 'font-utility text-white/85',
               socialButtonsBlockButtonArrow: 'text-white/50',
               dividerLine: 'bg-white/15',
-              dividerText: 'text-white/35 font-utility',
-              footerActionText: 'text-white/40 font-utility',
+              dividerText: 'text-white/60 font-utility',
+              footerActionText: 'text-white/60 font-utility',
               footerActionLink: 'text-[#f7a800] hover:text-[#ffd27a] font-utility',
-              footer: 'opacity-40',
+              footer: 'opacity-70',
               formFieldErrorText: 'text-red-400 font-utility',
               alertText: 'text-white/80 font-utility',
             },

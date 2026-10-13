@@ -72,7 +72,7 @@ export default function PaymentScheduleEditor({
           </li>
         ))}
       </ul>
-      <p className="text-xs text-gray-400">The number of instalments can’t change. Percentages must total 100.</p>
+      <p className="text-xs text-gray-500">The number of instalments can’t change. Percentages must total 100.</p>
       {canEdit && (
         <Button size="sm" disabled={disabled || save.isPending} onClick={() => void handleSave()}>
           Save schedule

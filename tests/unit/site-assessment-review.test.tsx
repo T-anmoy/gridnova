@@ -14,10 +14,10 @@ vi.mock('@clerk/nextjs', () => ({
 }))
 
 const pushMock = vi.fn()
-vi.mock('next/navigation', () => ({
-  useParams: () => ({ id: '7' }),
-  useRouter: () => ({ push: pushMock, replace: vi.fn(), back: vi.fn(), forward: vi.fn(), prefetch: vi.fn() }),
-}))
+vi.mock('next/navigation', async () => {
+  const nav = (await import('./helpers/mock-navigation')).navigationMock
+  return { ...nav, useParams: () => ({ id: '7' }), useRouter: () => ({ ...nav.useRouter(), push: pushMock }) }
+})
 
 const mockUseProposalInputs = vi.fn()
 const mockUseProposalInput = vi.fn()

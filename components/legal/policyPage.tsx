@@ -8,12 +8,12 @@ import { pageMetadata } from "@/lib/seo";
 export function policyRoute(slug: PolicySlug) {
   async function generateMetadata({ params }: LangParams): Promise<Metadata> {
     const locale = await resolveLocale(params);
-    const t = messagesFor(locale).legal;
+    const t = (await messagesFor(locale)).legal;
     return pageMetadata({ title: t.titles[slug], description: t.descriptions[slug], path: `/${slug}`, locale });
   }
   async function Page({ params }: LangParams) {
     const locale = await resolveLocale(params);
-    return <PolicyDocument doc={getPolicy(slug)} t={messagesFor(locale).legal} englishOnly={locale !== "en"} />;
+    return <PolicyDocument doc={getPolicy(slug)} t={(await messagesFor(locale)).legal} englishOnly={locale !== "en"} />;
   }
   return { generateMetadata, Page };
 }

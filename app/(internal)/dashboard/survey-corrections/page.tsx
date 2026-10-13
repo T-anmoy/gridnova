@@ -206,7 +206,7 @@ function SurveyCorrections() {
       ) : isLoading ? (
         <Skeleton className="h-40 w-full" />
       ) : !data || data.items.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-[#e4e8ee] bg-white p-8 text-center text-gray-400">Nothing here.</p>
+        <p className="rounded-xl border border-dashed border-[#e4e8ee] bg-white p-8 text-center text-gray-500">Nothing here.</p>
       ) : (
         <div className="space-y-3">
           {data.items.map((c) => (

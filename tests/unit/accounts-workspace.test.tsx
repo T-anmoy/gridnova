@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest'
+import { navState } from './helpers/mock-navigation'
 import { render, screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import AccountsPage from '@/app/(internal)/dashboard/accounts/page'
@@ -41,7 +42,10 @@ vi.mock('@/lib/dashboard/accounts-api-client', () => ({
 }))
 vi.mock('@/lib/dashboard/payments-api-client', () => ({ useUploadStaffPaymentProof: () => ({ mutateAsync: vi.fn() }) }))
 vi.mock('@/lib/dashboard/execution-api-client', () => ({ useWorkQueues: () => h.queues }))
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: h.push }), useParams: () => ({ id: '11' }) }))
+vi.mock('next/navigation', async () => {
+  const nav = (await import('./helpers/mock-navigation')).navigationMock
+  return { ...nav, useRouter: () => ({ ...nav.useRouter(), push: h.push }), useParams: () => ({ id: '11' }) }
+})
 vi.mock('@clerk/nextjs', () => ({ useAuth: () => ({ getToken: async () => 'tok' }), useClerk: () => ({ signOut: vi.fn() }) }))
 
 const pay = (over: Partial<StaffPayment> = {}): StaffPayment => ({
@@ -88,6 +92,7 @@ beforeAll(() => {
 })
 
 beforeEach(() => {
+  navState.reset('/dashboard/accounts')
   h.role = { role: 'accounts', isLoaded: true }
   h.list = page([])
   h.milestones = page([])

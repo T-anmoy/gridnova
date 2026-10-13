@@ -388,7 +388,7 @@ export default function LeadDetailPage() {
                 {lead.pipeline_stage.replace(/_/g, ' ')}
               </Badge>
               {!isEngineer && (
-                <span className="font-utility text-xs text-[#111827]/40">
+                <span className="font-utility text-xs text-[#111827]/65">
                   {lead.assigned_employee_id ? `Assigned to ${lead.assigned_employee_id}` : 'Unassigned'}
                 </span>
               )}
@@ -513,7 +513,7 @@ export default function LeadDetailPage() {
             <CardHeader><CardTitle className="text-base">Collected Fields</CardTitle></CardHeader>
             <CardContent>
               {Object.keys(collectedFields).length === 0 ? (
-                <p className="font-utility text-sm text-[#111827]/40">No fields collected yet</p>
+                <p className="font-utility text-sm text-[#111827]/65">No fields collected yet</p>
               ) : (
                 <dl className="space-y-2">
                   {Object.entries(collectedFields).map(([key, value]) => (
@@ -569,10 +569,10 @@ export default function LeadDetailPage() {
                   {lead.messages.map((msg, i) => (
                     <div key={i} className={`flex flex-col gap-1 ${msg.role === 'customer' ? 'items-start' : 'items-end'}`}>
                       <div className="flex items-center gap-1.5">
-                        <span className="font-utility text-[10px] uppercase tracking-wider text-[#111827]/40">
+                        <span className="font-utility text-[10px] uppercase tracking-wider text-[#111827]/65">
                           {msg.role}
                         </span>
-                        <span className="font-utility text-[10px] text-[#111827]/30">
+                        <span className="font-utility text-[10px] text-[#111827]/65">
                           {formatDatetime(msg.created_at)}
                         </span>
                       </div>
@@ -610,7 +610,7 @@ export default function LeadDetailPage() {
                           {event.event_type.replace(/_/g, ' ')}
                         </p>
                         <p className="font-utility text-xs text-[#111827]/60">{event.description}</p>
-                        <p className="font-utility text-xs text-[#111827]/30">{formatDatetime(event.created_at)}</p>
+                        <p className="font-utility text-xs text-[#111827]/65">{formatDatetime(event.created_at)}</p>
                       </div>
                     </li>
                   ))}

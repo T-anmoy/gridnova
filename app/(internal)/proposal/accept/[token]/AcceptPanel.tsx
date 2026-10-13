@@ -72,22 +72,22 @@ export function AcceptPanel({ token, view }: { token: string; view: AcceptView }
         <h1 className="mt-2 font-display text-2xl md:text-3xl font-semibold text-[#091c3c] leading-tight">
           {current.customerName ? `Proposal for ${current.customerName}` : 'Review & accept your proposal'}
         </h1>
-        {current.company && <p className="mt-1 font-utility text-sm text-[#111827]/55">{current.company}</p>}
+        {current.company && <p className="mt-1 font-utility text-sm text-[#111827]/65">{current.company}</p>}
 
         {current.scope && (
           <div className="mt-6">
-            <p className="font-utility text-xs font-semibold uppercase tracking-wider text-[#111827]/50">Scope</p>
+            <p className="font-utility text-xs font-semibold uppercase tracking-wider text-[#111827]/65">Scope</p>
             <p className="mt-2 font-utility text-sm text-[#111827] leading-relaxed whitespace-pre-wrap">{current.scope}</p>
           </div>
         )}
 
         <div className="mt-6 grid grid-cols-1 min-[420px]:grid-cols-2 gap-4">
           <div className="rounded-xl bg-[#f7f9fc] border border-[#e4e8ee] p-4">
-            <p className="font-utility text-xs text-[#111827]/50 uppercase tracking-wider">Total price</p>
+            <p className="font-utility text-xs text-[#111827]/65 uppercase tracking-wider">Total price</p>
             <p className="mt-1 font-display text-xl font-bold text-[#091c3c]">{formatCurrency(current.totalValue)}</p>
           </div>
           <div className="rounded-xl bg-[#f7f9fc] border border-[#e4e8ee] p-4">
-            <p className="font-utility text-xs text-[#111827]/50 uppercase tracking-wider">Valid until</p>
+            <p className="font-utility text-xs text-[#111827]/65 uppercase tracking-wider">Valid until</p>
             <p className="mt-1 font-display text-xl font-bold text-[#091c3c]">
               {current.validUntil ? formatDate(current.validUntil) : '—'}
             </p>
@@ -119,7 +119,7 @@ export function AcceptPanel({ token, view }: { token: string; view: AcceptView }
             </>
           )}
         </button>
-        <p className="mt-3 font-utility text-xs text-[#111827]/40 text-center">
+        <p className="mt-3 font-utility text-xs text-[#111827]/65 text-center">
           By accepting, you confirm you’d like to proceed with this proposal.
         </p>
         {current.pdfAvailable && <PdfLink token={token} />}

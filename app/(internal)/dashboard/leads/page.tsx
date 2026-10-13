@@ -18,6 +18,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ClickableRow } from '@/components/dashboard/ClickableRow'
+import Link from 'next/link'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { formatDate, istDateKey } from '@/lib/dashboard/utils'
@@ -187,7 +189,7 @@ function AddLeadDialog() {
               <Input id="lead-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="optional" />
             </div>
           </div>
-          <p className="font-utility text-xs text-[#111827]/40">At least one of phone or email is required.</p>
+          <p className="font-utility text-xs text-[#111827]/65">At least one of phone or email is required.</p>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Source</Label>
@@ -360,7 +362,7 @@ function LeadsContent() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold text-[#091c3c]">Leads</h1>
-          <p className="font-utility text-sm text-[#111827]/50 mt-1" aria-live="polite">
+          <p className="font-utility text-sm text-[#111827]/65 mt-1" aria-live="polite">
             {isLoading ? 'Loading…' : `${countFormat.format(total)} ${urlQuery || sourceFilter || effectiveAssignedFilter ? 'matching' : 'total'} leads`}
           </p>
         </div>
@@ -381,7 +383,7 @@ function LeadsContent() {
         </div>
       </div>
       {canExport && exportIsWiderThanView && (
-        <p className="mb-3 font-utility text-xs text-[#111827]/50" role="note">
+        <p className="mb-3 font-utility text-xs text-[#111827]/65" role="note">
           Export CSV includes every lead for the selected source. The server does not yet filter exports by search, stage, score, date or assignment.
         </p>
       )}
@@ -389,7 +391,7 @@ function LeadsContent() {
       {/* Stage summary strip */}
       {stageCounts.length > 0 && (
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="font-utility text-xs text-[#111827]/40">On this page:</span>
+          <span className="font-utility text-xs text-[#111827]/65">On this page:</span>
           {stageCounts.map(({ stage, count }) => (
             <button
               key={stage}
@@ -413,7 +415,7 @@ function LeadsContent() {
         <CardContent className="pt-4">
           <div className="flex flex-wrap gap-3 items-end">
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-[#111827]/40" />
+              <Filter className="h-4 w-4 text-[#111827]/65" />
               <span className="font-utility text-sm text-[#111827]/60">Filters</span>
             </div>
             {canFilterByAssignment && (
@@ -436,7 +438,7 @@ function LeadsContent() {
               </Select>
             )}
             <div className="relative">
-              <Search className="absolute left-2.5 top-2 h-4 w-4 text-[#111827]/40" />
+              <Search className="absolute left-2.5 top-2 h-4 w-4 text-[#111827]/65" />
               <Input
                 type="search"
                 aria-label={isEngineer ? 'Search by lead ID' : 'Search by name, email, phone or lead ID'}
@@ -533,7 +535,7 @@ function LeadsContent() {
                 : filtered.length === 0
                 ? (
                     <TableRow>
-                      <TableCell colSpan={isEngineer ? 6 : 7} className="text-center py-12 font-utility text-[#111827]/40">
+                      <TableCell colSpan={isEngineer ? 6 : 7} className="text-center py-12 font-utility text-[#111827]/65">
                         {pageLocalFilterActive && (leads?.length ?? 0) > 0
                           ? 'No leads on this page match the stage, score or date filter — try another page.'
                           : 'No leads found'}
@@ -541,12 +543,15 @@ function LeadsContent() {
                     </TableRow>
                   )
                 : filtered.map((lead: LeadSummary) => (
-                    <TableRow
+                    <ClickableRow
                       key={lead.id}
-                      className="cursor-pointer hover:bg-[#f7f9fc] transition-colors"
-                      onClick={() => router.push(`/dashboard/leads/${lead.id}`)}
+                      className="hover:bg-[#f7f9fc] transition-colors"
+                      href={`/dashboard/leads/${lead.id}`}
                     >
-                      <TableCell className="font-utility font-medium text-[#091c3c]">#{lead.id}</TableCell>
+                      <TableCell className="font-utility font-medium text-[#091c3c]">
+                        <Link href={`/dashboard/leads/${lead.id}`} className="hover:underline">
+                          #{lead.id}</Link>
+                      </TableCell>
                       <TableCell className="font-utility text-sm text-[#111827]/60">
                         {lead.project_reference_id ?? '—'}
                       </TableCell>
@@ -584,7 +589,7 @@ function LeadsContent() {
                           )}
                         </TableCell>
                       )}
-                    </TableRow>
+                    </ClickableRow>
                   ))}
             </TableBody>
           </Table>

@@ -51,7 +51,7 @@ export default function TerritoriesPage() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <ShieldOff className="h-12 w-12 text-[#111827]/20 mx-auto mb-4" />
+          <ShieldOff className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
           <p className="font-display text-lg font-semibold text-[#091c3c]">Access Denied</p>
         </div>
       </div>
@@ -75,7 +75,7 @@ export default function TerritoriesPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-[#091c3c]">Territories &amp; Seats</h1>
-          <p className="font-utility text-sm text-[#111827]/50 mt-1">State Head, District Head and Block seat holders</p>
+          <p className="font-utility text-sm text-[#111827]/65 mt-1">State Head, District Head and Block seat holders</p>
         </div>
         <Link href="/dashboard/associate-network" className="btn-text font-utility text-sm text-[#0e2a63]">← Applications</Link>
       </div>
@@ -134,7 +134,7 @@ export default function TerritoriesPage() {
                 : (seats ?? []).length === 0
                 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-12 font-utility text-[#111827]/40">No seats found</TableCell>
+                      <TableCell colSpan={6} className="text-center py-12 font-utility text-[#111827]/65">No seats found</TableCell>
                     </TableRow>
                   )
                 : (seats ?? []).map((seat) => (
@@ -149,7 +149,7 @@ export default function TerritoriesPage() {
                             <Badge variant={seat.holder.status === 'active' ? 'green' : 'amber'} className="mt-1">{seat.holder.status}</Badge>
                           </div>
                         ) : (
-                          <span className="font-utility text-sm text-[#111827]/40">Vacant</span>
+                          <span className="font-utility text-sm text-[#111827]/65">Vacant</span>
                         )}
                       </TableCell>
                       <TableCell className="font-utility text-sm text-[#111827]/60">

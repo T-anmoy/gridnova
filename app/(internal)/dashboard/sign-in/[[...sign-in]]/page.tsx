@@ -39,8 +39,8 @@ export default function SignInPage() {
               // Form labels & inputs
               formFieldLabel: 'text-white/75 font-utility text-sm',
               formFieldInput:
-                'bg-white/[0.07] border-white/20 text-white placeholder:text-white/30 focus:border-[#f7a800] focus:ring-1 focus:ring-[#f7a800]/30',
-              formFieldInputShowPasswordButton: 'text-white/40 hover:text-white/80',
+                'bg-white/[0.07] border-white/20 text-white placeholder:text-white/55 focus:border-[#f7a800] focus:ring-1 focus:ring-[#f7a800]/30',
+              formFieldInputShowPasswordButton: 'text-white/60 hover:text-white/80',
               formFieldAction: 'text-[#f7a800] hover:text-[#ffd27a] font-utility',
               // Primary CTA
               formButtonPrimary:
@@ -52,12 +52,12 @@ export default function SignInPage() {
               socialButtonsBlockButtonArrow: 'text-white/50',
               // "or" divider
               dividerLine: 'bg-white/15',
-              dividerText: 'text-white/35 font-utility',
+              dividerText: 'text-white/60 font-utility',
               // Footer links ("Sign up", "Development mode")
-              footerActionText: 'text-white/40 font-utility',
+              footerActionText: 'text-white/60 font-utility',
               footerActionLink: 'text-[#f7a800] hover:text-[#ffd27a] font-utility',
               // "Secured by Clerk" badge
-              footer: 'opacity-40',
+              footer: 'opacity-70',
               // Error / alert text
               formFieldErrorText: 'text-red-400 font-utility',
               alertText: 'text-white/80 font-utility',

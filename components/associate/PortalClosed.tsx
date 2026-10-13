@@ -6,7 +6,7 @@ import type { Messages } from "@/lib/i18n/types";
 // work.
 export default function PortalClosed({ t }: { t: Messages["associates"]["closed"] }) {
   return (
-    <main className="pt-[calc(var(--header-h)+3rem)] pb-24 px-6 md:px-10 bg-[#f7f9fc] min-h-screen">
+    <main id="main-content" className="pt-[calc(var(--header-h)+3rem)] pb-24 px-6 md:px-10 bg-[#f7f9fc] min-h-screen">
       <div className="mx-auto max-w-[640px] rounded-2xl border border-[#e4e8ee] bg-white p-8 text-center">
         <h1 className="font-display text-[#0e2a63] text-3xl font-medium">{t.title}</h1>
         <p className="mt-4 text-[#111827]/65 leading-relaxed">{t.body}</p>

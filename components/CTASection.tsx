@@ -39,7 +39,7 @@ export default function CTASection({ t }: { t: Messages["cta"] }) {
         </div>
         <a
           href="tel:+919874774440"
-          className="mt-6 inline-flex items-center gap-1.5 text-white/40 hover:text-white/70 font-utility text-xs transition-colors duration-300"
+          className="mt-6 inline-flex items-center gap-1.5 text-white/60 hover:text-white/70 font-utility text-xs transition-colors duration-300"
         >
           <Phone className="h-3 w-3" />
           {t.call}

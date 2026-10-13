@@ -118,7 +118,7 @@ export default function FileUploadSlot({
         </p>
       )}
       {sample && (
-        <p className="mt-1 text-xs text-[#111827]/50 leading-relaxed">
+        <p className="mt-1 text-xs text-[#111827]/65 leading-relaxed">
           {sampleLabel && <span className="font-semibold">{sampleLabel}: </span>}
           {sample}
         </p>
@@ -185,7 +185,7 @@ export default function FileUploadSlot({
                 <UploadCloud className="h-6 w-6 mx-auto mb-2 text-[#2f5daa]/60" aria-hidden="true" />
               )}
               <span className="block text-sm font-utility text-[#0e2a63] font-semibold">{chooseLabel}</span>
-              <span className="mt-1 block text-xs font-utility text-[#111827]/50">{acceptedTypesLabel}</span>
+              <span className="mt-1 block text-xs font-utility text-[#111827]/65">{acceptedTypesLabel}</span>
             </>
           )}
         </button>
@@ -194,7 +194,7 @@ export default function FileUploadSlot({
             type="button"
             onClick={() => onChange(null)}
             aria-label={fmt(m.removeFile, { name: file.name })}
-            className="inline-flex w-11 shrink-0 items-center justify-center rounded-xl text-[#111827]/40 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5daa]"
+            className="inline-flex w-11 shrink-0 items-center justify-center rounded-xl text-[#111827]/65 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5daa]"
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </button>

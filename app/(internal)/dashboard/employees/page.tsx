@@ -45,9 +45,9 @@ export default function EmployeesPage() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <ShieldOff className="h-12 w-12 text-[#111827]/20 mx-auto mb-4" />
+          <ShieldOff className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
           <p className="font-display text-lg font-semibold text-[#091c3c]">Access Denied</p>
-          <p className="font-utility text-sm text-[#111827]/50 mt-1">Only administrators can manage employees.</p>
+          <p className="font-utility text-sm text-[#111827]/65 mt-1">Only administrators can manage employees.</p>
         </div>
       </div>
     )
@@ -88,7 +88,7 @@ export default function EmployeesPage() {
     <div>
       <div className="mb-6">
         <h1 className="font-display text-2xl font-bold text-[#091c3c]">Employees</h1>
-        <p className="font-utility text-sm text-[#111827]/50 mt-1">
+        <p className="font-utility text-sm text-[#111827]/65 mt-1">
           {employees?.length ?? 0} employees
         </p>
       </div>
@@ -149,7 +149,7 @@ export default function EmployeesPage() {
                             <CalendarCheck2 className="h-3.5 w-3.5" /> Connected
                           </span>
                         ) : (
-                          <span className="text-xs font-utility text-[#111827]/40">Not connected</span>
+                          <span className="text-xs font-utility text-[#111827]/65">Not connected</span>
                         )}
                       </TableCell>
                       <TableCell className="font-utility text-sm text-[#111827]/60">{formatDate(emp.created_at)}</TableCell>

@@ -53,7 +53,7 @@ export function FormField({
         ...(required ? { 'aria-required': true as const } : {}),
       })}
       {hint && (
-        <p id={hintId} className="mt-1.5 text-xs text-[#111827]/55 leading-relaxed font-utility">
+        <p id={hintId} className="mt-1.5 text-xs text-[#111827]/65 leading-relaxed font-utility">
           {hint}
         </p>
       )}

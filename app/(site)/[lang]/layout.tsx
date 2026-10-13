@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "../../globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import SiteChrome from "@/components/SiteChrome";
+import MotionProvider from "@/components/MotionProvider";
 import ScrollProgress from "@/components/ScrollProgress";
-import GlobalLoader from "@/components/GlobalLoader";
 import JsonLd from "@/components/JsonLd";
 import DraftTranslationNotice from "@/components/i18n/DraftTranslationNotice";
 import { fontClassesFor } from "@/lib/fonts";
@@ -23,7 +23,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: LangParams): Promise<Metadata> {
   const locale = await resolveLocale(params);
-  const m = messagesFor(locale).meta.site;
+  const m = (await messagesFor(locale)).meta.site;
   return {
     metadataBase: new URL(SITE_URL),
     title: { default: m.title, template: "%s | Grid Nova Energy" },
@@ -55,7 +55,7 @@ export default async function SiteRootLayout({
   params,
 }: Readonly<{ children: React.ReactNode }> & LangParams) {
   const locale = await resolveLocale(params);
-  const messages = messagesFor(locale);
+  const messages = (await messagesFor(locale));
   const { script } = LOCALE_META[locale];
   return (
     <html lang={locale} data-script={script} className={fontClassesFor(script)}>
@@ -65,14 +65,21 @@ export default async function SiteRootLayout({
         <JsonLd data={patnaLocalBusinessSchema} />
       </head>
       <body>
-        <GlobalLoader />
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[1000] focus:rounded-md focus:bg-white focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-[#091c3c] focus:shadow-lg"
+        >
+          {messages.common.skipToContent}
+        </a>
         <ScrollProgress />
         <SmoothScroll>
           <I18nProvider locale={locale} messages={chromeMessages(messages)}>
-            <SiteChrome>
-              {children}
-              <DraftTranslationNotice draft={isMachineDraft(messages)} />
-            </SiteChrome>
+            <MotionProvider>
+              <SiteChrome>
+                {children}
+                <DraftTranslationNotice draft={isMachineDraft(messages)} />
+              </SiteChrome>
+            </MotionProvider>
           </I18nProvider>
         </SmoothScroll>
       </body>

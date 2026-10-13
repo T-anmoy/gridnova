@@ -9,7 +9,7 @@ import { useMessages } from "@/lib/i18n/client";
 export default function NotFound() {
   const t = useMessages("notFound");
   return (
-    <main className="on-dark min-h-[100svh] bg-[#091c3c] blueprint-grid flex items-center justify-center px-6">
+    <main id="main-content" className="on-dark min-h-[100svh] bg-[#091c3c] blueprint-grid flex items-center justify-center px-6">
       <div className="text-center max-w-[540px]">
         <p className="font-utility text-[#f7a800] text-[11px] tracking-[0.22em] uppercase mb-8">
           {t.eyebrow}

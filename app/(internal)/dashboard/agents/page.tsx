@@ -39,13 +39,13 @@ function AgentActivity({ agentId }: { agentId: AgentId }) {
   }
 
   if (error) {
-    return <p className="font-utility text-xs text-[#111827]/40">Couldn&apos;t load recent activity.</p>
+    return <p className="font-utility text-xs text-[#111827]/65">Couldn&apos;t load recent activity.</p>
   }
 
   const items = data?.items.slice(0, 5) ?? []
 
   if (items.length === 0) {
-    return <p className="font-utility text-xs text-[#111827]/40">No recent activity.</p>
+    return <p className="font-utility text-xs text-[#111827]/65">No recent activity.</p>
   }
 
   return (
@@ -54,9 +54,9 @@ function AgentActivity({ agentId }: { agentId: AgentId }) {
         <li key={i} className="flex items-start justify-between gap-3 font-utility text-xs">
           <span className="text-[#111827]/70">
             {item.action.replace(/_/g, ' ')}
-            {item.performed_by && <span className="text-[#111827]/40"> · {item.performed_by}</span>}
+            {item.performed_by && <span className="text-[#111827]/65"> · {item.performed_by}</span>}
           </span>
-          <span className="shrink-0 text-[#111827]/40">{formatTimeAgo(item.created_at)}</span>
+          <span className="shrink-0 text-[#111827]/65">{formatTimeAgo(item.created_at)}</span>
         </li>
       ))}
     </ul>
@@ -92,7 +92,7 @@ function AgentCard({
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <p className="font-utility text-xs font-semibold text-[#111827]/50 uppercase tracking-wider mb-1">
+          <p className="font-utility text-xs font-semibold text-[#111827]/65 uppercase tracking-wider mb-1">
             Action budget
           </p>
           <p className="font-utility text-sm text-[#091c3c]">
@@ -103,7 +103,7 @@ function AgentCard({
         <Separator />
 
         <div>
-          <p className="font-utility text-xs font-semibold text-[#111827]/50 uppercase tracking-wider mb-2">
+          <p className="font-utility text-xs font-semibold text-[#111827]/65 uppercase tracking-wider mb-2">
             Recent activity
           </p>
           <AgentActivity agentId={agent.id} />
@@ -127,9 +127,9 @@ export default function AgentsPage() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <ShieldOff className="h-12 w-12 text-[#111827]/20 mx-auto mb-4" />
+          <ShieldOff className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
           <p className="font-display text-lg font-semibold text-[#091c3c]">Access Denied</p>
-          <p className="font-utility text-sm text-[#111827]/50 mt-1">Only administrators can manage AI agents.</p>
+          <p className="font-utility text-sm text-[#111827]/65 mt-1">Only administrators can manage AI agents.</p>
         </div>
       </div>
     )
@@ -164,7 +164,7 @@ export default function AgentsPage() {
     <div>
       <div className="mb-6">
         <h1 className="font-display text-2xl font-bold text-[#091c3c]">Agent Control Panel</h1>
-        <p className="font-utility text-sm text-[#111827]/50 mt-1">
+        <p className="font-utility text-sm text-[#111827]/65 mt-1">
           Kill switches and action budgets for every AI agent in the system.
         </p>
       </div>

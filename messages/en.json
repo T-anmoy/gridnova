@@ -73,7 +73,13 @@
     }
   },
   "common": {
-    "languageLabel": "Choose language"
+    "languageLabel": "Choose language",
+    "skipToContent": "Skip to main content",
+    "errorTitle": "Something went wrong",
+    "errorBody": "We couldn't load this page. Please try again — if it keeps happening, contact us and we'll sort it out.",
+    "errorRetry": "Try again",
+    "errorHome": "Go to the home page",
+    "offlineBanner": "You're offline. Changes can't be saved until your connection is back."
   },
   "nav": {
     "home": "Home",

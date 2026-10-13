@@ -14,7 +14,7 @@ export default function OnboardingProgressPortal({ progress, copy }: { progress:
 
   return (
     <div>
-      <p className="font-utility text-xs font-semibold uppercase tracking-wide text-[#111827]/45">{copy.title}</p>
+      <p className="font-utility text-xs font-semibold uppercase tracking-wide text-[#111827]/65">{copy.title}</p>
       <ol className="mt-3 flex flex-wrap gap-2">
         {steps.map((step) => {
           const key = step.key
@@ -27,7 +27,7 @@ export default function OnboardingProgressPortal({ progress, copy }: { progress:
                   ? 'bg-[#0e2a63] text-white'
                   : step.isCurrent
                     ? 'bg-[#2f5daa]/10 text-[#0e2a63] font-semibold ring-1 ring-[#2f5daa]/30'
-                    : 'bg-[#f7f9fc] text-[#111827]/40'
+                    : 'bg-[#f7f9fc] text-[#111827]/65'
               }`}
             >
               {step.recorded && <Check className="h-3 w-3" />}

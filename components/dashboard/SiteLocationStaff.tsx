@@ -146,19 +146,19 @@ export function SiteLocationCard({ onboardingId, location, role }: { onboardingI
         ) : (
           <dl className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <dt className="text-xs text-gray-400">Coordinates</dt>
+              <dt className="text-xs text-gray-500">Coordinates</dt>
               <dd data-testid="staff-location-coords">{location.latitude}, {location.longitude}</dd>
             </div>
             <div>
-              <dt className="text-xs text-gray-400">Accuracy</dt>
+              <dt className="text-xs text-gray-500">Accuracy</dt>
               <dd>{location.accuracy_m != null ? `about ${Math.round(location.accuracy_m)} m` : 'not known'}</dd>
             </div>
             <div>
-              <dt className="text-xs text-gray-400">Source</dt>
+              <dt className="text-xs text-gray-500">Source</dt>
               <dd>{location.source ? SOURCE[location.source] ?? location.source : '—'}{location.precision === 'viewport_center' ? ' (map centre)' : ''}</dd>
             </div>
             <div>
-              <dt className="text-xs text-gray-400">Distance from site photos</dt>
+              <dt className="text-xs text-gray-500">Distance from site photos</dt>
               <dd>{location.photo_distance_m != null ? `about ${Math.round(location.photo_distance_m)} m` : 'no photo location to compare'}</dd>
             </div>
           </dl>

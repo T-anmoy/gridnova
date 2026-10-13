@@ -76,7 +76,7 @@ export default function Step1CustomerProject({ values, errors, set, touch, leadI
                 disabled={leadIdLocked}
               />
               {leadIdLocked && (
-                <p className="mt-1.5 text-[#111827]/40 text-xs font-utility">
+                <p className="mt-1.5 text-[#111827]/65 text-xs font-utility">
                   Locked — opened from this lead&rsquo;s dashboard page.
                 </p>
               )}

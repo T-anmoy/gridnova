@@ -12,10 +12,10 @@ import { localizedMetadata } from "@/lib/i18n/metadata";
 export const generateMetadata = localizedMetadata("industries", "/industries");
 
 export default async function IndustriesPage({ params }: LangParams) {
-  const m = messagesFor(await resolveLocale(params));
+  const m = (await messagesFor(await resolveLocale(params)));
   const t = m.industries;
   return (
-    <main>
+    <main id="main-content">
       {/* No eyebrow, no hero formula — large typographic opener */}
       <section className="pt-[calc(var(--header-h)+3rem)] pb-12 bg-white border-b border-[#e4e8ee]">
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
@@ -48,7 +48,7 @@ export default async function IndustriesPage({ params }: LangParams) {
             <div className="lg:order-1">
               <div className="inline-flex items-center gap-3 mb-8">
                 <span className="h-px w-10 bg-[#f7a800]" />
-                <span className="font-utility text-[11px] tracking-[0.22em] text-[#111827]/45 uppercase">{t.residential.label}</span>
+                <span className="font-utility text-[11px] tracking-[0.22em] text-[#111827]/65 uppercase">{t.residential.label}</span>
               </div>
               <h2
                 className="font-display text-[#0e2a63] font-semibold leading-[1.05]"
@@ -90,7 +90,7 @@ export default async function IndustriesPage({ params }: LangParams) {
             <div>
               <div className="inline-flex items-center gap-3 mb-8">
                 <span className="h-px w-10 bg-[#f7a800]" />
-                <span className="font-utility text-[11px] tracking-[0.22em] text-[#111827]/45 uppercase">{t.commercial.label}</span>
+                <span className="font-utility text-[11px] tracking-[0.22em] text-[#111827]/65 uppercase">{t.commercial.label}</span>
               </div>
               <h2
                 className="font-display text-[#0e2a63] font-semibold leading-[1.05]"
@@ -127,7 +127,7 @@ export default async function IndustriesPage({ params }: LangParams) {
             <div className="lg:order-1">
               <div className="inline-flex items-center gap-3 mb-8">
                 <span className="h-px w-10 bg-[#f7a800]" />
-                <span className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase">{t.industrial.label}</span>
+                <span className="font-utility text-[11px] tracking-[0.22em] text-white/60 uppercase">{t.industrial.label}</span>
               </div>
               <h2
                 className="font-display text-white font-semibold leading-[1.05]"
@@ -160,7 +160,7 @@ export default async function IndustriesPage({ params }: LangParams) {
           <ScrollReveal>
           <div className="inline-flex items-center gap-3 mb-10">
             <span className="h-px w-10 bg-[#f7a800]" />
-            <span className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase">{t.government.label}</span>
+            <span className="font-utility text-[11px] tracking-[0.22em] text-white/60 uppercase">{t.government.label}</span>
           </div>
           <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-12 lg:gap-20 items-end">
             <div>
@@ -173,7 +173,7 @@ export default async function IndustriesPage({ params }: LangParams) {
               <p className="mt-6 text-white/60 leading-relaxed">
                 {t.government.body}
               </p>
-              <p className="mt-6 text-white/40 text-xs font-utility leading-relaxed max-w-[52ch]">
+              <p className="mt-6 text-white/60 text-xs font-utility leading-relaxed max-w-[52ch]">
                 {t.government.footnote}
               </p>
             </div>

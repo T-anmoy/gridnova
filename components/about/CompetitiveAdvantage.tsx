@@ -16,7 +16,7 @@ export default function CompetitiveAdvantage({ t }: { t: Messages["about"]["adva
               key={a.n}
               className="group grid md:grid-cols-[100px_1fr_1.4fr] gap-4 md:gap-10 py-8 md:py-10 border-b border-white/10 items-baseline"
             >
-              <span className="font-display text-white/25 text-2xl group-hover:text-[#f7a800] transition-colors duration-300">
+              <span className="font-display text-white/55 text-2xl group-hover:text-[#f7a800] transition-colors duration-300">
                 {a.n}
               </span>
               <h3 className="font-display text-white text-xl md:text-2xl font-semibold">

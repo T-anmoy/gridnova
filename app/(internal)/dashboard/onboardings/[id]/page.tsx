@@ -107,7 +107,7 @@ function ScoreSection({ score }: { score: NonNullable<ReturnType<typeof useStaff
             </span>
           </div>
         ))}
-        {score.response_due_at && <p className="text-xs text-gray-400 mt-2">Response due {formatDatetime(score.response_due_at)}</p>}
+        {score.response_due_at && <p className="text-xs text-gray-500 mt-2">Response due {formatDatetime(score.response_due_at)}</p>}
       </CardContent>
     </Card>
   )
@@ -169,24 +169,24 @@ function FormalProposalSection({ onboardingId, blocked }: { onboardingId: number
           <>
             <dl className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <dt className="text-xs text-gray-400">Status</dt>
+                <dt className="text-xs text-gray-500">Status</dt>
                 <dd>{fp.status}</dd>
               </div>
               {fp.total_value != null && (
                 <div>
-                  <dt className="text-xs text-gray-400">Total value</dt>
+                  <dt className="text-xs text-gray-500">Total value</dt>
                   <dd>{formatCurrency(fp.total_value)}</dd>
                 </div>
               )}
               {fp.date_sent && (
                 <div>
-                  <dt className="text-xs text-gray-400">Sent</dt>
+                  <dt className="text-xs text-gray-500">Sent</dt>
                   <dd>{formatDatetime(fp.date_sent)}</dd>
                 </div>
               )}
               {fp.accepted_at && (
                 <div>
-                  <dt className="text-xs text-gray-400">Accepted</dt>
+                  <dt className="text-xs text-gray-500">Accepted</dt>
                   <dd>{formatDatetime(fp.accepted_at)}</dd>
                 </div>
               )}
@@ -325,7 +325,7 @@ export default function StaffOnboardingDetailPage() {
   if (isLoading || !onboarding) {
     return (
       <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-300" />
+        <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
       </div>
     )
   }
@@ -414,7 +414,7 @@ export default function StaffOnboardingDetailPage() {
                     ? `${formatCurrency(e.result.net_cost_range_min)} – ${formatCurrency(e.result.net_cost_range_max)}`
                     : formatCurrency(e.result.net_cost)}
                 </span>
-                <span className="text-xs text-gray-400">{formatDatetime(e.created_at)}</span>
+                <span className="text-xs text-gray-500">{formatDatetime(e.created_at)}</span>
               </div>
             ))}
           </CardContent>

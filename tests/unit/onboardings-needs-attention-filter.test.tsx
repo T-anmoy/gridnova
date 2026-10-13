@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
+vi.mock('next/navigation', async () => (await import('./helpers/mock-navigation')).navigationMock)
+import { navState } from './helpers/mock-navigation'
 
 const mockUseStaffOnboardings = vi.fn()
 vi.mock('@/lib/dashboard/onboarding-api-client', () => ({
@@ -11,6 +12,7 @@ vi.mock('@/lib/dashboard/onboarding-api-client', () => ({
 
 beforeEach(() => {
   vi.clearAllMocks()
+  navState.reset('/dashboard/onboardings')
   mockUseStaffOnboardings.mockReturnValue({
     data: { items: [], page: 1, page_size: 25, total: 0 },
     isLoading: false,

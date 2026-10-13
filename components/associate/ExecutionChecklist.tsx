@@ -21,8 +21,8 @@ function StageOverview({ stages, current, copy }: { stages: ExecutionStageStatus
     <ol className="space-y-2" aria-label={copy.title}>
       {stages.map((s) => (
         <li key={s.stage} className="flex items-center gap-2 text-sm font-utility">
-          {s.recorded ? <Check className="h-4 w-4 text-emerald-600" /> : <Circle className={`h-4 w-4 ${s.stage === current ? 'text-[#f7a800]' : 'text-[#111827]/25'}`} />}
-          <span className={s.recorded ? 'text-[#111827]' : s.stage === current ? 'font-semibold text-[#0e2a63]' : 'text-[#111827]/45'}>
+          {s.recorded ? <Check className="h-4 w-4 text-emerald-600" /> : <Circle className={`h-4 w-4 ${s.stage === current ? 'text-[#f7a800]' : 'text-[#111827]/65'}`} />}
+          <span className={s.recorded ? 'text-[#111827]' : s.stage === current ? 'font-semibold text-[#0e2a63]' : 'text-[#111827]/65'}>
             {copy.stages[s.stage as keyof Copy['stages']] ?? s.label}
           </span>
         </li>

@@ -38,7 +38,10 @@ vi.mock('@/lib/dashboard/execution-api-client', () => ({
   fetchStaffExecutionFileLink: vi.fn(),
 }))
 vi.mock('@clerk/nextjs', () => ({ useAuth: () => ({ getToken: async () => 't' }), useClerk: () => ({ signOut: vi.fn() }) }))
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: h.push }) }))
+vi.mock('next/navigation', async () => {
+  const nav = (await import('./helpers/mock-navigation')).navigationMock
+  return { ...nav, useRouter: () => ({ ...nav.useRouter(), push: h.push }) }
+})
 
 const stage = (over: Partial<ExecutionStageStatus> = {}): ExecutionStageStatus => ({
   stage: 'inspection_net_meter',

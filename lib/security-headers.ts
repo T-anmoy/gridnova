@@ -10,6 +10,13 @@ export interface SecurityHeaderOptions {
   clerkHost?: string
   /** Dev needs 'unsafe-eval' (React refresh); production does not. */
   dev?: boolean
+  /**
+   * Send the policy as Content-Security-Policy-Report-Only instead of enforcing
+   * it. Production enforces by default; set CSP_REPORT_ONLY=1 (and redeploy) to
+   * fall back to report-only if a missing source ever breaks a real page. Dev
+   * is always report-only so HMR and the dev overlay are never blocked.
+   */
+  reportOnly?: boolean
 }
 
 type Header = { key: string; value: string }
@@ -29,9 +36,11 @@ export function clerkHostFromPublishableKey(key: string | undefined): string | u
 }
 
 /**
- * Content-Security-Policy for REPORT-ONLY use. Next injects inline scripts for
- * hydration, so script-src carries 'unsafe-inline' until nonces are adopted —
- * this policy is a first measurement pass, not enforcement.
+ * Content-Security-Policy. Next injects inline scripts for hydration, so
+ * script-src carries 'unsafe-inline' until nonces are adopted — the policy
+ * still pins every network destination (API, Clerk, object storage, frames),
+ * forbids plugins and base-tag injection, and upgrades insecure requests.
+ * Violations are reported to /api/csp-report in either mode.
  */
 export function contentSecurityPolicy({ apiOrigin, clerkHost, dev }: SecurityHeaderOptions): string {
   const clerk = ['https://*.clerk.accounts.dev', 'https://*.clerk.com', ...(clerkHost ? [`https://${clerkHost}`] : [])]
@@ -53,14 +62,16 @@ export function contentSecurityPolicy({ apiOrigin, clerkHost, dev }: SecurityHea
     ],
     'frame-src': ["'self'", 'https://www.google.com', 'https://maps.google.com', 'https://challenges.cloudflare.com', ...clerk],
     'worker-src': ["'self'", 'blob:'],
+    'manifest-src': ["'self'"],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],
     'form-action': ["'self'"],
     'report-uri': ['/api/csp-report'],
   }
-  return Object.entries(directives)
-    .map(([name, values]) => `${name} ${values.join(' ')}`)
-    .join('; ')
+  const rendered = Object.entries(directives).map(([name, values]) => `${name} ${values.join(' ')}`)
+  // Bare directive (no value). Not in dev: http://localhost must keep working.
+  if (!dev) rendered.push('upgrade-insecure-requests')
+  return rendered.join('; ')
 }
 
 // Areas that must never be framed: the customer's accept page (a capability
@@ -75,6 +86,8 @@ export const NO_FRAME_SOURCES = [
 ]
 
 export function securityHeaders(options: SecurityHeaderOptions): HeaderRule[] {
+  const enforce = !options.dev && !options.reportOnly
+  const cspKey = enforce ? 'Content-Security-Policy' : 'Content-Security-Policy-Report-Only'
   return [
     {
       source: '/:path*',
@@ -84,7 +97,7 @@ export function securityHeaders(options: SecurityHeaderOptions): HeaderRule[] {
         { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
         // Camera and geolocation are used by the field portal (photos, site GPS) — same origin only.
         { key: 'Permissions-Policy', value: 'camera=(self), geolocation=(self), microphone=(), payment=(), usb=()' },
-        { key: 'Content-Security-Policy-Report-Only', value: contentSecurityPolicy(options) },
+        { key: cspKey, value: contentSecurityPolicy(options) },
       ],
     },
     // The accept URL is a bearer token: never leak it in a Referer header.

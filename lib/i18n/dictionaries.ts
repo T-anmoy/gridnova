@@ -1,6 +1,3 @@
-import en from "@/messages/en.json";
-import hi from "@/messages/hi.json";
-import bn from "@/messages/bn.json";
 import type { Locale } from "./config";
 import type { Messages } from "./types";
 
@@ -8,14 +5,25 @@ import type { Messages } from "./types";
 // Components) — client components receive namespaces through I18nProvider.
 // hi.json and bn.json are checked against en.json's shape by
 // tests/unit/i18n-messages.test.ts, so they can be treated as `Messages`.
-const ALL: Record<Locale, Messages> = {
-  en,
-  hi: hi as unknown as Messages,
-  bn: bn as unknown as Messages,
+//
+// Each locale is a separate dynamic import, so a request only loads (and a
+// server bundle only has to carry per-request) the one file it needs instead
+// of all three (~670 KB) up front.
+const LOADERS: Record<Locale, () => Promise<Messages>> = {
+  en: () => import("@/messages/en.json").then((m) => m.default),
+  hi: () => import("@/messages/hi.json").then((m) => m.default as unknown as Messages),
+  bn: () => import("@/messages/bn.json").then((m) => m.default as unknown as Messages),
 };
 
-export function messagesFor(locale: Locale): Messages {
-  return ALL[locale];
+const cache = new Map<Locale, Promise<Messages>>();
+
+export function messagesFor(locale: Locale): Promise<Messages> {
+  let pending = cache.get(locale);
+  if (!pending) {
+    pending = LOADERS[locale]();
+    cache.set(locale, pending);
+  }
+  return pending;
 }
 
 // Namespaces used by the shared chrome (Navigation, Footer, Ask Nova, the

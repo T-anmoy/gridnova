@@ -73,7 +73,7 @@ function MockScreen({
         {heading}
         <div className="mt-3 space-y-2">
           {screen.fields.map((f) => (
-            <div key={f} className="rounded-lg border border-[#e4e8ee] px-3 py-2 text-[#111827]/45 text-xs font-utility">{f}</div>
+            <div key={f} className="rounded-lg border border-[#e4e8ee] px-3 py-2 text-[#111827]/65 text-xs font-utility">{f}</div>
           ))}
         </div>
         <p className="mt-3 inline-flex rounded-full bg-[#fff1c2] px-2.5 py-1 text-[11px] font-utility text-[#6b4700]">{screen.status}</p>
@@ -88,12 +88,12 @@ function MockScreen({
         <div className="flex-1 min-w-0">
           {heading}
           <p className="mt-1 text-[#0e2a63] text-xs font-utility">{screen.name}</p>
-          <p className="text-[#111827]/50 text-xs font-utility">{screen.role}</p>
-          <p className="mt-1 text-[#111827]/50 text-xs font-utility">{screen.id}: ••••••</p>
+          <p className="text-[#111827]/65 text-xs font-utility">{screen.role}</p>
+          <p className="mt-1 text-[#111827]/65 text-xs font-utility">{screen.id}: ••••••</p>
         </div>
         <div className="flex flex-col items-center gap-1 text-[#0e2a63]">
           <QrCode className="h-12 w-12" />
-          <span className="text-[10px] font-utility text-[#111827]/50">{screen.qr}</span>
+          <span className="text-[10px] font-utility text-[#111827]/65">{screen.qr}</span>
         </div>
       </div>
     );
@@ -130,7 +130,7 @@ function MockScreen({
           {journey.map((s, i) => (
             <li key={s.id} className="min-w-0">
               <span className={`block h-1.5 rounded-full ${i < current ? "bg-[#f7a800]" : i === current ? "bg-[#2f5daa]" : "bg-[#e4e8ee]"}`} />
-              <span className={`mt-1 block text-[10px] leading-tight font-utility ${i === current ? "text-[#0e2a63] font-semibold" : "text-[#111827]/45"}`}>
+              <span className={`mt-1 block text-[10px] leading-tight font-utility ${i === current ? "text-[#0e2a63] font-semibold" : "text-[#111827]/65"}`}>
                 {s.title}
               </span>
             </li>
@@ -146,7 +146,7 @@ function MockScreen({
         {heading}
         <table className="mt-3 w-full text-left text-xs font-utility">
           <thead>
-            <tr className="text-[#111827]/45">
+            <tr className="text-[#111827]/65">
               {screen.columns.map((c) => (
                 <th key={c} className="pb-1.5 font-normal">{c}</th>
               ))}
@@ -156,7 +156,7 @@ function MockScreen({
             {screen.rows.map((r) => (
               <tr key={r.customer} className="border-t border-[#e4e8ee] text-[#0e2a63]">
                 <td className="py-1.5 pr-2">{r.customer}</td>
-                <td className="py-1.5 pr-2 text-[#111827]/55">{r.payment}</td>
+                <td className="py-1.5 pr-2 text-[#111827]/65">{r.payment}</td>
                 <td className="py-1.5">
                   <span className="rounded-full bg-[#f7f9fc] border border-[#e4e8ee] px-2 py-0.5">{r.status}</span>
                 </td>

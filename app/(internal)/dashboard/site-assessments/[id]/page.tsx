@@ -73,7 +73,7 @@ function FileRow({ inputId, file }: { inputId: number; file: ProposalInputDetail
         <FileText className="h-4 w-4 text-[#2f5daa] shrink-0" />
         <div className="min-w-0">
           <p className="font-utility text-sm text-[#111827] truncate">{file.filename}</p>
-          <p className="font-utility text-xs text-[#111827]/40">
+          <p className="font-utility text-xs text-[#111827]/65">
             {file.target.replace(/_/g, ' ')}{file.document_type ? ` · ${file.document_type.replace(/_/g, ' ')}` : ''}
           </p>
         </div>
@@ -106,9 +106,9 @@ export default function SiteAssessmentDetailPage() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <ShieldOff className="h-12 w-12 text-[#111827]/20 mx-auto mb-4" />
+          <ShieldOff className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
           <p className="font-display text-lg font-semibold text-[#091c3c]">Access Denied</p>
-          <p className="font-utility text-sm text-[#111827]/50 mt-1">Site assessments aren&rsquo;t available to your role.</p>
+          <p className="font-utility text-sm text-[#111827]/65 mt-1">Site assessments aren&rsquo;t available to your role.</p>
         </div>
       </div>
     )
@@ -312,7 +312,7 @@ export default function SiteAssessmentDetailPage() {
             <CardHeader><CardTitle className="text-base">Uploaded Files</CardTitle></CardHeader>
             <CardContent className="space-y-2">
               {item.files.length === 0 ? (
-                <p className="font-utility text-sm text-[#111827]/40">No files uploaded</p>
+                <p className="font-utility text-sm text-[#111827]/65">No files uploaded</p>
               ) : (
                 item.files.map((file) => <FileRow key={file.file_ref} inputId={item.id} file={file} />)
               )}

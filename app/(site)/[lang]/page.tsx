@@ -14,7 +14,7 @@ import { languageAlternates } from "@/lib/seo";
 
 export async function generateMetadata({ params }: LangParams): Promise<Metadata> {
   const locale = await resolveLocale(params);
-  const { title, description } = messagesFor(locale).meta.pages.home;
+  const { title, description } = (await messagesFor(locale)).meta.pages.home;
   return {
     title,
     description,
@@ -26,9 +26,9 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
 // opens (split header, photo-first, centred) so the page doesn't read as one
 // repeated template.
 export default async function Home({ params }: LangParams) {
-  const m = messagesFor(await resolveLocale(params));
+  const m = (await messagesFor(await resolveLocale(params)));
   return (
-    <main>
+    <main id="main-content">
       <Hero t={m.home.hero} />
       <ServicesGrid t={m.home.services} />
       <TargetMarkets t={m.home.markets} />
