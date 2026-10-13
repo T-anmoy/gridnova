@@ -8,6 +8,8 @@ const BASE_URL = E2E_ORIGIN;
 // exercise the same output users get — no dev-only warnings or double effects.
 export default defineConfig({
   testDir: "./tests/e2e",
+  // Warms the image optimizer cache once the server is up (see the file for why).
+  globalSetup: "./tests/e2e/global-setup.ts",
   timeout: 45_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,
