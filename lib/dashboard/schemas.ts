@@ -78,7 +78,7 @@ const leadSummarySchema = z.object({
   customer_id: z.number(),
   customer_name: z.string().nullable().optional(),
   pipeline_stage: z.string(),
-  lead_score: z.string(),
+  lead_score: z.string().nullable(),
   source: z.string(),
   created_at: z.string(),
   assigned_employee_id: z.string().nullable().optional(),

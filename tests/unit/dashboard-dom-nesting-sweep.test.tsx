@@ -31,6 +31,8 @@ vi.mock('@clerk/nextjs', () => ({
   useAuth: () => ({ getToken: vi.fn().mockResolvedValue('test-token') }),
 }))
 
+vi.mock('@/lib/dashboard/staff-leads-api-client', async () => (await import('./helpers/staff-leads-mocks')).staffLeadsApiMock)
+
 vi.mock('next/navigation', () => ({
   usePathname: () => '/',
   useParams: () => ({ id: '1' }),

@@ -33,6 +33,8 @@ vi.mock("@clerk/nextjs", () => ({
   useUser: () => ({ user: { publicMetadata: { role: "admin" } } }),
 }));
 
+vi.mock('@/lib/dashboard/staff-leads-api-client', async () => (await import('./helpers/staff-leads-mocks')).staffLeadsApiMock)
+
 vi.mock("next/navigation", () => ({
   useParams: () => ({ id: "19" }),
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),

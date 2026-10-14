@@ -21,6 +21,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { formatCurrency, formatDatetime } from '@/lib/dashboard/utils'
 import type { PipelineStage, Role } from '@/lib/dashboard/types'
+import { AskMemoryPanel } from '@/components/dashboard/AskMemoryPanel'
+import { CustomerMemoryPanel } from '@/components/dashboard/CustomerMemoryPanel'
+import { ReflectButton } from '@/components/dashboard/ReflectButton'
+import { ScheduleMeetingDialog } from '@/components/dashboard/ScheduleMeetingDialog'
+import { useStaffLeadsCopy } from '@/lib/dashboard/staff-leads-copy'
+import { canScheduleMeeting, canUseMemory, isEngineerLeadDetail, isLeadNotAssigned } from '@/lib/dashboard/staff-leads-logic'
+import { ApiError as LeadApiError } from '@/lib/dashboard/api-error'
 
 const REQUIRED_FIELDS = ['name', 'email', 'project_type', 'location', 'capacity_kw']
 
@@ -301,6 +308,9 @@ export default function LeadDetailPage() {
 
   const leadId = parseInt(id, 10)
   const { data: lead, isLoading, error, refetch } = useLead(leadId)
+  const copy = useStaffLeadsCopy()
+  // The Engineer response has no `customer` key; every other role gets the full shape.
+  const full = lead && !isEngineerLeadDetail(lead) ? lead : undefined
   const draftMutation = useDraftProposal()
 
   const isAdmin = role === 'admin'
@@ -308,7 +318,7 @@ export default function LeadDetailPage() {
   const isManagement = role === 'management'
   const canGenerateDraft = isAdmin || isSales
   const canReassign = isAdmin || isManagement
-  const ownsOrUnassigned = !lead?.assigned_employee_id || lead.assigned_employee_id === user?.id
+  const ownsOrUnassigned = !full?.assigned_employee_id || full.assigned_employee_id === user?.id
   const canChangeStage = isAdmin || isManagement || (isSales && ownsOrUnassigned)
   const canEditFields = canGenerateDraft || isManagement
   const canStartAssessment = isAdmin || isSales
@@ -319,14 +329,14 @@ export default function LeadDetailPage() {
   const isFullyQualified = missingRequired.length === 0 && lead?.pipeline_stage === 'qualified'
 
   async function handleGenerateDraft() {
-    if (!lead?.lead_id || !lead?.customer?.id) {
+    if (!full?.lead_id || !full?.customer?.id) {
       toast.error('Missing lead or customer data')
       return
     }
     try {
       const result = await draftMutation.mutateAsync({
-        lead_id: lead.lead_id,
-        customer_id: lead.customer.id,
+        lead_id: full.lead_id,
+        customer_id: full.customer.id,
       })
       toast.success('Proposal draft created')
       setConfirmOpen(false)
@@ -353,6 +363,26 @@ export default function LeadDetailPage() {
     )
   }
 
+  if (isLeadNotAssigned(error)) {
+    // A Sales user opened a lead that belongs to someone else: say so, not a generic failure.
+    return (
+      <div>
+        <Button variant="ghost" className="mb-4 min-h-11" onClick={() => router.back()}>
+          <ArrowLeft className="mr-2 h-4 w-4" /> {copy.detail.back}
+        </Button>
+        <div role="alert" data-testid="lead-not-assigned" className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-6">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" aria-hidden="true" />
+          <div>
+            <p className="font-utility font-medium text-amber-800">{copy.detail.notAssignedTitle}</p>
+            <p className="mt-1 font-utility text-sm text-amber-700">{copy.detail.notAssignedBody}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const is404 = error instanceof LeadApiError && error.status === 404
+
   if (error || !lead) {
     return (
       <div>
@@ -363,16 +393,52 @@ export default function LeadDetailPage() {
           <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
           <div>
             <p className="font-utility font-medium text-red-700">
-              {error ? 'Failed to load lead' : 'Lead not found'}
+              {error ? (is404 ? copy.detail.notFound : copy.detail.loadFailed) : copy.detail.notFound}
             </p>
-            {error && <Button variant="outline" size="sm" className="mt-3" onClick={() => void refetch()}>Retry</Button>}
+            {error && !is404 && <Button variant="outline" className="mt-3 min-h-11" onClick={() => void refetch()}>{copy.common.retry}</Button>}
           </div>
         </div>
       </div>
     )
   }
 
-  const isEngineer = role === 'engineer'
+  if (isEngineerLeadDetail(lead)) {
+    // Technical view only: no customer, proposals, timeline, messages or actions.
+    const fields = (lead.collected_fields ?? {}) as Record<string, unknown>
+    return (
+      <div data-testid="engineer-lead-view">
+        <div className="mb-6 flex items-center gap-3">
+          <Button variant="ghost" className="min-h-11" onClick={() => router.back()}>
+            <ArrowLeft className="mr-1 h-4 w-4" /> {copy.detail.back}
+          </Button>
+          <div>
+            <h1 className="font-display text-2xl font-bold text-[#091c3c]">Lead #{lead.lead_id}</h1>
+            <Badge variant={stageBadgeVariant(lead.pipeline_stage)} className="mt-1">
+              {lead.pipeline_stage.replace(/_/g, ' ')}
+            </Badge>
+          </div>
+        </div>
+        <Card>
+          <CardHeader><CardTitle className="text-base">{copy.detail.technicalTitle}</CardTitle></CardHeader>
+          <CardContent>
+            <p className="mb-3 font-utility text-xs text-[#111827]/65">{copy.detail.technicalNote}</p>
+            {Object.keys(fields).length === 0 ? (
+              <p className="font-utility text-sm text-[#111827]/65">No fields collected yet</p>
+            ) : (
+              <dl className="space-y-2">
+                {Object.entries(fields).map(([key, value]) => (
+                  <div key={key} className="flex gap-2 text-sm">
+                    <dt className="min-w-[120px] font-utility font-medium capitalize text-[#111827]/60">{key.replace(/_/g, ' ')}</dt>
+                    <dd className="font-utility text-[#111827] [overflow-wrap:anywhere]">{String(value ?? '—')}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -387,36 +453,36 @@ export default function LeadDetailPage() {
               <Badge variant={stageBadgeVariant(lead.pipeline_stage)}>
                 {lead.pipeline_stage.replace(/_/g, ' ')}
               </Badge>
-              {!isEngineer && (
-                <span className="font-utility text-xs text-[#111827]/65">
-                  {lead.assigned_employee_id ? `Assigned to ${lead.assigned_employee_id}` : 'Unassigned'}
-                </span>
-              )}
+              <span className="font-utility text-xs text-[#111827]/65">
+                {lead.assigned_employee_id ? `Assigned to ${lead.assigned_employee_id}` : 'Unassigned'}
+              </span>
             </div>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 items-center">
-          {!isEngineer && canChangeStage && (
+        <div className="flex flex-wrap gap-2 items-start">
+          {canScheduleMeeting(role) && <ScheduleMeetingDialog leadId={lead.lead_id} copy={copy} />}
+          {canUseMemory(role) && <ReflectButton leadId={lead.lead_id} copy={copy} />}
+          {canChangeStage && (
             <Button variant="outline" size="sm" onClick={() => setStageDialogOpen(true)}>
               <Repeat className="mr-1.5 h-4 w-4" /> Change Stage
             </Button>
           )}
-          {!isEngineer && canReassign && (
+          {canReassign && (
             <Button variant="outline" size="sm" onClick={() => setReassignOpen(true)}>
               Reassign
             </Button>
           )}
-          {!isEngineer && canEditFields && (
+          {canEditFields && (
             <Button variant="outline" size="sm" onClick={() => setEditFieldsOpen(true)}>
               <ClipboardEdit className="mr-1.5 h-4 w-4" /> Edit Details
             </Button>
           )}
-          {!isEngineer && canStartAssessment && (
+          {canStartAssessment && (
             <Button variant="outline" size="sm" onClick={() => router.push(`/proposal/new?leadId=${lead.lead_id}`)}>
               <ClipboardCheck className="mr-1.5 h-4 w-4" /> Start Site Assessment
             </Button>
           )}
-          {canGenerateDraft && !isEngineer && (
+          {canGenerateDraft && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -449,7 +515,7 @@ export default function LeadDetailPage() {
         {/* Left column */}
         <div className="space-y-4">
           {/* Customer info */}
-          {!isEngineer && lead.customer && (
+          {lead.customer && (
             <Card>
               <CardHeader><CardTitle className="text-base">Customer</CardTitle></CardHeader>
               <CardContent className="space-y-2">
@@ -463,7 +529,7 @@ export default function LeadDetailPage() {
           )}
 
           {/* Project record */}
-          {!isEngineer && lead.project && (
+          {lead.project && (
             <Card>
               <CardHeader><CardTitle className="text-base">Project</CardTitle></CardHeader>
               <CardContent>
@@ -535,7 +601,7 @@ export default function LeadDetailPage() {
           </Card>
 
           {/* Proposals */}
-          {!isEngineer && lead.proposals && lead.proposals.length > 0 && (
+          {lead.proposals && lead.proposals.length > 0 && (
             <Card>
               <CardHeader><CardTitle className="text-base">Proposals</CardTitle></CardHeader>
               <CardContent className="space-y-2">
@@ -556,8 +622,14 @@ export default function LeadDetailPage() {
 
         {/* Right column */}
         <div className="space-y-4">
+          {canUseMemory(role) && lead.customer && (
+            <>
+              <AskMemoryPanel customerId={lead.customer.id} copy={copy} />
+              <CustomerMemoryPanel customerId={lead.customer.id} copy={copy} />
+            </>
+          )}
           {/* Messages / Conversation */}
-          {!isEngineer && lead.messages && lead.messages.length > 0 && (
+          {lead.messages && lead.messages.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
@@ -593,7 +665,7 @@ export default function LeadDetailPage() {
           )}
 
           {/* Timeline */}
-          {!isEngineer && lead.timeline && lead.timeline.length > 0 && (
+          {lead.timeline && lead.timeline.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">

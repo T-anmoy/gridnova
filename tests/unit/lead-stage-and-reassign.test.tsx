@@ -8,6 +8,8 @@ import { ASSIGNABLE_EMPLOYEES_FIXTURE } from './fixtures/dashboard-contract'
 const mockUseUser = vi.fn()
 vi.mock('@clerk/nextjs', () => ({ useUser: () => mockUseUser() }))
 
+vi.mock('@/lib/dashboard/staff-leads-api-client', async () => (await import('./helpers/staff-leads-mocks')).staffLeadsApiMock)
+
 vi.mock('next/navigation', () => ({
   useParams: () => ({ id: '19' }),
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn(), forward: vi.fn(), prefetch: vi.fn() }),

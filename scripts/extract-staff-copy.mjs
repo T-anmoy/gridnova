@@ -36,9 +36,22 @@ export function pickStaffCopy(en) {
   }
 }
 
+/**
+ * The staff Leads screens (FE-6) are translated: this carries just their
+ * `staffLeads` namespace for each locale (~15 KB), so the dashboard never
+ * imports the full per-locale message files.
+ */
+export function pickStaffLeadsCopy(en, hi, bn) {
+  return { en: en.staffLeads, hi: hi.staffLeads, bn: bn.staffLeads }
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const en = JSON.parse(readFileSync(path.join(root, 'messages/en.json'), 'utf8'))
+  const read = (f) => JSON.parse(readFileSync(path.join(root, 'messages', f), 'utf8'))
+  const en = read('en.json')
   const out = path.join(root, 'lib/dashboard/staff-copy.generated.json')
   writeFileSync(out, JSON.stringify(pickStaffCopy(en), null, 2) + '\n')
   console.log(`wrote ${path.relative(root, out)}`)
+  const leadsOut = path.join(root, 'lib/dashboard/staff-leads-copy.generated.json')
+  writeFileSync(leadsOut, JSON.stringify(pickStaffLeadsCopy(en, read('hi.json'), read('bn.json')), null, 2) + '\n')
+  console.log(`wrote ${path.relative(root, leadsOut)}`)
 }

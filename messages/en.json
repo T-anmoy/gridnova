@@ -3242,5 +3242,207 @@
       "seeReview": "See the survey review",
       "needsReverification": "The survey changed, so Grid Nova has to re-check the proposal before it can be accepted."
     }
+  },
+  "staffLeads": {
+    "common": {
+      "retry": "Try again",
+      "cancel": "Cancel",
+      "close": "Close",
+      "loading": "Loading…",
+      "none": "—"
+    },
+    "filters": {
+      "heading": "Filters",
+      "show": "Show filters",
+      "hide": "Hide filters",
+      "activeCount": "{count} active",
+      "stage": "Pipeline stage",
+      "stageHint": "Choose any number of stages.",
+      "score": "Lead score",
+      "minScore": "Lowest score",
+      "maxScore": "Highest score",
+      "anyScore": "Any",
+      "scoreHelp": "Leads with no score never match a score filter.",
+      "created": "Created date",
+      "createdFrom": "Created from",
+      "createdTo": "Created to",
+      "dateHelp": "Dates are calendar days in India time (IST), both ends included.",
+      "clear": "Clear filters",
+      "stages": {
+        "new": "New",
+        "qualifying": "Qualifying",
+        "qualified": "Qualified",
+        "proposal_draft": "Proposal draft",
+        "proposal_sent": "Proposal sent",
+        "negotiation": "Negotiation",
+        "won": "Won",
+        "lost": "Lost"
+      },
+      "scores": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "errors": {
+        "unknown_stage": "One of the selected stages is not recognised. Clear the stage filter and choose again.",
+        "unknown_score": "That score is not recognised. Choose Low, Medium or High.",
+        "invalid_score_range": "The lowest score is above the highest score. Swap them or change one.",
+        "invalid_date": "That date is not valid. Use a real calendar day.",
+        "invalid_date_range": "The start date is after the end date. Swap them or change one."
+      }
+    },
+    "list": {
+      "totalCount": "{count} total leads",
+      "matchingCount": "{count} matching leads",
+      "pageStatus": "Page {page} of {pages} · {count} leads",
+      "noResults": "No results",
+      "noMatch": "No leads match these filters.",
+      "previous": "Previous",
+      "next": "Next",
+      "filterRejected": "The server did not accept these filters. See the message in the filter panel."
+    },
+    "export": {
+      "button": "Export CSV",
+      "busy": "Exporting…",
+      "forbidden": "Only Admin or Management can export leads.",
+      "filterRejected": "The export was refused because a filter is not valid. Check the filter panel.",
+      "network": "The export could not reach the server. Check your connection and try again.",
+      "failed": "The export failed. Try again.",
+      "scopeNote": "The CSV uses the same stage, score, date and source filters. Search and assignment are not applied to the export."
+    },
+    "detail": {
+      "notAssignedTitle": "This lead is not assigned to you",
+      "notAssignedBody": "Sales can open leads that are assigned to them or unassigned. Ask an Admin or Management to assign it to you.",
+      "loadFailed": "Failed to load lead",
+      "notFound": "Lead not found",
+      "back": "Back",
+      "technicalTitle": "Technical view",
+      "technicalNote": "Your role sees the technical fields of this lead only."
+    },
+    "meeting": {
+      "action": "Schedule meeting",
+      "title": "Schedule a meeting",
+      "description": "Books a Google Calendar event with a Meet link for lead #{leadId}.",
+      "whenLabel": "Date and time",
+      "whenHelp": "Enter the time in India time (IST).",
+      "durationLabel": "Duration (minutes)",
+      "durationHelp": "Optional. Leave blank to use the default length.",
+      "submit": "Schedule",
+      "submitting": "Scheduling…",
+      "successTitle": "Meeting scheduled",
+      "when": "When (IST)",
+      "duration": "Duration",
+      "durationValue": "{minutes} minutes",
+      "status": "Status",
+      "statuses": {
+        "scheduled": "Scheduled",
+        "cancelled": "Cancelled",
+        "completed": "Completed"
+      },
+      "joinLink": "Open the Meet link (opens in a new tab)",
+      "noLink": "No Meet link was created for this meeting.",
+      "errors": {
+        "invalidTime": "Enter a valid date and time.",
+        "invalidDuration": "Duration must be a whole number of minutes from 5 to 480.",
+        "role": "Your role cannot schedule meetings.",
+        "notAssigned": "This lead is not assigned to you.",
+        "notFound": "This lead no longer exists.",
+        "noCalendar": "No Google Calendar is connected for you or the lead's assignee. Connect a calendar on the Meetings page.",
+        "conflict": "The meeting could not be booked.",
+        "notConfigured": "Google Calendar is not set up on the server.",
+        "network": "Could not reach the server. Check your connection and try again.",
+        "generic": "The meeting could not be scheduled. Try again."
+      }
+    },
+    "memory": {
+      "title": "Customer memory",
+      "loading": "Loading memory…",
+      "profileTitle": "Profile",
+      "noProfile": "No profile has been built for this customer yet.",
+      "summary": "Summary",
+      "traits": "Traits",
+      "openQuestions": "Open questions",
+      "nextBestAction": "Next best action",
+      "lastReflected": "Last reflected",
+      "reflectionCount": "Reflections",
+      "listTitle": "Memories",
+      "kindLabel": "Kind",
+      "allKinds": "All kinds",
+      "kinds": {
+        "episode": "Episode",
+        "preference": "Preference",
+        "objection": "Objection",
+        "commitment": "Commitment",
+        "outcome": "Outcome",
+        "insight": "Insight",
+        "self_critique": "Self-critique"
+      },
+      "limitLabel": "Show up to",
+      "limitHelp": "From 1 to 500.",
+      "countLine": "Showing {shown} of {total} memories",
+      "empty": "No memories match.",
+      "salience": "Salience {value}",
+      "occurred": "Occurred",
+      "source": "Source",
+      "tags": "Tags",
+      "noValue": "None recorded",
+      "errors": {
+        "role": "Your role cannot view customer memory.",
+        "anotherRep": "This customer's leads are assigned to another rep.",
+        "notFound": "This customer was not found.",
+        "unknownKind": "That memory kind is not recognised.",
+        "agent": "Memory is unavailable right now.",
+        "network": "Could not reach the server. Check your connection and try again.",
+        "generic": "Memory could not be loaded."
+      }
+    },
+    "ask": {
+      "title": "Ask memory",
+      "description": "Ask about this customer. Answers come only from stored memory and are in English.",
+      "descriptionAny": "Ask about any customer. Include the customer's name. Answers come only from stored memory and are in English.",
+      "questionLabel": "Your question",
+      "counter": "{count} / 500",
+      "submit": "Ask",
+      "asking": "Asking…",
+      "answerTitle": "Answer",
+      "citationsTitle": "Sources",
+      "noCitations": "No stored memories were used.",
+      "retrieval": "Retrieval: {mode}",
+      "pickTitle": "Which customer do you mean?",
+      "pickHelp": "More than one customer matches. Choose one and the question will be asked again.",
+      "pick": "Ask about this customer",
+      "noMatch": "No matching customer.",
+      "scope": "Asking about {name}",
+      "errors": {
+        "role": "Your role cannot query customer memory.",
+        "anotherRep": "This customer's leads are assigned to another rep.",
+        "notFound": "This customer was not found.",
+        "agent": "The memory assistant could not answer.",
+        "network": "Could not reach the server. Check your connection and try again.",
+        "generic": "The question could not be answered. Try again.",
+        "unknownKind": "The question could not be answered."
+      }
+    },
+    "reflect": {
+      "action": "Reflect on conversation",
+      "running": "Reflecting…",
+      "written": "{count} memories written.",
+      "writtenOne": "1 memory written.",
+      "skippedPrefix": "Nothing was written.",
+      "skipped": {
+        "noNewMessages": "There are no new messages since the last reflection.",
+        "nothingReturned": "The reflection found nothing to record.",
+        "leadNotFound": "The lead was not found.",
+        "error": "The reflection ran into a problem and nothing was saved. You can try again later.",
+        "other": "The server gave this reason:"
+      },
+      "errors": {
+        "role": "Your role cannot trigger reflection.",
+        "notFound": "This lead no longer exists.",
+        "anotherRep": "This customer's leads are assigned to another rep.",
+        "network": "Could not reach the server. Check your connection and try again.",
+        "generic": "Reflection could not be started. Try again."
+      }
+    }
   }
 }

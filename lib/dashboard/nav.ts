@@ -35,7 +35,8 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Overview', href: '/dashboard', icon: LayoutDashboard, roles: 'all' },
-  { label: 'Leads', href: '/dashboard/leads', icon: Users, roles: 'all' },
+  // Operations and Accounts see no leads (staff_contracts.md visibility rule).
+  { label: 'Leads', href: '/dashboard/leads', icon: Users, roles: ['admin', 'management', 'sales', 'engineer'] },
   { label: 'Onboardings', href: '/dashboard/onboardings', icon: ListChecks, roles: ['admin', 'sales', 'management'] },
   { label: 'Operations', href: '/dashboard/operations', icon: Wrench, roles: ['admin', 'management', 'engineer', 'operations'], queue: 'execution' },
   { label: 'Accounts', href: '/dashboard/accounts', icon: Wallet, roles: ['admin', 'management', 'accounts'], queue: 'payments' },

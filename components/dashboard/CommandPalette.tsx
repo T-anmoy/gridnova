@@ -22,6 +22,8 @@ import {
 } from 'lucide-react'
 import { useLeadSearch, useProposalSearch } from '@/lib/dashboard/api-client'
 import { useDebouncedValue } from '@/lib/dashboard/use-debounced-value'
+import { useStaffRole } from '@/lib/dashboard/use-staff-role'
+import { canSeeLeads } from '@/lib/dashboard/staff-leads-logic'
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false)
@@ -29,13 +31,16 @@ export function CommandPalette() {
   const [leadIdSearch, setLeadIdSearch] = useState('')
   const [proposalIdSearch, setProposalIdSearch] = useState('')
   const router = useRouter()
+  // Operations and Accounts see no leads, so the palette offers them none.
+  const { role } = useStaffRole()
+  const leadsAllowed = !role || canSeeLeads(role)
 
   const debouncedQuery = useDebouncedValue(query, 300)
 
   // Non-numeric query with at least 2 chars triggers name search
   const isNameSearch = debouncedQuery.length > 1 && !/^\d+$/.test(debouncedQuery.trim())
 
-  const { data: leadResults, isFetching: leadsFetching } = useLeadSearch(isNameSearch ? debouncedQuery : '')
+  const { data: leadResults, isFetching: leadsFetching } = useLeadSearch(isNameSearch && leadsAllowed ? debouncedQuery : '')
   const { data: proposalResults, isFetching: proposalsFetching } = useProposalSearch(isNameSearch ? debouncedQuery : '')
 
   useEffect(() => {
@@ -82,10 +87,12 @@ export function CommandPalette() {
             <LayoutDashboard className="mr-2 h-4 w-4" />
             Overview
           </CommandItem>
-          <CommandItem onSelect={() => navigate('/dashboard/leads')}>
-            <Users className="mr-2 h-4 w-4" />
-            Leads
-          </CommandItem>
+          {leadsAllowed && (
+            <CommandItem onSelect={() => navigate('/dashboard/leads')}>
+              <Users className="mr-2 h-4 w-4" />
+              Leads
+            </CommandItem>
+          )}
           <CommandItem onSelect={() => navigate('/dashboard/proposals')}>
             <FileText className="mr-2 h-4 w-4" />
             Proposals
@@ -107,8 +114,8 @@ export function CommandPalette() {
         {isNameSearch ? (
           // ── Name-based search results ──────────────────────────────────────
           <>
-            <CommandSeparator />
-            <CommandGroup heading="Leads">
+            {leadsAllowed && <CommandSeparator />}
+            {leadsAllowed && <CommandGroup heading="Leads">
               {leadsFetching ? (
                 <CommandItem disabled value="loading-leads">
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -134,7 +141,7 @@ export function CommandPalette() {
                   </CommandItem>
                 ))
               )}
-            </CommandGroup>
+            </CommandGroup>}
             <CommandSeparator />
             <CommandGroup heading="Proposals">
               {proposalsFetching ? (
@@ -166,8 +173,8 @@ export function CommandPalette() {
         ) : (
           // ── Numeric ID navigation ──────────────────────────────────────────
           <>
-            <CommandSeparator />
-            <CommandGroup heading="Search Leads by ID">
+            {leadsAllowed && <CommandSeparator />}
+            {leadsAllowed && <CommandGroup heading="Search Leads by ID">
               <CommandItem
                 onSelect={() => {
                   if (leadIdSearch.trim()) navigate(`/dashboard/leads/${leadIdSearch.trim()}`)
@@ -189,7 +196,7 @@ export function CommandPalette() {
                   }}
                 />
               </div>
-            </CommandGroup>
+            </CommandGroup>}
             <CommandSeparator />
             <CommandGroup heading="Search Proposals by ID">
               <CommandItem

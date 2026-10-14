@@ -1,13 +1,27 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import { pickStaffCopy } from '../../scripts/extract-staff-copy.mjs'
+import { pickStaffCopy, pickStaffLeadsCopy } from '../../scripts/extract-staff-copy.mjs'
 import generated from '@/lib/dashboard/staff-copy.generated.json'
+import leadsGenerated from '@/lib/dashboard/staff-leads-copy.generated.json'
 import en from '@/messages/en.json'
+import hi from '@/messages/hi.json'
+import bn from '@/messages/bn.json'
 
 describe('staff dashboard copy subset (L7)', () => {
   it('equals the live subset of messages/en.json — run `npm run staff-copy` if this fails', () => {
     expect(generated).toEqual(pickStaffCopy(en))
+  })
+
+  it('the translated Leads copy (en, hi, bn) equals the live staffLeads namespaces — run `npm run staff-copy` if this fails', () => {
+    expect(leadsGenerated).toEqual(pickStaffLeadsCopy(en, hi, bn))
+  })
+
+  it('the Leads copy is a small fraction of the message files', () => {
+    const root = path.resolve(__dirname, '../..')
+    const full = readFileSync(path.join(root, 'messages/en.json')).length
+    const leads = readFileSync(path.join(root, 'lib/dashboard/staff-leads-copy.generated.json')).length
+    expect(leads).toBeLessThan(full / 4)
   })
 
   it('is much smaller than the full English file (it is what keeps en.json out of the dashboard bundle)', () => {
