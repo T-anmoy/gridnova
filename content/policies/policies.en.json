@@ -218,7 +218,7 @@
           "blocks": [
             {
               "type": "p",
-              "text": "[Name], Grievance Officer, Grid Nova Energy, [address], [email], [phone]."
+              "text": "Shouvik Biswas, Grievance Officer, Grid Nova Energy, Plot No. 83, Kasba Industrial Estate, Phase II, Kolkata – 700107, West Bengal, India, shouvik@gridnova.in, +965 9782 8553."
             }
           ]
         },
@@ -845,11 +845,6 @@
         "5",
         "1.9",
         "Response time for data requests (draft: 30 days)"
-      ],
-      [
-        "6",
-        "1.11",
-        "Grievance Officer: name, address, email, phone"
       ],
       [
         "7",

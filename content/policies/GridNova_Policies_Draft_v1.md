@@ -100,7 +100,7 @@ To use any of these rights, write to **info@gridnova.in**. We will respond withi
 We use only essential cookies and similar browser storage needed to run the website securely, remember your language choice, and keep staff and Associates signed in. We do not use advertising cookies. If we introduce analytics in future, we will update this Policy and ask for your consent where required.
 
 ### 1.11 Grievance Officer
-[Name], Grievance Officer, Grid Nova Energy, [address], [email], [phone].
+Shouvik Biswas, Grievance Officer, Grid Nova Energy, Plot No. 83, Kasba Industrial Estate, Phase II, Kolkata – 700107, West Bengal, India, shouvik@gridnova.in, +965 9782 8553.
 
 ### 1.12 Changes to this Policy
 We will post any update here with a new effective date. Where a change significantly affects how we use your data, we will tell you directly or ask for fresh consent.
@@ -363,7 +363,6 @@ You can ask Grid Nova to see, correct or delete your information at any time: in
 | 3 | All documents | Effective date of each document |
 | 4 | 1.8 | Retention period for chat conversations (draft: 12 months) |
 | 5 | 1.9 | Response time for data requests (draft: 30 days) |
-| 6 | 1.11 | Grievance Officer: name, address, email, phone |
 | 7 | 3 (A7) | Customer attribution lock period (draft: 90 days) |
 | 8 | 3 (A11) | Notice period for an Associate leaving (draft: 15 days) and for termination without cause (draft: 30 days) |
 | 9 | 3 (A14), 4.1 | Notice period for changes to terms and rates (draft: 15 days) |
