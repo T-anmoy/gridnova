@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
 import { ArrowLeft } from 'lucide-react'
-import ExecutionDetailPanel from '@/components/dashboard/ExecutionDetailPanel'
+import OperationsProjectTabs from '@/components/dashboard/OperationsProjectTabs'
 import type { Role } from '@/lib/dashboard/types'
 
 export default function OperationsProjectPage() {
@@ -16,7 +16,7 @@ export default function OperationsProjectPage() {
       <Link href="/dashboard/operations" className="inline-flex items-center gap-1.5 text-sm font-medium text-[#0e2a63]">
         <ArrowLeft className="h-4 w-4" /> Operations
       </Link>
-      <ExecutionDetailPanel onboardingId={Number(id)} role={role} />
+      <OperationsProjectTabs onboardingId={Number(id)} role={role} />
     </div>
   )
 }

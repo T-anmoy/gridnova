@@ -73,7 +73,7 @@ describe('describeTodo — the contract keys', () => {
     const keys = Object.keys(en.associates.portal.feed.todo).sort()
     expect(Object.keys(hi.associates.portal.feed.todo).sort()).toEqual(keys)
     expect(Object.keys(bn.associates.portal.feed.todo).sort()).toEqual(keys)
-    expect(keys).toEqual(['documents_missing', 'execution_next_step', 'formal_proposal_ready', 'generic', 'party_associate', 'party_customer', 'payment_due', 'payment_overdue', 'ready_to_submit', 'receipt_available', 'site_location_missing', 'site_location_unconfirmed', 'stage_rejected', 'survey_resign_needed', 'survey_revisit_correction', 'survey_revisit_edit', 'upload_signed_agreement'])
+    expect(keys).toEqual(['commission_payout_paid', 'commission_query_answered', 'documents_missing', 'execution_next_step', 'formal_proposal_ready', 'generic', 'handover_pending', 'party_associate', 'party_customer', 'payment_due', 'payment_overdue', 'ready_to_submit', 'receipt_available', 'service_request_closed', 'service_request_open', 'site_location_missing', 'site_location_unconfirmed', 'stage_rejected', 'survey_resign_needed', 'survey_revisit_correction', 'survey_revisit_edit', 'upload_signed_agreement'])
   })
 
   it('translates in Hindi and Bengali too', () => {

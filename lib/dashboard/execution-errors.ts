@@ -1,5 +1,6 @@
 import { ApiError } from '@/lib/dashboard/api-error'
 import { STAFF_EXECUTION_COPY } from '@/lib/dashboard/staff-copy'
+import { handoverErrorMessage } from '@/lib/handover/labels'
 
 // Plain-English sentences for the staff execution endpoints' business errors.
 const STAFF: Record<string, string> = {
@@ -22,6 +23,8 @@ export function staffExecutionError(err: unknown): string {
   if (err instanceof ApiError) {
     const code = err.structuredDetail?.code
     if (typeof code === 'string') {
+      // 422 from the handover gate (BE-5): name the missing pack items, not just that something is missing.
+      if (code === 'handover_pack_incomplete') return handoverErrorMessage(err)
       if (code in STAFF) return STAFF[code]
       if (code in STAFF_EXECUTION_COPY.errors) return STAFF_EXECUTION_COPY.errors[code as keyof typeof STAFF_EXECUTION_COPY.errors]
     }

@@ -74,10 +74,11 @@ export function contentSecurityPolicy({ apiOrigin, clerkHost, dev }: SecurityHea
   return rendered.join('; ')
 }
 
-// Areas that must never be framed: the customer's accept page (a capability
+// Areas that must never be framed: the customer's accept and handover pages (a capability
 // URL), the staff dashboard and the signed-in portals (every locale prefix).
 export const NO_FRAME_SOURCES = [
   '/proposal/:path*',
+  '/handover/:path*',
   '/dashboard/:path*',
   '/associates/portal/:path*',
   '/preferred/portal/:path*',
@@ -102,6 +103,8 @@ export function securityHeaders(options: SecurityHeaderOptions): HeaderRule[] {
     },
     // The accept URL is a bearer token: never leak it in a Referer header.
     { source: '/proposal/accept/:path*', headers: [{ key: 'Referrer-Policy', value: 'no-referrer' }] },
+    // The handover link is a bearer token too.
+    { source: '/handover/:path*', headers: [{ key: 'Referrer-Policy', value: 'no-referrer' }] },
     ...NO_FRAME_SOURCES.map((source) => ({
       source,
       headers: [

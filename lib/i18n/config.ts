@@ -24,7 +24,8 @@ export const LOCALE_META: Record<
 
 // These areas are internal tools or machine endpoints — they stay English and
 // never carry a locale prefix.
-const UNLOCALIZED_PREFIXES = ["/dashboard", "/proposal", "/api", "/trpc"];
+// /handover is the customer's tokenised handover page: English, unprefixed, like /proposal/accept.
+const UNLOCALIZED_PREFIXES = ["/dashboard", "/proposal", "/handover", "/api", "/trpc"];
 
 export function isLocale(value: string | undefined | null): value is Locale {
   return !!value && (LOCALES as readonly string[]).includes(value);

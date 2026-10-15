@@ -24,7 +24,7 @@
 **Effective date:** [date of publication]
 
 ### 1.1 Who we are
-Grid Nova Energy ("Grid Nova", "we", "us", "our") is [legal entity name and form — e.g. a partnership firm / LLP / company registered in India], GSTIN [●]. Our Kolkata office is at Plot No. 83, Kasba Industrial Estate, Phase II, Kolkata – 700107, West Bengal, and our Patna office is at C/O Parbati Bhawan, West Ram Krishna Nagar, New Bypass Road, Opposite Metro Pillar No. 81, P.O. New Jaganpura, Patna – 800027, Bihar.
+Grid Nova Energy ("Grid Nova", "we", "us", "our") is a partnership firm, GSTIN 19ABEFG7809A1ZI. Our Kolkata office is at Plot No. 83, Kasba Industrial Estate, Phase II, Kolkata – 700107, West Bengal, and our Patna office is at C/O Parbati Bhawan, West Ram Krishna Nagar, New Bypass Road, Opposite Metro Pillar No. 81, P.O. New Jaganpura, Patna – 800027, Bihar.
 
 This Policy explains how we handle personal data when you use www.gridnova.in, speak with our assistant Nova, request an estimate, book a call, become our customer, or join our Associate Network. We act as the "Data Fiduciary" for this data under the Digital Personal Data Protection Act, 2023 ("DPDP Act").
 
@@ -249,7 +249,7 @@ In addition to commission on your own customers, you may earn a territory commis
 **Effective date:** [date]
 
 **4.1 Rate schedule**
-Commission rates for each Associate type, level and role are published in your portal. Grid Nova may update the schedule with [15] days' notice; the rate that applies is the one in force on the date the customer's agreement is signed.
+Commission rates for each Associate type, level and role are published in your portal. Grid Nova may update the schedule with 15 days' notice; the rate that applies is the one in force on the date the customer's agreement is signed.
 
 **4.2 When commission is earned**
 Commission is earned only when a customer's payment has been **received and verified in Grid Nova's bank account**. It is earned in proportion to the amount verified. A recorded but unverified payment earns nothing.
@@ -261,16 +261,16 @@ Where applicable, State Heads, District Heads and Block Associates earn a territ
 Each entry in your portal shows one of: **Earned** (payment verified) → **Approved** (checked by Grid Nova) → **Paid** (transferred, with bank reference). You can see which customer and which payment every entry relates to.
 
 **4.5 Payout**
-Approved commission is paid to your registered bank account [monthly, by the 10th of the following month]. Payments are made only to a bank account in your own name.
+Approved commission is paid to your registered bank account monthly, by the 10th of the following month. Payments are made only to a bank account in your own name.
 
 **4.6 Tax**
-Grid Nova deducts tax at source as required under the Income-tax law in force, and issues TDS certificates. Under the current rules, TDS on commission is 2% once your total commission in a financial year crosses ₹20,000, and 20% if a valid PAN is not provided. These rates may change with the law. If you are registered under GST, you must share your GSTIN and raise invoices as required.
+Grid Nova deducts tax at source as required under the Income-tax law in force, and issues TDS certificates. Where TDS applies, the rate and threshold will be shown in your portal before any deduction is made. If you are registered under GST, you must share your GSTIN and raise invoices as required.
 
 **4.7 Reversals**
 Commission is reversed, or recovered from future payouts, if the payment it was based on is reversed — for example, a cheque is dishonoured, a refund is made, or a project is cancelled — or if it was obtained through false information or a breach of the Associate Network Terms.
 
 **4.8 Queries**
-Raise any query about a commission entry through your portal within [30] days of it appearing. Grid Nova will respond within [15] working days.
+Raise any query about a commission entry through your portal within 30 days of it appearing. Grid Nova will respond within [15] working days.
 
 **4.9 Recognition**
 Grid Nova may recognise outstanding performance through awards, certificates and rankings. Recognition is at Grid Nova's discretion and is not a contractual entitlement.
@@ -285,7 +285,7 @@ Grid Nova may recognise outstanding performance through awards, certificates and
 Grid Nova does not accept cash for any product or service, at any stage.
 
 **5.2 How to pay**
-Pay only to Grid Nova's own bank account, by cheque, demand draft, NEFT, RTGS, IMPS or UPI. Grid Nova's account details appear on your proposal and invoice: **Account name:** [Grid Nova Energy], **Bank:** [●], **Account number:** [●], **IFSC:** [●].
+Pay only to Grid Nova's own bank account, by cheque, demand draft, NEFT, RTGS, IMPS or UPI. Grid Nova's account details appear on your proposal and invoice: **Account name:** GRID NOVA ENERGY, **Bank:** HDFC Bank Ltd, Ruby More Branch, Kolkata – 700107, **Account number:** 50200122914495, **IFSC:** HDFC0005385.
 
 **5.3 Never pay an individual**
 No Associate or employee may accept payment in their own name or account. If anyone asks you to, do not pay — call us on +91 98747 74440.
@@ -358,16 +358,13 @@ You can ask Grid Nova to see, correct or delete your information at any time: in
 
 | # | Where | Item |
 |---|---|---|
-| 1 | 1.1 | Legal entity name and legal form (partnership firm / LLP / company) |
-| 2 | 1.1 | GSTIN |
 | 3 | All documents | Effective date of each document |
 | 4 | 1.8 | Retention period for chat conversations (draft: 12 months) |
 | 5 | 1.9 | Response time for data requests (draft: 30 days) |
 | 7 | 3 (A7) | Customer attribution lock period (draft: 90 days) |
 | 8 | 3 (A11) | Notice period for an Associate leaving (draft: 15 days) and for termination without cause (draft: 30 days) |
-| 9 | 3 (A14), 4.1 | Notice period for changes to terms and rates (draft: 15 days) |
-| 10 | 4.5 | Commission payout schedule (draft: monthly, by the 10th) |
-| 11 | 4.8 | Window to raise a commission query (draft: 30 days) and response time (draft: 15 working days) |
-| 12 | 5.2 | Bank account name, bank, account number and IFSC |
+| 9 | 3 (A14) | Notice period for changes to the Associate Network Terms (draft: 15 days; the 15 days' notice for rate changes in 4.1 is confirmed) |
+| 11 | 4.8 | Response time for commission queries (draft: 15 working days) |
+| 13 | 4.6 | TDS — awaiting Grid Nova's Chartered Accountant |
 
 *End of draft. Recommended next step: Grid Nova's legal adviser and CA review every bracketed item, and sections 1.6 (service providers), 1.8 (retention periods), 4.5–4.6 (payout and tax) and Part C of document 3, before these are published or shown in the portals.*

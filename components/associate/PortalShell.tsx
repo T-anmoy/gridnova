@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useClerk } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
-import { Home, IdCard, User, HelpCircle, Map, LogOut, Users } from 'lucide-react'
+import { Home, IdCard, User, HelpCircle, Map, LogOut, Users, Wallet } from 'lucide-react'
 import Link from '@/components/i18n/Link'
 import { useLocale, useOptionalMessages } from '@/lib/i18n/client'
 import OfflineBanner from '@/components/OfflineBanner'
@@ -11,7 +11,7 @@ import LanguageSwitcher from '@/components/i18n/LanguageSwitcher'
 import PortalHomeLink from '@/components/associate/PortalHomeLink'
 import { clearPortalDeviceData, purgeStaleDeviceData } from '@/lib/associate/portal-session'
 
-type NavKey = 'home' | 'idCard' | 'profile' | 'help' | 'territory' | 'customers'
+type NavKey = 'home' | 'idCard' | 'profile' | 'help' | 'territory' | 'customers' | 'earnings'
 
 const ICONS: Record<NavKey, React.ElementType> = {
   home: Home,
@@ -20,6 +20,7 @@ const ICONS: Record<NavKey, React.ElementType> = {
   help: HelpCircle,
   territory: Map,
   customers: Users,
+  earnings: Wallet,
 }
 
 export default function PortalShell({
@@ -45,6 +46,7 @@ export default function PortalShell({
   const items: { key: NavKey; href: string }[] = [
     { key: 'home', href: base },
     { key: 'customers', href: `${base}/customers` },
+    { key: 'earnings', href: `${base}/earnings` },
     ...(showTerritory ? [{ key: 'territory' as const, href: `${base}/territory` }] : []),
     { key: 'idCard', href: `${base}/id-card` },
     { key: 'profile', href: `${base}/profile` },

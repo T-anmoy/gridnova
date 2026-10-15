@@ -21,6 +21,7 @@ export default async function PreferredPortalCustomerDetailPage({
         estimateCopy={m.portal.estimate}
         executionCopy={m.portal.execution}
         paymentsCopy={m.portal.payments}
+        handoverOpen={m.portal.handover.open}
       />
     </PortalShell>
   )

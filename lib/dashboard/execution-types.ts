@@ -85,4 +85,10 @@ export interface WorkQueues {
   // BE-2 §11 — admin and engineer only. `overdue` is counted inside `awaiting` too.
   survey_reviews?: { awaiting: number; overdue: number }
   survey_corrections?: { pending: number }
+  // BE-5 — roles that can view execution. `awaiting_handover` is commissioned and not handed over;
+  // `packs_incomplete` is the part of those with a manual item (orientation, acknowledgement,
+  // O&M contact) still outstanding.
+  handover?: { awaiting_handover: number; packs_incomplete: number }
+  // BE-5 — `overdue` is the part of `open` that is past its SLA (always 0 while no SLA is set).
+  service_requests?: { open: number; overdue: number }
 }

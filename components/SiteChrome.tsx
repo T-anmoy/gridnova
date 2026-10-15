@@ -23,7 +23,7 @@ const PORTAL_PREFIXES = ["/associates/portal", "/preferred/portal", "/associates
 
 /** `pathname` is already stripped of its locale prefix (useBarePathname). */
 export function isBareRoute(pathname: string, portalOpen: boolean = ASSOCIATE_PORTAL_OPEN): boolean {
-  if (pathname.startsWith("/dashboard") || pathname.startsWith("/proposal/accept")) return true;
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/proposal/accept") || pathname.startsWith("/handover/")) return true;
   return portalOpen && PORTAL_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 

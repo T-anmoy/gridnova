@@ -42,7 +42,7 @@ describe('[bracketed] values vs the draft\'s own "items to confirm" table', () =
   // How many [bracketed] placeholders each row of the table accounts for. If a
   // placeholder is added to or removed from the draft, this fails until the
   // table (and this list) are updated — so no unconfirmed fact slips through.
-  const BRACKETS_PER_ITEM = [1, 1, 5, 1, 1, 1, 2, 2, 1, 2, 4]
+  const BRACKETS_PER_ITEM = [5, 1, 1, 1, 2, 1, 1, 0]
 
   it('every bracket in the policy set is accounted for by a row of the table', () => {
     const { policies, notices } = generate() as {

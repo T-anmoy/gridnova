@@ -296,6 +296,7 @@ export default function OnboardingDetail({
   estimateCopy,
   executionCopy,
   paymentsCopy,
+  handoverOpen,
 }: {
   onboardingId: number
   portalBase: '/associates/portal' | '/preferred/portal'
@@ -306,6 +307,8 @@ export default function OnboardingDetail({
   estimateCopy: Messages['associates']['portal']['estimate']
   executionCopy: ExecutionCopy
   paymentsCopy: PaymentsCopy
+  // Label of the link to the handover & warranty page (shown once installation has started).
+  handoverOpen?: string
 }) {
   const { data: onboarding, isLoading, error, refetch } = useOnboarding(onboardingId)
   const { data: progress } = useOnboardingProgress(onboardingId)
@@ -352,6 +355,15 @@ export default function OnboardingDetail({
           className="flex min-h-[48px] items-center justify-between rounded-2xl border border-[#e4e8ee] bg-white px-5 py-4 font-display text-base font-semibold text-[#0e2a63]"
         >
           {executionCopy.open}
+        </Link>
+      )}
+
+      {handoverOpen && progress && progress.stages.some((st) => isExecutionStage(st.stage)) && (
+        <Link
+          href={`${portalBase}/customers/${onboardingId}/handover`}
+          className="flex min-h-[48px] items-center justify-between rounded-2xl border border-[#e4e8ee] bg-white px-5 py-4 font-display text-base font-semibold text-[#0e2a63]"
+        >
+          {handoverOpen}
         </Link>
       )}
 

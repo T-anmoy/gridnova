@@ -1,14 +1,14 @@
 import { humanize } from '@/lib/associate/execution-labels'
 import { formatInr } from '@/lib/money'
 import type { HomeItem } from '@/lib/associate/home-api-client'
-import type { Messages } from '@/lib/i18n/types'
+import { fmt, type Messages } from '@/lib/i18n/types'
 import { correctionHref, editStepHref, revisitStep } from '@/lib/associate/survey-review'
 
 type FeedCopy = Messages['associates']['portal']['feed']
 type StageNames = Record<string, string>
 
 // Where each kind of to-do should take the associate.
-export type TodoTarget = 'detail' | 'execution' | 'payments' | 'house'
+export type TodoTarget = 'detail' | 'execution' | 'payments' | 'house' | 'handover'
 export const TODO_TARGET: Record<string, TodoTarget> = {
   stage_rejected: 'execution',
   execution_next_step: 'execution',
@@ -16,6 +16,25 @@ export const TODO_TARGET: Record<string, TodoTarget> = {
   receipt_available: 'payments',
   site_location_missing: 'house',
   site_location_unconfirmed: 'house',
+  handover_pending: 'handover',
+  service_request_open: 'handover',
+  service_request_closed: 'handover',
+}
+
+const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null)
+
+/** A stable React key: two items of one kind on one customer differ by their own id. */
+export function todoKey(item: HomeItem): string {
+  const p = item.params ?? {}
+  const own = num(p.request_id) ?? num(p.batch_id) ?? num(p.query_id) ?? ''
+  return `${item.kind}-${item.onboarding_id ?? 'none'}-${item.message_key}-${own}`
+}
+
+/** What heads a to-do card: the customer, or a plain label for items that are not about one customer. */
+export function todoTitle(item: HomeItem, copy: FeedCopy): string {
+  if (item.customer_name) return item.customer_name
+  const titles = copy.titles as Record<string, string>
+  return titles[item.kind] ?? titles.generic
 }
 
 /**
@@ -23,6 +42,13 @@ export const TODO_TARGET: Record<string, TodoTarget> = {
  * while the customer can still be edited, or to the correction request once verified.
  */
 export function todoHref(item: HomeItem, portalBase: string): string {
+  // Commission payouts and answered queries land on the Earnings page, not on a customer.
+  if (item.kind === 'commission_payout_paid') return `${portalBase}/earnings?tab=payouts`
+  if (item.kind === 'commission_query_answered') {
+    const entry = num((item.params ?? {}).entry_id)
+    return entry != null ? `${portalBase}/earnings?entry=${entry}` : `${portalBase}/earnings`
+  }
+  if (item.onboarding_id == null) return portalBase
   const base = `${portalBase}/customers/${item.onboarding_id}`
   if (item.kind === 'survey_revisit_needed') {
     const p = item.params ?? {}
@@ -33,10 +59,17 @@ export function todoHref(item: HomeItem, portalBase: string): string {
   // survey_resign_needed lands on the detail page, where the signature pads are.
   const target = TODO_TARGET[item.kind] ?? 'detail'
   if (target === 'house') return `${base}/edit?step=house`
+  if (target === 'handover') {
+    const request = num((item.params ?? {}).request_id)
+    return request != null ? `${base}/handover?request=${request}` : `${base}/handover`
+  }
   return target === 'detail' ? base : `${base}/${target}`
 }
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : v == null ? '' : String(v))
+
+/** A translated word for a category / status key; an unknown key reads as plain words, never as the raw key. */
+const serviceWord = (words: Record<string, string>, key: unknown): string => words[str(key)] ?? humanize(str(key))
 
 /**
  * Turns a home-feed item (message key + params) into the sentence shown on its
@@ -81,6 +114,23 @@ export function describeTodo(item: HomeItem, copy: FeedCopy, stageNames: StageNa
     }
     case 'todo.receipt_available':
       return copy.todo.receipt_available.replace('{number}', str(p.receipt_number))
+    case 'todo.commission_payout_paid':
+      return fmt(copy.todo.commission_payout_paid, {
+        net: formatInr(str(p.net)),
+        period: str(p.period),
+        last4: str(p.bank_account_last4),
+        reference: str(p.bank_reference),
+      })
+    case 'todo.commission_query_answered':
+      return copy.todo.commission_query_answered
+    case 'todo.handover_pending':
+      return copy.todo.handover_pending
+    case 'todo.service_request_open': {
+      const warranty = p.within_warranty === true ? copy.service.warrantyIn : p.within_warranty === false ? copy.service.warrantyOut : ''
+      return fmt(copy.todo.service_request_open, { category: serviceWord(copy.service.categories, p.category), status: serviceWord(copy.service.status, p.status), warranty })
+    }
+    case 'todo.service_request_closed':
+      return fmt(copy.todo.service_request_closed, { category: serviceWord(copy.service.categories, p.category), outcome: serviceWord(copy.service.status, p.outcome) })
     default:
       return copy.todo.generic
   }

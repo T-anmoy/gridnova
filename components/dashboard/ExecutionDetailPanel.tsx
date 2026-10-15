@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useAuth } from '@clerk/nextjs'
 import { AlertTriangle, Check, Circle, ExternalLink } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -24,6 +25,9 @@ import {
   useVerifySubmission,
 } from '@/lib/dashboard/execution-api-client'
 import { staffExecutionError } from '@/lib/dashboard/execution-errors'
+import { PACK_ITEM_LABEL, missingFromGate } from '@/lib/handover/labels'
+import { useHandoverPack } from '@/lib/handover/staff-api-client'
+import type { Pack } from '@/lib/handover/schemas'
 import { STAFF_EXECUTION_COPY, STAFF_PHOTOS_COPY } from '@/lib/dashboard/staff-copy'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { formatDate, formatDatetime } from '@/lib/dashboard/utils'
@@ -175,6 +179,26 @@ function StageRow({
   )
 }
 
+/** Fetches the handover pack and hands the form the pack while it is still incomplete (or null). */
+function WithHandoverGate({ onboardingId, children }: { onboardingId: number; children: (gate: Pack | null) => React.ReactNode }) {
+  const pack = useHandoverPack(onboardingId)
+  const gate = pack.data?.pack_required && !pack.data.complete ? pack.data : null
+  return <>{children(gate)}</>
+}
+
+/** The handover pack gate: lists what is still missing, with a way to the Handover tab. */
+function HandoverGateNotice({ pack }: { pack: Pack }) {
+  return (
+    <div role="status" className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" data-testid="handover-gate">
+      <p>Handover cannot be recorded until the handover pack is complete. Still to do:</p>
+      <ul className="mt-1 list-disc pl-5">
+        {pack.missing.map((k) => <li key={k}>{PACK_ITEM_LABEL[k] ?? pack.items.find((i) => i.key === k)?.label ?? k}</li>)}
+      </ul>
+      <Link className="mt-2 inline-block font-medium underline" href="?tab=handover">Open the Handover tab</Link>
+    </div>
+  )
+}
+
 export default function ExecutionDetailPanel({ onboardingId, role }: { onboardingId: number; role: Role | undefined }) {
   const { data: d, isLoading, error, refetch } = useStaffExecution(onboardingId)
   const verify = useVerifySubmission(onboardingId)
@@ -221,6 +245,73 @@ export default function ExecutionDetailPanel({ onboardingId, role }: { onboardin
   const overrideMode = d.execution_mode === 'associate' && d.can_record && isAdmin
   const directMode = d.execution_mode === 'grid_nova' && d.can_record
   const reviewStage = pending ? d.stages.find((s) => s.stage === pending.stage) : undefined
+
+  const renderForm = (stage: ExecutionStageStatus, packGate: Pack | null) => (
+    <ExecutionEvidenceForm
+      key={stage.stage}
+      scope={`staff-execution-${onboardingId}`}
+      status={d}
+      stage={stage}
+      copy={copy}
+      photosCopy={STAFF_PHOTOS_COPY}
+      showBlockers={false}
+      uploadFile={(input) => upload.mutateAsync(input)}
+      mapError={(err) =>
+        missingFromGate(err)
+          ? staffExecutionError(err)
+          : overrideMode && err instanceof ApiError && err.structuredDetail?.code === 'evidence_missing'
+          ? 'The associate’s evidence for this stage is missing, so it can’t be recorded as it stands. These items are missing:'
+          : staffExecutionError(err)
+      }
+      renderErrorExtra={(err) =>
+        missingFromGate(err) ? (
+          <ul className="mt-2 list-disc pl-5 text-sm" data-testid="gate-422-list">
+            {missingFromGate(err)!.labels.map((l) => <li key={l}>{l}</li>)}
+          </ul>
+        ) : overrideMode && err instanceof ApiError && err.structuredDetail?.code === 'evidence_missing' ? (
+          <div className="mt-3">
+            <p className="mb-2 text-sm">
+              To upload the evidence yourself, switch this project to Grid Nova mode — then Operations or an Admin can upload and record it.
+            </p>
+            <Button type="button" variant="outline" size="sm" onClick={() => setDialog('mode')}>
+              Switch this project to Grid Nova mode
+            </Button>
+          </div>
+        ) : null
+      }
+      onSubmit={({ text, note }) =>
+        record.mutateAsync({
+          stage: stage.stage,
+          text,
+          ...(note ? { note } : {}),
+          ...(overrideMode ? { admin_override_reason: overrideReason.trim() } : {}),
+        })
+      }
+      submitLabel={stage.stage === 'handover_complete' ? (overrideMode ? 'Record handover complete with admin override' : 'Record handover complete') : overrideMode ? 'Record with admin override' : 'Record stage'}
+      submittingLabel="Recording…"
+      doneMessage="Recorded."
+      extraReady={(!overrideMode || overrideReason.trim() !== '') && !packGate}
+      extra={
+        <>
+          {packGate && <HandoverGateNotice pack={packGate} />}
+          {overrideMode ? (
+          <div>
+            <label htmlFor="override-reason" className="mb-1.5 block text-sm font-medium text-gray-700">
+              Override reason (required — this project is in Associate mode) *
+            </label>
+            <textarea
+              id="override-reason"
+              rows={2}
+              className="w-full rounded-xl border border-[#e4e8ee] px-4 py-3 text-sm"
+              value={overrideReason}
+              onChange={(e) => setOverrideReason(e.target.value)}
+            />
+          </div>
+          ) : null}
+        </>
+      }
+    />
+  )
 
   return (
     <div className="space-y-4" data-testid="execution-panel">
@@ -323,61 +414,12 @@ export default function ExecutionDetailPanel({ onboardingId, role }: { onboardin
       {!pending && nextStage && (directMode || overrideMode) && (
         <Card>
           <CardContent className="p-6">
-            <ExecutionEvidenceForm
-              key={nextStage.stage}
-              scope={`staff-execution-${onboardingId}`}
-              status={d}
-              stage={nextStage}
-              copy={copy}
-              photosCopy={STAFF_PHOTOS_COPY}
-              showBlockers={false}
-              uploadFile={(input) => upload.mutateAsync(input)}
-              mapError={(err) =>
-                overrideMode && err instanceof ApiError && err.structuredDetail?.code === 'evidence_missing'
-                  ? 'The associate’s evidence for this stage is missing, so it can’t be recorded as it stands. These items are missing:'
-                  : staffExecutionError(err)
-              }
-              renderErrorExtra={(err) =>
-                overrideMode && err instanceof ApiError && err.structuredDetail?.code === 'evidence_missing' ? (
-                  <div className="mt-3">
-                    <p className="mb-2 text-sm">
-                      To upload the evidence yourself, switch this project to Grid Nova mode — then Operations or an Admin can upload and record it.
-                    </p>
-                    <Button type="button" variant="outline" size="sm" onClick={() => setDialog('mode')}>
-                      Switch this project to Grid Nova mode
-                    </Button>
-                  </div>
-                ) : null
-              }
-              onSubmit={({ text, note }) =>
-                record.mutateAsync({
-                  stage: nextStage.stage,
-                  text,
-                  ...(note ? { note } : {}),
-                  ...(overrideMode ? { admin_override_reason: overrideReason.trim() } : {}),
-                })
-              }
-              submitLabel={overrideMode ? 'Record with admin override' : 'Record stage'}
-              submittingLabel="Recording…"
-              doneMessage="Recorded."
-              extraReady={!overrideMode || overrideReason.trim() !== ''}
-              extra={
-                overrideMode ? (
-                  <div>
-                    <label htmlFor="override-reason" className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Override reason (required — this project is in Associate mode) *
-                    </label>
-                    <textarea
-                      id="override-reason"
-                      rows={2}
-                      className="w-full rounded-xl border border-[#e4e8ee] px-4 py-3 text-sm"
-                      value={overrideReason}
-                      onChange={(e) => setOverrideReason(e.target.value)}
-                    />
-                  </div>
-                ) : null
-              }
-            />
+            {nextStage.stage === 'handover_complete' ? (
+              // The handover pack gates `handover_complete`: it is fetched only on this stage.
+              <WithHandoverGate onboardingId={onboardingId}>{(gate) => renderForm(nextStage, gate)}</WithHandoverGate>
+            ) : (
+              renderForm(nextStage, null)
+            )}
           </CardContent>
         </Card>
       )}

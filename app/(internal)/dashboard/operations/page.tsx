@@ -75,6 +75,13 @@ function Operations() {
         </div>
       )}
 
+      {queues?.handover && (
+        <div className="grid gap-3 sm:grid-cols-3" data-testid="handover-summary">
+          <Card><CardContent className="p-4"><p className="text-xs text-gray-500">Commissioned, not handed over</p><p className="text-2xl font-bold">{queues.handover.awaiting_handover}</p></CardContent></Card>
+          <Card><CardContent className="p-4"><p className="text-xs text-gray-500">Handover pack still has manual items to do</p><p className="text-2xl font-bold">{queues.handover.packs_incomplete}</p></CardContent></Card>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-3">
         <Button variant={needsAttention ? 'default' : 'outline'} size="sm" aria-pressed={needsAttention} onClick={() => url.set({ attention: needsAttention ? undefined : '1' })}>
           Needs attention

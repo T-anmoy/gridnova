@@ -6,7 +6,7 @@ import { useAssociateMe } from '@/lib/associate/api-client'
 import { useAssociateHome } from '@/lib/associate/home-api-client'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import PinnedAction from '@/components/associate/PinnedAction'
-import { describeTodo, todoHref } from '@/lib/onboarding/todo'
+import { describeTodo, todoHref, todoKey, todoTitle } from '@/lib/onboarding/todo'
 import { fmt, type Messages } from '@/lib/i18n/types'
 
 type HomeCopy = Messages['associates']['portal']['associate']['home']
@@ -103,7 +103,7 @@ export default function PortalHome({
           ) : (
             <ul className="mt-4 space-y-3" aria-label={feed.title}>
               {home.items.map((item) => (
-                <li key={`${item.kind}-${item.onboarding_id}-${item.message_key}`}>
+                <li key={todoKey(item)}>
                   <Link
                     href={todoHref(item, portalBase)}
                     data-testid="todo-card"
@@ -113,7 +113,7 @@ export default function PortalHome({
                     <div className="min-w-0">
                       <p className="flex items-center gap-1.5 font-display text-base font-semibold text-[#0e2a63]">
                         {item.priority === 1 && <AlertCircle className="h-4 w-4 shrink-0 text-[#b87700]" aria-label={feed.priority['1']} />}
-                        <span className="truncate">{item.customer_name}</span>
+                        <span className="truncate">{todoTitle(item, feed)}</span>
                       </p>
                       <p className="mt-0.5 text-sm text-[#111827]/70">{describeTodo(item, feed, stageNames)}</p>
                     </div>

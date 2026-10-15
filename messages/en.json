@@ -20,7 +20,7 @@
     "pages": {
       "home": {
         "title": "Grid Nova Energy | Engineering India's Clean Energy Future",
-        "description": "Grid Nova Energy delivers solar EPC, rooftop solar, utility-scale and O&M solutions across India — 4,800+ street lamps, 330+ schools, 2,350+ PM-KUSUM pumps commissioned."
+        "description": "Grid Nova Energy delivers solar EPC, rooftop solar, utility-scale and O&M solutions across India. Track record of Grid Nova’s team and branches: 4,800+ street lamps, 330+ schools, 2,350+ PM-KUSUM pumps."
       },
       "about": {
         "title": "About Us",
@@ -365,8 +365,8 @@
     "quote": "“Every installation is a long-term contribution to a more energy-secure India.”",
     "intro": "Grid Nova Energy actively works to reduce greenhouse gas emissions and dependence on fossil fuels across India. Each project supports cleaner air for communities, lower operating costs for clients, and measurable progress toward the country’s national and global renewable energy commitments.",
     "impactEyebrow": "Documented Impact",
-    "impactTitle": "What we’ve actually delivered.",
-    "impactBody": "We report only what we can document. These are the installation figures from completed and commissioned projects across West Bengal and Bihar.",
+    "impactTitle": "Track record of Grid Nova’s team and branches.",
+    "impactBody": "We report only what we can document. These are the installation figures of Grid Nova’s team and branches from completed and commissioned projects across West Bengal and Bihar.",
     "impact": [
       {
         "label": "Solar street lamps",
@@ -586,7 +586,7 @@
       "items": [
         {
           "n": "Government & Institutional Solar",
-          "d": "Grid-connected rooftop solar for schools and public institutions, delivered to government programme quality and documentation standards — including 330+ schools electrified for WBREDA."
+          "d": "Grid-connected rooftop solar for schools and public institutions, delivered to government programme quality and documentation standards — including 330+ schools electrified for WBREDA by Grid Nova’s team and branches."
         },
         {
           "n": "Solar Street Lighting",
@@ -594,7 +594,7 @@
         },
         {
           "n": "Solar Water Pumps",
-          "d": "Solarisation of agricultural pump sets under PM-KUSUM Component C, replacing diesel and grid-dependent irrigation with solar-powered pumping. 2,350+ installations completed."
+          "d": "Solarisation of agricultural pump sets under PM-KUSUM Component C, replacing diesel and grid-dependent irrigation with solar-powered pumping. 2,350+ installations completed by Grid Nova’s team and branches."
         }
       ]
     },
@@ -1038,7 +1038,7 @@
       "sub": "Grid Nova Energy designs, procures and constructs solar infrastructure for residential, commercial, industrial and government clients — engineered for performance over the full lifecycle, not just the day it’s switched on.",
       "primary": "Start a Project",
       "secondary": "View Our Work",
-      "statsTitle": "The Grid Nova Team’s Track Record",
+      "statsTitle": "Track record of Grid Nova’s team and branches",
       "stats": [
         "Street lamps installed",
         "10kW WBREDA schools",
@@ -1803,7 +1803,8 @@
         "territory": "My Territory",
         "signOut": "Sign out",
         "customers": "My Customers",
-        "navLabel": "Portal"
+        "navLabel": "Portal",
+        "earnings": "Earnings"
       },
       "associate": {
         "home": {
@@ -2561,7 +2562,12 @@
           "survey_revisit_correction": "The engineer asked for another look at the survey — send a correction request.",
           "survey_resign_needed": "Signatures are needed again: {unsigned}.",
           "party_customer": "customer",
-          "party_associate": "you (associate)"
+          "party_associate": "you (associate)",
+          "commission_payout_paid": "Commission paid: {net} for {period}, sent to the account ending {last4} (reference {reference}).",
+          "commission_query_answered": "Grid Nova has answered your commission query.",
+          "handover_pending": "Installation is commissioned. Handover to the customer is still pending.",
+          "service_request_open": "Service request ({category}) is {status}.{warranty}",
+          "service_request_closed": "Service request ({category}) was {outcome}."
         },
         "blocked": {
           "formal_proposal_blocked": "The formal proposal is on hold.",
@@ -2569,7 +2575,274 @@
           "dcr_mismatch": "On hold: some modules aren’t DCR-compliant.",
           "generic": "This customer is on hold."
         },
-        "actionNeeded": "Action needed"
+        "actionNeeded": "Action needed",
+        "titles": {
+          "commission_payout_paid": "Commission payout",
+          "commission_query_answered": "Commission query",
+          "generic": "Update"
+        },
+        "service": {
+          "categories": {
+            "no_generation": "No generation",
+            "inverter_error": "Inverter error",
+            "physical_damage": "Physical damage",
+            "cleaning_om": "Cleaning or maintenance",
+            "other": "Something else"
+          },
+          "status": {
+            "open": "open",
+            "in_progress": "being worked on",
+            "resolved": "resolved",
+            "rejected": "closed without action"
+          },
+          "warrantyIn": " Within warranty.",
+          "warrantyOut": " Out of warranty."
+        }
+      },
+      "earnings": {
+        "title": "Earnings",
+        "intro": "Commission you have earned on customer payments that Grid Nova Accounts has verified.",
+        "loading": "Loading your earnings…",
+        "tabsLabel": "Earnings sections",
+        "tabs": {
+          "earnings": "Earnings",
+          "payouts": "Payouts"
+        },
+        "tiles": {
+          "earned": "Earned",
+          "earnedHint": "Waiting for Accounts to approve",
+          "approved": "Approved",
+          "approvedHint": "Will be paid in a monthly payout",
+          "paid": "Paid",
+          "paidHint": "Already sent to your bank account",
+          "fyTds": "TDS deducted in {year}",
+          "fyTdsHint": "Financial year so far",
+          "toRecover": "To be recovered",
+          "toRecoverHint": "Taken from your next payouts",
+          "nextPayout": "Next payout",
+          "nextPayoutBody": "{period}, expected by {date}",
+          "waiting": "Earnings waiting for a rate to be published: {count}."
+        },
+        "policy": "Read the Commission & Payout Policy",
+        "filterLabel": "Show",
+        "filters": {
+          "all": "Everything",
+          "earned": "Earned",
+          "approved": "Approved",
+          "paid": "Paid",
+          "reversed": "Reversed"
+        },
+        "empty": "No earnings yet. You earn commission once Grid Nova Accounts verifies a customer’s payment.",
+        "emptyFiltered": "Nothing matches this filter.",
+        "listLabel": "Your earnings",
+        "entry": {
+          "payment": "Payment #{id}",
+          "role": "Earned as",
+          "basis": "Verified amount without GST",
+          "rate": "Rate",
+          "amount": "Commission",
+          "ratePending": "Rate to be published",
+          "sharedEqually": "Shared equally between {count} people",
+          "reversalOf": "Reverses earning #{id}",
+          "reversedBy": "Reversed by entry #{id}",
+          "inPayout": "In the {period} payout",
+          "reason": "Reason: {reason}",
+          "rateDate": "Rate as on {date}",
+          "minus": "Money taken back"
+        },
+        "roles": {
+          "personal_sale": "Your own sale",
+          "territory_state": "State territory",
+          "territory_district": "District territory",
+          "territory_block": "Block territory"
+        },
+        "kinds": {
+          "earn": "Earning",
+          "reversal": "Reversal",
+          "recovery": "Recovery",
+          "adjustment": "Adjustment"
+        },
+        "status": {
+          "earned": "Earned",
+          "approved": "Approved",
+          "paid": "Paid",
+          "reversed": "Reversed"
+        },
+        "pending": {
+          "agreement_not_signed": "Waiting for the customer’s signed agreement. The amount appears once it is recorded.",
+          "placeholder_rates": "Waiting for Grid Nova to publish the commission rates.",
+          "basis_unavailable": "The amount cannot be worked out yet because this customer has a custom quote.",
+          "generic": "The amount is not worked out yet."
+        },
+        "query": {
+          "raise": "Raise a query",
+          "open": "Query open",
+          "view": "See queries",
+          "hide": "Hide queries",
+          "windowClosed": "The query window closed on {date}, so a query can no longer be raised on this entry.",
+          "windowOpen": "You can raise a query until {date}.",
+          "title": "Raise a query",
+          "label": "What would you like Grid Nova to check?",
+          "hint": "Up to 2000 characters.",
+          "submit": "Send query",
+          "sending": "Sending…",
+          "cancel": "Cancel",
+          "sent": "Your query was sent to Grid Nova.",
+          "required": "Write your question first.",
+          "empty": "No queries on this entry yet.",
+          "loading": "Loading queries…",
+          "yourQuery": "You asked",
+          "reply": "Grid Nova replied",
+          "waiting": "Waiting for Grid Nova",
+          "answered": "Answered",
+          "due": "Reply due by {date}",
+          "repliedOn": "Replied on {date}",
+          "errors": {
+            "invalid_message": "Write a question of up to 2000 characters.",
+            "query_window_closed": "The query window for this entry has closed.",
+            "query_already_open": "You already have an open query on this entry. Wait for the reply first.",
+            "not_found": "That entry could not be found.",
+            "generic": "Your query could not be sent. Please try again."
+          }
+        },
+        "payouts": {
+          "empty": "No payouts yet. Payouts are made monthly once a month’s commission has been approved.",
+          "listLabel": "Your payouts",
+          "gross": "Commission",
+          "recoveries": "Recoveries",
+          "carriedIn": "Carried over",
+          "tds": "TDS",
+          "tdsAt": "TDS ({rate})",
+          "net": "Paid to you",
+          "status": {
+            "approved": "Approved — payment on its way",
+            "paid": "Paid"
+          },
+          "paidOn": "Paid on {date}",
+          "bank": "Bank account ending {last4}",
+          "reference": "Bank reference: {reference}",
+          "carryForward": "Still to recover: {amount}",
+          "noPan": "No PAN on file, so TDS is deducted at the higher rate."
+        },
+        "pager": {
+          "previous": "Previous",
+          "next": "Next",
+          "page": "Page {page} of {pages}"
+        },
+        "territoryNote": "Earnings from your territory appear here too."
+      },
+      "handover": {
+        "title": "Handover & warranty",
+        "open": "Handover & warranty",
+        "back": "Back to customer",
+        "loading": "Loading…",
+        "notStartedTitle": "Installation has not started",
+        "notStartedBody": "Handover and warranty details appear once installation starts.",
+        "pack": {
+          "title": "Handover pack",
+          "progress": "{done} of {total} done",
+          "complete": "The handover pack is complete.",
+          "stillToDo": "Still to be done:",
+          "done": "Done",
+          "notDone": "Not done yet",
+          "handedOver": "Handed over to the customer.",
+          "openExecution": "Open the installation steps",
+          "items": {
+            "commissioning_report": "Commissioning report",
+            "net_meter_report": "Net-meter report",
+            "register_verified": "Serial numbers verified",
+            "final_payment": "Final payment received",
+            "orientation": "Customer orientation given",
+            "acknowledgement": "Customer acknowledgement",
+            "om_contact": "O&M contact given",
+            "generic": "Handover item"
+          }
+        },
+        "pdf": {
+          "title": "Handover pack PDF",
+          "download": "Download the PDF",
+          "notReady": "The PDF is not ready yet. It is prepared by Grid Nova after handover, and you can download it here once it is ready.",
+          "error": "The PDF could not be opened. Please try again later."
+        },
+        "warranty": {
+          "title": "Warranty",
+          "handedOver": "Handed over on {date}",
+          "system": "System warranty",
+          "systemRange": "{years} years: {from} to {to}",
+          "inWarranty": "In warranty",
+          "ended": "Warranty ended",
+          "om": "Free O&M",
+          "omRange": "{months} months, until {date}",
+          "omAfter": "O&M after the free period",
+          "panelLife": "Expected panel performance life",
+          "panelLifeValue": "{years} years (a life span, not a warranty)",
+          "unconfirmed": "Not confirmed yet",
+          "units": "Equipment",
+          "serial": "Serial {serial}",
+          "unitEnds": "Warranty until {date}",
+          "unitNoDate": "No warranty date",
+          "categories": {
+            "module": "Solar module",
+            "inverter": "Inverter",
+            "other": "Other equipment"
+          }
+        },
+        "requests": {
+          "title": "Service requests",
+          "empty": "No service requests for this customer.",
+          "raisedOn": "Raised on {date}",
+          "withinWarranty": "Within warranty",
+          "outOfWarranty": "Out of warranty",
+          "resolution": "Outcome: {note}",
+          "ownerOnly": "Only the customer’s owner can raise a service request.",
+          "notHandedOver": "A service request can be raised once the system is handed over.",
+          "raiseTitle": "Raise a service request",
+          "viewing": "Showing request #{id}",
+          "errors": {
+            "too_many_photos": "Too many photos. Remove some and try again.",
+            "invalid_category": "Choose what the problem is.",
+            "invalid_description": "Describe the problem in up to 2000 characters.",
+            "heic_not_supported": "That photo format is not supported. Use JPEG, PNG or WEBP.",
+            "invalid_file": "One of the photos could not be used.",
+            "file_too_large": "A photo is too large.",
+            "storage_not_configured": "Photos cannot be saved right now. Please try again later.",
+            "not_handed_over": "This customer has not been handed over yet.",
+            "generic": "The service request could not be sent. Please try again."
+          },
+          "statusChip": {
+            "open": "Open",
+            "in_progress": "In progress",
+            "resolved": "Resolved",
+            "rejected": "Closed without action"
+          }
+        },
+        "form": {
+          "category": "What is the problem?",
+          "categoryChoose": "Choose…",
+          "description": "Describe the problem",
+          "descriptionHint": "Up to 2000 characters. Say what you see and when it started.",
+          "phone": "Phone number to reach the customer (optional)",
+          "phoneHint": "So the service team can call back.",
+          "photos": "Photos (optional)",
+          "photosHint": "Up to {max} photos.",
+          "takePhoto": "Take a photo",
+          "choosePhoto": "Choose from phone",
+          "removePhoto": "Remove photo {name}",
+          "photoErrors": {
+            "notAnImage": "That file is not a photo. Use JPEG, PNG or WEBP.",
+            "heicFailed": "That photo could not be converted. Try another one.",
+            "tooLarge": "That photo is too large.",
+            "tooMany": "You can attach up to {max} photos."
+          },
+          "submit": "Send service request",
+          "submitting": "Sending…",
+          "sent": "The service request was sent.",
+          "errors": {
+            "category": "Choose what the problem is.",
+            "description": "Describe the problem in up to 2000 characters.",
+            "phone": "The phone number is too long."
+          }
+        }
       }
     },
     "territory": {

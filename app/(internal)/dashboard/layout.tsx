@@ -16,7 +16,7 @@ import {
 import { QueryProvider } from '@/components/dashboard/QueryProvider'
 import { I18nProvider } from '@/lib/i18n/client'
 import { STAFF_SHARED_MESSAGES } from '@/lib/dashboard/staff-copy'
-import { NAV_ITEMS, canSeeNavItem, overdueSurveyCount, queueBadgeCount } from '@/lib/dashboard/nav'
+import { NAV_ITEMS, canSeeNavItem, overdueServiceRequestCount, overdueSurveyCount, queueBadgeCount } from '@/lib/dashboard/nav'
 import { useWorkQueues } from '@/lib/dashboard/execution-api-client'
 import { CommandPalette } from '@/components/dashboard/CommandPalette'
 import { Toaster } from '@/components/ui/sonner'
@@ -128,6 +128,11 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
               {item.queue === 'survey_reviews' && overdueSurveyCount(queues) > 0 && (
                 <Badge variant="red" className="px-1.5 text-[10px]" data-testid="queue-badge-survey-overdue">
                   {overdueSurveyCount(queues)} overdue
+                </Badge>
+              )}
+              {item.queue === 'service_requests' && overdueServiceRequestCount(queues) > 0 && (
+                <Badge variant="red" className="px-1.5 text-[10px]" data-testid="queue-badge-service-overdue">
+                  {overdueServiceRequestCount(queues)} overdue
                 </Badge>
               )}
               {item.badge && pendingCount > 0 && (

@@ -8,8 +8,9 @@ import { dashboardFetch } from '@/lib/dashboard/api-client'
 export interface HomeItem {
   kind: string
   message_key: string
-  onboarding_id: number
-  customer_name: string
+  // Commission items (BE-4) are not about one customer: both can be null.
+  onboarding_id: number | null
+  customer_name: string | null
   priority: 1 | 2 | 3
   params: Record<string, unknown>
 }
