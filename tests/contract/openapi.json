@@ -130,6 +130,203 @@
         "title": "ApproveRequest",
         "type": "object"
       },
+      "ArchiveStats": {
+        "properties": {
+          "by_district": {
+            "items": {
+              "$ref": "#/components/schemas/DistrictStat"
+            },
+            "title": "By District",
+            "type": "array"
+          },
+          "by_scheme": {
+            "items": {
+              "$ref": "#/components/schemas/SchemeStat"
+            },
+            "title": "By Scheme",
+            "type": "array"
+          },
+          "by_state": {
+            "items": {
+              "$ref": "#/components/schemas/StateStat"
+            },
+            "title": "By State",
+            "type": "array"
+          },
+          "by_year": {
+            "items": {
+              "$ref": "#/components/schemas/YearStat"
+            },
+            "title": "By Year",
+            "type": "array"
+          },
+          "total": {
+            "$ref": "#/components/schemas/StatsTotal"
+          }
+        },
+        "required": [
+          "total",
+          "by_scheme",
+          "by_state",
+          "by_district",
+          "by_year"
+        ],
+        "title": "ArchiveStats",
+        "type": "object"
+      },
+      "AskContext": {
+        "additionalProperties": false,
+        "properties": {
+          "customer_id": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Id"
+          },
+          "lead_id": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Id"
+          },
+          "project_ref": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Ref"
+          }
+        },
+        "title": "AskContext",
+        "type": "object"
+      },
+      "AskRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AskContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{32}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id"
+          },
+          "question": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "AskRequest",
+        "type": "object"
+      },
+      "AskResponse": {
+        "properties": {
+          "answer": {
+            "title": "Answer",
+            "type": "string"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "conversation_id": {
+            "title": "Conversation Id",
+            "type": "string"
+          },
+          "generated_at": {
+            "title": "Generated At",
+            "type": "string"
+          },
+          "searched": {
+            "items": {
+              "$ref": "#/components/schemas/Searched"
+            },
+            "title": "Searched",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "answered",
+              "not_on_record",
+              "needs_clarification",
+              "refused"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/Suggestion"
+            },
+            "title": "Suggestions",
+            "type": "array"
+          },
+          "tables": {
+            "items": {
+              "$ref": "#/components/schemas/Table"
+            },
+            "title": "Tables",
+            "type": "array"
+          },
+          "turn_id": {
+            "title": "Turn Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "answer",
+          "citations",
+          "tables",
+          "searched",
+          "suggestions",
+          "generated_at",
+          "conversation_id",
+          "turn_id"
+        ],
+        "title": "AskResponse",
+        "type": "object"
+      },
       "AssignRequest": {
         "properties": {
           "assignee_id": {
@@ -237,6 +434,96 @@
         "title": "AvailabilityResponse",
         "type": "object"
       },
+      "BatchDetail": {
+        "properties": {
+          "accepted_count": {
+            "title": "Accepted Count",
+            "type": "integer"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "rejected_count": {
+            "title": "Rejected Count",
+            "type": "integer"
+          },
+          "report": {
+            "$ref": "#/components/schemas/ImportReport"
+          },
+          "row_count": {
+            "title": "Row Count",
+            "type": "integer"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "uploaded_at": {
+            "title": "Uploaded At",
+            "type": "string"
+          },
+          "uploaded_by": {
+            "title": "Uploaded By",
+            "type": "string"
+          },
+          "void_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Void Reason"
+          },
+          "voided_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Voided At"
+          },
+          "voided_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Voided By"
+          }
+        },
+        "required": [
+          "id",
+          "filename",
+          "sha256",
+          "uploaded_by",
+          "uploaded_at",
+          "row_count",
+          "accepted_count",
+          "rejected_count",
+          "status",
+          "report"
+        ],
+        "title": "BatchDetail",
+        "type": "object"
+      },
       "BatchIn": {
         "properties": {
           "period": {
@@ -250,6 +537,108 @@
           "period"
         ],
         "title": "BatchIn",
+        "type": "object"
+      },
+      "BatchList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BatchSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "BatchList",
+        "type": "object"
+      },
+      "BatchSummary": {
+        "properties": {
+          "accepted_count": {
+            "title": "Accepted Count",
+            "type": "integer"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "rejected_count": {
+            "title": "Rejected Count",
+            "type": "integer"
+          },
+          "row_count": {
+            "title": "Row Count",
+            "type": "integer"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "uploaded_at": {
+            "title": "Uploaded At",
+            "type": "string"
+          },
+          "uploaded_by": {
+            "title": "Uploaded By",
+            "type": "string"
+          },
+          "void_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Void Reason"
+          },
+          "voided_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Voided At"
+          },
+          "voided_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Voided By"
+          }
+        },
+        "required": [
+          "id",
+          "filename",
+          "sha256",
+          "uploaded_by",
+          "uploaded_at",
+          "row_count",
+          "accepted_count",
+          "rejected_count",
+          "status"
+        ],
+        "title": "BatchSummary",
         "type": "object"
       },
       "Body_acknowledge_api_v1_dashboard_onboardings__onboarding_id__handover_acknowledgement_post": {
@@ -297,6 +686,36 @@
           "customer_name"
         ],
         "title": "Body_acknowledge_api_v1_dashboard_onboardings__onboarding_id__handover_acknowledgement_post",
+        "type": "object"
+      },
+      "Body_import_projects_api_v1_dashboard_archive_imports_post": {
+        "properties": {
+          "batch_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Token"
+          },
+          "dry_run": {
+            "default": true,
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_import_projects_api_v1_dashboard_archive_imports_post",
         "type": "object"
       },
       "Body_raise_request_api_v1_public_handover__token__service_requests_post": {
@@ -1406,6 +1825,40 @@
         "title": "ChatResponse",
         "type": "object"
       },
+      "Citation": {
+        "properties": {
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ref",
+          "kind",
+          "label"
+        ],
+        "title": "Citation",
+        "type": "object"
+      },
       "ClearReverification": {
         "properties": {
           "note": {
@@ -1535,6 +1988,106 @@
           "message"
         ],
         "title": "ContactRequest",
+        "type": "object"
+      },
+      "ConversationDetail": {
+        "properties": {
+          "conversation_id": {
+            "title": "Conversation Id",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "employee_id": {
+            "title": "Employee Id",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "turn_count": {
+            "title": "Turn Count",
+            "type": "integer"
+          },
+          "turns": {
+            "items": {
+              "$ref": "#/components/schemas/TurnOut"
+            },
+            "title": "Turns",
+            "type": "array"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "conversation_id",
+          "title",
+          "turn_count",
+          "created_at",
+          "updated_at",
+          "employee_id",
+          "role",
+          "turns"
+        ],
+        "title": "ConversationDetail",
+        "type": "object"
+      },
+      "ConversationList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ConversationSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "ConversationList",
+        "type": "object"
+      },
+      "ConversationSummary": {
+        "properties": {
+          "conversation_id": {
+            "title": "Conversation Id",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "turn_count": {
+            "title": "Turn Count",
+            "type": "integer"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "conversation_id",
+          "title",
+          "turn_count",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ConversationSummary",
         "type": "object"
       },
       "CorrectionDecision": {
@@ -1792,6 +2345,46 @@
         ],
         "title": "DistanceMethod",
         "type": "string"
+      },
+      "DistrictStat": {
+        "properties": {
+          "capacity_kw": {
+            "title": "Capacity Kw",
+            "type": "string"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "district": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          }
+        },
+        "required": [
+          "count",
+          "capacity_kw"
+        ],
+        "title": "DistrictStat",
+        "type": "object"
       },
       "DocumentRef": {
         "properties": {
@@ -2067,6 +2660,105 @@
         "title": "FeasibilityOutcome",
         "type": "string"
       },
+      "Feedback": {
+        "properties": {
+          "at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "At"
+          },
+          "helpful": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Helpful"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "title": "Feedback",
+        "type": "object"
+      },
+      "FeedbackRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "helpful": {
+            "title": "Helpful",
+            "type": "boolean"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "helpful"
+        ],
+        "title": "FeedbackRequest",
+        "type": "object"
+      },
+      "FeedbackResponse": {
+        "properties": {
+          "feedback_at": {
+            "title": "Feedback At",
+            "type": "string"
+          },
+          "helpful": {
+            "title": "Helpful",
+            "type": "boolean"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "turn_id": {
+            "title": "Turn Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "turn_id",
+          "helpful",
+          "feedback_at"
+        ],
+        "title": "FeedbackResponse",
+        "type": "object"
+      },
       "FormalProposalRequest": {
         "properties": {
           "customer_email": {
@@ -2108,6 +2800,188 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "ImportIssue": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "column": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Column"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "row": {
+            "title": "Row",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "row",
+          "code",
+          "message"
+        ],
+        "title": "ImportIssue",
+        "type": "object"
+      },
+      "ImportNotice": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Columns",
+            "type": "array"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "rows": {
+            "title": "Rows",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "code",
+          "columns",
+          "rows",
+          "message"
+        ],
+        "title": "ImportNotice",
+        "type": "object"
+      },
+      "ImportReport": {
+        "properties": {
+          "accepted_count": {
+            "title": "Accepted Count",
+            "type": "integer"
+          },
+          "already_imported_batch_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Already Imported Batch Id"
+          },
+          "batch_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Id"
+          },
+          "batch_token": {
+            "title": "Batch Token",
+            "type": "string"
+          },
+          "counts_by_code": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Counts By Code",
+            "type": "object"
+          },
+          "dry_run": {
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "error_count": {
+            "title": "Error Count",
+            "type": "integer"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/ImportIssue"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "errors_truncated": {
+            "title": "Errors Truncated",
+            "type": "boolean"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "notices": {
+            "items": {
+              "$ref": "#/components/schemas/ImportNotice"
+            },
+            "title": "Notices",
+            "type": "array"
+          },
+          "rejected_count": {
+            "title": "Rejected Count",
+            "type": "integer"
+          },
+          "row_count": {
+            "title": "Row Count",
+            "type": "integer"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "warning_count": {
+            "title": "Warning Count",
+            "type": "integer"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/ImportIssue"
+            },
+            "title": "Warnings",
+            "type": "array"
+          },
+          "warnings_truncated": {
+            "title": "Warnings Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "dry_run",
+          "filename",
+          "batch_token",
+          "sha256",
+          "row_count",
+          "accepted_count",
+          "rejected_count",
+          "error_count",
+          "warning_count",
+          "counts_by_code",
+          "errors",
+          "errors_truncated",
+          "warnings",
+          "warnings_truncated",
+          "notices"
+        ],
+        "title": "ImportReport",
         "type": "object"
       },
       "InPersonAcceptanceRequest": {
@@ -5075,6 +5949,79 @@
         "title": "PipelineStage",
         "type": "string"
       },
+      "ProjectCard": {
+        "properties": {
+          "fields": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Provenanced"
+            },
+            "title": "Fields",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "ref",
+          "id",
+          "fields"
+        ],
+        "title": "ProjectCard",
+        "type": "object"
+      },
+      "ProjectDossier": {
+        "properties": {
+          "fields": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Provenanced"
+            },
+            "title": "Fields",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "sections": {
+            "additionalProperties": {
+              "items": {
+                "$ref": "#/components/schemas/Provenanced"
+              },
+              "type": "array"
+            },
+            "title": "Sections",
+            "type": "object"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "ref",
+          "id",
+          "fields",
+          "sections"
+        ],
+        "title": "ProjectDossier",
+        "type": "object"
+      },
       "ProjectFamily": {
         "enum": [
           "rooftop_solar",
@@ -5087,6 +6034,37 @@
         ],
         "title": "ProjectFamily",
         "type": "string"
+      },
+      "ProjectPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectCard"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "title": "Page Size",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "page_size",
+          "total"
+        ],
+        "title": "ProjectPage",
+        "type": "object"
       },
       "ProposalInputsCreate": {
         "properties": {
@@ -5555,6 +6533,25 @@
         "title": "ProposalStatus",
         "type": "string"
       },
+      "Provenanced": {
+        "properties": {
+          "record_id": {
+            "title": "Record Id"
+          },
+          "source_table": {
+            "title": "Source Table",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value"
+          }
+        },
+        "required": [
+          "source_table"
+        ],
+        "title": "Provenanced",
+        "type": "object"
+      },
       "PublicEstimateRequest": {
         "properties": {
           "battery_storage": {
@@ -5834,6 +6831,74 @@
         "title": "RespondIn",
         "type": "object"
       },
+      "RetentionRun": {
+        "properties": {
+          "conversations_deleted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversations Deleted"
+          },
+          "cutoff": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cutoff"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "retention_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retention Days"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "turns_deleted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turns Deleted"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "RetentionRun",
+        "type": "object"
+      },
       "ReviewRequest": {
         "properties": {
           "note": {
@@ -6064,6 +7129,52 @@
         "title": "ScheduleMeetingResponse",
         "type": "object"
       },
+      "SchemeStat": {
+        "properties": {
+          "capacity_kw": {
+            "title": "Capacity Kw",
+            "type": "string"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "scheme": {
+            "title": "Scheme",
+            "type": "string"
+          }
+        },
+        "required": [
+          "scheme",
+          "count",
+          "capacity_kw"
+        ],
+        "title": "SchemeStat",
+        "type": "object"
+      },
+      "Searched": {
+        "properties": {
+          "filters": {
+            "title": "Filters",
+            "type": "object"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "tool": {
+            "title": "Tool",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool",
+          "filters",
+          "summary"
+        ],
+        "title": "Searched",
+        "type": "object"
+      },
       "SeatReleaseRequest": {
         "properties": {
           "reason": {
@@ -6242,6 +7353,53 @@
         "title": "StaffSiteLocationRequest",
         "type": "object"
       },
+      "StateStat": {
+        "properties": {
+          "capacity_kw": {
+            "title": "Capacity Kw",
+            "type": "string"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          }
+        },
+        "required": [
+          "count",
+          "capacity_kw"
+        ],
+        "title": "StateStat",
+        "type": "object"
+      },
+      "StatsTotal": {
+        "properties": {
+          "capacity_kw": {
+            "title": "Capacity Kw",
+            "type": "string"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "count",
+          "capacity_kw"
+        ],
+        "title": "StatsTotal",
+        "type": "object"
+      },
       "StatusRequest": {
         "properties": {
           "note": {
@@ -6303,6 +7461,41 @@
           "stage"
         ],
         "title": "SubmitStageRequest",
+        "type": "object"
+      },
+      "Suggestion": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "question": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question"
+          }
+        },
+        "required": [
+          "label"
+        ],
+        "title": "Suggestion",
         "type": "object"
       },
       "SurveyCorrectionStatus": {
@@ -6395,6 +7588,67 @@
           "reason"
         ],
         "title": "SwitchModeRequest",
+        "type": "object"
+      },
+      "Table": {
+        "properties": {
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/TableColumn"
+            },
+            "title": "Columns",
+            "type": "array"
+          },
+          "rows": {
+            "items": {
+              "type": "object"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "columns",
+          "rows"
+        ],
+        "title": "Table",
+        "type": "object"
+      },
+      "TableColumn": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "text",
+              "ref",
+              "money",
+              "kw",
+              "date",
+              "number",
+              "boolean"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "type"
+        ],
+        "title": "TableColumn",
         "type": "object"
       },
       "TerritoryLevel": {
@@ -6498,6 +7752,92 @@
         ],
         "title": "TimelineEventType",
         "type": "string"
+      },
+      "TurnOut": {
+        "properties": {
+          "answer": {
+            "title": "Answer",
+            "type": "string"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "context": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context"
+          },
+          "feedback": {
+            "$ref": "#/components/schemas/Feedback"
+          },
+          "generated_at": {
+            "title": "Generated At",
+            "type": "string"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "searched": {
+            "items": {
+              "$ref": "#/components/schemas/Searched"
+            },
+            "title": "Searched",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "answered",
+              "not_on_record",
+              "needs_clarification",
+              "refused"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/Suggestion"
+            },
+            "title": "Suggestions",
+            "type": "array"
+          },
+          "tables": {
+            "items": {
+              "$ref": "#/components/schemas/Table"
+            },
+            "title": "Tables",
+            "type": "array"
+          },
+          "turn_id": {
+            "title": "Turn Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "answer",
+          "citations",
+          "tables",
+          "searched",
+          "suggestions",
+          "generated_at",
+          "turn_id",
+          "question",
+          "feedback"
+        ],
+        "title": "TurnOut",
+        "type": "object"
       },
       "UnitIn": {
         "properties": {
@@ -6846,6 +8186,44 @@
           "reason"
         ],
         "title": "VoidIn",
+        "type": "object"
+      },
+      "VoidRequest": {
+        "properties": {
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 3,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "VoidRequest",
+        "type": "object"
+      },
+      "YearStat": {
+        "properties": {
+          "capacity_kw": {
+            "title": "Capacity Kw",
+            "type": "string"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "count",
+          "capacity_kw"
+        ],
+        "title": "YearStat",
         "type": "object"
       },
       "_DeviceGps": {
@@ -10303,6 +11681,653 @@
           }
         ],
         "summary": "Analytics Rep Performance"
+      }
+    },
+    "/api/v1/dashboard/archive/imports": {
+      "get": {
+        "operationId": "list_imports_api_v1_dashboard_archive_imports_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Imports"
+      },
+      "post": {
+        "description": "Validate a template CSV (dry_run=true, the default — nothing is written) or write\nits accepted rows (dry_run=false with the `batch_token` the dry run returned, which is\nthe file's SHA-256). Rows with errors are skipped and listed; warnings are stored with\nthe row. The same file cannot be imported twice unless the first batch is voided.",
+        "operationId": "import_projects_api_v1_dashboard_archive_imports_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_projects_api_v1_dashboard_archive_imports_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Import Projects"
+      }
+    },
+    "/api/v1/dashboard/archive/imports/{batch_id}": {
+      "get": {
+        "operationId": "import_report_api_v1_dashboard_archive_imports__batch_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "batch_id",
+            "required": true,
+            "schema": {
+              "title": "Batch Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Import Report"
+      }
+    },
+    "/api/v1/dashboard/archive/imports/{batch_id}/void": {
+      "post": {
+        "description": "Hide every project of the batch from every read path. Nothing is deleted.",
+        "operationId": "void_import_api_v1_dashboard_archive_imports__batch_id__void_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "batch_id",
+            "required": true,
+            "schema": {
+              "title": "Batch Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoidRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Void Import"
+      }
+    },
+    "/api/v1/dashboard/archive/projects": {
+      "get": {
+        "description": "Newest commissioning first: {items, page, page_size, total}. Filters narrow before\npaging, so `total` is the filtered count. `q` searches the Grid Nova ref and, where the\nrole may see them, customer name, address, block, district and state.",
+        "operationId": "list_projects_api_v1_dashboard_archive_projects_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "district",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "District"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scheme",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Scheme"
+            }
+          },
+          {
+            "in": "query",
+            "name": "capacity_min",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Capacity Min"
+            }
+          },
+          {
+            "in": "query",
+            "name": "capacity_max",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Capacity Max"
+            }
+          },
+          {
+            "in": "query",
+            "name": "commissioned_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Commissioned From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "commissioned_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Commissioned To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "module_make",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Module Make"
+            }
+          },
+          {
+            "in": "query",
+            "name": "inverter_make",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Inverter Make"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Projects"
+      }
+    },
+    "/api/v1/dashboard/archive/projects/{project_id}": {
+      "get": {
+        "operationId": "get_project_api_v1_dashboard_archive_projects__project_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDossier"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Project"
+      }
+    },
+    "/api/v1/dashboard/archive/stats": {
+      "get": {
+        "description": "Counts and capacity sums by scheme, state, district and commissioning year, computed\nin SQL over the same filters as the list. Unmatched place names are grouped as typed.",
+        "operationId": "archive_stats_api_v1_dashboard_archive_stats_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "district",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "District"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scheme",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Scheme"
+            }
+          },
+          {
+            "in": "query",
+            "name": "capacity_min",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Capacity Min"
+            }
+          },
+          {
+            "in": "query",
+            "name": "capacity_max",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Capacity Max"
+            }
+          },
+          {
+            "in": "query",
+            "name": "commissioned_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Commissioned From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "commissioned_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Commissioned To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "module_make",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Module Make"
+            }
+          },
+          {
+            "in": "query",
+            "name": "inverter_make",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Inverter Make"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArchiveStats"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Archive Stats"
+      }
+    },
+    "/api/v1/dashboard/archive/template.csv": {
+      "get": {
+        "description": "The header row and one commented example row (it starts with #, so the importer\nignores it). No real data.",
+        "operationId": "template_api_v1_dashboard_archive_template_csv_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Template"
       }
     },
     "/api/v1/dashboard/associate-applications": {
@@ -13824,6 +15849,198 @@
           }
         ],
         "summary": "Network Summary"
+      }
+    },
+    "/api/v1/dashboard/nova/ask": {
+      "post": {
+        "description": "Ask Nova Records a question. `status` is answered | not_on_record |\nneeds_clarification | refused; every number in `answer` comes from the records and\n`tables` are built from the rows (docs/api/nova_records.md).",
+        "operationId": "ask_api_v1_dashboard_nova_ask_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AskResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Ask"
+      }
+    },
+    "/api/v1/dashboard/nova/conversations": {
+      "get": {
+        "description": "The caller's own conversations, most recent first (at most 50, within retention).",
+        "operationId": "list_conversations_api_v1_dashboard_nova_conversations_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Conversations"
+      }
+    },
+    "/api/v1/dashboard/nova/conversations/{conversation_id}": {
+      "get": {
+        "description": "One conversation with every turn as it was shown. Own only; Admin may read any for\naudit (that read is written to the audit log). Anything else is 404.",
+        "operationId": "get_conversation_api_v1_dashboard_nova_conversations__conversation_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Conversation"
+      }
+    },
+    "/api/v1/dashboard/nova/internal/check-nova-records-retention": {
+      "post": {
+        "description": "Admin or INTERNAL_API_KEY (Cloud Scheduler). Deletes conversations last used more\nthan retention.days ago (NR-3). Idempotent; an overlapping run answers\n{\"status\": \"skipped\", \"reason\": \"already_running\"}.",
+        "operationId": "run_retention_api_v1_dashboard_nova_internal_check_nova_records_retention_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetentionRun"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Run Retention"
+      }
+    },
+    "/api/v1/dashboard/nova/turns/{turn_id}/feedback": {
+      "post": {
+        "description": "Was this answer helpful? On the caller's own turns only; sending again replaces it.",
+        "operationId": "turn_feedback_api_v1_dashboard_nova_turns__turn_id__feedback_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "turn_id",
+            "required": true,
+            "schema": {
+              "title": "Turn Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Turn Feedback"
       }
     },
     "/api/v1/dashboard/onboardings": {
