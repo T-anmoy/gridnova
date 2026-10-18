@@ -96,7 +96,13 @@ describe("POST /api/contact", () => {
 
   it("returns 503 and never calls Resend when RESEND_API_KEY is unset", async () => {
     vi.unstubAllEnvs();
+    // Blank, not merely "not stubbed": a developer's .env.local may hold a real key, and this test
+    // must not depend on the machine it runs on.
+    vi.stubEnv("RESEND_API_KEY", "");
     vi.stubEnv("ESTIMATE_NOTIFY_EMAIL", "info@gridnova.in");
+    // With no email channel the route falls back to the CRM mirror; keep it off the network so a
+    // backend running on this machine cannot turn the 503 into a 200 (and receive a test lead).
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
     const { POST } = await import("@/app/api/contact/route");
     const res = await POST(makeRequest(VALID_BODY));
 
