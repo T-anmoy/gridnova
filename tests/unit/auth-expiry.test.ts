@@ -17,6 +17,19 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers())
 
 describe('createAuthExpiryHandler', () => {
+  it('does nothing when already on the sign-in page (no nested redirect_url loop)', () => {
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { pathname: '/dashboard/sign-in', search: '?redirect_url=%2Fdashboard', set href(v: string) { hrefCalls.push(v) } },
+    })
+    const signOut = vi.fn().mockResolvedValue(undefined)
+    const handle = createAuthExpiryHandler({ signInPath: '/dashboard/sign-in', getSignOut: () => signOut })
+    handle(notAuthenticatedError())
+    handle(new ApiError(401, 'API error 401', 'Invalid or expired token.'))
+    expect(hrefCalls).toHaveLength(0)
+    expect(signOut).not.toHaveBeenCalled()
+  })
+
   it('redirects a signed-out (no token) error and keeps the query string', () => {
     const signOut = vi.fn().mockResolvedValue(undefined)
     createAuthExpiryHandler({ signInPath: '/dashboard/sign-in', getSignOut: () => signOut })(notAuthenticatedError())

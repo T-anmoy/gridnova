@@ -282,6 +282,17 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   )
 }
 
+/**
+ * The sign-in page lives under /dashboard, so it shares this layout. It must not get the shell:
+ * the sidebar's work-queue query (and the Ask Nova button) need a signed-in user, and running
+ * them for a signed-out visitor sent the page into a sign-in redirect loop.
+ */
+function ShellUnlessSignIn({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  if (pathname?.startsWith('/dashboard/sign-in')) return <>{children}</>
+  return <DashboardShell>{children}</DashboardShell>
+}
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
@@ -289,7 +300,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* The dashboard is English-only; the shared photo/upload components still read their strings from i18n. */}
         <I18nProvider locale="en" messages={STAFF_SHARED_MESSAGES}>
           <NovaShellProvider>
-            <DashboardShell>{children}</DashboardShell>
+            <ShellUnlessSignIn>{children}</ShellUnlessSignIn>
           </NovaShellProvider>
         </I18nProvider>
       </QueryProvider>
