@@ -6,7 +6,7 @@ import LeadDetailPage from '@/app/(internal)/dashboard/leads/[id]/page'
 import { navState } from './helpers/mock-navigation'
 import { leadItem, leadPage } from './fixtures/leads-contract'
 import { parseApiError } from '@/lib/api/http'
-import { staffLeadsCopyFor } from '@/lib/dashboard/staff-leads-copy'
+import { staffLeadsCopy } from '@/lib/dashboard/staff-leads-copy'
 import type { LeadDetail, Role } from '@/lib/dashboard/types'
 
 const mockUseUser = vi.fn()
@@ -45,7 +45,7 @@ vi.mock('@/lib/dashboard/staff-leads-api-client', () => ({
   useCustomerMemory: (...a: unknown[]) => mockUseCustomerMemory(...a),
 }))
 
-const en = staffLeadsCopyFor('en')
+const en = staffLeadsCopy
 const asRole = (role: Role | undefined) => mockUseUser.mockReturnValue({ user: { id: 'user-1', publicMetadata: { role } } })
 const listOk = (data = leadPage([leadItem(12)])) => ({ data, isLoading: false, error: null, refetch: vi.fn(), isPlaceholderData: false })
 

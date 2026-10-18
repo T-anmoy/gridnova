@@ -149,11 +149,11 @@ export default function ServiceRequestDetail({ requestId }: { requestId: number 
             <ol className="space-y-3" aria-label="Request history">
               {[...(r.history ?? [])].reverse().map((h, i) => (
                 <li key={i} className="text-sm" data-testid="history-item">
-                  <p className="font-medium text-gray-900">
+                  <div className="font-medium text-gray-900">
                     {HISTORY_LABEL[h.kind] ?? h.kind}
                     {h.from_status && h.to_status ? `: ${STATUS_LABEL[h.from_status] ?? h.from_status} → ${STATUS_LABEL[h.to_status] ?? h.to_status}` : h.to_status ? `: ${STATUS_LABEL[h.to_status] ?? h.to_status}` : ''}
                     {h.kind === 'note' && <Badge variant="outline" className="ml-2">Internal</Badge>}
-                  </p>
+                  </div>
                   {h.note && <p className="whitespace-pre-wrap break-words text-gray-700">{h.note}</p>}
                   <p className="text-xs text-gray-500">{formatDatetime(h.at)}{h.actor ? ` · ${who(h.actor)}` : ''}</p>
                 </li>

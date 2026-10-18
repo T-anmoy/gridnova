@@ -61,7 +61,7 @@ export function formatValidationDetail(items: unknown[]): string {
 }
 
 /** Build an ApiError from a non-2xx response. Never renders an object as "[object Object]". */
-export function parseApiError(status: number, statusText: string, body: string): ApiError {
+export function parseApiError(status: number, statusText: string, body: string, headers?: Headers): ApiError {
   let detail = body
   let structuredDetail: Record<string, unknown> | undefined
   try {
@@ -80,7 +80,8 @@ export function parseApiError(status: number, statusText: string, body: string):
   } catch {
     /* not JSON — keep raw text */
   }
-  return new ApiError(status, `API error ${status}`, detail || statusText, structuredDetail)
+  const retryAfter = Number.parseInt(headers?.get('Retry-After') ?? '', 10)
+  return new ApiError(status, `API error ${status}`, detail || statusText, structuredDetail, Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : undefined)
 }
 
 function withTimeout(signal: AbortSignal | null | undefined): AbortSignal {
@@ -135,7 +136,7 @@ export async function apiFetch<T>(
       ...(options?.headers ?? {}),
     },
   })
-  if (!res.ok) throw parseApiError(res.status, res.statusText, await res.text().catch(() => ''))
+  if (!res.ok) throw parseApiError(res.status, res.statusText, await res.text().catch(() => ''), res.headers)
   return readBody(res, path, schema)
 }
 

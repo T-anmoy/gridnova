@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@clerk/nextjs'
 import { AlertTriangle, Check, Circle, ExternalLink } from 'lucide-react'
+import { useNovaPageContext } from '@/lib/nova/page-context'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -143,16 +144,16 @@ function StageRow({
         {stage.recorded ? <Check className="h-4 w-4 text-green-600" /> : <Circle className={`h-4 w-4 ${isCurrent ? 'text-amber-500' : 'text-gray-500'}`} />}
       </div>
       <div className="min-w-0">
-        <p className={`text-sm font-medium ${stage.recorded ? 'text-gray-900' : isCurrent ? 'text-amber-700' : 'text-gray-500'}`}>
+        <div className={`text-sm font-medium ${stage.recorded ? 'text-gray-900' : isCurrent ? 'text-amber-700' : 'text-gray-500'}`}>
           {stageName(stage)}
           {sub && !stage.recorded && (
             <Badge className="ml-2" variant={sub.status === 'pending' ? 'amber' : 'red'}>
               {sub.status === 'pending' ? 'Awaiting verification' : 'Rejected'}
             </Badge>
           )}
-        </p>
+        </div>
         {stage.recorded && (
-          <p className="mt-0.5 text-xs text-gray-500">
+          <div className="mt-0.5 text-xs text-gray-500">
             {stage.recorded_at && formatDatetime(stage.recorded_at)}
             {stage.recorded_by && ` · by ${stage.recorded_by}`}
             {stage.via && (
@@ -160,7 +161,7 @@ function StageRow({
                 {VIA_LABEL[stage.via] ?? stage.via}
               </Badge>
             )}
-          </p>
+          </div>
         )}
         {sub?.status === 'rejected' && sub.review_note && <p className="mt-0.5 text-xs text-red-600">Rejected: {sub.review_note}</p>}
         {stage.blockers.map((b) => (
@@ -210,6 +211,8 @@ export default function ExecutionDetailPanel({ onboardingId, role }: { onboardin
   const [dialog, setDialog] = useState<'verify' | 'reject' | 'mode' | 'dcr' | null>(null)
   const [overrideReason, setOverrideReason] = useState('')
   const isAdmin = role === 'admin'
+  // "This project" in Ask Nova means this onboarding's project, once the backend has given its reference.
+  useNovaPageContext(d?.customer.project_reference_id ? { project_ref: d.customer.project_reference_id } : null)
 
   if (isLoading) {
     return (

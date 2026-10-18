@@ -5,16 +5,14 @@ import { pickStaffCopy, pickStaffLeadsCopy } from '../../scripts/extract-staff-c
 import generated from '@/lib/dashboard/staff-copy.generated.json'
 import leadsGenerated from '@/lib/dashboard/staff-leads-copy.generated.json'
 import en from '@/messages/en.json'
-import hi from '@/messages/hi.json'
-import bn from '@/messages/bn.json'
 
 describe('staff dashboard copy subset (L7)', () => {
   it('equals the live subset of messages/en.json — run `npm run staff-copy` if this fails', () => {
     expect(generated).toEqual(pickStaffCopy(en))
   })
 
-  it('the translated Leads copy (en, hi, bn) equals the live staffLeads namespaces — run `npm run staff-copy` if this fails', () => {
-    expect(leadsGenerated).toEqual(pickStaffLeadsCopy(en, hi, bn))
+  it('the English-only Leads copy equals the live staffLeads namespace — run `npm run staff-copy` if this fails', () => {
+    expect(leadsGenerated).toEqual(pickStaffLeadsCopy(en))
   })
 
   it('the Leads copy is a small fraction of the message files', () => {

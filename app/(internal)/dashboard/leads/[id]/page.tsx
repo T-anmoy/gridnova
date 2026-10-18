@@ -26,6 +26,7 @@ import { CustomerMemoryPanel } from '@/components/dashboard/CustomerMemoryPanel'
 import { ReflectButton } from '@/components/dashboard/ReflectButton'
 import { ScheduleMeetingDialog } from '@/components/dashboard/ScheduleMeetingDialog'
 import { useStaffLeadsCopy } from '@/lib/dashboard/staff-leads-copy'
+import { useNovaPageContext } from '@/lib/nova/page-context'
 import { canScheduleMeeting, canUseMemory, isEngineerLeadDetail, isLeadNotAssigned } from '@/lib/dashboard/staff-leads-logic'
 import { ApiError as LeadApiError } from '@/lib/dashboard/api-error'
 
@@ -312,6 +313,8 @@ export default function LeadDetailPage() {
   // The Engineer response has no `customer` key; every other role gets the full shape.
   const full = lead && !isEngineerLeadDetail(lead) ? lead : undefined
   const draftMutation = useDraftProposal()
+  // Ask Nova opened from this page knows which lead (and customer) "this" is.
+  useNovaPageContext(Number.isFinite(leadId) ? { lead_id: leadId, ...(full?.customer?.id ? { customer_id: full.customer.id } : {}) } : null)
 
   const isAdmin = role === 'admin'
   const isSales = role === 'sales'

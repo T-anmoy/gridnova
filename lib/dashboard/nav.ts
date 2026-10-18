@@ -21,6 +21,9 @@ import {
   Coins,
   Network,
   LifeBuoy,
+  Sparkles,
+  Archive,
+  FileUp,
 } from 'lucide-react'
 import type { Role } from '@/lib/dashboard/types'
 import type { WorkQueues } from '@/lib/dashboard/execution-types'
@@ -61,6 +64,11 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Associate Network', href: '/dashboard/associate-network', icon: Handshake, roles: ['admin'] },
   { label: 'Data Checklist', href: '/dashboard/data-checklist', icon: Database, roles: ['admin', 'management'] },
   { label: 'Audit Log', href: '/dashboard/audit-log', icon: ClipboardList, roles: ['admin', 'management'] },
+  // Nova Records (BE-9): all six staff roles ask; the backend scopes every answer to the role.
+  { label: 'Ask Nova', href: '/dashboard/nova', icon: Sparkles, roles: 'all' },
+  // Project Archive (BE-8): every staff role reads (fields are redacted by the backend); only Admin imports.
+  { label: 'Project archive', href: '/dashboard/archive', icon: Archive, roles: 'all' },
+  { label: 'Archive import', href: '/dashboard/archive/import', icon: FileUp, roles: ['admin'] },
   { label: 'Equipment', href: '/dashboard/equipment', icon: Package, roles: 'all' },
   { label: 'Price list', href: '/dashboard/price-list', icon: Tags, roles: ['admin', 'management', 'sales'] },
   { label: 'Agent Control', href: '/dashboard/agents', icon: Bot, roles: ['admin'] },

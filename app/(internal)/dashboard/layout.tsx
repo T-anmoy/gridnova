@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronRight,
   Zap,
+  Sparkles,
 } from 'lucide-react'
 import { QueryProvider } from '@/components/dashboard/QueryProvider'
 import { I18nProvider } from '@/lib/i18n/client'
@@ -19,6 +20,9 @@ import { STAFF_SHARED_MESSAGES } from '@/lib/dashboard/staff-copy'
 import { NAV_ITEMS, canSeeNavItem, overdueServiceRequestCount, overdueSurveyCount, queueBadgeCount } from '@/lib/dashboard/nav'
 import { useWorkQueues } from '@/lib/dashboard/execution-api-client'
 import { CommandPalette } from '@/components/dashboard/CommandPalette'
+import { NovaPanel } from '@/components/dashboard/nova/NovaPanel'
+import { NovaShellProvider, useNovaShell } from '@/lib/nova/page-context'
+import { canUseNova } from '@/lib/nova/logic'
 import { Toaster } from '@/components/ui/sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -51,9 +55,11 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   const { data: queues } = useWorkQueues()
   const canSee = (item: (typeof NAV_ITEMS)[number]) => canSeeNavItem(item, role)
 
+  // The most specific entry wins, so /dashboard/archive/import lights up "Archive import" and not also "Project archive".
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard'
-    return pathname.startsWith(href)
+    if (!(pathname === href || pathname.startsWith(`${href}/`))) return false
+    return !NAV_ITEMS.some((o) => o.href.length > href.length && o.href.startsWith(`${href}/`) && canSee(o) && (pathname === o.href || pathname.startsWith(`${o.href}/`)))
   }
 
   async function handleSignOut() {
@@ -179,6 +185,21 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   )
 }
 
+/** Opens the Ask Nova slide-over. Hidden on the Nova page itself, where the chat is the page. */
+function AskNovaButton({ className }: { className?: string }) {
+  const { openPanel } = useNovaShell()
+  const pathname = usePathname()
+  const { user } = useUser()
+  const role = user?.publicMetadata?.role as Role | undefined
+  if (!canUseNova(role) || pathname.startsWith('/dashboard/nova')) return null
+  return (
+    <Button type="button" variant="outline" className={cn('min-h-[44px]', className)} onClick={() => openPanel()}>
+      <Sparkles className="h-4 w-4 text-[#f7a800]" aria-hidden="true" />
+      Ask Nova
+    </Button>
+  )
+}
+
 function DashboardShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
@@ -241,7 +262,12 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
             </div>
             <span className="font-display text-sm font-semibold text-[#091c3c]">Grid Nova AI</span>
           </div>
+          <AskNovaButton className="ml-auto" />
         </header>
+        {/* Desktop top bar */}
+        <div className="hidden items-center justify-end border-b border-[#e4e8ee] bg-white px-8 py-2 md:flex">
+          <AskNovaButton />
+        </div>
 
         {/* Page content */}
         <main id="main-content" tabIndex={-1} className="flex-1 p-4 outline-none md:p-8">
@@ -250,6 +276,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <CommandPalette />
+      <NovaPanel />
       <Toaster />
     </div>
   )
@@ -261,7 +288,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <QueryProvider>
         {/* The dashboard is English-only; the shared photo/upload components still read their strings from i18n. */}
         <I18nProvider locale="en" messages={STAFF_SHARED_MESSAGES}>
-          <DashboardShell>{children}</DashboardShell>
+          <NovaShellProvider>
+            <DashboardShell>{children}</DashboardShell>
+          </NovaShellProvider>
         </I18nProvider>
       </QueryProvider>
     </ClerkProvider>

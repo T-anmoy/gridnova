@@ -3,7 +3,7 @@ import { render, screen, waitFor, within, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { parseApiError } from '@/lib/api/http'
 import { ApiError } from '@/lib/dashboard/api-error'
-import { staffLeadsCopyFor, localeFromCookie, useStaffLeadsCopy } from '@/lib/dashboard/staff-leads-copy'
+import { staffLeadsCopy, useStaffLeadsCopy } from '@/lib/dashboard/staff-leads-copy'
 import { LeadFilterPanel } from '@/components/dashboard/LeadFilterPanel'
 import { ScheduleMeetingDialog } from '@/components/dashboard/ScheduleMeetingDialog'
 import { ReflectButton } from '@/components/dashboard/ReflectButton'
@@ -26,7 +26,7 @@ vi.mock('@/lib/dashboard/staff-leads-api-client', () => ({
   useCustomerMemory: (...args: unknown[]) => mockUseCustomerMemory(...args),
 }))
 
-const en = staffLeadsCopyFor('en')
+const en = staffLeadsCopy
 const apiErr = (status: number, detail: unknown) => parseApiError(status, 'x', JSON.stringify({ detail }))
 
 beforeEach(() => {
@@ -103,8 +103,8 @@ describe('LeadFilterPanel', () => {
   })
 
   it('shows a server 422 by code, in the right group, in the reader\'s language', () => {
-    render(<LeadFilterPanel filters={EMPTY_FILTERS} onChange={vi.fn()} onClear={vi.fn()} showClear={false} serverError={{ code: 'unknown_stage', field: 'stage' }} copy={staffLeadsCopyFor('hi')} />)
-    expect(screen.getByText(staffLeadsCopyFor('hi').filters.errors.unknown_stage)).toBeInTheDocument()
+    render(<LeadFilterPanel filters={EMPTY_FILTERS} onChange={vi.fn()} onClear={vi.fn()} showClear={false} serverError={{ code: 'unknown_stage', field: 'stage' }} copy={en} />)
+    expect(screen.getByText(en.filters.errors.unknown_stage)).toBeInTheDocument()
   })
 
   it('collapses behind a toggle on small screens and reports its state', async () => {
@@ -132,22 +132,21 @@ describe('LeadFilterPanel', () => {
 
 // ── Locale ───────────────────────────────────────────────────────────────────
 
-describe('staff Leads copy locale', () => {
-  it('reads the NEXT_LOCALE cookie and falls back to English', () => {
-    expect(localeFromCookie('a=1; NEXT_LOCALE=hi; b=2')).toBe('hi')
-    expect(localeFromCookie('NEXT_LOCALE=bn')).toBe('bn')
-    expect(localeFromCookie('NEXT_LOCALE=fr')).toBe('en')
-    expect(localeFromCookie('')).toBe('en')
-  })
-
-  it('the hook shows English first and the cookie language after mount', async () => {
+describe('staff Leads copy is English-only', () => {
+  it('ignores the NEXT_LOCALE cookie, before and after mount', async () => {
     document.cookie = 'NEXT_LOCALE=bn; path=/'
     function Probe() {
       return <p>{useStaffLeadsCopy().filters.clear}</p>
     }
     render(<Probe />)
-    await waitFor(() => expect(screen.getByText(staffLeadsCopyFor('bn').filters.clear)).toBeInTheDocument())
+    await Promise.resolve()
+    expect(screen.getByText(staffLeadsCopy.filters.clear)).toBeInTheDocument()
     document.cookie = 'NEXT_LOCALE=; path=/; max-age=0'
+  })
+
+  it('carries only the English namespace', async () => {
+    const generated = (await import('@/lib/dashboard/staff-leads-copy.generated.json')).default
+    expect(Object.keys(generated)).toEqual(['en'])
   })
 })
 

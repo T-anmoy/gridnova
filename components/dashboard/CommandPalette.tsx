@@ -19,11 +19,14 @@ import {
   UserCog,
   ClipboardList,
   Loader2,
+  Sparkles,
 } from 'lucide-react'
 import { useLeadSearch, useProposalSearch } from '@/lib/dashboard/api-client'
 import { useDebouncedValue } from '@/lib/dashboard/use-debounced-value'
 import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { canSeeLeads } from '@/lib/dashboard/staff-leads-logic'
+import { useNovaShell } from '@/lib/nova/page-context'
+import { NOVA_QUESTION_MAX, canUseNova } from '@/lib/nova/logic'
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false)
@@ -34,6 +37,8 @@ export function CommandPalette() {
   // Operations and Accounts see no leads, so the palette offers them none.
   const { role } = useStaffRole()
   const leadsAllowed = !role || canSeeLeads(role)
+  const { openPanel } = useNovaShell()
+  const novaAllowed = canUseNova(role)
 
   const debouncedQuery = useDebouncedValue(query, 300)
 
@@ -68,6 +73,13 @@ export function CommandPalette() {
     router.push(href)
   }
 
+  // Hand the typed text to the Ask Nova panel; it lands in the question box, it is not sent.
+  function askNova(question?: string) {
+    handleOpenChange(false)
+    openPanel(question)
+  }
+  const typedQuestion = query.trim()
+
   const leadItems = leadResults ?? []
   const proposalItems = proposalResults?.items ?? []
 
@@ -80,6 +92,21 @@ export function CommandPalette() {
       />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
+
+        {novaAllowed && (
+          <CommandGroup heading="Nova Records">
+            <CommandItem value="ask nova open assistant" onSelect={() => askNova()}>
+              <Sparkles className="mr-2 h-4 w-4" />
+              Ask Nova
+            </CommandItem>
+            {typedQuestion.length > 1 && typedQuestion.length <= NOVA_QUESTION_MAX && (
+              <CommandItem value={`ask nova ${typedQuestion}`} onSelect={() => askNova(typedQuestion)}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                <span className="min-w-0 flex-1 truncate">Ask Nova: “{typedQuestion}”</span>
+              </CommandItem>
+            )}
+          </CommandGroup>
+        )}
 
         {/* Navigation — cmdk's built-in filter hides these when typing names */}
         <CommandGroup heading="Navigation">

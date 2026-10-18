@@ -7,6 +7,12 @@ import ProposalsPage from '@/app/(internal)/dashboard/proposals/page'
 import ProposalDetailPage from '@/app/(internal)/dashboard/proposals/[id]/page'
 import AnalyticsPage from '@/app/(internal)/dashboard/analytics/page'
 import AuditLogPage from '@/app/(internal)/dashboard/audit-log/page'
+import ExecutionDetailPanel from '@/components/dashboard/ExecutionDetailPanel'
+import ServiceRequestDetail from '@/components/dashboard/handover/ServiceRequestDetail'
+import { withI18n } from './helpers/i18n'
+import { makeRequest } from './fixtures/handover-contract'
+import type { ExecutionStageStatus, StageSubmission } from '@/lib/associate/execution-types'
+import type { StaffExecutionDetail } from '@/lib/dashboard/execution-types'
 import type {
   ActivityItem,
   AuditLog,
@@ -61,7 +67,30 @@ const mockUseUpdateLeadFields = vi.fn()
 const mockUseAssignableEmployees = vi.fn()
 const mockUseAdjustPricing = vi.fn()
 
+// Execution detail and a service request, for the Badge-inside-<p> regression cases at the end of the file.
+const sweep = vi.hoisted(() => ({ exec: {} as { data?: unknown }, request: {} as { data?: unknown } }))
+vi.mock('@/lib/dashboard/execution-api-client', () => ({
+  useStaffExecution: () => ({ ...sweep.exec, isLoading: false, error: null, refetch: vi.fn() }),
+  useVerifySubmission: () => ({ mutateAsync: vi.fn() }),
+  useRejectSubmission: () => ({ mutateAsync: vi.fn() }),
+  useRecordStage: () => ({ mutateAsync: vi.fn() }),
+  useSwitchExecutionMode: () => ({ mutateAsync: vi.fn() }),
+  useDcrOverride: () => ({ mutateAsync: vi.fn() }),
+  useUploadStaffExecutionFile: () => ({ mutateAsync: vi.fn() }),
+  fetchStaffExecutionFileLink: vi.fn(),
+  useWorkQueues: () => ({ data: undefined }),
+}))
+vi.mock('@/lib/handover/staff-api-client', () => ({
+  useServiceRequest: () => ({ ...sweep.request, isLoading: false, error: null, refetch: vi.fn() }),
+  useAssignRequest: () => ({ mutateAsync: vi.fn() }),
+  useSetRequestStatus: () => ({ mutateAsync: vi.fn() }),
+  useAddRequestNote: () => ({ mutateAsync: vi.fn() }),
+  fetchRequestPhotoLink: vi.fn(),
+}))
+
 vi.mock('@/lib/dashboard/api-client', () => ({
+  useEmployeeMe: () => ({ data: { id: 'EMP-OPS-1' } }),
+  useEmployees: () => ({ data: [] }),
   useOverviewStats: () => mockUseOverviewStats(),
   useActivityFeed: () => mockUseActivityFeed(),
   useLeads: () => mockUseLeads(),
@@ -402,6 +431,67 @@ describe('Audit Log — DOM validity', () => {
     mockUseAuditLog.mockReturnValue({ data: undefined, isLoading: false, error: new Error('boom'), refetch: vi.fn() })
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
         render(<AuditLogPage />)
+    expectNoNestingWarnings(spy)
+    spy.mockRestore()
+  })
+})
+
+// The two places where a <Badge> (a <div>) used to sit inside a <p>: React logged "<div> cannot be a descendant of <p>"
+// and hydration broke. Both render every Badge-bearing branch here.
+const stageStatus = (over: Partial<ExecutionStageStatus> = {}): ExecutionStageStatus => ({
+  stage: 'inspection_net_meter',
+  label: 'Inspection & net meter',
+  recorded: false,
+  recorded_at: null,
+  recorded_by: null,
+  via: null,
+  submission: null,
+  evidence_required: { text: [], documents: [], optional_documents: [], photos: [], register_verified: false },
+  blockers: [],
+  ...over,
+})
+const submissionOf = (status: StageSubmission['status']): StageSubmission => ({
+  submission_id: 7, onboarding_id: 5, stage: 'inspection_net_meter', stage_label: 'Inspection & net meter', status,
+  submitted_by: 'GNA-1', submitted_at: '2026-03-01T10:00:00Z',
+  evidence: { text: {}, note: null, documents: {}, photos: {}, register_verified_at: null },
+  reviewed_by: null, reviewed_at: null, review_note: status === 'rejected' ? 'Photo unclear' : null,
+})
+function executionDetail(stages: ExecutionStageStatus[]): StaffExecutionDetail {
+  return {
+    onboarding_id: 5, project_id: 9, execution_mode: 'associate', started_at: '2026-02-01T00:00:00Z', register_verified_at: null,
+    current_stage: 'inspection_net_meter', next_stage: 'inspection_net_meter', next_stage_is_execution: true,
+    aging: { days_in_stage: 3, stuck_threshold_days: 21, is_stuck: false },
+    pending_submission: null, stages, photo_slots: [], document_types: [], files: { photos: {}, documents: {} }, flags: [],
+    customer: { name: 'Bikash Das', mobile: null, project_reference_id: 'GN-2026-1', site: { address: null, pin_code: null, territory: null, latitude: null, longitude: null }, associate: null },
+    can_verify: false, can_record: false,
+  } as unknown as StaffExecutionDetail
+}
+
+describe('Execution detail — DOM validity (StageRow badges)', () => {
+  it.each([
+    ['a stage awaiting verification', stageStatus({ submission: submissionOf('pending') }), 'Awaiting verification'],
+    ['a rejected stage', stageStatus({ submission: submissionOf('rejected') }), 'Rejected'],
+    ['a stage recorded by an admin override', stageStatus({ recorded: true, recorded_at: '2026-02-05T00:00:00Z', recorded_by: 'ops@x', via: 'admin_override' }), 'Admin override'],
+    ['a stage recorded by verification', stageStatus({ recorded: true, recorded_at: '2026-02-05T00:00:00Z', recorded_by: 'ops@x', via: 'direct' }), 'Recorded directly'],
+  ])('%s', (_name, stage, badgeText) => {
+    sweep.exec = { data: executionDetail([stage]) }
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(withI18n(<ExecutionDetailPanel onboardingId={5} role="admin" />))
+    expect(screen.getByTestId('stage-inspection_net_meter')).toBeInTheDocument()
+    // React logs a nesting warning once per process, so also assert the structure itself: no <p> around the badge.
+    if (badgeText) for (const badge of screen.getAllByText(badgeText)) expect(badge.closest('p')).toBeNull()
+    expectNoNestingWarnings(spy)
+    spy.mockRestore()
+  })
+})
+
+describe('Service request detail — DOM validity (history badge)', () => {
+  it('a history with an internal note (the Badge inside the history line)', () => {
+    sweep.request = { data: makeRequest() }
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<ServiceRequestDetail requestId={31} />)
+    expect(screen.getByText('Internal').closest('p')).toBeNull()
+    expect(screen.getAllByTestId('history-item')).toHaveLength(2)
     expectNoNestingWarnings(spy)
     spy.mockRestore()
   })
