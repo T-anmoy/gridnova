@@ -41,7 +41,7 @@ function ItemRow({ item, canResolve, onResolve }: { item: PlaceholderItem; canRe
         )}
       </div>
       <p className="text-sm text-gray-800">{item.description}</p>
-      <p className="font-mono text-[11px] text-gray-400">{item.location}</p>
+      <p className="font-mono text-[11px] text-gray-500">{item.location}</p>
       <p className="text-xs text-gray-500">Current value: <code className="break-all rounded bg-gray-100 px-1 py-0.5">{item.dummy_value}</code></p>
       <p className="text-sm text-[#0e2a63]"><span className="font-semibold">Needed from Grid Nova:</span> {item.needed_from_grid_nova}</p>
       {item.probe_error && <p className="text-xs text-red-600">Check failed: {item.probe_error}</p>}
@@ -92,7 +92,7 @@ function Checklist({ isAdmin }: { isAdmin: boolean }) {
             <Card key={b}>
               <CardContent className="p-4">
                 <p className="text-xs text-gray-500">{BLOCKING_LABEL[b]}</p>
-                <p className="text-2xl font-bold">{c?.unresolved ?? 0}<span className="text-sm font-normal text-gray-400"> of {c?.total ?? 0} open</span></p>
+                <p className="text-2xl font-bold">{c?.unresolved ?? 0}<span className="text-sm font-normal text-gray-500"> of {c?.total ?? 0} open</span></p>
               </CardContent>
             </Card>
           )
@@ -106,14 +106,14 @@ function Checklist({ isAdmin }: { isAdmin: boolean }) {
         <Button variant="outline" size="sm" onClick={() => void copyMessage()}>
           <ClipboardCopy className="mr-1 h-3 w-3" /> Copy as message to Grid Nova
         </Button>
-        <span className="text-xs text-gray-400">{data.summary.unresolved} of {data.summary.total} unresolved</span>
+        <span className="text-xs text-gray-500">{data.summary.unresolved} of {data.summary.total} unresolved</span>
       </div>
       {copied && <p role="status" className="text-sm text-gray-700">{copied}</p>}
 
       {areas.length === 0 && <p className="py-8 text-center text-sm text-gray-500">Nothing to show — every item is resolved.</p>}
       {areas.map((a) => (
         <Card key={a.area} data-testid="checklist-area">
-          <CardHeader><CardTitle className="text-base">{AREA_LABEL(a.area)} <span className="text-xs font-normal text-gray-400">({a.items.length})</span></CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">{AREA_LABEL(a.area)} <span className="text-xs font-normal text-gray-500">({a.items.length})</span></CardTitle></CardHeader>
           <CardContent>
             <ul>
               {a.items.map((item) => <ItemRow key={item.id} item={item} canResolve={isAdmin} onResolve={() => setResolving(item)} />)}

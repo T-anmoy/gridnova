@@ -45,11 +45,11 @@ export default function OnboardingProgressStaff({ progress }: { progress: Progre
                   {stage.recorded ? (
                     <Check className="h-4 w-4 text-green-600" />
                   ) : (
-                    <Circle className={`h-4 w-4 ${isCurrent ? 'text-amber-500' : 'text-gray-300'}`} />
+                    <Circle className={`h-4 w-4 ${isCurrent ? 'text-amber-500' : 'text-gray-500'}`} />
                   )}
                 </div>
                 <div className="min-w-0">
-                  <p className={`text-sm font-medium ${stage.recorded ? 'text-gray-900' : isCurrent ? 'text-amber-700' : 'text-gray-400'}`}>
+                  <p className={`text-sm font-medium ${stage.recorded ? 'text-gray-900' : isCurrent ? 'text-amber-700' : 'text-gray-500'}`}>
                     {stage.label}
                     {isCurrent && !stage.recorded && ' (current)'}
                   </p>
@@ -73,7 +73,7 @@ export default function OnboardingProgressStaff({ progress }: { progress: Progre
           })}
         </ol>
         {notApplicable.length > 0 && (
-          <p className="mt-4 text-xs text-gray-400" data-testid="not-applicable">
+          <p className="mt-4 text-xs text-gray-500" data-testid="not-applicable">
             Not applicable to this project: {notApplicable.map((s) => s.label).join(', ')}
           </p>
         )}

@@ -59,7 +59,7 @@ function ProposalSection({
   const [reference, setReference] = useState('')
   const [error, setError] = useState<string | null>(null)
 
-  if (isLoading || !formalProposal) return <Loader2 className="h-5 w-5 animate-spin text-[#111827]/30" />
+  if (isLoading || !formalProposal) return <Loader2 className="h-5 w-5 animate-spin text-[#111827]/65" />
 
   async function handleAccept() {
     if (!formalProposal || !formalProposal.prepared) return
@@ -105,7 +105,7 @@ function ProposalSection({
       <div>
         <p className="font-display text-base font-semibold text-[#0e2a63]">{copy.detail.notPreparedTitle}</p>
         {formalProposal.missing_fields.length > 0 && (
-          <p className="mt-1 text-xs text-[#111827]/55 font-utility">
+          <p className="mt-1 text-xs text-[#111827]/65 font-utility">
             {copy.readyMissingFields} {formalProposal.missing_fields.join(', ')}
           </p>
         )}
@@ -125,7 +125,7 @@ function ProposalSection({
             <span className="text-xs">{survey.gate.seeReview}</span>
           </p>
         )}
-        {requestMutation.isSuccess && <p className="mt-2 text-xs text-[#111827]/55 font-utility">{copy.requestedNote}</p>}
+        {requestMutation.isSuccess && <p className="mt-2 text-xs text-[#111827]/65 font-utility">{copy.requestedNote}</p>}
       </div>
     )
   }
@@ -135,24 +135,24 @@ function ProposalSection({
       <p className="font-display text-base font-semibold text-[#0e2a63]">{copy.detail.preparedTitle}</p>
       <dl className="mt-2 grid grid-cols-2 gap-3 text-sm">
         <div>
-          <dt className="text-xs text-[#111827]/50">{copy.detail.statusLabel}</dt>
+          <dt className="text-xs text-[#111827]/65">{copy.detail.statusLabel}</dt>
           <dd className="font-utility text-[#111827]/80">{formalProposal.status}</dd>
         </div>
         {formalProposal.total_value != null && (
           <div>
-            <dt className="text-xs text-[#111827]/50">{copy.detail.totalValueLabel}</dt>
+            <dt className="text-xs text-[#111827]/65">{copy.detail.totalValueLabel}</dt>
             <dd className="font-utility text-[#111827]/80">{formatCurrency(formalProposal.total_value)}</dd>
           </div>
         )}
         {formalProposal.date_sent && (
           <div>
-            <dt className="text-xs text-[#111827]/50">{copy.detail.dateSentLabel}</dt>
+            <dt className="text-xs text-[#111827]/65">{copy.detail.dateSentLabel}</dt>
             <dd className="font-utility text-[#111827]/80">{formatDatetime(formalProposal.date_sent)}</dd>
           </div>
         )}
         {formalProposal.accepted_at && (
           <div>
-            <dt className="text-xs text-[#111827]/50">{copy.detail.acceptedAtLabel}</dt>
+            <dt className="text-xs text-[#111827]/65">{copy.detail.acceptedAtLabel}</dt>
             <dd className="font-utility text-[#111827]/80">{formatDatetime(formalProposal.accepted_at)}</dd>
           </div>
         )}
@@ -214,7 +214,7 @@ function AgreementSection({ onboardingId, copy }: { onboardingId: number; copy: 
   const [stampPaperDate, setStampPaperDate] = useState('')
   const [error, setError] = useState<string | null>(null)
 
-  if (isLoading || !agreement) return <Loader2 className="h-5 w-5 animate-spin text-[#111827]/30" />
+  if (isLoading || !agreement) return <Loader2 className="h-5 w-5 animate-spin text-[#111827]/65" />
 
   async function handleUpload() {
     if (!file) return
@@ -236,7 +236,7 @@ function AgreementSection({ onboardingId, copy }: { onboardingId: number; copy: 
     <div>
       <p className="font-display text-base font-semibold text-[#0e2a63]">{copy.title}</p>
       {!agreement.links.agreement_pdf ? (
-        <p className="mt-2 text-sm text-[#111827]/55 font-utility">{copy.notGeneratedNote}</p>
+        <p className="mt-2 text-sm text-[#111827]/65 font-utility">{copy.notGeneratedNote}</p>
       ) : (
         <>
           <a href={agreement.links.agreement_pdf.url} target="_blank" rel="noreferrer" className="mt-2 inline-block text-sm text-[#2f5daa] underline">
@@ -296,6 +296,7 @@ export default function OnboardingDetail({
   estimateCopy,
   executionCopy,
   paymentsCopy,
+  handoverOpen,
 }: {
   onboardingId: number
   portalBase: '/associates/portal' | '/preferred/portal'
@@ -306,6 +307,8 @@ export default function OnboardingDetail({
   estimateCopy: Messages['associates']['portal']['estimate']
   executionCopy: ExecutionCopy
   paymentsCopy: PaymentsCopy
+  // Label of the link to the handover & warranty page (shown once installation has started).
+  handoverOpen?: string
 }) {
   const { data: onboarding, isLoading, error, refetch } = useOnboarding(onboardingId)
   const { data: progress } = useOnboardingProgress(onboardingId)
@@ -318,7 +321,7 @@ export default function OnboardingDetail({
   if (isLoading || !onboarding) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-[#111827]/30" />
+        <Loader2 className="h-6 w-6 animate-spin text-[#111827]/65" />
       </div>
     )
   }
@@ -328,7 +331,7 @@ export default function OnboardingDetail({
       <div className="flex items-start justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-[#091c3c]">{onboarding.customer.name}</h1>
-          <p className="mt-1 text-sm text-[#111827]/50 font-utility">{onboarding.customer.mobile}</p>
+          <p className="mt-1 text-sm text-[#111827]/65 font-utility">{onboarding.customer.mobile}</p>
         </div>
         {onboarding.can_edit && (
           <Link
@@ -352,6 +355,15 @@ export default function OnboardingDetail({
           className="flex min-h-[48px] items-center justify-between rounded-2xl border border-[#e4e8ee] bg-white px-5 py-4 font-display text-base font-semibold text-[#0e2a63]"
         >
           {executionCopy.open}
+        </Link>
+      )}
+
+      {handoverOpen && progress && progress.stages.some((st) => isExecutionStage(st.stage)) && (
+        <Link
+          href={`${portalBase}/customers/${onboardingId}/handover`}
+          className="flex min-h-[48px] items-center justify-between rounded-2xl border border-[#e4e8ee] bg-white px-5 py-4 font-display text-base font-semibold text-[#0e2a63]"
+        >
+          {handoverOpen}
         </Link>
       )}
 
@@ -383,7 +395,7 @@ export default function OnboardingDetail({
 
       <div className="rounded-2xl border border-[#e4e8ee] bg-white p-5">
         <p className="font-display text-base font-semibold text-[#0e2a63]">{checklistCopy.title}</p>
-        <p className="mt-2 text-xs text-[#111827]/50 font-utility">
+        <p className="mt-2 text-xs text-[#111827]/65 font-utility">
           {onboarding.checklist.present.length}/{onboarding.checklist.required.length} {checklistCopy.requiredLabel.toLowerCase()}
         </p>
         {onboarding.checklist.missing.length > 0 && (

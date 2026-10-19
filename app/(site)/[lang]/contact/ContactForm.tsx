@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useRef, useState } from "react";
+import { m, AnimatePresence } from "framer-motion";
+import { FormFieldLabel, fieldA11y, fieldClass, focusFirstInvalid } from "@/components/forms/FormField";
 import { ArrowRight, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { fmt, type Messages } from "@/lib/i18n/types";
 
@@ -72,36 +73,6 @@ function validateField(field: Field, value: string, e: T["errors"]): string | un
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function FloatLabel({ id, label, error }: { id: string; label: string; error?: string }) {
-  return (
-    <div className="flex items-center justify-between mb-1.5">
-      <label htmlFor={id} className="font-utility text-xs text-[#111827]/55 uppercase tracking-[0.12em]">
-        {label}
-      </label>
-      <AnimatePresence>
-        {error && (
-          <motion.span
-            key={error}
-            initial={{ opacity: 0, x: 8 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 8 }}
-            className="flex items-center gap-1 text-[11px] text-red-500 font-utility"
-          >
-            <AlertCircle className="h-3 w-3" />
-            {error}
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-const inputClass = (hasError: boolean) =>
-  `w-full rounded-xl border bg-white px-4 py-3.5 text-[#111827] text-sm font-utility outline-none transition-all duration-200 focus:ring-2 ${
-    hasError
-      ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-      : "border-[#e4e8ee] focus:border-[#2f5daa] focus:ring-[#2f5daa]/10"
-  }`;
 
 // ── Main form ─────────────────────────────────────────────────────────────────
 
@@ -111,9 +82,10 @@ export default function ContactForm({ t }: { t: T }) {
   });
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({});
-  const [focused, setFocused] = useState<Field | null>(null);
   // Honeypot: invisible to real users, bots fill it, submission silently rejected
   const [honeypot, setHoneypot] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
+  const successRef = useRef<HTMLHeadingElement>(null);
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -128,7 +100,6 @@ export default function ContactForm({ t }: { t: T }) {
 
   // Validate field using the live DOM value (avoids stale React state on blur)
   function handleBlur(field: Field, currentValue: string) {
-    setFocused(null);
     setTouched((t) => ({ ...t, [field]: true }));
     const err = validateField(field, currentValue, t.errors);
     setErrors((e) => ({ ...e, [field]: err }));
@@ -149,6 +120,8 @@ export default function ContactForm({ t }: { t: T }) {
     setTouched(Object.fromEntries(ALL_FIELDS.map((f) => [f, true])) as Record<Field, boolean>);
     if (Object.keys(errs).length) {
       setErrors(errs);
+      // Wait a frame so aria-invalid is committed before focus moves.
+      requestAnimationFrame(() => focusFirstInvalid(formRef.current, Object.keys(errs)));
       return;
     }
 
@@ -179,6 +152,7 @@ export default function ContactForm({ t }: { t: T }) {
       }
 
       setStatus("success");
+      requestAnimationFrame(() => successRef.current?.focus());
     } catch {
       setStatus("error");
       setSubmitError(t.networkFailed);
@@ -190,7 +164,7 @@ export default function ContactForm({ t }: { t: T }) {
 
   if (status === "success") {
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
@@ -199,16 +173,17 @@ export default function ContactForm({ t }: { t: T }) {
         <div className="mx-auto h-14 w-14 rounded-full bg-[#f7a800]/10 flex items-center justify-center">
           <CheckCircle2 className="h-7 w-7 text-[#f7a800]" />
         </div>
-        <h2 className="mt-6 font-display text-[#0e2a63] text-xl font-semibold">{t.successTitle}</h2>
+        <h2 ref={successRef} tabIndex={-1} className="mt-6 font-display text-[#0e2a63] text-xl font-semibold outline-none">{t.successTitle}</h2>
         <p className="mt-3 text-[#111827]/65 leading-relaxed max-w-[42ch] mx-auto">
           {fmt(t.successBody, { name: values.name || t.successFallbackName })}
         </p>
-      </motion.div>
+      </m.div>
     );
   }
 
   return (
     <form
+      ref={formRef}
       onSubmit={handleSubmit}
       noValidate
       className="bg-white rounded-2xl border border-[#e4e8ee] p-7 md:p-9 space-y-6"
@@ -245,113 +220,102 @@ export default function ContactForm({ t }: { t: T }) {
 
       <div className="grid sm:grid-cols-2 gap-5">
         <div>
-          <FloatLabel id="name" label={t.name} error={visible("name")} />
-          <motion.input
-            id="name"
+          <FormFieldLabel id="name" label={t.name} error={visible("name")} />
+          <input
+            {...fieldA11y("name", visible("name"))}
+            autoComplete="name"
             type="text"
             placeholder={t.namePlaceholder}
             value={values.name}
             onChange={(e) => set("name", e.target.value)}
-            onFocus={() => setFocused("name")}
             onBlur={(e) => handleBlur("name", e.target.value)}
-            animate={{ scale: focused === "name" ? 1.005 : 1 }}
-            transition={{ duration: 0.1 }}
-            className={inputClass(!!visible("name"))}
+            className={fieldClass(!!visible("name"))}
           />
         </div>
         <div>
-          <FloatLabel id="email" label={t.email} error={visible("email")} />
-          <motion.input
-            id="email"
+          <FormFieldLabel id="email" label={t.email} error={visible("email")} />
+          <input
+            {...fieldA11y("email", visible("email"))}
+            autoComplete="email" spellCheck={false} autoCapitalize="none"
             type="email"
             placeholder="ravi@company.in"
             value={values.email}
             onChange={(e) => set("email", e.target.value)}
-            onFocus={() => setFocused("email")}
             onBlur={(e) => handleBlur("email", e.target.value)}
-            animate={{ scale: focused === "email" ? 1.005 : 1 }}
-            transition={{ duration: 0.1 }}
-            className={inputClass(!!visible("email"))}
+            className={fieldClass(!!visible("email"))}
           />
         </div>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-5">
         <div>
-          <FloatLabel id="phone" label={t.phone} error={visible("phone")} />
-          <motion.input
-            id="phone"
+          <FormFieldLabel id="phone" label={t.phone} error={visible("phone")} />
+          <input
+            {...fieldA11y("phone", visible("phone"))}
+            autoComplete="tel" inputMode="tel"
             type="tel"
             placeholder="+91 98700 00000"
             value={values.phone}
             onChange={(e) => set("phone", e.target.value)}
-            onFocus={() => setFocused("phone")}
             onBlur={(e) => handleBlur("phone", e.target.value)}
-            animate={{ scale: focused === "phone" ? 1.005 : 1 }}
-            transition={{ duration: 0.1 }}
-            className={inputClass(!!visible("phone"))}
+            className={fieldClass(!!visible("phone"))}
           />
         </div>
         <div>
-          <FloatLabel id="interest" label={t.interest} error={visible("interest")} />
-          <motion.select
-            id="interest"
+          <FormFieldLabel id="interest" label={t.interest} error={visible("interest")} />
+          <select
+            {...fieldA11y("interest", visible("interest"))}
             value={values.interest}
             onChange={(e) => set("interest", e.target.value)}
-            onFocus={() => setFocused("interest")}
             onBlur={(e) => handleBlur("interest", e.target.value)}
-            animate={{ scale: focused === "interest" ? 1.005 : 1 }}
-            transition={{ duration: 0.1 }}
-            className={`${inputClass(!!visible("interest"))} cursor-pointer appearance-none`}
+            className={`${fieldClass(!!visible("interest"))} cursor-pointer appearance-none`}
           >
             <option value="">{t.interestPlaceholder}</option>
             {INTERESTS.map((i, idx) => (
               <option key={i} value={i}>{t.interests[idx]}</option>
             ))}
-          </motion.select>
+          </select>
         </div>
       </div>
 
       <div>
-        <FloatLabel id="message" label={t.message} error={visible("message")} />
-        <motion.textarea
-          id="message"
+        <FormFieldLabel id="message" label={t.message} error={visible("message")} />
+        <textarea
+          {...fieldA11y("message", visible("message"))}
           rows={5}
           placeholder={t.messagePlaceholder}
           value={values.message}
           onChange={(e) => set("message", e.target.value)}
-          onFocus={() => setFocused("message")}
           onBlur={(e) => handleBlur("message", e.target.value)}
-          animate={{ scale: focused === "message" ? 1.002 : 1 }}
-          transition={{ duration: 0.1 }}
-          className={`${inputClass(!!visible("message"))} resize-none`}
+          className={`${fieldClass(!!visible("message"))} resize-none`}
         />
       </div>
 
       <AnimatePresence>
         {status === "error" && submitError && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 font-utility"
+            role="alert"
+            className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-utility"
           >
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
             <span>
               {submitError} {t.alsoCall}{" "}
               <a href="tel:+919874774440" className="font-semibold underline">+91 98747 74440</a>{" "}
               {t.orEmail}{" "}
               <a href="mailto:info@gridnova.in" className="font-semibold underline">info@gridnova.in</a>.
             </span>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
       <div className="flex items-center justify-between gap-4 pt-2">
-        <p className="text-[#111827]/40 text-xs font-utility leading-snug max-w-[32ch]">
+        <p className="text-[#111827]/60 text-xs font-utility leading-snug max-w-[32ch]">
           {t.responseNote}
         </p>
-        <motion.button
+        <m.button
           type="submit"
           disabled={status === "submitting"}
           whileTap={{ scale: 0.97 }}
@@ -359,7 +323,7 @@ export default function ContactForm({ t }: { t: T }) {
         >
           {status === "submitting" ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" /> {t.sending}
+              <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> {t.sending}
             </>
           ) : (
             <>
@@ -367,7 +331,7 @@ export default function ContactForm({ t }: { t: T }) {
               <ArrowRight className="h-4 w-4" />
             </>
           )}
-        </motion.button>
+        </m.button>
       </div>
     </form>
   );

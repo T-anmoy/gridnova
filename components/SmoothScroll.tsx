@@ -1,47 +1,52 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import Lenis from "lenis";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useEffect } from "react";
 import { setLenis } from "@/lib/lenis";
 
+// Smooth scrolling is a desktop nicety: it is only started for a precise
+// pointer (mouse / trackpad) and never under reduced motion. Phones and
+// tablets keep native momentum scrolling and never download Lenis. It is
+// loaded dynamically, and driven by a plain requestAnimationFrame loop, so no
+// animation runtime is pulled into every page's initial bundle. ScrollTrigger
+// (used by a few pages) listens to the native scroll events Lenis produces.
 export default function SmoothScroll({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const lenisRef = useRef<Lenis | null>(null);
-
   useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
+    const wantsSmooth =
+      window.matchMedia("(pointer: fine)").matches &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!wantsSmooth) return;
 
-    const prefersReduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+    let cancelled = false;
+    let frame = 0;
+    let destroy: (() => void) | undefined;
 
-    if (prefersReduced) return;
-
-    const lenis = new Lenis({
-      duration: 1.1,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      touchMultiplier: 1.1,
+    void import("lenis").then(({ default: Lenis }) => {
+      if (cancelled) return;
+      const lenis = new Lenis({
+        duration: 1.1,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        touchMultiplier: 1.1,
+      });
+      setLenis(lenis);
+      const loop = (time: number) => {
+        lenis.raf(time);
+        frame = requestAnimationFrame(loop);
+      };
+      frame = requestAnimationFrame(loop);
+      destroy = () => {
+        lenis.destroy();
+        setLenis(null);
+      };
     });
-    lenisRef.current = lenis;
-    setLenis(lenis);
-
-    lenis.on("scroll", ScrollTrigger.update);
-
-    const raf = (time: number) => {
-      lenis.raf(time * 1000);
-    };
-    gsap.ticker.add(raf);
-    gsap.ticker.lagSmoothing(0);
 
     return () => {
-      gsap.ticker.remove(raf);
-      lenis.destroy();
-      setLenis(null);
+      cancelled = true;
+      cancelAnimationFrame(frame);
+      destroy?.();
     };
   }, []);
 

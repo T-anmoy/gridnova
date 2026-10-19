@@ -26,11 +26,11 @@ import type { ActivityItem, StatTrend, Role } from '@/lib/dashboard/types'
 
 function TrendBadge({ trend }: { trend: StatTrend }) {
   if (trend === 0) {
-    return <span className="text-xs font-utility text-[#111827]/35">— vs yesterday</span>
+    return <span className="text-xs font-utility text-[#111827]/65">— vs yesterday</span>
   }
   const up = trend > 0
   return (
-    <span className={`inline-flex items-center gap-0.5 text-xs font-utility ${up ? 'text-[#f7a800]' : 'text-[#111827]/40'}`}>
+    <span className={`inline-flex items-center gap-0.5 text-xs font-utility ${up ? 'text-[#8a5a00]' : 'text-[#111827]/65'}`}>
       {up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
       {up ? '+' : ''}{trend} vs yesterday
     </span>
@@ -75,7 +75,7 @@ function StatCard({
             {trend ? (
               <TrendBadge trend={trend} />
             ) : (
-              <p className="text-xs font-utility text-[#111827]/40 group-hover:text-[#f7a800] transition-colors">
+              <p className="text-xs font-utility text-[#111827]/65 group-hover:text-[#8a5a00] transition-colors">
                 View details →
               </p>
             )}
@@ -138,7 +138,7 @@ function ActivityRow({ item }: { item: ActivityItem }) {
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-utility text-sm text-[#111827]/80 leading-snug">{item.description}</p>
-        <p className="mt-0.5 font-utility text-xs text-[#111827]/35">
+        <p className="mt-0.5 font-utility text-xs text-[#111827]/65">
           {item.actor ? `${item.actor} · ` : ''}{formatTimeAgo(item.created_at)}
         </p>
       </div>
@@ -176,9 +176,9 @@ function ActivityFeedSection() {
           </CardContent>
         </Card>
       ) : error ? (
-        <p className="font-utility text-sm text-[#111827]/40">Activity feed unavailable.</p>
+        <p className="font-utility text-sm text-[#111827]/65">Activity feed unavailable.</p>
       ) : (activity ?? []).length === 0 ? (
-        <p className="font-utility text-sm text-[#111827]/40">No recent activity.</p>
+        <p className="font-utility text-sm text-[#111827]/65">No recent activity.</p>
       ) : (
         <Card>
           <CardContent className="pt-2 pb-0">
@@ -224,7 +224,7 @@ export default function DashboardOverview() {
         <h1 className="font-display text-2xl font-bold text-[#091c3c]">
           Good {getGreeting()}, {user?.firstName ?? 'there'}
         </h1>
-        <p className="font-utility text-sm text-[#111827]/50 mt-1">
+        <p className="font-utility text-sm text-[#111827]/65 mt-1">
           {formatLongDate()}
         </p>
       </div>
@@ -242,7 +242,7 @@ export default function DashboardOverview() {
             <CheckCircle className="h-8 w-8 text-[#f7a800]" />
           </div>
           <h2 className="font-display text-xl font-semibold text-[#091c3c]">You&rsquo;re all caught up</h2>
-          <p className="font-utility text-sm text-[#111827]/50 mt-2">No pending actions at the moment.</p>
+          <p className="font-utility text-sm text-[#111827]/65 mt-2">No pending actions at the moment.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

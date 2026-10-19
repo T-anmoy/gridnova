@@ -36,13 +36,13 @@ export default function CompanyOverview({ t }: { t: Messages["about"]["overview"
                 className="object-cover object-center"
               />
             </div>
-            <p className="font-utility text-[11px] tracking-[0.15em] text-[#0e2a63]/50 uppercase mb-6">
+            <p className="font-utility text-[11px] tracking-[0.15em] text-[#0e2a63]/75 uppercase mb-6">
               {t.glance}
             </p>
             <dl className="space-y-6">
               {FACTS.map((f) => (
                 <div key={f.label} className="pb-6 border-b border-[#e4e8ee] last:border-0 last:pb-0">
-                  <dt className="text-[#111827]/45 text-xs font-utility">
+                  <dt className="text-[#111827]/65 text-xs font-utility">
                     {f.label}
                   </dt>
                   <dd className="mt-1.5 font-display text-[#0e2a63] font-semibold text-lg">

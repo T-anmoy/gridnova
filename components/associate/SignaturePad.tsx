@@ -169,7 +169,7 @@ export default function SignaturePad({
   const hintId = `${id}-hint`
   return (
     <div>
-      <p id={`${id}-label`} className="font-utility text-xs text-[#111827]/55 uppercase tracking-[0.1em] mb-1.5">
+      <p id={`${id}-label`} className="font-utility text-xs text-[#111827]/65 uppercase tracking-[0.1em] mb-1.5">
         {label}
       </p>
       <canvas
@@ -187,7 +187,7 @@ export default function SignaturePad({
         className={`block h-40 w-full touch-none rounded-xl border-2 bg-white ${invalid ? 'border-red-300' : 'border-dashed border-[#c9d2de]'} ${disabled ? 'opacity-50' : 'cursor-crosshair'}`}
       />
       <div className="mt-1.5 flex items-center justify-between gap-3">
-        <p id={hintId} className="text-xs text-[#111827]/55 font-utility">
+        <p id={hintId} className="text-xs text-[#111827]/65 font-utility">
           {hint}
         </p>
         <button

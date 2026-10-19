@@ -86,8 +86,8 @@ function ChartFrame({
           <Skeleton className="h-[240px] w-full rounded-lg" />
         ) : isEmpty ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <TrendingUp className="h-10 w-10 text-[#111827]/20 mb-3" />
-            <p className="font-utility text-sm text-[#111827]/50">No data for this period</p>
+            <TrendingUp className="h-10 w-10 text-[#111827]/65 mb-3" />
+            <p className="font-utility text-sm text-[#111827]/65">No data for this period</p>
           </div>
         ) : (
           children

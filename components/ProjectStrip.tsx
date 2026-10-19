@@ -62,7 +62,7 @@ export default function ProjectStrip({
                     <CountUp value={item.stat} />
                   </div>
                   <h3 className="mt-2 font-display text-[#0e2a63] font-semibold">{item.title}</h3>
-                  <p className="mt-1 text-[#111827]/55 text-sm font-utility flex-1">{item.place}</p>
+                  <p className="mt-1 text-[#111827]/65 text-sm font-utility flex-1">{item.place}</p>
                   <ArrowUpRight className="mt-4 h-4 w-4 text-[#0e2a63]/40 group-hover:text-[#f7a800] transition-colors duration-300" aria-hidden="true" />
                 </div>
               </Link>
@@ -71,11 +71,11 @@ export default function ProjectStrip({
         </div>
 
         <ScrollReveal delay={0.15}>
-          <p className="mt-8 text-[#111827]/55 text-sm leading-relaxed">
+          <p className="mt-8 text-[#111827]/65 text-sm leading-relaxed">
             <span className="font-utility font-semibold text-[#0e2a63]">{t.districtsLabel}:</span>{" "}
             {districts.join(" · ")}
           </p>
-          <p className="mt-2 text-[#111827]/40 text-xs font-utility">{t.footnote}</p>
+          <p className="mt-2 text-[#111827]/65 text-xs font-utility">{t.footnote}</p>
         </ScrollReveal>
       </div>
     </section>

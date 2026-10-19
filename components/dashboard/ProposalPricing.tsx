@@ -47,11 +47,11 @@ export default function ProposalPricing({ content, totalValue }: { content: Prop
         ) : (
           <>
             <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              <div><dt className="text-xs text-gray-400">Package</dt><dd>{p.package_name ?? p.package}</dd></div>
-              <div><dt className="text-xs text-gray-400">Size</dt><dd>{p.kw != null ? `${p.kw} kW` : '—'}{p.phase ? ` · ${p.phase}` : ''}</dd></div>
-              <div><dt className="text-xs text-gray-400">Basic</dt><dd data-testid="list-basic">{formatInr(p.basic)}</dd></div>
-              <div><dt className="text-xs text-gray-400">GST</dt><dd data-testid="list-gst">{formatInr(p.gst)}</dd></div>
-              <div><dt className="text-xs text-gray-400">List price (final)</dt><dd className="font-semibold" data-testid="list-final">{formatInr(p.adjusted ? (p.list_price_final ?? p.final) : p.final)}</dd></div>
+              <div><dt className="text-xs text-gray-500">Package</dt><dd>{p.package_name ?? p.package}</dd></div>
+              <div><dt className="text-xs text-gray-500">Size</dt><dd>{p.kw != null ? `${p.kw} kW` : '—'}{p.phase ? ` · ${p.phase}` : ''}</dd></div>
+              <div><dt className="text-xs text-gray-500">Basic</dt><dd data-testid="list-basic">{formatInr(p.basic)}</dd></div>
+              <div><dt className="text-xs text-gray-500">GST</dt><dd data-testid="list-gst">{formatInr(p.gst)}</dd></div>
+              <div><dt className="text-xs text-gray-500">List price (final)</dt><dd className="font-semibold" data-testid="list-final">{formatInr(p.adjusted ? (p.list_price_final ?? p.final) : p.final)}</dd></div>
             </dl>
             {p.gst_rule?.description && <p className="text-xs text-gray-500">{p.gst_rule.description}</p>}
             {p.adjusted && (
@@ -63,7 +63,7 @@ export default function ProposalPricing({ content, totalValue }: { content: Prop
           </>
         )}
         {(p.destination || sha) && (
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-500">
             {p.destination && <>Destination: {p.destination}. </>}
             {sha && <span title={sha}>Source fingerprint {sha.slice(0, 12)}…</span>}
           </p>

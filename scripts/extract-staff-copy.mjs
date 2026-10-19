@@ -36,9 +36,22 @@ export function pickStaffCopy(en) {
   }
 }
 
+/**
+ * The staff Leads screens (FE-6) read their `staffLeads` namespace from here.
+ * The dashboard is English-only, so only the English copy is carried; hi/bn
+ * keep their `staffLeads` keys in messages/ for the i18n parity test.
+ */
+export function pickStaffLeadsCopy(en) {
+  return { en: en.staffLeads }
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const en = JSON.parse(readFileSync(path.join(root, 'messages/en.json'), 'utf8'))
+  const read = (f) => JSON.parse(readFileSync(path.join(root, 'messages', f), 'utf8'))
+  const en = read('en.json')
   const out = path.join(root, 'lib/dashboard/staff-copy.generated.json')
   writeFileSync(out, JSON.stringify(pickStaffCopy(en), null, 2) + '\n')
   console.log(`wrote ${path.relative(root, out)}`)
+  const leadsOut = path.join(root, 'lib/dashboard/staff-leads-copy.generated.json')
+  writeFileSync(leadsOut, JSON.stringify(pickStaffLeadsCopy(en), null, 2) + '\n')
+  console.log(`wrote ${path.relative(root, leadsOut)}`)
 }

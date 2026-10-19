@@ -18,6 +18,12 @@ import {
   Tags,
   FileSearch,
   FilePenLine,
+  Coins,
+  Network,
+  LifeBuoy,
+  Sparkles,
+  Archive,
+  FileUp,
 } from 'lucide-react'
 import type { Role } from '@/lib/dashboard/types'
 import type { WorkQueues } from '@/lib/dashboard/execution-types'
@@ -30,17 +36,25 @@ export interface NavItem {
   // The proposals pending-approval badge.
   badge?: boolean
   // A badge fed by GET /dashboard/work-queues (role-scoped by the backend).
-  queue?: 'execution' | 'payments' | 'survey_reviews' | 'survey_corrections'
+  queue?: 'execution' | 'payments' | 'survey_reviews' | 'survey_corrections' | 'service_requests'
 }
 
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Overview', href: '/dashboard', icon: LayoutDashboard, roles: 'all' },
-  { label: 'Leads', href: '/dashboard/leads', icon: Users, roles: 'all' },
+  // Operations and Accounts see no leads (staff_contracts.md visibility rule).
+  { label: 'Leads', href: '/dashboard/leads', icon: Users, roles: ['admin', 'management', 'sales', 'engineer'] },
   { label: 'Onboardings', href: '/dashboard/onboardings', icon: ListChecks, roles: ['admin', 'sales', 'management'] },
   { label: 'Operations', href: '/dashboard/operations', icon: Wrench, roles: ['admin', 'management', 'engineer', 'operations'], queue: 'execution' },
   { label: 'Accounts', href: '/dashboard/accounts', icon: Wallet, roles: ['admin', 'management', 'accounts'], queue: 'payments' },
+  // Commissions & payouts: Management reads; Accounts and Admin act (the screens gate each control).
+  { label: 'Commissions', href: '/dashboard/commissions', icon: Coins, roles: ['admin', 'management', 'accounts'] },
+  // Admin and Management: the whole network at a glance (GET /dashboard/network/summary).
+  { label: 'Network Command Centre', href: '/dashboard/network', icon: Network, roles: ['admin', 'management'] },
   { label: 'Survey reviews', href: '/dashboard/survey-reviews', icon: FileSearch, roles: ['admin', 'management', 'sales', 'engineer'], queue: 'survey_reviews' },
   { label: 'Survey corrections', href: '/dashboard/survey-corrections', icon: FilePenLine, roles: ['admin', 'management', 'sales', 'engineer'], queue: 'survey_corrections' },
+  // Service requests (BE-5). Read: Admin, Management, Engineer, Operations, and Sales for their own leads;
+  // only Operations, Engineers and Admin work on them (the screens gate the controls).
+  { label: 'Service requests', href: '/dashboard/service-requests', icon: LifeBuoy, roles: ['admin', 'management', 'engineer', 'operations', 'sales'], queue: 'service_requests' },
   { label: 'Attribution Flags', href: '/dashboard/attribution-flags', icon: ShieldAlert, roles: ['admin'] },
   { label: 'Meetings', href: '/dashboard/meetings', icon: CalendarClock, roles: ['admin', 'sales', 'management'] },
   { label: 'Site Assessments', href: '/dashboard/site-assessments', icon: ClipboardCheck, roles: ['admin', 'sales'] },
@@ -50,6 +64,11 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Associate Network', href: '/dashboard/associate-network', icon: Handshake, roles: ['admin'] },
   { label: 'Data Checklist', href: '/dashboard/data-checklist', icon: Database, roles: ['admin', 'management'] },
   { label: 'Audit Log', href: '/dashboard/audit-log', icon: ClipboardList, roles: ['admin', 'management'] },
+  // Nova Records (BE-9): all six staff roles ask; the backend scopes every answer to the role.
+  { label: 'Ask Nova', href: '/dashboard/nova', icon: Sparkles, roles: 'all' },
+  // Project Archive (BE-8): every staff role reads (fields are redacted by the backend); only Admin imports.
+  { label: 'Project archive', href: '/dashboard/archive', icon: Archive, roles: 'all' },
+  { label: 'Archive import', href: '/dashboard/archive/import', icon: FileUp, roles: ['admin'] },
   { label: 'Equipment', href: '/dashboard/equipment', icon: Package, roles: 'all' },
   { label: 'Price list', href: '/dashboard/price-list', icon: Tags, roles: ['admin', 'management', 'sales'] },
   { label: 'Agent Control', href: '/dashboard/agents', icon: Bot, roles: ['admin'] },
@@ -71,6 +90,8 @@ export const visibleNavItems = (role: Role | undefined): NavItem[] => NAV_ITEMS.
 export function queueBadgeCount(queue: NonNullable<NavItem['queue']>, queues: WorkQueues | undefined): number {
   if (queue === 'survey_reviews') return queues?.survey_reviews?.awaiting ?? 0
   if (queue === 'survey_corrections') return queues?.survey_corrections?.pending ?? 0
+  // `overdue` is a subset of `open`, so adding both would count an overdue request twice.
+  if (queue === 'service_requests') return queues?.service_requests?.open ?? 0
   const q = queues?.[queue]
   return q ? Object.values(q).reduce((sum, n) => sum + (typeof n === 'number' ? n : 0), 0) : 0
 }
@@ -78,4 +99,9 @@ export function queueBadgeCount(queue: NonNullable<NavItem['queue']>, queues: Wo
 /** Overdue surveys (a subset of the awaiting count) for the second badge. */
 export function overdueSurveyCount(queues: WorkQueues | undefined): number {
   return queues?.survey_reviews?.overdue ?? 0
+}
+
+/** Overdue service requests (a subset of the open count) for the second badge. */
+export function overdueServiceRequestCount(queues: WorkQueues | undefined): number {
+  return queues?.service_requests?.overdue ?? 0
 }

@@ -34,12 +34,12 @@ export default function CalculatorReveal({ result }: { result: PriceListFields }
   return (
     <div className="space-y-4">
       {status === "loading" && (
-        <p role="status" className="flex items-center gap-2 font-utility text-xs text-[#111827]/50">
+        <p role="status" className="flex items-center gap-2 font-utility text-xs text-[#111827]/65">
           <Loader2 className="h-3 w-3 animate-spin" /> {p.packages.loading}
         </p>
       )}
       <PriceListSummary fields={result} catalogue={catalogue} hidePrices={hidePrices} />
-      <p className="font-utility text-xs leading-relaxed text-[#111827]/50">{t.reveal.disclaimer}</p>
+      <p className="font-utility text-xs leading-relaxed text-[#111827]/65">{t.reveal.disclaimer}</p>
     </div>
   );
 }

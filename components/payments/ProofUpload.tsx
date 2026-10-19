@@ -130,9 +130,9 @@ export default function ProofUpload({
           }}
         />
       </div>
-      <p className="mt-1.5 font-utility text-[11px] text-[#111827]/45">{copy.proofHint}</p>
+      <p className="mt-1.5 font-utility text-[11px] text-[#111827]/65">{copy.proofHint}</p>
       {(preparing || status === 'uploading') && (
-        <p role="status" className="mt-2 flex items-center gap-1.5 font-utility text-xs text-[#111827]/55">
+        <p role="status" className="mt-2 flex items-center gap-1.5 font-utility text-xs text-[#111827]/65">
           <Loader2 className="h-3 w-3 animate-spin" />
           {preparing ? m.preparing : typeof progress === 'number' && progress > 0 ? m.uploadingPct.replace('{percent}', String(progress)) : m.uploading}
         </p>

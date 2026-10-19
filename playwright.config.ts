@@ -37,6 +37,8 @@ export default defineConfig({
     // to well-formed TEST keys so the public-site E2E suite runs without a real
     // Clerk account. Real keys (for dashboard/auth work) still win if present.
     env: {
+      // Stands in for the backend on the server-side accept-page fetch (see the file).
+      NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ""} --require ./tests/e2e/mock-backend-preload.cjs`.trim(),
       // A production build refuses a missing or localhost API URL (lib/config.ts).
       // The suite never reaches a real backend (the chat is mocked per test), so
       // a syntactically valid, non-local placeholder is enough.

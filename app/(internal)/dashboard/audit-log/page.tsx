@@ -44,9 +44,9 @@ export default function AuditLogPage() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <ShieldOff className="h-12 w-12 text-[#111827]/20 mx-auto mb-4" />
+          <ShieldOff className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
           <p className="font-display text-lg font-semibold text-[#091c3c]">Access Denied</p>
-          <p className="font-utility text-sm text-[#111827]/50 mt-1">The audit log is only available to admins and management.</p>
+          <p className="font-utility text-sm text-[#111827]/65 mt-1">The audit log is only available to admins and management.</p>
         </div>
       </div>
     )
@@ -64,7 +64,7 @@ export default function AuditLogPage() {
     <div>
       <div className="mb-6">
         <h1 className="font-display text-2xl font-bold text-[#091c3c]">Audit Log</h1>
-        <p className="font-utility text-sm text-[#111827]/50 mt-1">{total} entries</p>
+        <p className="font-utility text-sm text-[#111827]/65 mt-1">{total} entries</p>
       </div>
 
       {/* Filters */}
@@ -127,7 +127,7 @@ export default function AuditLogPage() {
                   : items.length === 0
                   ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-12 font-utility text-[#111827]/40">
+                        <TableCell colSpan={6} className="text-center py-12 font-utility text-[#111827]/65">
                           No audit log entries found
                         </TableCell>
                       </TableRow>
@@ -139,10 +139,18 @@ export default function AuditLogPage() {
                           onClick={() => toggleExpand(log.id)}
                         >
                           <TableCell>
-                            {expandedId === log.id
-                              ? <ChevronUp className="h-3.5 w-3.5 text-[#111827]/40" />
-                              : <ChevronDown className="h-3.5 w-3.5 text-[#111827]/40" />
-                            }
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); toggleExpand(log.id) }}
+                              aria-expanded={expandedId === log.id}
+                              aria-label={`${expandedId === log.id ? 'Hide' : 'Show'} changes for ${log.action}`}
+                              className="flex h-8 w-8 items-center justify-center rounded text-[#111827]/65 hover:text-[#111827] focus-visible:outline-2 focus-visible:outline-[#2f5daa]"
+                            >
+                              {expandedId === log.id
+                                ? <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />
+                                : <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+                              }
+                            </button>
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline" className="font-utility text-xs">{log.entity_type}</Badge>
@@ -150,20 +158,20 @@ export default function AuditLogPage() {
                           <TableCell className="font-utility text-sm text-[#111827]/60">{String(log.entity_id)}</TableCell>
                           <TableCell className="font-utility text-sm font-medium text-[#091c3c]">{log.action}</TableCell>
                           <TableCell className="font-utility text-sm text-[#111827]/60">{log.performed_by}</TableCell>
-                          <TableCell className="font-utility text-xs text-[#111827]/50">{formatDatetime(log.created_at)}</TableCell>
+                          <TableCell className="font-utility text-xs text-[#111827]/65">{formatDatetime(log.created_at)}</TableCell>
                         </TableRow>
                         {expandedId === log.id && (
                           <TableRow className="bg-[#f7f9fc]">
                             <TableCell colSpan={6} className="py-3 px-6">
                               <div className="grid md:grid-cols-2 gap-4">
                                 <div>
-                                  <p className="font-utility text-xs font-semibold text-[#111827]/50 uppercase tracking-wider mb-1">Before</p>
+                                  <p className="font-utility text-xs font-semibold text-[#111827]/65 uppercase tracking-wider mb-1">Before</p>
                                   <pre className="font-utility text-xs text-[#111827] bg-white border border-[#e4e8ee] rounded p-3 overflow-x-auto max-h-40">
                                     {log.before_value != null ? JSON.stringify(log.before_value, null, 2) : '(none)'}
                                   </pre>
                                 </div>
                                 <div>
-                                  <p className="font-utility text-xs font-semibold text-[#111827]/50 uppercase tracking-wider mb-1">After</p>
+                                  <p className="font-utility text-xs font-semibold text-[#111827]/65 uppercase tracking-wider mb-1">After</p>
                                   <pre className="font-utility text-xs text-[#111827] bg-white border border-[#e4e8ee] rounded p-3 overflow-x-auto max-h-40">
                                     {log.after_value != null ? JSON.stringify(log.after_value, null, 2) : '(none)'}
                                   </pre>
@@ -181,7 +189,7 @@ export default function AuditLogPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="mt-4 flex items-center justify-between">
-              <p className="font-utility text-sm text-[#111827]/50">Page {page} of {totalPages}</p>
+              <p className="font-utility text-sm text-[#111827]/65">Page {page} of {totalPages}</p>
               <div className="flex gap-2">
                 <Button
                   variant="outline"

@@ -198,11 +198,11 @@ export default function TechPageContent({ t }: { t: Messages["technology"] }) {
                   <button
                     key={s.n}
                     onClick={() => scrollToStep(s.n)}
-                    className={`group flex items-center gap-3 text-sm font-utility text-left transition-all duration-300 py-1 ${
-                      active === idx ? "text-[#f7a800]" : "text-white/35 hover:text-white/65"
+                    className={`group flex items-center gap-3 text-sm font-utility text-left transition-colors duration-300 py-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f7a800] ${
+                      active === idx ? "text-[#f7a800]" : "text-white/60 hover:text-white/65"
                     }`}
                   >
-                    <span className={`font-display text-lg transition-all duration-300 shrink-0 ${active === idx ? "text-[#f7a800] font-bold" : "text-white/20"}`}>
+                    <span className={`font-display text-lg transition-colors duration-300 shrink-0 ${active === idx ? "text-[#f7a800] font-bold" : "text-white/20"}`}>
                       {s.n}
                     </span>
                     <span className={active === idx ? "font-semibold" : ""}>{s.title}</span>
@@ -216,7 +216,8 @@ export default function TechPageContent({ t }: { t: Messages["technology"] }) {
 
       {/* Fixed pill scroll-spy nav — appears after intro scrolls by, desktop xl+ only */}
       <div
-        className={`hidden xl:flex fixed right-5 top-1/2 -translate-y-1/2 z-30 flex-col gap-0.5 bg-white/92 backdrop-blur-md rounded-2xl shadow-[0_4px_32px_-8px_rgba(14,42,99,0.18)] p-2.5 border border-[#e4e8ee]/80 transition-all duration-500 ${
+        inert={!navVisible}
+        className={`hidden xl:flex fixed right-5 top-1/2 -translate-y-1/2 z-30 flex-col gap-0.5 bg-white/92 backdrop-blur-md rounded-2xl shadow-[0_4px_32px_-8px_rgba(14,42,99,0.18)] p-2.5 border border-[#e4e8ee]/80 transition-[opacity,transform] duration-500 motion-reduce:transition-none ${
           navVisible ? "opacity-100 pointer-events-auto translate-x-0" : "opacity-0 pointer-events-none translate-x-4"
         }`}
       >
@@ -224,26 +225,26 @@ export default function TechPageContent({ t }: { t: Messages["technology"] }) {
           <button
             key={step.n}
             onClick={() => scrollToStep(step.n)}
-            className={`group flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left transition-all duration-200 ${
+            className={`group flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-[#2f5daa] ${
               active === idx ? "bg-[#0e2a63]/8" : "hover:bg-[#0e2a63]/4"
             }`}
           >
             <span
               className={`text-[10px] font-display font-bold w-5 transition-colors duration-200 ${
-                active === idx ? "text-[#2f5daa]" : "text-[#111827]/25 group-hover:text-[#111827]/55"
+                active === idx ? "text-[#2f5daa]" : "text-[#111827]/65 group-hover:text-[#111827]/65"
               }`}
             >
               {step.n}
             </span>
             <span
-              className={`text-[10px] font-utility transition-all duration-200 ${
-                active === idx ? "text-[#0e2a63] font-semibold" : "text-[#111827]/40 group-hover:text-[#111827]/70"
+              className={`text-[10px] font-utility transition-colors duration-200 ${
+                active === idx ? "text-[#0e2a63] font-semibold" : "text-[#111827]/65 group-hover:text-[#111827]/70"
               }`}
             >
               {step.navLabel}
             </span>
             <span
-              className={`h-1 w-1 rounded-full flex-shrink-0 transition-all duration-200 ${
+              className={`h-1 w-1 rounded-full flex-shrink-0 transition-opacity duration-200 ${
                 active === idx ? "bg-[#2f5daa] opacity-100" : "opacity-0"
               }`}
             />

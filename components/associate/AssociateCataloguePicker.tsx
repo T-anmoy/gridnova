@@ -9,7 +9,7 @@ import type { Messages } from '@/lib/i18n/types'
 
 type EntryCopy = Messages['associates']['portal']['execution']['register']['entry']
 
-const field = 'w-full min-h-[44px] rounded-xl border border-[#e4e8ee] bg-white px-3 py-2 text-sm outline-none focus:border-[#2f5daa]'
+const field = 'w-full min-h-[44px] rounded-xl border border-[#e4e8ee] bg-white px-3 py-2 text-sm outline-none focus-visible:border-[#2f5daa] focus-visible:ring-2 focus-visible:ring-[#2f5daa]/25'
 const SEARCH_DELAY_MS = 350
 
 /**
@@ -78,9 +78,9 @@ export default function AssociateCataloguePicker({
 
   return (
     <div className="space-y-2">
-      <label htmlFor={id} className="block text-xs uppercase tracking-[0.1em] text-[#111827]/55">{copy.searchLabel}</label>
+      <label htmlFor={id} className="block text-xs uppercase tracking-[0.1em] text-[#111827]/65">{copy.searchLabel}</label>
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#111827]/40" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#111827]/65" />
         <input id={id} type="search" className={`${field} pl-9`} value={text} placeholder={copy.searchPlaceholder} maxLength={100} onChange={(e) => setText(e.target.value)} autoComplete="off" />
       </div>
       {value && <p className="text-xs font-semibold text-[#0e2a63]" data-testid="picked-model">{copy.selected.replace('{model}', `${value.brand} ${value.model_name}`)}</p>}

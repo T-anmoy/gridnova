@@ -6,10 +6,10 @@ import { localizedMetadata } from "@/lib/i18n/metadata";
 export const generateMetadata = localizedMetadata("technology", "/technology");
 
 export default async function TechnologyPage({ params }: LangParams) {
-  const m = messagesFor(await resolveLocale(params));
+  const m = (await messagesFor(await resolveLocale(params)));
   const t = m.technology;
   return (
-    <main>
+    <main id="main-content">
       <TechPageContent t={t} />
       <CTASection t={m.cta} />
     </main>

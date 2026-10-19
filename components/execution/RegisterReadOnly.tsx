@@ -40,14 +40,14 @@ export default function RegisterReadOnly({
       </div>
 
       {units.length === 0 ? (
-        <p className="text-sm text-[#111827]/55">{copy.empty}</p>
+        <p className="text-sm text-[#111827]/65">{copy.empty}</p>
       ) : (
         <>
           <dl className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4" data-testid="register-totals">
-            <div><dt className="text-[#111827]/50">{copy.totalModules}</dt><dd className="font-semibold">{register.totals.modules}</dd></div>
-            <div><dt className="text-[#111827]/50">{copy.totalInverters}</dt><dd className="font-semibold">{register.totals.inverters}</dd></div>
-            <div><dt className="text-[#111827]/50">{copy.moduleKw}</dt><dd className="font-semibold">{fill(copy.kw, { value: register.capacity.installed_module_kw })}</dd></div>
-            <div><dt className="text-[#111827]/50">{copy.inverterKw}</dt><dd className="font-semibold">{fill(copy.kw, { value: register.totals.inverter_kw })}</dd></div>
+            <div><dt className="text-[#111827]/65">{copy.totalModules}</dt><dd className="font-semibold">{register.totals.modules}</dd></div>
+            <div><dt className="text-[#111827]/65">{copy.totalInverters}</dt><dd className="font-semibold">{register.totals.inverters}</dd></div>
+            <div><dt className="text-[#111827]/65">{copy.moduleKw}</dt><dd className="font-semibold">{fill(copy.kw, { value: register.capacity.installed_module_kw })}</dd></div>
+            <div><dt className="text-[#111827]/65">{copy.inverterKw}</dt><dd className="font-semibold">{fill(copy.kw, { value: register.totals.inverter_kw })}</dd></div>
           </dl>
           <ul className="divide-y divide-[#e4e8ee] rounded-xl border border-[#e4e8ee]">
             {units.map((u) => (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { UploadCloud, X, FileText, AlertCircle } from "lucide-react";
 import { FloatLabel } from "./formPrimitives";
 
@@ -38,7 +38,7 @@ function ThumbOrChip({ file, onRemove }: { file: File; onRemove: () => void }) {
   }, [previewUrl]);
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
@@ -62,17 +62,17 @@ function ThumbOrChip({ file, onRemove }: { file: File; onRemove: () => void }) {
         <p className="text-[#111827] text-xs font-utility font-medium truncate max-w-[160px]">
           {file.name}
         </p>
-        <p className="text-[#111827]/40 text-[11px] font-utility">{formatSize(file.size)}</p>
+        <p className="text-[#111827]/65 text-[11px] font-utility">{formatSize(file.size)}</p>
       </div>
       <button
         type="button"
         onClick={onRemove}
         aria-label={`Remove ${file.name}`}
-        className="absolute right-2 top-1/2 -translate-y-1/2 text-[#111827]/30 hover:text-red-500 transition-colors"
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-[#111827]/65 hover:text-red-500 transition-colors"
       >
         <X className="h-3.5 w-3.5" />
       </button>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -133,7 +133,7 @@ export default function FileUploadSlot({
     <div>
       <FloatLabel id={id} label={label} optional={optional} error={error} />
       {helperText && (
-        <p className="text-[#111827]/45 text-xs font-utility leading-relaxed mb-2.5 -mt-0.5">
+        <p className="text-[#111827]/65 text-xs font-utility leading-relaxed mb-2.5 -mt-0.5">
           {helperText}
         </p>
       )}
@@ -166,7 +166,7 @@ export default function FileUploadSlot({
             e.target.value = "";
           }}
         />
-        <UploadCloud className={`h-6 w-6 mx-auto mb-2 ${atLimit ? "text-[#111827]/20" : "text-[#2f5daa]/60"}`} />
+        <UploadCloud className={`h-6 w-6 mx-auto mb-2 ${atLimit ? "text-[#111827]/65" : "text-[#2f5daa]/60"}`} />
         <p className="text-sm font-utility text-[#111827]/60">
           {atLimit ? (
             "Maximum files reached"
@@ -176,14 +176,14 @@ export default function FileUploadSlot({
             </>
           )}
         </p>
-        <p className="mt-1 text-[11px] font-utility text-[#111827]/40">
+        <p className="mt-1 text-[11px] font-utility text-[#111827]/65">
           {acceptedTypesLabel} · up to {maxSizeMB}MB each · max {maxFiles} file{maxFiles === 1 ? "" : "s"}
         </p>
       </div>
 
       <AnimatePresence>
         {localError && (
-          <motion.p
+          <m.p
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
@@ -191,7 +191,7 @@ export default function FileUploadSlot({
           >
             <AlertCircle className="h-3 w-3 shrink-0" />
             {localError}
-          </motion.p>
+          </m.p>
         )}
       </AnimatePresence>
 

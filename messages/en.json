@@ -20,7 +20,7 @@
     "pages": {
       "home": {
         "title": "Grid Nova Energy | Engineering India's Clean Energy Future",
-        "description": "Grid Nova Energy delivers solar EPC, rooftop solar, utility-scale and O&M solutions across India — 4,800+ street lamps, 330+ schools, 2,350+ PM-KUSUM pumps commissioned."
+        "description": "Grid Nova Energy delivers solar EPC, rooftop solar, utility-scale and O&M solutions across India. Track record of Grid Nova’s team and branches: 4,800+ street lamps, 330+ schools, 2,350+ PM-KUSUM pumps."
       },
       "about": {
         "title": "About Us",
@@ -73,7 +73,13 @@
     }
   },
   "common": {
-    "languageLabel": "Choose language"
+    "languageLabel": "Choose language",
+    "skipToContent": "Skip to main content",
+    "errorTitle": "Something went wrong",
+    "errorBody": "We couldn't load this page. Please try again — if it keeps happening, contact us and we'll sort it out.",
+    "errorRetry": "Try again",
+    "errorHome": "Go to the home page",
+    "offlineBanner": "You're offline. Changes can't be saved until your connection is back."
   },
   "nav": {
     "home": "Home",
@@ -359,8 +365,8 @@
     "quote": "“Every installation is a long-term contribution to a more energy-secure India.”",
     "intro": "Grid Nova Energy actively works to reduce greenhouse gas emissions and dependence on fossil fuels across India. Each project supports cleaner air for communities, lower operating costs for clients, and measurable progress toward the country’s national and global renewable energy commitments.",
     "impactEyebrow": "Documented Impact",
-    "impactTitle": "What we’ve actually delivered.",
-    "impactBody": "We report only what we can document. These are the installation figures from completed and commissioned projects across West Bengal and Bihar.",
+    "impactTitle": "Track record of Grid Nova’s team and branches.",
+    "impactBody": "We report only what we can document. These are the installation figures of Grid Nova’s team and branches from completed and commissioned projects across West Bengal and Bihar.",
     "impact": [
       {
         "label": "Solar street lamps",
@@ -580,7 +586,7 @@
       "items": [
         {
           "n": "Government & Institutional Solar",
-          "d": "Grid-connected rooftop solar for schools and public institutions, delivered to government programme quality and documentation standards — including 330+ schools electrified for WBREDA."
+          "d": "Grid-connected rooftop solar for schools and public institutions, delivered to government programme quality and documentation standards — including 330+ schools electrified for WBREDA by Grid Nova’s team and branches."
         },
         {
           "n": "Solar Street Lighting",
@@ -588,7 +594,7 @@
         },
         {
           "n": "Solar Water Pumps",
-          "d": "Solarisation of agricultural pump sets under PM-KUSUM Component C, replacing diesel and grid-dependent irrigation with solar-powered pumping. 2,350+ installations completed."
+          "d": "Solarisation of agricultural pump sets under PM-KUSUM Component C, replacing diesel and grid-dependent irrigation with solar-powered pumping. 2,350+ installations completed by Grid Nova’s team and branches."
         }
       ]
     },
@@ -1032,7 +1038,7 @@
       "sub": "Grid Nova Energy designs, procures and constructs solar infrastructure for residential, commercial, industrial and government clients — engineered for performance over the full lifecycle, not just the day it’s switched on.",
       "primary": "Start a Project",
       "secondary": "View Our Work",
-      "statsTitle": "The Grid Nova Team’s Track Record",
+      "statsTitle": "Track record of Grid Nova’s team and branches",
       "stats": [
         "Street lamps installed",
         "10kW WBREDA schools",
@@ -1797,7 +1803,8 @@
         "territory": "My Territory",
         "signOut": "Sign out",
         "customers": "My Customers",
-        "navLabel": "Portal"
+        "navLabel": "Portal",
+        "earnings": "Earnings"
       },
       "associate": {
         "home": {
@@ -2555,7 +2562,12 @@
           "survey_revisit_correction": "The engineer asked for another look at the survey — send a correction request.",
           "survey_resign_needed": "Signatures are needed again: {unsigned}.",
           "party_customer": "customer",
-          "party_associate": "you (associate)"
+          "party_associate": "you (associate)",
+          "commission_payout_paid": "Commission paid: {net} for {period}, sent to the account ending {last4} (reference {reference}).",
+          "commission_query_answered": "Grid Nova has answered your commission query.",
+          "handover_pending": "Installation is commissioned. Handover to the customer is still pending.",
+          "service_request_open": "Service request ({category}) is {status}.{warranty}",
+          "service_request_closed": "Service request ({category}) was {outcome}."
         },
         "blocked": {
           "formal_proposal_blocked": "The formal proposal is on hold.",
@@ -2563,7 +2575,274 @@
           "dcr_mismatch": "On hold: some modules aren’t DCR-compliant.",
           "generic": "This customer is on hold."
         },
-        "actionNeeded": "Action needed"
+        "actionNeeded": "Action needed",
+        "titles": {
+          "commission_payout_paid": "Commission payout",
+          "commission_query_answered": "Commission query",
+          "generic": "Update"
+        },
+        "service": {
+          "categories": {
+            "no_generation": "No generation",
+            "inverter_error": "Inverter error",
+            "physical_damage": "Physical damage",
+            "cleaning_om": "Cleaning or maintenance",
+            "other": "Something else"
+          },
+          "status": {
+            "open": "open",
+            "in_progress": "being worked on",
+            "resolved": "resolved",
+            "rejected": "closed without action"
+          },
+          "warrantyIn": " Within warranty.",
+          "warrantyOut": " Out of warranty."
+        }
+      },
+      "earnings": {
+        "title": "Earnings",
+        "intro": "Commission you have earned on customer payments that Grid Nova Accounts has verified.",
+        "loading": "Loading your earnings…",
+        "tabsLabel": "Earnings sections",
+        "tabs": {
+          "earnings": "Earnings",
+          "payouts": "Payouts"
+        },
+        "tiles": {
+          "earned": "Earned",
+          "earnedHint": "Waiting for Accounts to approve",
+          "approved": "Approved",
+          "approvedHint": "Will be paid in a monthly payout",
+          "paid": "Paid",
+          "paidHint": "Already sent to your bank account",
+          "fyTds": "TDS deducted in {year}",
+          "fyTdsHint": "Financial year so far",
+          "toRecover": "To be recovered",
+          "toRecoverHint": "Taken from your next payouts",
+          "nextPayout": "Next payout",
+          "nextPayoutBody": "{period}, expected by {date}",
+          "waiting": "Earnings waiting for a rate to be published: {count}."
+        },
+        "policy": "Read the Commission & Payout Policy",
+        "filterLabel": "Show",
+        "filters": {
+          "all": "Everything",
+          "earned": "Earned",
+          "approved": "Approved",
+          "paid": "Paid",
+          "reversed": "Reversed"
+        },
+        "empty": "No earnings yet. You earn commission once Grid Nova Accounts verifies a customer’s payment.",
+        "emptyFiltered": "Nothing matches this filter.",
+        "listLabel": "Your earnings",
+        "entry": {
+          "payment": "Payment #{id}",
+          "role": "Earned as",
+          "basis": "Verified amount without GST",
+          "rate": "Rate",
+          "amount": "Commission",
+          "ratePending": "Rate to be published",
+          "sharedEqually": "Shared equally between {count} people",
+          "reversalOf": "Reverses earning #{id}",
+          "reversedBy": "Reversed by entry #{id}",
+          "inPayout": "In the {period} payout",
+          "reason": "Reason: {reason}",
+          "rateDate": "Rate as on {date}",
+          "minus": "Money taken back"
+        },
+        "roles": {
+          "personal_sale": "Your own sale",
+          "territory_state": "State territory",
+          "territory_district": "District territory",
+          "territory_block": "Block territory"
+        },
+        "kinds": {
+          "earn": "Earning",
+          "reversal": "Reversal",
+          "recovery": "Recovery",
+          "adjustment": "Adjustment"
+        },
+        "status": {
+          "earned": "Earned",
+          "approved": "Approved",
+          "paid": "Paid",
+          "reversed": "Reversed"
+        },
+        "pending": {
+          "agreement_not_signed": "Waiting for the customer’s signed agreement. The amount appears once it is recorded.",
+          "placeholder_rates": "Waiting for Grid Nova to publish the commission rates.",
+          "basis_unavailable": "The amount cannot be worked out yet because this customer has a custom quote.",
+          "generic": "The amount is not worked out yet."
+        },
+        "query": {
+          "raise": "Raise a query",
+          "open": "Query open",
+          "view": "See queries",
+          "hide": "Hide queries",
+          "windowClosed": "The query window closed on {date}, so a query can no longer be raised on this entry.",
+          "windowOpen": "You can raise a query until {date}.",
+          "title": "Raise a query",
+          "label": "What would you like Grid Nova to check?",
+          "hint": "Up to 2000 characters.",
+          "submit": "Send query",
+          "sending": "Sending…",
+          "cancel": "Cancel",
+          "sent": "Your query was sent to Grid Nova.",
+          "required": "Write your question first.",
+          "empty": "No queries on this entry yet.",
+          "loading": "Loading queries…",
+          "yourQuery": "You asked",
+          "reply": "Grid Nova replied",
+          "waiting": "Waiting for Grid Nova",
+          "answered": "Answered",
+          "due": "Reply due by {date}",
+          "repliedOn": "Replied on {date}",
+          "errors": {
+            "invalid_message": "Write a question of up to 2000 characters.",
+            "query_window_closed": "The query window for this entry has closed.",
+            "query_already_open": "You already have an open query on this entry. Wait for the reply first.",
+            "not_found": "That entry could not be found.",
+            "generic": "Your query could not be sent. Please try again."
+          }
+        },
+        "payouts": {
+          "empty": "No payouts yet. Payouts are made monthly once a month’s commission has been approved.",
+          "listLabel": "Your payouts",
+          "gross": "Commission",
+          "recoveries": "Recoveries",
+          "carriedIn": "Carried over",
+          "tds": "TDS",
+          "tdsAt": "TDS ({rate})",
+          "net": "Paid to you",
+          "status": {
+            "approved": "Approved — payment on its way",
+            "paid": "Paid"
+          },
+          "paidOn": "Paid on {date}",
+          "bank": "Bank account ending {last4}",
+          "reference": "Bank reference: {reference}",
+          "carryForward": "Still to recover: {amount}",
+          "noPan": "No PAN on file, so TDS is deducted at the higher rate."
+        },
+        "pager": {
+          "previous": "Previous",
+          "next": "Next",
+          "page": "Page {page} of {pages}"
+        },
+        "territoryNote": "Earnings from your territory appear here too."
+      },
+      "handover": {
+        "title": "Handover & warranty",
+        "open": "Handover & warranty",
+        "back": "Back to customer",
+        "loading": "Loading…",
+        "notStartedTitle": "Installation has not started",
+        "notStartedBody": "Handover and warranty details appear once installation starts.",
+        "pack": {
+          "title": "Handover pack",
+          "progress": "{done} of {total} done",
+          "complete": "The handover pack is complete.",
+          "stillToDo": "Still to be done:",
+          "done": "Done",
+          "notDone": "Not done yet",
+          "handedOver": "Handed over to the customer.",
+          "openExecution": "Open the installation steps",
+          "items": {
+            "commissioning_report": "Commissioning report",
+            "net_meter_report": "Net-meter report",
+            "register_verified": "Serial numbers verified",
+            "final_payment": "Final payment received",
+            "orientation": "Customer orientation given",
+            "acknowledgement": "Customer acknowledgement",
+            "om_contact": "O&M contact given",
+            "generic": "Handover item"
+          }
+        },
+        "pdf": {
+          "title": "Handover pack PDF",
+          "download": "Download the PDF",
+          "notReady": "The PDF is not ready yet. It is prepared by Grid Nova after handover, and you can download it here once it is ready.",
+          "error": "The PDF could not be opened. Please try again later."
+        },
+        "warranty": {
+          "title": "Warranty",
+          "handedOver": "Handed over on {date}",
+          "system": "System warranty",
+          "systemRange": "{years} years: {from} to {to}",
+          "inWarranty": "In warranty",
+          "ended": "Warranty ended",
+          "om": "Free O&M",
+          "omRange": "{months} months, until {date}",
+          "omAfter": "O&M after the free period",
+          "panelLife": "Expected panel performance life",
+          "panelLifeValue": "{years} years (a life span, not a warranty)",
+          "unconfirmed": "Not confirmed yet",
+          "units": "Equipment",
+          "serial": "Serial {serial}",
+          "unitEnds": "Warranty until {date}",
+          "unitNoDate": "No warranty date",
+          "categories": {
+            "module": "Solar module",
+            "inverter": "Inverter",
+            "other": "Other equipment"
+          }
+        },
+        "requests": {
+          "title": "Service requests",
+          "empty": "No service requests for this customer.",
+          "raisedOn": "Raised on {date}",
+          "withinWarranty": "Within warranty",
+          "outOfWarranty": "Out of warranty",
+          "resolution": "Outcome: {note}",
+          "ownerOnly": "Only the customer’s owner can raise a service request.",
+          "notHandedOver": "A service request can be raised once the system is handed over.",
+          "raiseTitle": "Raise a service request",
+          "viewing": "Showing request #{id}",
+          "errors": {
+            "too_many_photos": "Too many photos. Remove some and try again.",
+            "invalid_category": "Choose what the problem is.",
+            "invalid_description": "Describe the problem in up to 2000 characters.",
+            "heic_not_supported": "That photo format is not supported. Use JPEG, PNG or WEBP.",
+            "invalid_file": "One of the photos could not be used.",
+            "file_too_large": "A photo is too large.",
+            "storage_not_configured": "Photos cannot be saved right now. Please try again later.",
+            "not_handed_over": "This customer has not been handed over yet.",
+            "generic": "The service request could not be sent. Please try again."
+          },
+          "statusChip": {
+            "open": "Open",
+            "in_progress": "In progress",
+            "resolved": "Resolved",
+            "rejected": "Closed without action"
+          }
+        },
+        "form": {
+          "category": "What is the problem?",
+          "categoryChoose": "Choose…",
+          "description": "Describe the problem",
+          "descriptionHint": "Up to 2000 characters. Say what you see and when it started.",
+          "phone": "Phone number to reach the customer (optional)",
+          "phoneHint": "So the service team can call back.",
+          "photos": "Photos (optional)",
+          "photosHint": "Up to {max} photos.",
+          "takePhoto": "Take a photo",
+          "choosePhoto": "Choose from phone",
+          "removePhoto": "Remove photo {name}",
+          "photoErrors": {
+            "notAnImage": "That file is not a photo. Use JPEG, PNG or WEBP.",
+            "heicFailed": "That photo could not be converted. Try another one.",
+            "tooLarge": "That photo is too large.",
+            "tooMany": "You can attach up to {max} photos."
+          },
+          "submit": "Send service request",
+          "submitting": "Sending…",
+          "sent": "The service request was sent.",
+          "errors": {
+            "category": "Choose what the problem is.",
+            "description": "Describe the problem in up to 2000 characters.",
+            "phone": "The phone number is too long."
+          }
+        }
       }
     },
     "territory": {
@@ -3235,6 +3514,208 @@
       "survey_not_feasible": "The engineer found this site not feasible, so a formal proposal cannot be prepared.",
       "seeReview": "See the survey review",
       "needsReverification": "The survey changed, so Grid Nova has to re-check the proposal before it can be accepted."
+    }
+  },
+  "staffLeads": {
+    "common": {
+      "retry": "Try again",
+      "cancel": "Cancel",
+      "close": "Close",
+      "loading": "Loading…",
+      "none": "—"
+    },
+    "filters": {
+      "heading": "Filters",
+      "show": "Show filters",
+      "hide": "Hide filters",
+      "activeCount": "{count} active",
+      "stage": "Pipeline stage",
+      "stageHint": "Choose any number of stages.",
+      "score": "Lead score",
+      "minScore": "Lowest score",
+      "maxScore": "Highest score",
+      "anyScore": "Any",
+      "scoreHelp": "Leads with no score never match a score filter.",
+      "created": "Created date",
+      "createdFrom": "Created from",
+      "createdTo": "Created to",
+      "dateHelp": "Dates are calendar days in India time (IST), both ends included.",
+      "clear": "Clear filters",
+      "stages": {
+        "new": "New",
+        "qualifying": "Qualifying",
+        "qualified": "Qualified",
+        "proposal_draft": "Proposal draft",
+        "proposal_sent": "Proposal sent",
+        "negotiation": "Negotiation",
+        "won": "Won",
+        "lost": "Lost"
+      },
+      "scores": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "errors": {
+        "unknown_stage": "One of the selected stages is not recognised. Clear the stage filter and choose again.",
+        "unknown_score": "That score is not recognised. Choose Low, Medium or High.",
+        "invalid_score_range": "The lowest score is above the highest score. Swap them or change one.",
+        "invalid_date": "That date is not valid. Use a real calendar day.",
+        "invalid_date_range": "The start date is after the end date. Swap them or change one."
+      }
+    },
+    "list": {
+      "totalCount": "{count} total leads",
+      "matchingCount": "{count} matching leads",
+      "pageStatus": "Page {page} of {pages} · {count} leads",
+      "noResults": "No results",
+      "noMatch": "No leads match these filters.",
+      "previous": "Previous",
+      "next": "Next",
+      "filterRejected": "The server did not accept these filters. See the message in the filter panel."
+    },
+    "export": {
+      "button": "Export CSV",
+      "busy": "Exporting…",
+      "forbidden": "Only Admin or Management can export leads.",
+      "filterRejected": "The export was refused because a filter is not valid. Check the filter panel.",
+      "network": "The export could not reach the server. Check your connection and try again.",
+      "failed": "The export failed. Try again.",
+      "scopeNote": "The CSV uses the same stage, score, date and source filters. Search and assignment are not applied to the export."
+    },
+    "detail": {
+      "notAssignedTitle": "This lead is not assigned to you",
+      "notAssignedBody": "Sales can open leads that are assigned to them or unassigned. Ask an Admin or Management to assign it to you.",
+      "loadFailed": "Failed to load lead",
+      "notFound": "Lead not found",
+      "back": "Back",
+      "technicalTitle": "Technical view",
+      "technicalNote": "Your role sees the technical fields of this lead only."
+    },
+    "meeting": {
+      "action": "Schedule meeting",
+      "title": "Schedule a meeting",
+      "description": "Books a Google Calendar event with a Meet link for lead #{leadId}.",
+      "whenLabel": "Date and time",
+      "whenHelp": "Enter the time in India time (IST).",
+      "durationLabel": "Duration (minutes)",
+      "durationHelp": "Optional. Leave blank to use the default length.",
+      "submit": "Schedule",
+      "submitting": "Scheduling…",
+      "successTitle": "Meeting scheduled",
+      "when": "When (IST)",
+      "duration": "Duration",
+      "durationValue": "{minutes} minutes",
+      "status": "Status",
+      "statuses": {
+        "scheduled": "Scheduled",
+        "cancelled": "Cancelled",
+        "completed": "Completed"
+      },
+      "joinLink": "Open the Meet link (opens in a new tab)",
+      "noLink": "No Meet link was created for this meeting.",
+      "errors": {
+        "invalidTime": "Enter a valid date and time.",
+        "invalidDuration": "Duration must be a whole number of minutes from 5 to 480.",
+        "role": "Your role cannot schedule meetings.",
+        "notAssigned": "This lead is not assigned to you.",
+        "notFound": "This lead no longer exists.",
+        "noCalendar": "No Google Calendar is connected for you or the lead's assignee. Connect a calendar on the Meetings page.",
+        "conflict": "The meeting could not be booked.",
+        "notConfigured": "Google Calendar is not set up on the server.",
+        "network": "Could not reach the server. Check your connection and try again.",
+        "generic": "The meeting could not be scheduled. Try again."
+      }
+    },
+    "memory": {
+      "title": "Customer memory",
+      "loading": "Loading memory…",
+      "profileTitle": "Profile",
+      "noProfile": "No profile has been built for this customer yet.",
+      "summary": "Summary",
+      "traits": "Traits",
+      "openQuestions": "Open questions",
+      "nextBestAction": "Next best action",
+      "lastReflected": "Last reflected",
+      "reflectionCount": "Reflections",
+      "listTitle": "Memories",
+      "kindLabel": "Kind",
+      "allKinds": "All kinds",
+      "kinds": {
+        "episode": "Episode",
+        "preference": "Preference",
+        "objection": "Objection",
+        "commitment": "Commitment",
+        "outcome": "Outcome",
+        "insight": "Insight",
+        "self_critique": "Self-critique"
+      },
+      "limitLabel": "Show up to",
+      "limitHelp": "From 1 to 500.",
+      "countLine": "Showing {shown} of {total} memories",
+      "empty": "No memories match.",
+      "salience": "Salience {value}",
+      "occurred": "Occurred",
+      "source": "Source",
+      "tags": "Tags",
+      "noValue": "None recorded",
+      "errors": {
+        "role": "Your role cannot view customer memory.",
+        "anotherRep": "This customer's leads are assigned to another rep.",
+        "notFound": "This customer was not found.",
+        "unknownKind": "That memory kind is not recognised.",
+        "agent": "Memory is unavailable right now.",
+        "network": "Could not reach the server. Check your connection and try again.",
+        "generic": "Memory could not be loaded."
+      }
+    },
+    "ask": {
+      "title": "Ask memory",
+      "description": "Ask about this customer. Answers come only from stored memory and are in English.",
+      "descriptionAny": "Ask about any customer. Include the customer's name. Answers come only from stored memory and are in English.",
+      "questionLabel": "Your question",
+      "counter": "{count} / 500",
+      "submit": "Ask",
+      "asking": "Asking…",
+      "answerTitle": "Answer",
+      "citationsTitle": "Sources",
+      "noCitations": "No stored memories were used.",
+      "retrieval": "Retrieval: {mode}",
+      "pickTitle": "Which customer do you mean?",
+      "pickHelp": "More than one customer matches. Choose one and the question will be asked again.",
+      "pick": "Ask about this customer",
+      "noMatch": "No matching customer.",
+      "scope": "Asking about {name}",
+      "errors": {
+        "role": "Your role cannot query customer memory.",
+        "anotherRep": "This customer's leads are assigned to another rep.",
+        "notFound": "This customer was not found.",
+        "agent": "The memory assistant could not answer.",
+        "network": "Could not reach the server. Check your connection and try again.",
+        "generic": "The question could not be answered. Try again.",
+        "unknownKind": "The question could not be answered."
+      }
+    },
+    "reflect": {
+      "action": "Reflect on conversation",
+      "running": "Reflecting…",
+      "written": "{count} memories written.",
+      "writtenOne": "1 memory written.",
+      "skippedPrefix": "Nothing was written.",
+      "skipped": {
+        "noNewMessages": "There are no new messages since the last reflection.",
+        "nothingReturned": "The reflection found nothing to record.",
+        "leadNotFound": "The lead was not found.",
+        "error": "The reflection ran into a problem and nothing was saved. You can try again later.",
+        "other": "The server gave this reason:"
+      },
+      "errors": {
+        "role": "Your role cannot trigger reflection.",
+        "notFound": "This lead no longer exists.",
+        "anotherRep": "This customer's leads are assigned to another rep.",
+        "network": "Could not reach the server. Check your connection and try again.",
+        "generic": "Reflection could not be started. Try again."
+      }
     }
   }
 }

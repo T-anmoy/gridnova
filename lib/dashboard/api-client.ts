@@ -2,6 +2,8 @@ import { notAuthenticatedError } from '@/lib/api/http'
 import { useAuth } from '@clerk/nextjs'
 import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { apiDownload, apiFetch as dashboardFetch, buildQS } from '@/lib/api/http'
+import { leadExportQuery, leadListQuery } from '@/lib/dashboard/lead-filters'
+import type { AnyLeadDetail } from '@/lib/dashboard/staff-leads-logic'
 import {
   overviewStatsSchema,
   activityFeedResponseSchema,
@@ -34,7 +36,6 @@ import type {
   EquipmentCreateInput,
   EquipmentListParams,
   GovernanceAgentsResponse,
-  LeadDetail,
   LeadListParams,
   LeadReassignResponse,
   LeadStageChangeResponse,
@@ -120,7 +121,7 @@ export function useLeads(params?: LeadListParams) {
     queryFn: async ({ signal }) => {
       const token = await getToken()
       if (!token) throw notAuthenticatedError()
-      const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
+      const qs = leadListQuery(params ?? {})
       return dashboardFetch(`/api/v1/dashboard/leads${qs}`, token, { signal }, leadListResponseSchema) as Promise<PaginatedResponse<LeadSummary>>
     },
     staleTime: LIST_STALE_TIME,
@@ -138,7 +139,7 @@ export function prefetchLeads(qc: QueryClient, getToken: () => Promise<string | 
     queryFn: async () => {
       const token = await getToken()
       if (!token) throw notAuthenticatedError()
-      const qs = buildQS((params as Record<string, string | number | boolean | undefined | null>) ?? {})
+      const qs = leadListQuery(params ?? {})
       return dashboardFetch('/api/v1/dashboard/leads' + qs, token, undefined, leadListResponseSchema) as Promise<PaginatedResponse<LeadSummary>>
     },
     staleTime: LIST_STALE_TIME,
@@ -174,7 +175,8 @@ export function useLead(id: number) {
     queryFn: async () => {
       const token = await getToken()
       if (!token) throw notAuthenticatedError()
-      return dashboardFetch<LeadDetail>(`/api/v1/dashboard/leads/${id}`, token)
+      // The Engineer response is a smaller shape with no `customer` key (staff_contracts.md §2).
+      return dashboardFetch<AnyLeadDetail>(`/api/v1/dashboard/leads/${id}`, token)
     },
     enabled: !!id,
   })
@@ -688,7 +690,7 @@ export function useProposalSearch(query: string) {
 }
 
 export async function downloadLeadsCsv(params: LeadListParams, token: string): Promise<void> {
-  const qs = buildQS(params as Record<string, string | number | boolean | undefined | null>)
+  const qs = leadExportQuery(params)
   await apiDownload(`/api/v1/dashboard/leads/export${qs}`, token, 'leads.csv')
 }
 

@@ -7,6 +7,7 @@
 import { useEffect } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { reportError } from '@/lib/monitoring'
 
 export default function DashboardRouteError({
   error,
@@ -16,8 +17,10 @@ export default function DashboardRouteError({
   reset: () => void
 }) {
   useEffect(() => {
-    // Surface for observability; real reporting would forward this.
-    console.error('Dashboard page error:', error)
+    // Only the digest goes to the console (the message can echo customer data);
+    // reportError is a no-op until a sink is registered (docs/monitoring.md).
+    console.error('Dashboard page error:', error.digest ?? '')
+    reportError(error, { area: 'dashboard', digest: error.digest })
   }, [error])
 
   return (
@@ -29,12 +32,12 @@ export default function DashboardRouteError({
         <h2 className="font-display text-xl font-semibold text-[#091c3c]">
           Something went wrong on this page
         </h2>
-        <p className="mt-2 font-utility text-sm text-[#111827]/55 leading-relaxed">
+        <p className="mt-2 font-utility text-sm text-[#111827]/65 leading-relaxed">
           The rest of the dashboard is still available in the sidebar. You can retry this page, and
           if it keeps happening, let the team know.
         </p>
         {error.digest && (
-          <p className="mt-3 font-utility text-[11px] text-[#111827]/35">Ref: {error.digest}</p>
+          <p className="mt-3 font-utility text-[11px] text-[#111827]/65">Ref: {error.digest}</p>
         )}
         <Button className="mt-6" onClick={() => reset()}>Retry</Button>
       </div>

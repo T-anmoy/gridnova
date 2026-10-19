@@ -12,6 +12,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ClickableRow } from '@/components/dashboard/ClickableRow'
+import Link from 'next/link'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDatetime } from '@/lib/dashboard/utils'
 import type { CalendarErrorReason, MeetingSummary, Role } from '@/lib/dashboard/types'
@@ -45,12 +47,12 @@ function CalendarStatusCard() {
     <Card className="mb-4">
       <CardContent className="pt-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <CalendarCheck2 className={`h-5 w-5 ${me?.google_calendar_connected ? 'text-green-600' : 'text-[#111827]/30'}`} />
+          <CalendarCheck2 className={`h-5 w-5 ${me?.google_calendar_connected ? 'text-green-600' : 'text-[#111827]/65'}`} />
           <div>
             <p className="font-utility text-sm font-medium text-[#091c3c]">
               {isLoading ? 'Checking calendar status…' : me?.google_calendar_connected ? 'Google Calendar connected' : 'Google Calendar not connected'}
             </p>
-            <p className="font-utility text-xs text-[#111827]/50 mt-0.5">
+            <p className="font-utility text-xs text-[#111827]/65 mt-0.5">
               Book a Call availability comes from connected calendars — if none are connected, the public booking widget shows no slots.
             </p>
           </div>
@@ -116,9 +118,9 @@ export default function MeetingsPage() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <ShieldOff className="h-12 w-12 text-[#111827]/20 mx-auto mb-4" />
+          <ShieldOff className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
           <p className="font-display text-lg font-semibold text-[#091c3c]">Access Denied</p>
-          <p className="font-utility text-sm text-[#111827]/50 mt-1">Meetings aren&rsquo;t available to your role.</p>
+          <p className="font-utility text-sm text-[#111827]/65 mt-1">Meetings aren&rsquo;t available to your role.</p>
         </div>
       </div>
     )
@@ -136,7 +138,7 @@ export default function MeetingsPage() {
 
       <div className="mb-6">
         <h1 className="font-display text-2xl font-bold text-[#091c3c]">Meetings</h1>
-        <p className="font-utility text-sm text-[#111827]/50 mt-1">{total} total meetings</p>
+        <p className="font-utility text-sm text-[#111827]/65 mt-1">{total} total meetings</p>
       </div>
 
       <CalendarStatusCard />
@@ -167,19 +169,21 @@ export default function MeetingsPage() {
                   : items.length === 0
                   ? (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center py-12 font-utility text-[#111827]/40">
+                        <TableCell colSpan={4} className="text-center py-12 font-utility text-[#111827]/65">
                           No meetings found
                         </TableCell>
                       </TableRow>
                     )
                   : items.map((meeting: MeetingSummary) => (
-                      <TableRow
+                      <ClickableRow
                         key={meeting.id}
-                        className="cursor-pointer hover:bg-[#f7f9fc] transition-colors"
-                        onClick={() => router.push(`/dashboard/leads/${meeting.lead_id}`)}
+                        className="hover:bg-[#f7f9fc] transition-colors"
+                        href={`/dashboard/leads/${meeting.lead_id}`}
                       >
                         <TableCell className="font-utility text-sm font-medium text-[#091c3c]">
-                          {meeting.customer?.name ?? '—'}
+                          <Link href={`/dashboard/leads/${meeting.lead_id}`} className="hover:underline">
+                            {meeting.customer?.name ?? '—'}
+                          </Link>
                         </TableCell>
                         <TableCell className="font-utility text-sm text-[#111827]/60">
                           {formatDatetime(meeting.scheduled_at)}
@@ -196,7 +200,7 @@ export default function MeetingsPage() {
                             #{meeting.lead_id}
                           </Button>
                         </TableCell>
-                      </TableRow>
+                      </ClickableRow>
                     ))}
               </TableBody>
             </Table>
@@ -204,7 +208,7 @@ export default function MeetingsPage() {
 
           {totalPages > 1 && (
             <div className="mt-4 flex items-center justify-between">
-              <p className="font-utility text-sm text-[#111827]/50">Page {page} of {totalPages}</p>
+              <p className="font-utility text-sm text-[#111827]/65">Page {page} of {totalPages}</p>
               <div className="flex gap-2">
                 <Button
                   variant="outline"

@@ -32,7 +32,7 @@ function Block({ block, pending }: { block: PolicyBlock; pending: string }) {
     case "h4":
       return <h3 className="mt-8 font-display text-[#0e2a63] text-lg font-semibold"><Rich text={block.text} pending={pending} /></h3>;
     case "note":
-      return <p className="text-sm italic text-[#111827]/55"><Rich text={block.text} pending={pending} /></p>;
+      return <p className="text-sm italic text-[#111827]/65"><Rich text={block.text} pending={pending} /></p>;
     case "checkbox":
       return (
         <p className="flex gap-3 rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] p-4">
@@ -96,7 +96,7 @@ export default function PolicyDocument({
     label === "Version" ? t.version : label === "Effective date" ? t.effective : label;
 
   return (
-    <main className="bg-white pt-[calc(var(--header-h)+3rem)] pb-24">
+    <main id="main-content" className="bg-white pt-[calc(var(--header-h)+3rem)] pb-24">
       <div className="mx-auto max-w-[1100px] px-6 md:px-10">
         <p className="ref-tag text-[#2f5daa]">{t.eyebrow}</p>
         <h1 className="mt-4 font-display text-[#0e2a63] text-3xl md:text-5xl font-semibold text-balance">
@@ -124,7 +124,7 @@ export default function PolicyDocument({
         <div className="mt-12 grid lg:grid-cols-[230px_1fr] gap-10 lg:gap-14 items-start">
           {toc.length > 1 ? (
             <nav aria-label={t.contents} className="lg:sticky lg:top-28">
-              <p className="font-utility text-[11px] tracking-[0.15em] uppercase text-[#111827]/45">{t.contents}</p>
+              <p className="font-utility text-[11px] tracking-[0.15em] uppercase text-[#111827]/65">{t.contents}</p>
               <ol lang="en" className="mt-3 space-y-2 text-sm">
                 {toc.map((s) => (
                   <li key={s.id}>
@@ -154,7 +154,7 @@ export default function PolicyDocument({
         </div>
 
         <nav aria-label={t.related} className="mt-16 pt-8 border-t border-[#e4e8ee]">
-          <p className="font-utility text-[11px] tracking-[0.15em] uppercase text-[#111827]/45">{t.related}</p>
+          <p className="font-utility text-[11px] tracking-[0.15em] uppercase text-[#111827]/65">{t.related}</p>
           <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-3">
             {POLICY_SLUGS.filter((s) => s !== slug).map((s) => (
               <li key={s}>

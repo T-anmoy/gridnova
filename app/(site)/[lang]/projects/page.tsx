@@ -27,10 +27,10 @@ const CATEGORY_MEDIA = {
 } as const;
 
 export default async function ProjectsPage({ params }: LangParams) {
-  const t = messagesFor(await resolveLocale(params)).projects;
+  const t = (await messagesFor(await resolveLocale(params))).projects;
   const STATS = STAT_VALUES.map((value, i) => ({ value, label: t.stats[i] }));
   return (
-    <main>
+    <main id="main-content">
       {/* Stats dashboard — data-forward, cover photo behind */}
       <section className="relative overflow-hidden pt-[calc(var(--header-h)+2.5rem)] pb-0">
         <Image
@@ -43,7 +43,7 @@ export default async function ProjectsPage({ params }: LangParams) {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#091c3c]/92 via-[#091c3c]/60 to-[#091c3c] -z-10" />
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
-          <p className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase mb-6">
+          <p className="font-utility text-[11px] tracking-[0.22em] text-white/60 uppercase mb-6">
             {t.eyebrow}
           </p>
           <h1
@@ -60,12 +60,12 @@ export default async function ProjectsPage({ params }: LangParams) {
                   <div className="font-display text-white font-bold" style={{ fontSize: "clamp(1.8rem,5vw,3.5rem)" }}>
                     <CountUp value={value} />
                   </div>
-                  <div className="mt-2 text-white/45 text-xs font-utility leading-snug">{label}</div>
+                  <div className="mt-2 text-white/60 text-xs font-utility leading-snug">{label}</div>
                 </div>
               );
             })}
           </div>
-          <p className="mt-6 pb-2 text-white/40 text-xs font-utility leading-relaxed max-w-[62ch]">
+          <p className="mt-6 pb-2 text-white/60 text-xs font-utility leading-relaxed max-w-[62ch]">
             {t.footnote}
           </p>
         </div>
@@ -76,7 +76,7 @@ export default async function ProjectsPage({ params }: LangParams) {
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
           <div className="flex items-center gap-3 mb-8">
             <span className="h-px w-8 bg-[#f7a800]" />
-            <span className="font-utility text-[11px] tracking-[0.22em] text-[#111827]/40 uppercase">{t.featured.label}</span>
+            <span className="font-utility text-[11px] tracking-[0.22em] text-[#111827]/65 uppercase">{t.featured.label}</span>
           </div>
           <ScrollReveal>
           <div className="grid lg:grid-cols-[1fr_0.7fr] gap-10 items-stretch">
@@ -92,7 +92,7 @@ export default async function ProjectsPage({ params }: LangParams) {
             <div className="rounded-2xl border border-[#e4e8ee] bg-[#f7f9fc] p-7 md:p-9 flex flex-col justify-between">
               <div>
                 <h2 className="font-display text-[#0e2a63] text-3xl font-semibold">{t.featured.title}</h2>
-                <p className="mt-1.5 text-[#111827]/55 font-utility text-sm flex items-center gap-1.5">
+                <p className="mt-1.5 text-[#111827]/65 font-utility text-sm flex items-center gap-1.5">
                   <MapPin className="h-3.5 w-3.5 shrink-0" />
                   {t.featured.location}
                 </p>
@@ -131,7 +131,7 @@ export default async function ProjectsPage({ params }: LangParams) {
                 <div className="mt-3 font-display text-[#0e2a63] font-bold" style={{ fontSize: "clamp(2.5rem,7vw,5rem)" }}>
                   <CountUp value={CATEGORY_MEDIA[cat.id as keyof typeof CATEGORY_MEDIA].stat} />
                 </div>
-                <p className="mt-1 text-[#111827]/45 text-sm font-utility">{cat.statLabel}</p>
+                <p className="mt-1 text-[#111827]/65 text-sm font-utility">{cat.statLabel}</p>
                 <p className="mt-6 text-[#111827]/65 leading-relaxed max-w-[52ch]">{cat.description}</p>
               </div>
               <div className={`relative aspect-[4/3] w-full rounded-2xl overflow-hidden ${idx % 2 !== 0 ? "lg:order-1" : ""}`}>
@@ -155,7 +155,7 @@ export default async function ProjectsPage({ params }: LangParams) {
           <ScrollReveal>
           <div className="flex flex-col md:flex-row md:items-end gap-8 mb-10">
             <div>
-              <p className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase mb-3">{t.districts.eyebrow}</p>
+              <p className="font-utility text-[11px] tracking-[0.22em] text-white/60 uppercase mb-3">{t.districts.eyebrow}</p>
               <h2 className="font-display text-white font-semibold text-2xl md:text-3xl">{t.districts.title}</h2>
             </div>
             <p className="text-white/50 text-sm max-w-[44ch] md:ml-auto">
@@ -171,7 +171,7 @@ export default async function ProjectsPage({ params }: LangParams) {
                 {d}
               </span>
             ))}
-            <span className="rounded-full px-4 py-2 text-white/40 text-sm font-utility">
+            <span className="rounded-full px-4 py-2 text-white/60 text-sm font-utility">
               {t.districts.more}
             </span>
           </div>

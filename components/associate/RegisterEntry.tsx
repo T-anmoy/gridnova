@@ -39,7 +39,7 @@ export type EntryCopy = Messages['associates']['portal']['execution']['register'
 type RegisterCopy = Messages['associates']['portal']['execution']['register']
 
 const field = 'w-full min-h-[44px] rounded-xl border border-[#e4e8ee] bg-white px-3 py-2 text-base focus:border-[#2f5daa] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#2f5daa]'
-const label = 'mb-1.5 block text-xs uppercase tracking-[0.1em] text-[#111827]/55'
+const label = 'mb-1.5 block text-xs uppercase tracking-[0.1em] text-[#111827]/65'
 const chip = (on: boolean) =>
   `min-h-[44px] rounded-full border px-4 text-sm font-semibold ${on ? 'border-[#0e2a63] bg-[#0e2a63] text-white' : 'border-[#e4e8ee] bg-white text-[#0e2a63]'}`
 
@@ -238,7 +238,7 @@ export default function RegisterEntry({ onboardingId, portalBase, copy }: { onbo
                     }}
                   />
                 </div>
-                {r.checkState === 'checking' && <p role="status" className="mt-1.5 text-xs text-[#111827]/50">{entry.checking}</p>}
+                {r.checkState === 'checking' && <p role="status" className="mt-1.5 text-xs text-[#111827]/65">{entry.checking}</p>}
                 {r.check && (
                   <p data-testid="serial-check" className={`mt-1.5 flex items-start gap-1 text-xs ${r.check.available ? 'text-green-700' : 'text-red-600'}`}>
                     {r.check.available ? <Check className="mt-0.5 h-3 w-3 shrink-0" /> : <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />}

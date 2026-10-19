@@ -67,10 +67,10 @@ describe('LeadsPage — Source column', () => {
     const user = userEvent.setup()
     render(<LeadsPage />)
 
-    // Assignment filter (admin sees this too, Prompt 03b), Stage, Score,
-    // then Source — the filter comboboxes in DOM order.
+    // Assignment filter (admin sees this too, Prompt 03b), then Source — the
+    // first two comboboxes in DOM order (the filter panel's score selects follow).
     const combos = screen.getAllByRole('combobox')
-    await user.click(combos[3])
+    await user.click(combos[1])
     await user.click(await screen.findByRole('option', { name: 'Booking' }))
 
     expect(navState.params.get('source')).toBe('website_booking')

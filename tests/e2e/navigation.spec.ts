@@ -75,7 +75,9 @@ test.describe("Mobile navigation", () => {
     // Open again, then close by clicking the backdrop (outside the panel)
     await openBtn.click();
     await expect(closeBtn).toBeVisible();
-    await page.mouse.click(100, 780); // backdrop area below the panel
+    // The panel is inset 12px from the left edge, so x=4 is always backdrop, whatever the panel's height
+    // (the 44px language buttons made it taller than the old fixed point below it).
+    await page.mouse.click(4, 400);
     await expect(openBtn).toBeVisible();
   });
 });

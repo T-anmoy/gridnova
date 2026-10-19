@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { getImageProps } from "next/image";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { gsap } from "gsap";
+import { m, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Link from "@/components/i18n/Link";
 import CountUp from "./CountUp";
@@ -49,28 +48,8 @@ export default function Hero({ t }: { t: Messages["home"]["hero"] }) {
   });
 
   // Image drifts down as page scrolls — creates parallax at ~30% lag vs. viewport
-  const imgY = useTransform(scrollYProgress, [0, 1], ["0%", "28%"]);
-
-  useEffect(() => {
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReduced) return;
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-      // 1 — photo fades in first
-      tl.fromTo(".hero-photo-wrap", { opacity: 0 }, { opacity: 1, duration: 0.85 }, 0)
-        // 2 — stats panel slides in from right
-        .fromTo(".hero-panel", { opacity: 0, x: 32 }, { opacity: 1, x: 0, duration: 0.9 }, 0.45)
-        // 3 — eyebrow
-        .fromTo(".hero-eyebrow", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.65 }, 0.58)
-        // 4 — headline lines stagger up through clip
-        .fromTo(".hero-line", { opacity: 0, y: "100%" }, { opacity: 1, y: "0%", duration: 0.85, stagger: 0.11 }, 0.68)
-        // 5 — sub copy
-        .fromTo(".hero-sub", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.65 }, "-=0.5")
-        // 6 — CTAs
-        .fromTo(".hero-cta", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.55, stagger: 0.1 }, "-=0.42")
-    }, sectionRef);
-    return () => ctx.revert();
-  }, []);
+  const reduceMotion = useReducedMotion();
+  const imgY = useTransform(scrollYProgress, [0, 1], ["0%", reduceMotion ? "0%" : "28%"]);
 
   return (
     <section
@@ -78,7 +57,7 @@ export default function Hero({ t }: { t: Messages["home"]["hero"] }) {
       className="on-dark relative min-h-[100svh] w-full overflow-hidden flex items-center"
     >
       {/* ── Parallax container (Framer y-transform only) ── */}
-      <motion.div
+      <m.div
         className="absolute"
         style={{
           left: 0, right: 0,
@@ -86,7 +65,7 @@ export default function Hero({ t }: { t: Messages["home"]["hero"] }) {
           y: imgY,
         }}
       >
-        {/* ── Opacity wrapper (GSAP fade, separate element from Framer) ── */}
+        {/* The photo is the LCP element: it is painted at full opacity from the first frame. */}
         <div className="hero-photo-wrap absolute inset-0">
           {/* ── Ken Burns scale (CSS keyframe, separate from both above) ── */}
           <div className="ken-burns absolute inset-0">
@@ -102,7 +81,7 @@ export default function Hero({ t }: { t: Messages["home"]["hero"] }) {
             </picture>
           </div>
         </div>
-      </motion.div>
+      </m.div>
 
       {/* ── Legibility scrims — tuned for WCAG AA across breakpoints ── */}
       {/* Left-to-right: text column protection at /90, fades to nothing on right */}
@@ -174,7 +153,7 @@ export default function Hero({ t }: { t: Messages["home"]["hero"] }) {
                 </div>
               ))}
             </div>
-            <p className="mt-4 text-white/45 text-[11px] font-utility leading-snug">
+            <p className="mt-4 text-white/60 text-[11px] font-utility leading-snug">
               {t.statsNote}
             </p>
           </div>

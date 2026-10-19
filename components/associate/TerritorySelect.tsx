@@ -99,7 +99,7 @@ export default function TerritorySelect({
           <select id={id} className={base} disabled value="" aria-describedby={`${id}-note`}>
             <option value="">{copy.selectPlaceholder}</option>
           </select>
-          <p id={`${id}-note`} className="mt-1.5 text-xs text-[#111827]/50">{blockedReason}</p>
+          <p id={`${id}-note`} className="mt-1.5 text-xs text-[#111827]/65">{blockedReason}</p>
         </>
       )
     } else if (lookup.isLoading) {
@@ -114,7 +114,7 @@ export default function TerritorySelect({
       body = (
         <div role="alert" className="rounded-xl border border-[#e4e8ee] bg-white px-4 py-3 text-sm text-[#111827]/70">
           <p>{notOpen ? copy.notOpen : copy.loadError}</p>
-          {hint && <p data-testid="territory-debug-hint" className="mt-1 text-[11px] text-[#111827]/40">{hint}</p>}
+          {hint && <p data-testid="territory-debug-hint" className="mt-1 text-[11px] text-[#111827]/65">{hint}</p>}
           <button
             type="button"
             onClick={() => void lookup.refetch?.()}

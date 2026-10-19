@@ -5,12 +5,12 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
 import { useAuth } from '@clerk/nextjs'
 import { toast } from 'sonner'
-import { Search, Filter, Download, Plus } from 'lucide-react'
+import { Search, Download, Plus } from 'lucide-react'
 import { useLeads, useCreateLead, downloadLeadsCsv, defaultLeadListParams, LEADS_PAGE_SIZE } from '@/lib/dashboard/api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { useDebouncedValue } from '@/lib/dashboard/use-debounced-value'
 import { DashboardError } from '@/components/dashboard/DashboardError'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,10 +18,18 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ClickableRow } from '@/components/dashboard/ClickableRow'
+import Link from 'next/link'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { formatDate, istDateKey } from '@/lib/dashboard/utils'
-import type { CreateLeadInput, LeadAssignmentFilter, LeadSource, LeadSummary, ManualProjectType, PipelineStage, LeadScore, Role } from '@/lib/dashboard/types'
+import { formatDate } from '@/lib/dashboard/utils'
+import NoAccess from '@/components/dashboard/NoAccess'
+import { LeadFilterPanel } from '@/components/dashboard/LeadFilterPanel'
+import { fmt, useStaffLeadsCopy } from '@/lib/dashboard/staff-leads-copy'
+import { canExportLeads, canSeeLeads, mapExportError } from '@/lib/dashboard/staff-leads-logic'
+import { filterApiError, filtersFromParams, filtersToParams, hasActiveFilters, sendableFilters } from '@/lib/dashboard/lead-filters'
+import type { LeadFilters } from '@/lib/dashboard/staff-leads-types'
+import type { CreateLeadInput, LeadAssignmentFilter, LeadListParams, LeadSource, LeadSummary, ManualProjectType, PipelineStage, LeadScore, Role } from '@/lib/dashboard/types'
 
 function stageBadgeVariant(stage: PipelineStage) {
   const map: Record<PipelineStage, string> = {
@@ -69,12 +77,6 @@ function sourceBadgeVariant(source: string) {
   }
   return (map[source] ?? 'outline') as 'blue' | 'navy' | 'gold' | 'green' | 'orange' | 'gray' | 'secondary' | 'outline'
 }
-
-const PIPELINE_STAGES: PipelineStage[] = [
-  'new', 'qualifying', 'qualified', 'proposal_draft', 'proposal_sent', 'negotiation', 'won', 'lost',
-]
-
-const LEAD_SCORES: LeadScore[] = ['high', 'medium', 'low']
 
 const LEAD_SOURCES = Object.keys(SOURCE_LABEL)
 
@@ -187,7 +189,7 @@ function AddLeadDialog() {
               <Input id="lead-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="optional" />
             </div>
           </div>
-          <p className="font-utility text-xs text-[#111827]/40">At least one of phone or email is required.</p>
+          <p className="font-utility text-xs text-[#111827]/65">At least one of phone or email is required.</p>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Source</Label>
@@ -229,8 +231,6 @@ function AddLeadDialog() {
   )
 }
 
-const isPipelineStage = (v: string | null): v is PipelineStage => !!v && (PIPELINE_STAGES as string[]).includes(v)
-const isLeadScore = (v: string | null): v is LeadScore => !!v && (LEAD_SCORES as string[]).includes(v)
 const isAssignment = (v: string | null): v is LeadAssignmentFilter => v === 'me' || v === 'unassigned' || v === 'any'
 
 const countFormat = new Intl.NumberFormat('en-IN')
@@ -250,20 +250,18 @@ function LeadsContent() {
   const searchParams = useSearchParams()
   const { user } = useUser()
   const { getToken } = useAuth()
+  const copy = useStaffLeadsCopy()
   const role = user?.publicMetadata?.role as Role | undefined
 
   // Filters and the page live in the URL so a reload, a back-navigation or a
-  // shared link restores the exact view.
-  const stageParam = searchParams.get('stage')
-  const scoreParam = searchParams.get('score')
-  const stageFilter: PipelineStage | '' = isPipelineStage(stageParam) ? stageParam : ''
-  const scoreFilter: LeadScore | '' = isLeadScore(scoreParam) ? scoreParam : ''
+  // shared link restores the exact view. The stage / score / date filters are
+  // the server's own (staff_contracts.md §3) and use its parameter names.
+  const filters = filtersFromParams(searchParams)
+  const sendable = sendableFilters(filters)
   const sourceFilter = LEAD_SOURCES.includes(searchParams.get('source') ?? '') ? (searchParams.get('source') as string) : ''
   const assignedParam = searchParams.get('assigned')
   const assignedFilter: LeadAssignmentFilter | '' = isAssignment(assignedParam) ? assignedParam : ''
   const urlQuery = searchParams.get('q') ?? ''
-  const dateFrom = searchParams.get('from') ?? ''
-  const dateTo = searchParams.get('to') ?? ''
   const page = Math.max(1, Number.parseInt(searchParams.get('page') ?? '1', 10) || 1)
 
   function setParams(updates: Record<string, string | undefined>, { keepPage = false } = {}) {
@@ -274,6 +272,12 @@ function LeadsContent() {
     }
     if (!keepPage) next.delete('page')
     const qs = next.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }
+
+  // Changing any filter returns to page 1 (filtersToParams drops `page`).
+  function setFilters(next: LeadFilters) {
+    const qs = filtersToParams(next, searchParams).toString()
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
   }
 
@@ -298,70 +302,66 @@ function LeadsContent() {
   const effectiveAssignedFilter = assignedFilter || (isSales ? 'any' : '')
 
   const defaults = defaultLeadListParams(role)
-  const { data, isLoading, error, refetch, isPlaceholderData } = useLeads({
+  const listParams: LeadListParams = {
     ...defaults,
     page,
+    ...(sendable.stages.length ? { stage: sendable.stages } : {}),
+    ...(sendable.minScore ? { min_score: sendable.minScore } : {}),
+    ...(sendable.maxScore ? { max_score: sendable.maxScore } : {}),
+    ...(sendable.createdFrom ? { created_from: sendable.createdFrom } : {}),
+    ...(sendable.createdTo ? { created_to: sendable.createdTo } : {}),
     ...(sourceFilter ? { source: sourceFilter } : {}),
     ...(urlQuery ? { q: urlQuery } : {}),
     ...(canFilterByAssignment && effectiveAssignedFilter ? { assigned: effectiveAssignedFilter } : {}),
-  })
-  const leads = data?.items
+  }
+  const { data, isLoading, error, refetch, isPlaceholderData } = useLeads(listParams)
+  const leads = data?.items ?? []
+  // `total` is the server's filtered count, so the pager is exact.
   const total = data?.total ?? 0
   const pageSize = data?.page_size ?? LEADS_PAGE_SIZE
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const serverFilterError = filterApiError(error)
 
-  const canExport = role === 'admin' || role === 'management'
+  const canExport = canExportLeads(role)
   const canAddLead = role === 'admin' || role === 'sales' || role === 'management'
+  const isEngineer = role === 'engineer'
 
-  // The export endpoint filters by source only (BE-1 / openapi); search, stage,
-  // score and date are not accepted, so they are not sent — the notice below
-  // tells the user the file is wider than the table in that case.
-  const exportIsWiderThanView = !!(urlQuery || stageFilter || scoreFilter || dateFrom || dateTo || assignedFilter)
+  const anyFilter = hasActiveFilters(filters) || !!(sourceFilter || urlQuery || assignedFilter)
+  // The export has no search or assignment parameter, so say so when those are set.
+  const exportIgnoresSomething = !!(urlQuery || assignedFilter)
 
   async function handleExport() {
     setExporting(true)
     try {
       const token = await getToken()
       if (!token) return
-      await downloadLeadsCsv({ source: sourceFilter || undefined }, token)
+      await downloadLeadsCsv(
+        { ...(sendable.stages.length ? { stage: sendable.stages } : {}),
+          ...(sendable.minScore ? { min_score: sendable.minScore } : {}),
+          ...(sendable.maxScore ? { max_score: sendable.maxScore } : {}),
+          ...(sendable.createdFrom ? { created_from: sendable.createdFrom } : {}),
+          ...(sendable.createdTo ? { created_to: sendable.createdTo } : {}),
+          source: sourceFilter || undefined },
+        token,
+      )
     } catch (err) {
-      toast.error(errorMessage(err, 'Export failed'))
+      toast.error(copy.export[mapExportError(err).key])
     } finally {
       setExporting(false)
     }
   }
 
-  // Stage, score and date are not server-side filters yet, so they refine only
-  // the page that is loaded. The date comparison uses IST calendar days (a
-  // lead created 00:30 IST is "that day" in IST, not the previous UTC day).
-  const filtered = (leads ?? []).filter((l: LeadSummary) => {
-    if (stageFilter && l.pipeline_stage !== stageFilter) return false
-    if (scoreFilter && l.lead_score !== scoreFilter) return false
-    if (dateFrom || dateTo) {
-      const day = istDateKey(l.created_at)
-      if (dateFrom && day < dateFrom) return false
-      if (dateTo && day > dateTo) return false
-    }
-    return true
-  })
-  const pageLocalFilterActive = !!(stageFilter || scoreFilter || dateFrom || dateTo)
-
-  const isEngineer = role === 'engineer'
-
-  // Compact per-stage counts for the page that is loaded — the backend has no
-  // stage-count endpoint, so this is explicitly "this page", never a total.
-  const stageCounts = PIPELINE_STAGES.map((stage) => ({
-    stage,
-    count: (leads ?? []).filter((l) => l.pipeline_stage === stage).length,
-  })).filter((s) => s.count > 0)
+  if (role && !canSeeLeads(role)) return <NoAccess what="Leads" />
 
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold text-[#091c3c]">Leads</h1>
-          <p className="font-utility text-sm text-[#111827]/50 mt-1" aria-live="polite">
-            {isLoading ? 'Loading…' : `${countFormat.format(total)} ${urlQuery || sourceFilter || effectiveAssignedFilter ? 'matching' : 'total'} leads`}
+          <p className="font-utility text-sm text-[#111827]/65 mt-1" aria-live="polite">
+            {isLoading
+              ? copy.common.loading
+              : fmt(anyFilter ? copy.list.matchingCount : copy.list.totalCount, { count: countFormat.format(total) })}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -369,141 +369,86 @@ function LeadsContent() {
           {canExport && (
             <Button
               variant="outline"
-              size="sm"
               onClick={handleExport}
               disabled={exporting}
-              className="gap-2"
+              className="min-h-11 gap-2"
             >
-              <Download className="h-4 w-4" />
-              {exporting ? 'Exporting…' : 'Export CSV'}
+              <Download className="h-4 w-4" aria-hidden="true" />
+              {exporting ? copy.export.busy : copy.export.button}
             </Button>
           )}
         </div>
       </div>
-      {canExport && exportIsWiderThanView && (
-        <p className="mb-3 font-utility text-xs text-[#111827]/50" role="note">
-          Export CSV includes every lead for the selected source. The server does not yet filter exports by search, stage, score, date or assignment.
+      {canExport && exportIgnoresSomething && (
+        <p className="mb-3 font-utility text-xs text-[#111827]/65" role="note">
+          {copy.export.scopeNote}
         </p>
       )}
 
-      {/* Stage summary strip */}
-      {stageCounts.length > 0 && (
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="font-utility text-xs text-[#111827]/40">On this page:</span>
-          {stageCounts.map(({ stage, count }) => (
-            <button
-              key={stage}
-              type="button"
-              onClick={() => setParams({ stage: stageFilter === stage ? undefined : stage }, { keepPage: true })}
-              aria-pressed={stageFilter === stage}
-              className={`rounded-full border px-3 py-2 min-h-11 font-utility text-xs transition-colors focus-visible:outline-2 focus-visible:outline-[#f7a800] ${
-                stageFilter === stage
-                  ? 'border-[#f7a800] bg-[#f7a800]/10 text-[#091c3c] font-semibold'
-                  : 'border-[#e4e8ee] bg-white text-[#111827]/60 hover:bg-[#f7f9fc]'
-              }`}
+      <div className="mb-4 space-y-3">
+        <div className="flex flex-wrap items-end gap-3">
+          {canFilterByAssignment && (
+            <Select
+              value={effectiveAssignedFilter || 'all'}
+              onValueChange={(v) => setParams({ assigned: v === 'all' ? undefined : v })}
             >
-              {stage.replace(/_/g, ' ')} <span className="font-semibold">{count}</span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Filters */}
-      <Card className="mb-4">
-        <CardContent className="pt-4">
-          <div className="flex flex-wrap gap-3 items-end">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-[#111827]/40" />
-              <span className="font-utility text-sm text-[#111827]/60">Filters</span>
-            </div>
-            {canFilterByAssignment && (
-              <Select
-                value={effectiveAssignedFilter || 'all'}
-                onValueChange={(v) => setParams({ assigned: v === 'all' ? undefined : v })}
-              >
-                <SelectTrigger className="w-44">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {isSales ? (
-                    <SelectItem value="any">Mine + unassigned</SelectItem>
-                  ) : (
-                    <SelectItem value="all">All leads</SelectItem>
-                  )}
-                  <SelectItem value="me">Assigned to me</SelectItem>
-                  <SelectItem value="unassigned">Unassigned</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2 h-4 w-4 text-[#111827]/40" />
-              <Input
-                type="search"
-                aria-label={isEngineer ? 'Search by lead ID' : 'Search by name, email, phone or lead ID'}
-                placeholder={isEngineer ? 'Search by lead ID' : 'Name, email, phone or ID'}
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value.slice(0, 100))}
-                className="pl-8 w-full sm:w-60"
-                autoComplete="off"
-              />
-            </div>
-            <Select value={stageFilter} onValueChange={(v) => setParams({ stage: v || undefined }, { keepPage: true })}>
-              <SelectTrigger className="w-44">
-                <SelectValue placeholder="Pipeline stage" />
+              <SelectTrigger className="min-h-11 w-full sm:w-44" aria-label="Assignment">
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All stages</SelectItem>
-                {PIPELINE_STAGES.map((s) => (
-                  <SelectItem key={s} value={s}>{s.replace(/_/g, ' ')}</SelectItem>
-                ))}
+                {isSales ? (
+                  <SelectItem value="any">Mine + unassigned</SelectItem>
+                ) : (
+                  <SelectItem value="all">All leads</SelectItem>
+                )}
+                <SelectItem value="me">Assigned to me</SelectItem>
+                <SelectItem value="unassigned">Unassigned</SelectItem>
               </SelectContent>
             </Select>
-            {!isEngineer && (
-              <Select value={scoreFilter} onValueChange={(v) => setParams({ score: v || undefined }, { keepPage: true })}>
-                <SelectTrigger className="w-36">
-                  <SelectValue placeholder="Lead score" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All scores</SelectItem>
-                  {LEAD_SCORES.map((s) => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-            <Input type="date" value={dateFrom} onChange={(e) => setParams({ from: e.target.value || undefined }, { keepPage: true })} className="w-36" aria-label="From date" title="From date" />
-            <Input type="date" value={dateTo} onChange={(e) => setParams({ to: e.target.value || undefined }, { keepPage: true })} className="w-36" aria-label="To date" title="To date" />
-            <Select value={sourceFilter} onValueChange={(v) => setParams({ source: v || undefined })}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Source" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">All sources</SelectItem>
-                {LEAD_SOURCES.map((s) => (
-                  <SelectItem key={s} value={s}>{SOURCE_LABEL[s]}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {(stageFilter || scoreFilter || sourceFilter || searchText || dateFrom || dateTo || assignedFilter) && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSearchText('')
-                  router.replace(pathname, { scroll: false })
-                }}
-              >
-                Clear filters
-              </Button>
-            )}
+          )}
+          <div className="relative w-full sm:w-60">
+            <Search className="absolute left-2.5 top-3.5 h-4 w-4 text-[#111827]/65" aria-hidden="true" />
+            <Input
+              type="search"
+              aria-label={isEngineer ? 'Search by lead ID' : 'Search by name, email, phone or lead ID'}
+              placeholder={isEngineer ? 'Search by lead ID' : 'Name, email, phone or ID'}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value.slice(0, 100))}
+              className="min-h-11 pl-8"
+              autoComplete="off"
+            />
           </div>
-        </CardContent>
-      </Card>
+          <Select value={sourceFilter} onValueChange={(v) => setParams({ source: v || undefined })}>
+            <SelectTrigger className="min-h-11 w-full sm:w-40" aria-label="Source">
+              <SelectValue placeholder="Source" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All sources</SelectItem>
+              {LEAD_SOURCES.map((s) => (
+                <SelectItem key={s} value={s}>{SOURCE_LABEL[s]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-      {error ? (
+        <LeadFilterPanel
+          filters={filters}
+          onChange={setFilters}
+          showClear={anyFilter}
+          onClear={() => {
+            setSearchText('')
+            router.replace(pathname, { scroll: false })
+          }}
+          serverError={serverFilterError}
+          copy={copy}
+        />
+      </div>
+
+      {error && !serverFilterError ? (
         <DashboardError error={error} onRetry={() => void refetch()} />
       ) : (
         <Card>
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -530,23 +475,24 @@ function LeadsContent() {
                       <TableCell><Skeleton className="h-7 w-28" /></TableCell>
                     </TableRow>
                   ))
-                : filtered.length === 0
+                : leads.length === 0
                 ? (
                     <TableRow>
-                      <TableCell colSpan={isEngineer ? 6 : 7} className="text-center py-12 font-utility text-[#111827]/40">
-                        {pageLocalFilterActive && (leads?.length ?? 0) > 0
-                          ? 'No leads on this page match the stage, score or date filter — try another page.'
-                          : 'No leads found'}
+                      <TableCell colSpan={isEngineer ? 6 : 7} className="text-center py-12 font-utility text-[#111827]/65">
+                        {anyFilter ? copy.list.noMatch : 'No leads found'}
                       </TableCell>
                     </TableRow>
                   )
-                : filtered.map((lead: LeadSummary) => (
-                    <TableRow
+                : leads.map((lead: LeadSummary) => (
+                    <ClickableRow
                       key={lead.id}
-                      className="cursor-pointer hover:bg-[#f7f9fc] transition-colors"
-                      onClick={() => router.push(`/dashboard/leads/${lead.id}`)}
+                      className="hover:bg-[#f7f9fc] transition-colors"
+                      href={`/dashboard/leads/${lead.id}`}
                     >
-                      <TableCell className="font-utility font-medium text-[#091c3c]">#{lead.id}</TableCell>
+                      <TableCell className="font-utility font-medium text-[#091c3c]">
+                        <Link href={`/dashboard/leads/${lead.id}`} className="inline-flex min-h-11 items-center hover:underline">
+                          #{lead.id}</Link>
+                      </TableCell>
                       <TableCell className="font-utility text-sm text-[#111827]/60">
                         {lead.project_reference_id ?? '—'}
                       </TableCell>
@@ -557,9 +503,11 @@ function LeadsContent() {
                       </TableCell>
                       {!isEngineer && (
                         <TableCell>
-                          <Badge variant={scoreVariant(lead.lead_score)}>
-                            {lead.lead_score}
-                          </Badge>
+                          {lead.lead_score ? (
+                            <Badge variant={scoreVariant(lead.lead_score)}>{lead.lead_score}</Badge>
+                          ) : (
+                            <span className="font-utility text-sm text-[#111827]/60">—</span>
+                          )}
                         </TableCell>
                       )}
                       {isEngineer && <TableCell className="font-utility text-sm text-[#111827]/60">—</TableCell>}
@@ -574,6 +522,7 @@ function LeadsContent() {
                           {lead.pipeline_stage === 'qualified' && (
                             <Button
                               size="sm"
+                              className="min-h-11"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 router.push(`/dashboard/leads/${lead.id}`)
@@ -584,16 +533,22 @@ function LeadsContent() {
                           )}
                         </TableCell>
                       )}
-                    </TableRow>
+                    </ClickableRow>
                   ))}
             </TableBody>
           </Table>
+          </div>
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e4e8ee] px-4 py-3">
             <p className="font-utility text-sm text-[#111827]/60" aria-live="polite">
-              {total === 0
-                ? 'No results'
-                : `Page ${countFormat.format(page)} of ${countFormat.format(totalPages)} · ${countFormat.format(total)} leads`}
-              {pageLocalFilterActive && ' · stage, score and date filters apply to this page only'}
+              {serverFilterError
+                ? copy.list.filterRejected
+                : total === 0
+                  ? copy.list.noResults
+                  : fmt(copy.list.pageStatus, {
+                      page: countFormat.format(page),
+                      pages: countFormat.format(totalPages),
+                      count: countFormat.format(total),
+                    })}
             </p>
             <div className="flex items-center gap-2">
               <Button
@@ -603,7 +558,7 @@ function LeadsContent() {
                 disabled={page <= 1 || isPlaceholderData}
                 onClick={() => setParams({ page: String(page - 1) }, { keepPage: true })}
               >
-                Previous
+                {copy.list.previous}
               </Button>
               <Button
                 variant="outline"
@@ -612,7 +567,7 @@ function LeadsContent() {
                 disabled={page >= totalPages || isPlaceholderData}
                 onClick={() => setParams({ page: String(page + 1) }, { keepPage: true })}
               >
-                Next
+                {copy.list.next}
               </Button>
             </div>
           </div>

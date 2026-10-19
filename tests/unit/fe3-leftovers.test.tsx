@@ -113,7 +113,8 @@ describe('N3 — staff serial drafts are wiped on sign-out', () => {
 
   it('the register panel stores its draft under that prefix', async () => {
     const { readFileSync } = await import('node:fs')
-    expect(readFileSync('components/dashboard/RegisterPanel.tsx', 'utf8')).toContain('${STAFF_REGISTER_DRAFT_PREFIX}')
+    const { resolve } = await import('node:path')
+    expect(readFileSync(resolve(__dirname, '../../components/dashboard/RegisterPanel.tsx'), 'utf8')).toContain('${STAFF_REGISTER_DRAFT_PREFIX}')
   })
 })
 

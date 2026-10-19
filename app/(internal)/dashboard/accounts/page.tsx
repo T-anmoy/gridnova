@@ -1,10 +1,10 @@
 'use client'
 
 import { notAuthenticatedError } from '@/lib/api/http'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
+import { useUrlParams } from '@/lib/dashboard/use-url-params'
 import { useDebouncedValue } from '@/lib/dashboard/use-debounced-value'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useAuth } from '@clerk/nextjs'
 import { Download } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +13,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ClickableRow } from '@/components/dashboard/ClickableRow'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import NoAccess from '@/components/dashboard/NoAccess'
@@ -53,7 +54,7 @@ function WhoCell({ name, code, fallback }: { name?: string | null; code?: string
   return (
     <div data-testid="who-cell">
       <p className="font-medium text-gray-900">{name ?? '—'}</p>
-      {code && <p className="text-xs text-gray-400">{code}</p>}
+      {code && <p className="text-xs text-gray-500">{code}</p>}
     </div>
   )
 }
@@ -103,7 +104,6 @@ function AttentionBadges({ reasons }: { reasons: string[] }) {
 }
 
 function PaymentsTab() {
-  const router = useRouter()
   const [status, setStatus] = useState('')
   const [mode, setMode] = useState('')
   const [needsAttention, setNeedsAttention] = useState(false)
@@ -158,10 +158,12 @@ function PaymentsTab() {
               </TableHeader>
               <TableBody>
                 {data?.items.map((p) => (
-                  <TableRow key={p.payment_id} className="cursor-pointer" data-testid="payment-row" onClick={() => router.push(`/dashboard/accounts/payments/${p.payment_id}`)}>
+                  <ClickableRow key={p.payment_id} data-testid="payment-row" href={`/dashboard/accounts/payments/${p.payment_id}`}>
                     <TableCell className="text-sm">
-                      <WhoCell name={p.customer_name} code={p.project_reference_id} fallback={null} />
-                      <p className="text-xs text-gray-400">Payment #{p.payment_id}</p>
+                      <Link href={`/dashboard/accounts/payments/${p.payment_id}`} className="hover:underline">
+                        <WhoCell name={p.customer_name} code={p.project_reference_id} fallback={null} />
+                        <p className="text-xs text-gray-500">Payment #{p.payment_id}</p>
+                      </Link>
                     </TableCell>
                     <TableCell className="font-medium">{formatInr(p.amount)}</TableCell>
                     <TableCell className="text-sm">{STAFF_PAYMENT_COPY.modes[p.mode as keyof typeof STAFF_PAYMENT_COPY.modes] ?? p.mode}</TableCell>
@@ -169,7 +171,7 @@ function PaymentsTab() {
                     <TableCell><Badge variant={STATUS_VARIANT[p.status] ?? 'gray'}>{STATUS_LABEL[p.status] ?? p.status}</Badge></TableCell>
                     <TableCell><AttentionBadges reasons={p.attention_reasons ?? []} /></TableCell>
                     <TableCell className="text-sm text-gray-500">{formatDate(p.recorded_at)}</TableCell>
-                  </TableRow>
+                  </ClickableRow>
                 ))}
                 {data && data.items.length === 0 && <TableRow><TableCell colSpan={7} className="py-10 text-center text-sm text-gray-500">No payments match.</TableCell></TableRow>}
               </TableBody>
@@ -216,7 +218,7 @@ function MilestonesTab() {
                         <Link className="text-xs text-[#0e2a63] underline" href={`/dashboard/onboardings/${m.onboarding_id}`}>Open project</Link>
                       )}
                     </TableCell>
-                    <TableCell className="text-sm">{m.label} <span className="text-gray-400">({String(m.percent)}%)</span></TableCell>
+                    <TableCell className="text-sm">{m.label} <span className="text-gray-500">({String(m.percent)}%)</span></TableCell>
                     <TableCell>{formatInr(m.amount_due)}</TableCell>
                     <TableCell>{formatInr(m.paid_toward)}</TableCell>
                     <TableCell>{formatInr(m.outstanding)}</TableCell>
@@ -356,7 +358,11 @@ function ExportPanel() {
 }
 
 function AccountsWorkspace({ canAct }: { canAct: boolean }) {
-  const [tab, setTab] = useState<Tab>('payments')
+  // The active tab lives in the URL (?tab=milestones) so it survives a reload and can be shared.
+  const url = useUrlParams()
+  const rawTab = url.get('tab')
+  const tab: Tab = rawTab === 'milestones' || rawTab === 'receipts' ? rawTab : 'payments'
+  const setTab = (t: Tab) => url.set({ tab: t === 'payments' ? undefined : t })
   const { data: queues } = useWorkQueues()
   const q = queues?.payments
   const tiles: [string, number | undefined][] = [
@@ -400,5 +406,10 @@ export default function AccountsPage() {
   const { role, isLoaded } = useStaffRole()
   if (!isLoaded) return <div className="p-8"><Skeleton className="h-8 w-48" /></div>
   if (role !== 'admin' && role !== 'accounts' && role !== 'management') return <NoAccess what="The Accounts workspace" />
-  return <AccountsWorkspace canAct={role === 'admin' || role === 'accounts'} />
+  return (
+    // useSearchParams needs a Suspense boundary.
+    <Suspense fallback={<div className="p-8"><Skeleton className="h-8 w-48" /></div>}>
+      <AccountsWorkspace canAct={role === 'admin' || role === 'accounts'} />
+    </Suspense>
+  )
 }

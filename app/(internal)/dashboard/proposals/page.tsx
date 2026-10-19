@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
+import { useUrlParams } from '@/lib/dashboard/use-url-params'
 import Link from 'next/link'
 import { useUser } from '@clerk/nextjs'
 import { useAuth } from '@clerk/nextjs'
@@ -37,14 +38,25 @@ function statusVariant(status: ProposalStatus) {
 const PAGE_SIZE = 50
 
 export default function ProposalsPage() {
+  // useSearchParams needs a Suspense boundary.
+  return (
+    <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+      <Proposals />
+    </Suspense>
+  )
+}
+
+function Proposals() {
   const { user } = useUser()
   const { getToken } = useAuth()
   const role = user?.publicMetadata?.role as Role | undefined
 
-  const [statusFilter, setStatusFilter] = useState<ProposalStatus | ''>('')
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
-  const [page, setPage] = useState(1)
+  // Filters and page live in the URL (?status=…&from=…&to=…&page=2).
+  const url = useUrlParams()
+  const statusFilter = url.get('status') as ProposalStatus | ''
+  const dateFrom = url.get('from')
+  const dateTo = url.get('to')
+  const page = url.page
   const [exporting, setExporting] = useState(false)
 
   const canExport = role === 'admin' || role === 'management'
@@ -84,7 +96,7 @@ export default function ProposalsPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-[#091c3c]">Proposals</h1>
-          <p className="font-utility text-sm text-[#111827]/50 mt-1">{total} total proposals</p>
+          <p className="font-utility text-sm text-[#111827]/65 mt-1">{total} total proposals</p>
         </div>
         {canExport && (
           <Button
@@ -105,10 +117,10 @@ export default function ProposalsPage() {
         <CardContent className="pt-4">
           <div className="flex flex-wrap gap-3 items-end">
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-[#111827]/40" />
+              <Filter className="h-4 w-4 text-[#111827]/65" />
               <span className="font-utility text-sm text-[#111827]/60">Filters</span>
             </div>
-            <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v as ProposalStatus | ''); setPage(1) }}>
+            <Select value={statusFilter} onValueChange={(v) => url.set({ status: v || undefined })}>
               <SelectTrigger className="w-52">
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
@@ -122,19 +134,19 @@ export default function ProposalsPage() {
             <Input
               type="date"
               value={dateFrom}
-              onChange={(e) => { setDateFrom(e.target.value); setPage(1) }}
+              onChange={(e) => url.set({ from: e.target.value || undefined })}
               className="w-36"
               title="From date"
             />
             <Input
               type="date"
               value={dateTo}
-              onChange={(e) => { setDateTo(e.target.value); setPage(1) }}
+              onChange={(e) => url.set({ to: e.target.value || undefined })}
               className="w-36"
               title="To date"
             />
             {(statusFilter || dateFrom || dateTo) && (
-              <Button variant="ghost" size="sm" onClick={() => { setStatusFilter(''); setDateFrom(''); setDateTo(''); setPage(1) }}>
+              <Button variant="ghost" size="sm" onClick={() => url.set({ status: undefined, from: undefined, to: undefined })}>
                 Clear
               </Button>
             )}
@@ -173,7 +185,7 @@ export default function ProposalsPage() {
                   : items.length === 0
                   ? (
                       <TableRow>
-                        <TableCell colSpan={9} className="text-center py-12 font-utility text-[#111827]/40">
+                        <TableCell colSpan={9} className="text-center py-12 font-utility text-[#111827]/65">
                           No proposals found
                         </TableCell>
                       </TableRow>
@@ -205,7 +217,7 @@ export default function ProposalsPage() {
                             p.accepted_at ? (
                               <CheckCircle className="h-4 w-4 text-green-600" aria-label="Accepted" />
                             ) : (
-                              <Clock className="h-4 w-4 text-[#111827]/25" aria-label="Awaiting acceptance" />
+                              <Clock className="h-4 w-4 text-[#111827]/65" aria-label="Awaiting acceptance" />
                             )
                           )}
                         </TableCell>
@@ -219,14 +231,14 @@ export default function ProposalsPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="mt-4 flex items-center justify-between">
-              <p className="font-utility text-sm text-[#111827]/50">
+              <p className="font-utility text-sm text-[#111827]/65">
                 Page {page} of {totalPages} ({total} total)
               </p>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  onClick={() => url.setPage(Math.max(1, page - 1))}
                   disabled={page === 1}
                 >
                   <ChevronLeft className="h-4 w-4" /> Previous
@@ -234,7 +246,7 @@ export default function ProposalsPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() => url.setPage(Math.min(totalPages, page + 1))}
                   disabled={page === totalPages}
                 >
                   Next <ChevronRight className="h-4 w-4" />

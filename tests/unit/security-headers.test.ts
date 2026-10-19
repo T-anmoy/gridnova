@@ -6,14 +6,29 @@ const rule = (source: string) => securityHeaders(opts).find((r) => r.source === 
 const value = (source: string, key: string) => rule(source).headers.find((h) => h.key === key)?.value
 
 describe('security headers (L5)', () => {
-  it('global rule: HSTS, nosniff, referrer policy, permissions policy, report-only CSP', () => {
+  it('global rule: HSTS, nosniff, referrer policy, permissions policy, enforcing CSP', () => {
     expect(value('/:path*', 'Strict-Transport-Security')).toMatch(/max-age=\d+; includeSubDomains/)
     expect(value('/:path*', 'X-Content-Type-Options')).toBe('nosniff')
     expect(value('/:path*', 'Referrer-Policy')).toBe('strict-origin-when-cross-origin')
     expect(value('/:path*', 'Permissions-Policy')).toMatch(/camera=\(self\), geolocation=\(self\)/)
-    expect(value('/:path*', 'Content-Security-Policy-Report-Only')).toBeTruthy()
-    // Report-only first: nothing enforcing is set globally.
-    expect(value('/:path*', 'Content-Security-Policy')).toBeUndefined()
+    // Production enforces; the report-only header is not sent alongside it.
+    expect(value('/:path*', 'Content-Security-Policy')).toContain("default-src 'self'")
+    expect(value('/:path*', 'Content-Security-Policy-Report-Only')).toBeUndefined()
+  })
+  it('CSP_REPORT_ONLY and dev fall back to report-only', () => {
+    for (const o of [{ ...opts, reportOnly: true }, { ...opts, dev: true }]) {
+      const headers = securityHeaders(o).find((r) => r.source === '/:path*')!.headers
+      expect(headers.find((h) => h.key === 'Content-Security-Policy-Report-Only')).toBeTruthy()
+      expect(headers.find((h) => h.key === 'Content-Security-Policy')).toBeUndefined()
+    }
+  })
+  it('production policy upgrades insecure requests and pins objects, base and manifests', () => {
+    const csp = contentSecurityPolicy(opts)
+    expect(csp).toContain('upgrade-insecure-requests')
+    expect(csp).toContain("object-src 'none'")
+    expect(csp).toContain("base-uri 'self'")
+    expect(csp).toContain("manifest-src 'self'")
+    expect(contentSecurityPolicy({ ...opts, dev: true })).not.toContain('upgrade-insecure-requests')
   })
   it('accept pages send no referrer', () => {
     expect(value('/proposal/accept/:path*', 'Referrer-Policy')).toBe('no-referrer')

@@ -240,6 +240,34 @@ html[data-script="bengali"] .clip-line {
   }
 }
 
+/* Hero entrance — pure CSS so the very first frame already matches the
+   server-rendered markup (no hydrate-then-hide flash, and the LCP image is
+   never faded in from opacity 0). Skipped entirely under reduced motion. */
+@keyframes heroRise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes heroPanelIn {
+  from { opacity: 0; transform: translateX(32px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes heroLineUp {
+  from { transform: translateY(100%); }
+  to   { transform: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-panel   { animation: heroPanelIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.45s both; }
+  .hero-eyebrow { animation: heroRise 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.58s both; }
+  .hero-line    { animation: heroLineUp 0.85s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .clip-line:nth-child(1) .hero-line { animation-delay: 0.68s; }
+  .clip-line:nth-child(2) .hero-line { animation-delay: 0.79s; }
+  .clip-line:nth-child(3) .hero-line { animation-delay: 0.9s; }
+  .clip-line:nth-child(4) .hero-line { animation-delay: 1.01s; }
+  .hero-sub     { animation: heroRise 0.65s cubic-bezier(0.22, 1, 0.36, 1) 1.0s both; }
+  .hero-cta     { animation: heroRise 0.55s cubic-bezier(0.22, 1, 0.36, 1) 1.15s both; }
+  .ah-reveal    { animation: heroRise 0.8s cubic-bezier(0.22, 1, 0.36, 1) calc(0.1s + var(--i, 0) * 0.1s) both; }
+}
+
 @keyframes kenBurns {
   from { transform: scale(1); }
   to   { transform: scale(1.06); }

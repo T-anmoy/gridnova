@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { Sparkles, X, Send } from "lucide-react";
 import Link from "@/components/i18n/Link";
 import { useMessages } from "@/lib/i18n/client";
@@ -340,7 +340,7 @@ export default function AskNova() {
       {/* ── Panel ─────────────────────────────────────────────────────────── */}
       <AnimatePresence>
         {open && (
-          <motion.div
+          <m.div
             key="panel"
             role="dialog"
             aria-label={t.title}
@@ -369,7 +369,7 @@ export default function AskNova() {
                   <span className="font-display text-white font-semibold text-[15px] leading-none block">
                     {t.title}
                   </span>
-                  <span className="mt-1 block text-white/40 text-[11px] font-utility leading-none">
+                  <span className="mt-1 block text-white/60 text-[11px] font-utility leading-none">
                     {t.subtitle}
                   </span>
                 </div>
@@ -508,7 +508,7 @@ export default function AskNova() {
               <div className="border-t border-white/8 shrink-0">
                 {/* FAQ chips — persistent quick-answer shortcuts */}
                 <div className="px-5 pt-3">
-                  <p className="mb-1.5 font-utility text-[10px] tracking-[0.18em] text-white/30 uppercase">
+                  <p className="mb-1.5 font-utility text-[10px] tracking-[0.18em] text-white/55 uppercase">
                     {t.quickAnswers}
                   </p>
                   <div className="flex flex-col gap-1.5 max-h-[22dvh] overflow-y-auto">
@@ -589,7 +589,7 @@ export default function AskNova() {
                       </p>
                     )}
 
-                    <p className="mt-3 text-white/35 text-[11px] font-utility leading-relaxed">
+                    <p className="mt-3 text-white/60 text-[11px] font-utility leading-relaxed">
                       {t.specificPrefix}{" "}
                       <Link
                         href="/contact"
@@ -603,7 +603,7 @@ export default function AskNova() {
                   </div>
                 ) : (
                   <div className="px-5 pt-2 pb-4">
-                    <p className="text-white/35 text-[11px] font-utility leading-relaxed">
+                    <p className="text-white/60 text-[11px] font-utility leading-relaxed">
                       {t.offlinePrefix}{" "}
                       <Link
                         href="/contact"
@@ -618,14 +618,14 @@ export default function AskNova() {
                 )}
               </div>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
       {/* ── Floating preview bubble ───────────────────────────────────────── */}
       <AnimatePresence>
         {bubbleVisible && !open && !footerNear && (
-          <motion.button
+          <m.button
             key="bubble"
             type="button"
             onClick={openFromBubble}
@@ -659,7 +659,7 @@ export default function AskNova() {
                 <span className="inline-block w-[2px] h-3.5 ml-0.5 align-middle bg-[#f7a800] animate-pulse" />
               )}
             </span>
-            <span className="block mt-1.5 text-white/40 text-[10px] font-utility">
+            <span className="block mt-1.5 text-white/60 text-[10px] font-utility">
               {t.bubbleTap}
             </span>
             {/* Tail pointing toward the launcher */}
@@ -671,12 +671,12 @@ export default function AskNova() {
                 borderBottom: "1px solid rgba(247,168,0,0.22)",
               }}
             />
-          </motion.button>
+          </m.button>
         )}
       </AnimatePresence>
 
       {/* ── Launcher button ───────────────────────────────────────────────── */}
-      <motion.button
+      <m.button
         ref={launcherRef}
         type="button"
         onClick={toggle}
@@ -689,7 +689,7 @@ export default function AskNova() {
       >
         <AnimatePresence mode="wait" initial={false}>
           {open ? (
-            <motion.span
+            <m.span
               key="close"
               initial={{ rotate: -90, opacity: 0 }}
               animate={{ rotate: 0, opacity: 1 }}
@@ -697,9 +697,9 @@ export default function AskNova() {
               transition={{ duration: 0.18 }}
             >
               <X className="h-5 w-5" />
-            </motion.span>
+            </m.span>
           ) : (
-            <motion.span
+            <m.span
               key="open"
               initial={{ rotate: 90, opacity: 0 }}
               animate={{ rotate: 0, opacity: 1 }}
@@ -707,10 +707,10 @@ export default function AskNova() {
               transition={{ duration: 0.18 }}
             >
               <Sparkles className="h-5 w-5" />
-            </motion.span>
+            </m.span>
           )}
         </AnimatePresence>
-      </motion.button>
+      </m.button>
     </div>
   );
 }

@@ -85,36 +85,48 @@ describe('Leads pager', () => {
   })
 })
 
-describe('Leads date filter (IST)', () => {
-  it('compares IST calendar days: 20:00 UTC on the 1st is already the 2nd in IST', () => {
-    const late = leadItem(7, { created_at: '2026-09-01T20:00:00Z' }) // 2 Sep, 01:30 IST
-    const early = leadItem(8, { created_at: '2026-09-01T10:00:00Z' }) // 1 Sep, 15:30 IST
-    mockUseLeads.mockReturnValue({ data: leadPage([late, early]), isLoading: false, error: null, refetch: vi.fn(), isPlaceholderData: false })
-    navState.reset('/dashboard/leads', 'from=2026-09-02&to=2026-09-02')
+describe('Leads filters go to the server (staff_contracts.md §3)', () => {
+  it('sends stage (as a list), score range and IST dates from the URL to the request', () => {
+    navState.reset('/dashboard/leads', 'stage=new&stage=won&min_score=low&max_score=high&created_from=2026-09-01&created_to=2026-09-03')
     render(<LeadsPage />)
-    expect(screen.getByText('#7')).toBeInTheDocument()
-    expect(screen.queryByText('#8')).not.toBeInTheDocument()
+    expect(mockUseLeads).toHaveBeenLastCalledWith({
+      page: 1, page_size: 25, stage: ['new', 'won'], min_score: 'low', max_score: 'high',
+      created_from: '2026-09-01', created_to: '2026-09-03',
+    })
   })
 
-  it('says the stage/score/date filters apply to the loaded page only', () => {
-    navState.reset('/dashboard/leads', 'from=2026-09-01')
+  it('does not filter the loaded rows on the client: every row the server returned is shown', () => {
+    const late = leadItem(7, { created_at: '2026-09-01T20:00:00Z', pipeline_stage: 'new' })
+    const other = leadItem(8, { created_at: '2026-09-01T10:00:00Z', pipeline_stage: 'won' })
+    mockUseLeads.mockReturnValue({ data: leadPage([late, other]), isLoading: false, error: null, refetch: vi.fn(), isPlaceholderData: false })
+    navState.reset('/dashboard/leads', 'stage=new&created_from=2026-09-02')
     render(<LeadsPage />)
-    expect(screen.getByText(/apply to this page only/)).toBeInTheDocument()
+    expect(screen.getByText('#7')).toBeInTheDocument()
+    expect(screen.getByText('#8')).toBeInTheDocument()
+  })
+
+  it('no longer says filters apply to the loaded page only', () => {
+    navState.reset('/dashboard/leads', 'created_from=2026-09-01')
+    render(<LeadsPage />)
+    expect(screen.queryByText(/apply to this page only/)).not.toBeInTheDocument()
   })
 })
 
 describe('Leads export', () => {
-  it('sends the source filter (the only one the export endpoint accepts) and warns when others are active', async () => {
-    navState.reset('/dashboard/leads', 'source=website_chat&q=ravi&stage=new')
+  it('sends the same server filters and source, and notes that search and assignment are not applied', async () => {
+    navState.reset('/dashboard/leads', 'source=website_chat&q=ravi&stage=new&min_score=medium&created_to=2026-09-03')
     const user = userEvent.setup()
     render(<LeadsPage />)
-    expect(screen.getByRole('note')).toHaveTextContent(/does not yet filter exports/)
+    expect(screen.getByRole('note')).toHaveTextContent(/Search and assignment are not applied/)
     await user.click(screen.getByRole('button', { name: /Export CSV/ }))
-    expect(mockDownload).toHaveBeenCalledWith({ source: 'website_chat' }, 'token')
+    expect(mockDownload).toHaveBeenCalledWith(
+      { stage: ['new'], min_score: 'medium', created_to: '2026-09-03', source: 'website_chat' },
+      'token',
+    )
   })
 
-  it('shows no warning when only the source filter is active', () => {
-    navState.reset('/dashboard/leads', 'source=website_chat')
+  it('shows no note when search and assignment are not set', () => {
+    navState.reset('/dashboard/leads', 'source=website_chat&stage=new')
     render(<LeadsPage />)
     expect(screen.queryByRole('note')).not.toBeInTheDocument()
   })

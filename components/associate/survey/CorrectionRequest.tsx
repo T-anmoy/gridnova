@@ -190,7 +190,7 @@ function CorrectionForm({ onboarding, options, back }: { onboarding: Onboarding;
             </label>
           ))}
         </div>
-        <p className="mt-2 text-xs text-[#111827]/55">{c.consumerLocked}</p>
+        <p className="mt-2 text-xs text-[#111827]/65">{c.consumerLocked}</p>
       </fieldset>
 
       {areas.includes('connection') && (
@@ -222,10 +222,10 @@ function CorrectionForm({ onboarding, options, back }: { onboarding: Onboarding;
               <li key={field} className="text-sm break-words">
                 <span className="font-semibold">{valueCopy.fields[field] ?? field.replace(/_/g, ' ')}</span>
                 <br />
-                <span className="text-[#111827]/55">{c.now}: </span>
+                <span className="text-[#111827]/65">{c.now}: </span>
                 {displayValue(field, serverPayload[field], valueCopy)}
                 {' → '}
-                <span className="text-[#111827]/55">{c.newValue}: </span>
+                <span className="text-[#111827]/65">{c.newValue}: </span>
                 <span className="font-semibold text-[#0e2a63]">{displayValue(field, value, valueCopy)}</span>
               </li>
             ))}
@@ -290,7 +290,7 @@ export default function CorrectionRequest({ onboardingId, portalBase }: { onboar
   if (onboarding.isLoading || !onboarding.data || options.isLoading || !options.data || me.isLoading) {
     return (
       <div className="flex items-center justify-center py-20" role="status">
-        <Loader2 className="h-6 w-6 animate-spin motion-reduce:animate-none text-[#111827]/30" aria-hidden="true" />
+        <Loader2 className="h-6 w-6 animate-spin motion-reduce:animate-none text-[#111827]/65" aria-hidden="true" />
         <span className="sr-only">{c.loading}</span>
       </div>
     )
@@ -324,7 +324,7 @@ export default function CorrectionRequest({ onboardingId, portalBase }: { onboar
           {c.back}
         </Link>
       )}
-      {corrections.isLoading ? null : corrections.error ? <p className="text-sm text-red-700">{c.loadError}</p> : items.length === 0 ? <p className="text-sm text-[#111827]/55">{c.empty}</p> : <CorrectionHistory items={items} />}
+      {corrections.isLoading ? null : corrections.error ? <p className="text-sm text-red-700">{c.loadError}</p> : items.length === 0 ? <p className="text-sm text-[#111827]/65">{c.empty}</p> : <CorrectionHistory items={items} />}
     </div>
   )
 }

@@ -8,9 +8,7 @@ vi.mock('@clerk/nextjs', () => ({
   useAuth: () => ({ getToken: vi.fn().mockResolvedValue('token') }),
 }))
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn(), forward: vi.fn(), prefetch: vi.fn() }),
-}))
+vi.mock('next/navigation', async () => (await import('./helpers/mock-navigation')).navigationMock)
 
 const mockUseProposals = vi.fn()
 vi.mock('@/lib/dashboard/api-client', () => ({

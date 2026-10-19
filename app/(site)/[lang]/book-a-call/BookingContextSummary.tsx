@@ -49,7 +49,7 @@ export default function BookingContextSummary({
           <Zap className="h-4 w-4 text-[#f7a800]" />
         </div>
         <div>
-          <p className="font-utility text-xs text-[#111827]/50">
+          <p className="font-utility text-xs text-[#111827]/65">
             {fmt(t.carried, { source: sourceLabel })}
           </p>
           <p className="mt-1 font-utility text-sm text-[#0e2a63]">

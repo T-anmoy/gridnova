@@ -66,7 +66,8 @@ export interface LeadSummary {
   customer_id: number
   customer_name?: string | null
   pipeline_stage: PipelineStage
-  lead_score: LeadScore
+  // null until the lead has been scored (staff_contracts.md §2).
+  lead_score: LeadScore | null
   source: string
   created_at: string
   assigned_employee_id?: string | null
@@ -491,9 +492,15 @@ export interface DraftProposalResponse {
   missing_fields: string[]
 }
 
-// GET /dashboard/leads (BE-1 §2). The backend filters only by these; stage,
-// score and date are refined client-side on the loaded page.
+// GET /dashboard/leads (BE-1 §2, staff_contracts.md §3). Every filter runs on
+// the server before pagination, so `total` is the filtered count. `stage` is
+// sent as a repeated query param; dates are IST calendar days (YYYY-MM-DD).
 export interface LeadListParams {
+  stage?: PipelineStage[]
+  min_score?: LeadScore
+  max_score?: LeadScore
+  created_from?: string
+  created_to?: string
   source?: string
   // Sales-scoping filter (Prompt 02b): 'any' means own + unassigned for
   // Sales specifically — any other role sending a non-empty value gets a 422.

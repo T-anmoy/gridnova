@@ -28,12 +28,12 @@ const serviceSchema = {
 };
 
 export default async function ServicesPage({ params }: LangParams) {
-  const m = messagesFor(await resolveLocale(params));
+  const m = (await messagesFor(await resolveLocale(params)));
   const t = m.services;
   return (
     <>
       <JsonLd data={serviceSchema} />
-      <main>
+      <main id="main-content">
         <ServicesContent t={t} />
 
         {/* Solar EPC / rooftop enquirers — route to the dedicated estimate form

@@ -11,9 +11,12 @@
     "start": "next start",
     "lint": "eslint",
     "staff-copy": "node scripts/extract-staff-copy.mjs",
+    "policies": "node scripts/build-policies.mjs",
+    "route-sizes": "node scripts/route-sizes.mjs",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },
@@ -45,11 +48,19 @@
     "zod": "4.4.3"
   },
   "overrides": {
-    "react-is": "^19.3.0"
+    "react-is": "^19.3.0",
+    "brace-expansion@1": "^1.1.21",
+    "brace-expansion@5": "^5.0.12",
+    "browserslist": "^4.29.3",
+    "undici@7": "^7.30.1",
+    "js-yaml@4": "^4.3.2",
+    "source-map-js": "^1.2.2",
+    "baseline-browser-mapping": "^2.11.29"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.3",
@@ -57,12 +68,13 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.5",
+    "@vitest/coverage-v8": "^4.1.12",
     "eslint": "^9",
-    "eslint-config-next": "^16.3.8",
+    "eslint-config-next": "16.3.8",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^29.1.1",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.12"
   }
 }

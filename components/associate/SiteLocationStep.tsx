@@ -335,7 +335,7 @@ export default function SiteLocationStep({
             {confirmMutation.isPending ? m.actions.confirming : m.actions.confirm}
           </button>
         )}
-        {present && <p className="font-utility text-xs text-[#111827]/55">{m.details.resetNote}</p>}
+        {present && <p className="font-utility text-xs text-[#111827]/65">{m.details.resetNote}</p>}
         {present && !changing && (
           <button type="button" onClick={() => setChanging(true)} className={LINK_BUTTON}>
             {m.actions.change}
@@ -357,7 +357,7 @@ export default function SiteLocationStep({
                 <Camera className="h-4 w-4" /> {m.actions.usePhoto}
               </button>
               {photoCandidate.accuracy_m !== null && (
-                <p className="mt-1 font-utility text-xs text-[#111827]/55">{fmt(m.actions.usePhotoBest, { meters: Math.round(photoCandidate.accuracy_m) })}</p>
+                <p className="mt-1 font-utility text-xs text-[#111827]/65">{fmt(m.actions.usePhotoBest, { meters: Math.round(photoCandidate.accuracy_m) })}</p>
               )}
             </div>
           )}
@@ -375,7 +375,7 @@ export default function SiteLocationStep({
 
           {pasteOpen && (
             <div className="space-y-2 rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] p-3">
-              <label htmlFor="site-location-paste" className="block font-utility text-xs font-semibold uppercase tracking-[0.08em] text-[#111827]/55">
+              <label htmlFor="site-location-paste" className="block font-utility text-xs font-semibold uppercase tracking-[0.08em] text-[#111827]/65">
                 {m.paste.label}
               </label>
               <textarea
@@ -387,9 +387,9 @@ export default function SiteLocationStep({
                 autoComplete="off"
                 autoCapitalize="none"
                 spellCheck={false}
-                className="w-full rounded-xl border border-[#e4e8ee] bg-white px-4 py-3 font-utility text-sm text-[#111827] outline-none focus:border-[#2f5daa] focus:ring-2 focus:ring-[#2f5daa]/10"
+                className="w-full rounded-xl border border-[#e4e8ee] bg-white px-4 py-3 font-utility text-sm text-[#111827] outline-none focus-visible:border-[#2f5daa] focus-visible:ring-2 focus-visible:ring-[#2f5daa]/25"
               />
-              <p className="font-utility text-xs text-[#111827]/55">{m.paste.hint}</p>
+              <p className="font-utility text-xs text-[#111827]/65">{m.paste.hint}</p>
               <button type="button" onClick={() => void submitPaste()} disabled={busy || !pasteText.trim()} className={PRIMARY}>
                 {setMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : m.actions.save}
               </button>

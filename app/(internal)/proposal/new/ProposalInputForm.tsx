@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { apiFetchForm, getTokenOrThrow } from "@/lib/api/http";
 import { ApiError } from "@/lib/dashboard/api-error";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 import Step1CustomerProject from "./steps/Step1CustomerProject";
 import Step2InstallationSite from "./steps/Step2InstallationSite";
@@ -275,7 +275,7 @@ export default function ProposalInputForm({ initialLeadId }: ProposalInputFormPr
 
   if (status === "success") {
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
@@ -315,7 +315,7 @@ export default function ProposalInputForm({ initialLeadId }: ProposalInputFormPr
         )}
 
         {sitePhotoCount > 0 && (
-          <p className="mt-4 text-[#111827]/50 text-xs font-utility max-w-[52ch] mx-auto">
+          <p className="mt-4 text-[#111827]/65 text-xs font-utility max-w-[52ch] mx-auto">
             Note: the {sitePhotoCount} site photograph{sitePhotoCount === 1 ? "" : "s"} you attached
             {sitePhotoCount === 1 ? " wasn&rsquo;t" : " weren&rsquo;t"} uploaded — installation-photo upload isn&rsquo;t wired up yet.
             A team member will contact you to collect these separately.
@@ -329,7 +329,7 @@ export default function ProposalInputForm({ initialLeadId }: ProposalInputFormPr
         >
           Start Another Assessment
         </button>
-      </motion.div>
+      </m.div>
     );
   }
 
@@ -368,15 +368,15 @@ export default function ProposalInputForm({ initialLeadId }: ProposalInputFormPr
       {/* Progress indicator */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3">
-          <p className="font-utility text-xs text-[#111827]/55 uppercase tracking-[0.12em]">
+          <p className="font-utility text-xs text-[#111827]/65 uppercase tracking-[0.12em]">
             Step {currentStep + 1} of {TOTAL_STEPS} — {STEP_NAMES[currentStep]}
           </p>
-          <p className="font-utility text-xs text-[#111827]/35">
+          <p className="font-utility text-xs text-[#111827]/65">
             {Math.round(((currentStep + 1) / TOTAL_STEPS) * 100)}%
           </p>
         </div>
         <div className="h-1.5 w-full rounded-full bg-[#e4e8ee] overflow-hidden">
-          <motion.div
+          <m.div
             className="h-full rounded-full bg-[#f7a800]"
             initial={false}
             animate={{ width: `${((currentStep + 1) / TOTAL_STEPS) * 100}%` }}
@@ -387,7 +387,7 @@ export default function ProposalInputForm({ initialLeadId }: ProposalInputFormPr
 
       <AnimatePresence>
         {submitError && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
@@ -395,7 +395,7 @@ export default function ProposalInputForm({ initialLeadId }: ProposalInputFormPr
           >
             <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
             {submitError}
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -408,7 +408,7 @@ export default function ProposalInputForm({ initialLeadId }: ProposalInputFormPr
         clean, correct step swap; the entrance transition below is cosmetic
         only and never gates correctness.
       */}
-      <motion.div
+      <m.div
         key={currentStep}
         initial={{ opacity: 0, x: 12 }}
         animate={{ opacity: 1, x: 0 }}
@@ -434,7 +434,7 @@ export default function ProposalInputForm({ initialLeadId }: ProposalInputFormPr
             showDocumentErrors={showDocumentErrors}
           />
         )}
-      </motion.div>
+      </m.div>
 
       <div className="mt-9 pt-6 border-t border-[#e4e8ee] flex items-center justify-between gap-4">
         {currentStep > 0 ? (
@@ -451,7 +451,7 @@ export default function ProposalInputForm({ initialLeadId }: ProposalInputFormPr
         )}
 
         {isLastStep ? (
-          <motion.button
+          <m.button
             type="button"
             onClick={handleSubmit}
             disabled={status === "submitting"}
@@ -460,9 +460,9 @@ export default function ProposalInputForm({ initialLeadId }: ProposalInputFormPr
           >
             {status === "submitting" ? "Submitting…" : "Submit for Review"}
             <ArrowRight className="h-4 w-4" />
-          </motion.button>
+          </m.button>
         ) : (
-          <motion.button
+          <m.button
             type="button"
             onClick={handleNext}
             disabled={!canProceed}
@@ -471,7 +471,7 @@ export default function ProposalInputForm({ initialLeadId }: ProposalInputFormPr
           >
             Next
             <ArrowRight className="h-4 w-4" />
-          </motion.button>
+          </m.button>
         )}
       </div>
     </div>

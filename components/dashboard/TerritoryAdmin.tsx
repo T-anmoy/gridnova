@@ -84,7 +84,7 @@ export default function TerritoryAdmin() {
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 id="territory-admin-heading" className="font-display text-xl font-bold text-[#091c3c]">Manage territories</h2>
-          <p className="font-utility text-sm text-[#111827]/50 mt-1">Add a missing district or block, rename one, or switch it off for new registrations.</p>
+          <p className="font-utility text-sm text-[#111827]/65 mt-1">Add a missing district or block, rename one, or switch it off for new registrations.</p>
         </div>
         {level !== 'states' && (
           <Button size="sm" className="min-h-11 gap-1" disabled={needsParent} onClick={() => setAdding(true)}>
@@ -132,11 +132,11 @@ export default function TerritoryAdmin() {
             </TableHeader>
             <TableBody>
               {needsParent ? (
-                <TableRow><TableCell colSpan={4} className="py-10 text-center font-utility text-sm text-[#111827]/40">Choose a {level === 'blocks' ? 'state and district' : 'state'} first.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={4} className="py-10 text-center font-utility text-sm text-[#111827]/65">Choose a {level === 'blocks' ? 'state and district' : 'state'} first.</TableCell></TableRow>
               ) : list.isLoading ? (
                 Array.from({ length: 4 }).map((_, i) => <TableRow key={i}>{Array.from({ length: 4 }).map((__, j) => <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>)}</TableRow>)
               ) : items.length === 0 ? (
-                <TableRow><TableCell colSpan={4} className="py-10 text-center font-utility text-sm text-[#111827]/40">None found.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={4} className="py-10 text-center font-utility text-sm text-[#111827]/65">None found.</TableCell></TableRow>
               ) : (
                 items.map((item) => (
                   <TableRow key={item.lgd_code} data-testid="territory-row" className={item.is_active ? undefined : 'opacity-60'}>

@@ -159,17 +159,17 @@ describe('LeadsPage — Add Lead dialog', () => {
   })
 })
 
-describe('LeadsPage — stage summary strip', () => {
-  it('shows real per-stage counts derived from the fetched leads, not an invented total', () => {
+describe('LeadsPage — counts', () => {
+  it('shows the server total, never a count worked out from the loaded page', () => {
     mockUseUser.mockReturnValue({ user: { publicMetadata: { role: 'admin' } } })
     mockUseLeads.mockReturnValue({
-      data: paged([LEAD, { ...LEAD, id: 2, pipeline_stage: 'new' }, { ...LEAD, id: 3, pipeline_stage: 'won' }]),
+      data: { items: [LEAD, { ...LEAD, id: 2, pipeline_stage: 'new' }, { ...LEAD, id: 3, pipeline_stage: 'won' }], page: 1, page_size: 25, total: 40 },
       isLoading: false,
       error: null,
       refetch: vi.fn(),
     })
     render(<LeadsPage />)
-    expect(screen.getByText('2')).toBeInTheDocument()
-    expect(screen.getByText('1')).toBeInTheDocument()
+    expect(screen.getByText('40 total leads')).toBeInTheDocument()
+    expect(screen.queryByText('On this page:')).not.toBeInTheDocument()
   })
 })

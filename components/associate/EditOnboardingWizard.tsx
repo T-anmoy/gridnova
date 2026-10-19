@@ -25,7 +25,7 @@ export default function EditOnboardingWizard({
   if (isLoading || !onboarding) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-[#111827]/30" />
+        <Loader2 className="h-6 w-6 animate-spin text-[#111827]/65" />
       </div>
     )
   }

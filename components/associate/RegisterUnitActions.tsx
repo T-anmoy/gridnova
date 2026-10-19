@@ -10,7 +10,7 @@ import type { Messages } from '@/lib/i18n/types'
 type RegisterCopy = Messages['associates']['portal']['execution']['register']
 
 const field = 'w-full min-h-[44px] rounded-xl border border-[#e4e8ee] bg-white px-3 py-2 text-base focus:border-[#2f5daa] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#2f5daa]'
-const lbl = 'mb-1.5 block text-xs uppercase tracking-[0.1em] text-[#111827]/55'
+const lbl = 'mb-1.5 block text-xs uppercase tracking-[0.1em] text-[#111827]/65'
 const btn = 'inline-flex min-h-[44px] items-center rounded-lg border border-[#e4e8ee] px-3 text-sm font-semibold text-[#0e2a63] disabled:opacity-50'
 const fill = (t: string, vars: Record<string, string>) => Object.entries(vars).reduce((s, [k, v]) => s.replace(`{${k}}`, v), t)
 

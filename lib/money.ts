@@ -23,3 +23,17 @@ export function isAmountShapeValid(value: string): boolean {
   const v = value.trim()
   return /^\d+(\.\d{1,2})?$/.test(v) && /[1-9]/.test(v)
 }
+
+const NONZERO_DIGIT = /[1-9]/
+
+/** True for a negative decimal string ("-1000.00"). Reads the string; no number is ever built. */
+export function isNegativeAmount(amount: string | null | undefined): boolean {
+  const a = amount?.trim()
+  return !!a && a.startsWith('-') && NONZERO_DIGIT.test(a)
+}
+
+/** True for a strictly positive decimal string ("0.00" and "-5" are not). */
+export function isPositiveAmount(amount: string | null | undefined): boolean {
+  const a = amount?.trim()
+  return !!a && !a.startsWith('-') && DECIMAL.test(a) && NONZERO_DIGIT.test(a)
+}

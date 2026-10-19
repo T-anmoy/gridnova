@@ -27,6 +27,9 @@ export function createAuthExpiryHandler(options: { signInPath: string; getSignOu
   return function handleAuthExpiry(error: unknown) {
     if (typeof window === 'undefined') return
     if (classifyApiError(error).kind !== 'auth') return
+    // Already on the sign-in page: a background query failing here must not redirect again,
+    // or every reload nests another ?redirect_url= and the page never settles.
+    if (window.location.pathname.startsWith(options.signInPath)) return
     if (redirecting) return
     redirecting = true
     setTimeout(() => {

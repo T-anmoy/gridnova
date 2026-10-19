@@ -148,7 +148,7 @@ function AddEquipmentDialog({ open, onOpenChange }: { open: boolean; onOpenChang
           <div className="flex items-center justify-between rounded-lg border border-[#e4e8ee] px-3 py-2.5">
             <div>
               <p className="font-utility text-sm text-[#091c3c]">DCR Compliant</p>
-              <p className="font-utility text-xs text-[#111827]/50">Eligible for domestic-content-required schemes</p>
+              <p className="font-utility text-xs text-[#111827]/65">Eligible for domestic-content-required schemes</p>
             </div>
             <Switch
               checked={form.isDcrCompliant}
@@ -160,7 +160,7 @@ function AddEquipmentDialog({ open, onOpenChange }: { open: boolean; onOpenChang
           <div>
             <Label htmlFor="eq-price" className="text-xs text-[#111827]/60">
               Procurement Price (₹)
-              <span className="ml-1.5 normal-case text-[#111827]/35">— internal only, never shown to customers</span>
+              <span className="ml-1.5 normal-case text-[#111827]/65">— internal only, never shown to customers</span>
             </Label>
             <Input
               id="eq-price"
@@ -193,7 +193,7 @@ function EmptyEquipmentState({ isAdmin, onAdd }: { isAdmin: boolean; onAdd: () =
           <Package className="h-7 w-7 text-[#f7a800]" />
         </div>
         <p className="font-display text-lg font-semibold text-[#091c3c]">No equipment yet</p>
-        <p className="font-utility text-sm text-[#111827]/50 mt-1.5 max-w-[42ch]">
+        <p className="font-utility text-sm text-[#111827]/65 mt-1.5 max-w-[42ch]">
           This is where Grid Nova&apos;s equipment catalog — modules, inverters, structures and
           BOS components — will live once real SKU data is added. Nothing is broken; the catalog
           is simply pending.
@@ -242,7 +242,7 @@ export default function EquipmentPage() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold text-[#091c3c]">Equipment Master</h1>
-          <p className="font-utility text-sm text-[#111827]/50 mt-1">
+          <p className="font-utility text-sm text-[#111827]/65 mt-1">
             {items.length} {items.length === 1 ? 'item' : 'items'}
           </p>
         </div>
@@ -259,7 +259,7 @@ export default function EquipmentPage() {
         <CardContent className="pt-4">
           <div className="flex flex-wrap gap-3 items-end">
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-[#111827]/40" />
+              <Filter className="h-4 w-4 text-[#111827]/65" />
               <span className="font-utility text-sm text-[#111827]/60">Filters</span>
             </div>
             <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as EquipmentCategory | '')}>
@@ -309,7 +309,7 @@ export default function EquipmentPage() {
                 {isAdmin && (
                   <TableHead>
                     Procurement Price
-                    <span className="ml-1 normal-case font-normal text-[#111827]/35">(internal)</span>
+                    <span className="ml-1 normal-case font-normal text-[#111827]/65">(internal)</span>
                   </TableHead>
                 )}
                 <TableHead>Status</TableHead>
@@ -329,7 +329,7 @@ export default function EquipmentPage() {
                 : items.length === 0
                 ? (
                     <TableRow>
-                      <TableCell colSpan={isAdmin ? 9 : 7} className="text-center py-12 font-utility text-[#111827]/40">
+                      <TableCell colSpan={isAdmin ? 9 : 7} className="text-center py-12 font-utility text-[#111827]/65">
                         No equipment matches these filters
                       </TableCell>
                     </TableRow>
@@ -353,7 +353,7 @@ export default function EquipmentPage() {
                         {item.is_dcr_compliant ? (
                           <Badge variant="green" className="text-xs">DCR</Badge>
                         ) : (
-                          <span className="font-utility text-sm text-[#111827]/40">—</span>
+                          <span className="font-utility text-sm text-[#111827]/65">—</span>
                         )}
                       </TableCell>
                       {isAdmin && (

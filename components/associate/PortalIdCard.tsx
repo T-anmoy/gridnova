@@ -24,7 +24,7 @@ export default function PortalIdCard({ copy }: { copy: Messages['associates']['p
   if (isLoading || !me) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-[#111827]/30" />
+        <Loader2 className="h-6 w-6 animate-spin text-[#111827]/65" />
       </div>
     )
   }
@@ -59,7 +59,7 @@ export default function PortalIdCard({ copy }: { copy: Messages['associates']['p
             {copy.download}
           </button>
         ) : (
-          <p className="font-utility text-sm text-[#111827]/50">{copy.notReady}</p>
+          <p className="font-utility text-sm text-[#111827]/65">{copy.notReady}</p>
         )}
       </div>
     </div>

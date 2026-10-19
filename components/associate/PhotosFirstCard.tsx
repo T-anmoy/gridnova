@@ -17,7 +17,7 @@ export default function PhotosFirstCard() {
           <p className="mt-1 font-utility text-sm text-[#111827]/75">{m.priority.body}</p>
         </div>
       </div>
-      <p className="mt-3 font-utility text-xs text-[#111827]/55">{m.priority.galleryLine}</p>
+      <p className="mt-3 font-utility text-xs text-[#111827]/65">{m.priority.galleryLine}</p>
     </div>
   )
 }

@@ -12,7 +12,7 @@ export default async function PreferredPortalEditCustomerPage({
 }) {
   const resolved = await params
   const step = (await searchParams).step
-  const m = messagesFor(await resolveLocale(params)).associates
+  const m = (await messagesFor(await resolveLocale(params))).associates
   return (
     <PortalShell base="/preferred/portal" active="customers" showTerritory labels={m.portal.nav} signOutLabel={m.portal.nav.signOut}>
       <EditOnboardingWizard onboardingId={Number(resolved.id)} copy={m.portal.wizard} territory={m.territory} portalBase="/preferred/portal" initialStep={asDeepStep(step)} />

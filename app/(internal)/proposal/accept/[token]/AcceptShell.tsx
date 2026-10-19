@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import { CheckCircle2, Clock, Download, FileX2 } from 'lucide-react'
-import headerLogo from '@/public/brand/header-logo.png'
+import headerLogo from '@/public/brand/header-logo.webp'
 import { API_BASE_URL } from '@/lib/config'
 import { acceptPdfPath, type AcceptScreen, type AcceptView } from '@/lib/proposal-accept'
 import { formatCurrency, formatDate } from '@/lib/dashboard/utils'
@@ -26,7 +26,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </div>
 
       <footer className="mx-auto max-w-[680px] w-full px-4 sm:px-6 pb-8 text-center">
-        <p className="font-utility text-xs text-[#111827]/40">
+        <p className="font-utility text-xs text-[#111827]/65">
           © {new Date().getFullYear()} Grid Nova Energy · Kolkata, West Bengal
         </p>
       </footer>
@@ -43,7 +43,7 @@ export function Card({ children }: { children: React.ReactNode }) {
 }
 
 const ContactLine = ({ prefix = 'Questions? Email' }: { prefix?: string }) => (
-  <p className="mt-6 font-utility text-xs text-[#111827]/40">
+  <p className="mt-6 font-utility text-xs text-[#111827]/65">
     {prefix}{' '}
     <a href="mailto:info@gridnova.in" className="text-[#0e2a63] font-medium hover:underline focus-visible:outline-2 focus-visible:outline-[#f7a800]">
       info@gridnova.in
@@ -106,7 +106,7 @@ export function MessageScreen({ screen }: { screen: keyof typeof MESSAGES }) {
   return (
     <Shell>
       <Card>
-        <Icon className="h-10 w-10 text-[#111827]/25" aria-hidden="true" />
+        <Icon className="h-10 w-10 text-[#111827]/65" aria-hidden="true" />
         <h1 className="mt-4 font-display text-2xl font-semibold text-[#091c3c]">{m.title}</h1>
         <p className="mt-2 font-utility text-sm text-[#111827]/60 leading-relaxed">{m.body}</p>
         {screen === 'error' && <RetryButton />}
@@ -132,7 +132,7 @@ export function AcceptedBody({ view, token }: { view: AcceptView | null; token: 
         team has been notified. We’ll be in touch shortly with the next steps.
       </p>
       {view?.acceptedAt && (
-        <p className="mt-4 font-utility text-xs text-[#111827]/45">Accepted on {formatDate(view.acceptedAt)}</p>
+        <p className="mt-4 font-utility text-xs text-[#111827]/65">Accepted on {formatDate(view.acceptedAt)}</p>
       )}
       {view?.totalValue != null && (
         <div className="mt-6 rounded-xl bg-[#f7f9fc] border border-[#e4e8ee] p-4 flex items-center justify-between">

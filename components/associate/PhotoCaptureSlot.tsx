@@ -173,9 +173,9 @@ export default function PhotoCaptureSlot({
               {value.capture_method === 'camera' ? <MapPin className="h-3 w-3" /> : <ImageIcon className="h-3 w-3" />}
               {chip}
             </p>
-            {value.capture_method === 'gallery' && <p className="mt-1 font-utility text-xs text-[#111827]/55">{m.galleryNote}</p>}
+            {value.capture_method === 'gallery' && <p className="mt-1 font-utility text-xs text-[#111827]/65">{m.galleryNote}</p>}
             {isUploading && (
-              <p role="status" className="mt-1 font-utility text-xs text-[#111827]/55">
+              <p role="status" className="mt-1 font-utility text-xs text-[#111827]/65">
                 {typeof progress === 'number' && progress > 0 ? m.uploadingPct.replace('{percent}', String(progress)) : m.uploading}
               </p>
             )}
@@ -220,7 +220,7 @@ export default function PhotoCaptureSlot({
       </div>
 
       {preparing && (
-        <p role="status" className="mt-2 flex items-center gap-1.5 font-utility text-xs text-[#111827]/55">
+        <p role="status" className="mt-2 flex items-center gap-1.5 font-utility text-xs text-[#111827]/65">
           <Loader2 className="h-3 w-3 animate-spin" /> {m.preparing}
         </p>
       )}

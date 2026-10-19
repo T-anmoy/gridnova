@@ -34,7 +34,7 @@ function MemberCard({ member, copy }: { member: TerritoryMember; copy: Territory
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-display text-base font-semibold text-[#0e2a63] truncate">{member.full_name}</p>
-          <p className="mt-0.5 text-xs text-[#111827]/50 font-utility">{member.associate_id}</p>
+          <p className="mt-0.5 text-xs text-[#111827]/65 font-utility">{member.associate_id}</p>
           <p className="mt-1 text-xs text-[#111827]/65 font-utility">{roleLabel(member, copy)}</p>
         </div>
         <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold font-utility ${STATUS_CLASS[member.status]}`}>
@@ -43,11 +43,11 @@ function MemberCard({ member, copy }: { member: TerritoryMember; copy: Territory
       </div>
       <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-[#e4e8ee] pt-3">
         <div>
-          <dt className="font-utility text-[11px] uppercase tracking-wide text-[#111827]/40">{copy.customers}</dt>
+          <dt className="font-utility text-[11px] uppercase tracking-wide text-[#111827]/65">{copy.customers}</dt>
           <dd className="font-display text-xl font-semibold text-[#091c3c]">{member.customer_count}</dd>
         </div>
         <div>
-          <dt className="font-utility text-[11px] uppercase tracking-wide text-[#111827]/40">{copy.verified}</dt>
+          <dt className="font-utility text-[11px] uppercase tracking-wide text-[#111827]/65">{copy.verified}</dt>
           <dd className="font-display text-xl font-semibold text-[#091c3c]">{member.verified_customer_count}</dd>
         </div>
       </dl>
@@ -68,7 +68,7 @@ function FilterSelect<T extends string>({
 }) {
   return (
     <label className="flex flex-col gap-1 min-w-0">
-      <span className="font-utility text-[11px] uppercase tracking-wide text-[#111827]/40">{label}</span>
+      <span className="font-utility text-[11px] uppercase tracking-wide text-[#111827]/65">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as T | '')}
@@ -101,7 +101,7 @@ export default function PortalTerritory({ copy }: { copy: TerritoryCopy }) {
   return (
     <div>
       <h1 className="font-display text-2xl font-bold text-[#091c3c]">{copy.title}</h1>
-      <p className="mt-1 text-sm text-[#111827]/55">{copy.subtitle}</p>
+      <p className="mt-1 text-sm text-[#111827]/65">{copy.subtitle}</p>
 
       <div className="mt-5 grid grid-cols-2 gap-3 sm:max-w-md">
         <FilterSelect<AssociateStatus>
@@ -153,7 +153,7 @@ export default function PortalTerritory({ copy }: { copy: TerritoryCopy }) {
 
       {isLoading && (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-[#111827]/30" />
+          <Loader2 className="h-6 w-6 animate-spin text-[#111827]/65" />
         </div>
       )}
 
@@ -162,7 +162,7 @@ export default function PortalTerritory({ copy }: { copy: TerritoryCopy }) {
           <p className="font-display text-lg font-semibold text-[#0e2a63]">
             {filtered ? copy.emptyFiltered.title : copy.empty.title}
           </p>
-          <p className="mt-2 text-sm text-[#111827]/55 leading-relaxed max-w-md mx-auto">
+          <p className="mt-2 text-sm text-[#111827]/65 leading-relaxed max-w-md mx-auto">
             {filtered ? copy.emptyFiltered.body : copy.empty.body}
           </p>
         </div>
@@ -170,7 +170,7 @@ export default function PortalTerritory({ copy }: { copy: TerritoryCopy }) {
 
       {data && data.items.length > 0 && (
         <>
-          <p className="mt-6 text-xs font-utility text-[#111827]/50">{fmt(copy.total, { total: data.total })}</p>
+          <p className="mt-6 text-xs font-utility text-[#111827]/65">{fmt(copy.total, { total: data.total })}</p>
           <ul className="mt-2 space-y-3">
             {data.items.map((m) => (
               <MemberCard key={m.associate_id} member={m} copy={copy} />
@@ -186,7 +186,7 @@ export default function PortalTerritory({ copy }: { copy: TerritoryCopy }) {
               >
                 <ChevronLeft className="h-4 w-4" /> {copy.previous}
               </button>
-              <span className="text-xs font-utility text-[#111827]/55">{fmt(copy.pageOf, { page, pages })}</span>
+              <span className="text-xs font-utility text-[#111827]/65">{fmt(copy.pageOf, { page, pages })}</span>
               <button
                 type="button"
                 onClick={() => setPage((p) => p + 1)}

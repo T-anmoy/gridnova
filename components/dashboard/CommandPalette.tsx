@@ -19,9 +19,14 @@ import {
   UserCog,
   ClipboardList,
   Loader2,
+  Sparkles,
 } from 'lucide-react'
 import { useLeadSearch, useProposalSearch } from '@/lib/dashboard/api-client'
 import { useDebouncedValue } from '@/lib/dashboard/use-debounced-value'
+import { useStaffRole } from '@/lib/dashboard/use-staff-role'
+import { canSeeLeads } from '@/lib/dashboard/staff-leads-logic'
+import { useNovaShell } from '@/lib/nova/page-context'
+import { NOVA_QUESTION_MAX, canUseNova } from '@/lib/nova/logic'
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false)
@@ -29,13 +34,18 @@ export function CommandPalette() {
   const [leadIdSearch, setLeadIdSearch] = useState('')
   const [proposalIdSearch, setProposalIdSearch] = useState('')
   const router = useRouter()
+  // Operations and Accounts see no leads, so the palette offers them none.
+  const { role } = useStaffRole()
+  const leadsAllowed = !role || canSeeLeads(role)
+  const { openPanel } = useNovaShell()
+  const novaAllowed = canUseNova(role)
 
   const debouncedQuery = useDebouncedValue(query, 300)
 
   // Non-numeric query with at least 2 chars triggers name search
   const isNameSearch = debouncedQuery.length > 1 && !/^\d+$/.test(debouncedQuery.trim())
 
-  const { data: leadResults, isFetching: leadsFetching } = useLeadSearch(isNameSearch ? debouncedQuery : '')
+  const { data: leadResults, isFetching: leadsFetching } = useLeadSearch(isNameSearch && leadsAllowed ? debouncedQuery : '')
   const { data: proposalResults, isFetching: proposalsFetching } = useProposalSearch(isNameSearch ? debouncedQuery : '')
 
   useEffect(() => {
@@ -63,6 +73,13 @@ export function CommandPalette() {
     router.push(href)
   }
 
+  // Hand the typed text to the Ask Nova panel; it lands in the question box, it is not sent.
+  function askNova(question?: string) {
+    handleOpenChange(false)
+    openPanel(question)
+  }
+  const typedQuestion = query.trim()
+
   const leadItems = leadResults ?? []
   const proposalItems = proposalResults?.items ?? []
 
@@ -76,16 +93,33 @@ export function CommandPalette() {
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
 
+        {novaAllowed && (
+          <CommandGroup heading="Nova Records">
+            <CommandItem value="ask nova open assistant" onSelect={() => askNova()}>
+              <Sparkles className="mr-2 h-4 w-4" />
+              Ask Nova
+            </CommandItem>
+            {typedQuestion.length > 1 && typedQuestion.length <= NOVA_QUESTION_MAX && (
+              <CommandItem value={`ask nova ${typedQuestion}`} onSelect={() => askNova(typedQuestion)}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                <span className="min-w-0 flex-1 truncate">Ask Nova: “{typedQuestion}”</span>
+              </CommandItem>
+            )}
+          </CommandGroup>
+        )}
+
         {/* Navigation — cmdk's built-in filter hides these when typing names */}
         <CommandGroup heading="Navigation">
           <CommandItem onSelect={() => navigate('/dashboard')}>
             <LayoutDashboard className="mr-2 h-4 w-4" />
             Overview
           </CommandItem>
-          <CommandItem onSelect={() => navigate('/dashboard/leads')}>
-            <Users className="mr-2 h-4 w-4" />
-            Leads
-          </CommandItem>
+          {leadsAllowed && (
+            <CommandItem onSelect={() => navigate('/dashboard/leads')}>
+              <Users className="mr-2 h-4 w-4" />
+              Leads
+            </CommandItem>
+          )}
           <CommandItem onSelect={() => navigate('/dashboard/proposals')}>
             <FileText className="mr-2 h-4 w-4" />
             Proposals
@@ -107,8 +141,8 @@ export function CommandPalette() {
         {isNameSearch ? (
           // ── Name-based search results ──────────────────────────────────────
           <>
-            <CommandSeparator />
-            <CommandGroup heading="Leads">
+            {leadsAllowed && <CommandSeparator />}
+            {leadsAllowed && <CommandGroup heading="Leads">
               {leadsFetching ? (
                 <CommandItem disabled value="loading-leads">
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -128,13 +162,13 @@ export function CommandPalette() {
                     <span className="flex-1 min-w-0 truncate">
                       {lead.customer_name ?? `Lead #${lead.id}`}
                     </span>
-                    <span className="ml-2 shrink-0 text-xs text-[#111827]/40">
+                    <span className="ml-2 shrink-0 text-xs text-[#111827]/65">
                       #{lead.id} · {lead.pipeline_stage.replace(/_/g, ' ')}
                     </span>
                   </CommandItem>
                 ))
               )}
-            </CommandGroup>
+            </CommandGroup>}
             <CommandSeparator />
             <CommandGroup heading="Proposals">
               {proposalsFetching ? (
@@ -155,7 +189,7 @@ export function CommandPalette() {
                     <span className="flex-1 min-w-0 truncate">
                       {p.customer?.name ?? `Proposal #${p.id}`}
                     </span>
-                    <span className="ml-2 shrink-0 text-xs text-[#111827]/40">
+                    <span className="ml-2 shrink-0 text-xs text-[#111827]/65">
                       #{p.id} · {p.status.replace(/_/g, ' ')}
                     </span>
                   </CommandItem>
@@ -166,8 +200,8 @@ export function CommandPalette() {
         ) : (
           // ── Numeric ID navigation ──────────────────────────────────────────
           <>
-            <CommandSeparator />
-            <CommandGroup heading="Search Leads by ID">
+            {leadsAllowed && <CommandSeparator />}
+            {leadsAllowed && <CommandGroup heading="Search Leads by ID">
               <CommandItem
                 onSelect={() => {
                   if (leadIdSearch.trim()) navigate(`/dashboard/leads/${leadIdSearch.trim()}`)
@@ -178,7 +212,7 @@ export function CommandPalette() {
               </CommandItem>
               <div className="px-2 py-1">
                 <input
-                  className="w-full rounded border border-[#e4e8ee] px-2 py-1 text-xs font-utility outline-none focus:ring-1 focus:ring-[#f7a800]"
+                  className="w-full rounded border border-[#e4e8ee] px-2 py-1 text-xs font-utility outline-none focus-visible:ring-2 focus-visible:ring-[#f7a800]"
                   placeholder="Enter lead ID"
                   value={leadIdSearch}
                   onChange={(e) => setLeadIdSearch(e.target.value)}
@@ -189,7 +223,7 @@ export function CommandPalette() {
                   }}
                 />
               </div>
-            </CommandGroup>
+            </CommandGroup>}
             <CommandSeparator />
             <CommandGroup heading="Search Proposals by ID">
               <CommandItem
@@ -202,7 +236,7 @@ export function CommandPalette() {
               </CommandItem>
               <div className="px-2 py-1">
                 <input
-                  className="w-full rounded border border-[#e4e8ee] px-2 py-1 text-xs font-utility outline-none focus:ring-1 focus:ring-[#f7a800]"
+                  className="w-full rounded border border-[#e4e8ee] px-2 py-1 text-xs font-utility outline-none focus-visible:ring-2 focus-visible:ring-[#f7a800]"
                   placeholder="Enter proposal ID"
                   value={proposalIdSearch}
                   onChange={(e) => setProposalIdSearch(e.target.value)}

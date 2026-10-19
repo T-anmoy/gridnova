@@ -11,10 +11,10 @@ export const generateMetadata = localizedMetadata("sustainability", "/sustainabi
 const IMPACT_VALUES = ["4,800+", "330+", "2,350+", "1,200+"] as const;
 
 export default async function SustainabilityPage({ params }: LangParams) {
-  const t = messagesFor(await resolveLocale(params)).sustainabilityPage;
+  const t = (await messagesFor(await resolveLocale(params))).sustainabilityPage;
   const IMPACT = IMPACT_VALUES.map((value, i) => ({ value, ...t.impact[i] }));
   return (
-    <main>
+    <main id="main-content">
       {/* Opening statement — full-bleed green, no eyebrow, no formula hero */}
       <section className="bg-gradient-to-b from-[#002868] to-[#091c3c] pt-[calc(var(--header-h)+3.5rem)] pb-20 md:pb-28">
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
@@ -37,7 +37,7 @@ export default async function SustainabilityPage({ params }: LangParams) {
         <div className="mx-auto max-w-[1280px] px-6 md:px-10">
           <ScrollReveal>
           <div className="mb-12">
-            <p className="font-utility text-[11px] tracking-[0.22em] text-white/40 uppercase mb-4">{t.impactEyebrow}</p>
+            <p className="font-utility text-[11px] tracking-[0.22em] text-white/60 uppercase mb-4">{t.impactEyebrow}</p>
             <h2
               className="font-display text-white font-semibold leading-[1.05] max-w-[22ch] text-balance"
               style={{ fontSize: "clamp(1.6rem,3.5vw,2.5rem)" }}
@@ -56,11 +56,11 @@ export default async function SustainabilityPage({ params }: LangParams) {
                   <CountUp value={value} />
                 </div>
                 <p className="mt-2 font-display text-white font-semibold text-lg">{label}</p>
-                <p className="mt-3 text-white/45 text-sm leading-relaxed">{note}</p>
+                <p className="mt-3 text-white/60 text-sm leading-relaxed">{note}</p>
               </div>
             ))}
           </div>
-          <p className="mt-6 text-white/40 text-xs font-utility leading-relaxed max-w-[62ch]">
+          <p className="mt-6 text-white/60 text-xs font-utility leading-relaxed max-w-[62ch]">
             {t.footnote}
           </p>
         </div>

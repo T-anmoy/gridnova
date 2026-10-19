@@ -1,3 +1,4 @@
+import '@/lib/zod-config'
 import { z } from 'zod'
 import type { SurveyCorrection, SurveyReportLink, SurveyResults, SurveyStatus } from './survey-types'
 

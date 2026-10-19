@@ -24,7 +24,7 @@ type Patch = (p: Partial<SurveyForm>) => void
 const btnSecondary =
   'inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[#c9d2de] bg-white px-4 text-sm font-semibold text-[#0e2a63] font-utility focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5daa] disabled:opacity-40'
 const btnIcon =
-  'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-[#111827]/50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5daa]'
+  'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-[#111827]/65 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5daa]'
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return <p className="font-display text-base font-semibold text-[#0e2a63]">{children}</p>
@@ -204,20 +204,20 @@ export function BillsStep({
         {avg && avg.months_recorded > 0 ? (
           <dl className="mt-2 grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
             <div>
-              <dt className="text-xs text-[#111827]/55">{b.avgUnits}</dt>
+              <dt className="text-xs text-[#111827]/65">{b.avgUnits}</dt>
               <dd className="font-utility text-[#111827]/85">{avg.average_monthly_units_kwh == null ? '—' : `${formatKw(avg.average_monthly_units_kwh)} kWh`}</dd>
             </div>
             <div>
-              <dt className="text-xs text-[#111827]/55">{b.avgBill}</dt>
+              <dt className="text-xs text-[#111827]/65">{b.avgBill}</dt>
               <dd className="font-utility text-[#111827]/85">{formatInr(avg.average_monthly_bill_inr)}</dd>
             </div>
             <div>
-              <dt className="text-xs text-[#111827]/55">{b.impliedTariff}</dt>
+              <dt className="text-xs text-[#111827]/65">{b.impliedTariff}</dt>
               <dd className="font-utility text-[#111827]/85">{avg.implied_tariff_inr_per_kwh ? fmt(b.perUnit, { amount: formatInr(avg.implied_tariff_inr_per_kwh) }) : '—'}</dd>
             </div>
           </dl>
         ) : (
-          <p className="mt-1 text-xs text-[#111827]/55">{b.averagesPending}</p>
+          <p className="mt-1 text-xs text-[#111827]/65">{b.averagesPending}</p>
         )}
       </div>
     </div>
@@ -402,7 +402,7 @@ export function RoofSurveyFields({
               >
                 <Plus className="h-4 w-4" aria-hidden="true" /> {r.addSection}
               </button>
-              <span className="text-xs text-[#111827]/55 font-utility">{fmt(r.maxSections, { max: options.max_roof_sections })}</span>
+              <span className="text-xs text-[#111827]/65 font-utility">{fmt(r.maxSections, { max: options.max_roof_sections })}</span>
             </div>
             {errors.roof_sections && <FieldError message={errors.roof_sections} />}
             <p className="rounded-xl bg-[#f7f9fc] px-4 py-3 text-sm text-[#0e2a63] font-utility" aria-live="polite" data-testid="derived-shadow-free">

@@ -6,7 +6,7 @@ import { useAssociateMe } from '@/lib/associate/api-client'
 import { useAssociateHome } from '@/lib/associate/home-api-client'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import PinnedAction from '@/components/associate/PinnedAction'
-import { describeTodo, todoHref } from '@/lib/onboarding/todo'
+import { describeTodo, todoHref, todoKey, todoTitle } from '@/lib/onboarding/todo'
 import { fmt, type Messages } from '@/lib/i18n/types'
 
 type HomeCopy = Messages['associates']['portal']['associate']['home']
@@ -57,7 +57,7 @@ export default function PortalHome({
       {me ? (
         <>
           <h1 className="font-display text-2xl font-bold text-[#091c3c]">{fmt(copy.title, { name: me.full_name })}</h1>
-          <p className="mt-1 font-utility text-sm text-[#111827]/50">
+          <p className="mt-1 font-utility text-sm text-[#111827]/65">
             {fmt(copy.subtitle, { associateId: me.associate_id, level: me.level ? me.level.replace(/_/g, ' ') : '' })}
           </p>
           <p className={`mt-3 font-utility text-sm ${me.status === 'active' ? 'text-green-700' : 'text-amber-700'}`}>{statusNote}</p>
@@ -82,7 +82,7 @@ export default function PortalHome({
             ] as const).map(([label, n]) => (
               <div key={label} className="rounded-xl border border-[#e4e8ee] bg-white px-2 py-3">
                 <dd className="font-display text-xl font-bold text-[#0e2a63]">{n}</dd>
-                <dt className="text-[11px] text-[#111827]/50 font-utility">{label}</dt>
+                <dt className="text-[11px] text-[#111827]/65 font-utility">{label}</dt>
               </div>
             ))}
           </dl>
@@ -92,7 +92,7 @@ export default function PortalHome({
           {home.items.length === 0 ? (
             <div className="mt-4 rounded-2xl border border-dashed border-[#e4e8ee] bg-white p-8 text-center" data-testid="caught-up">
               <p className="font-display text-lg font-semibold text-[#0e2a63]">{feed.caughtUpTitle}</p>
-              <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-[#111827]/55">{feed.caughtUpBody}</p>
+              <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-[#111827]/65">{feed.caughtUpBody}</p>
               <Link
                 href={`${portalBase}/customers/new`}
                 className="mt-5 inline-flex min-h-[56px] items-center justify-center gap-2 rounded-xl bg-[#0e2a63] px-8 text-base font-semibold text-white"
@@ -103,7 +103,7 @@ export default function PortalHome({
           ) : (
             <ul className="mt-4 space-y-3" aria-label={feed.title}>
               {home.items.map((item) => (
-                <li key={`${item.kind}-${item.onboarding_id}-${item.message_key}`}>
+                <li key={todoKey(item)}>
                   <Link
                     href={todoHref(item, portalBase)}
                     data-testid="todo-card"
@@ -113,11 +113,11 @@ export default function PortalHome({
                     <div className="min-w-0">
                       <p className="flex items-center gap-1.5 font-display text-base font-semibold text-[#0e2a63]">
                         {item.priority === 1 && <AlertCircle className="h-4 w-4 shrink-0 text-[#b87700]" aria-label={feed.priority['1']} />}
-                        <span className="truncate">{item.customer_name}</span>
+                        <span className="truncate">{todoTitle(item, feed)}</span>
                       </p>
                       <p className="mt-0.5 text-sm text-[#111827]/70">{describeTodo(item, feed, stageNames)}</p>
                     </div>
-                    <ChevronRight className="h-5 w-5 shrink-0 text-[#111827]/30" />
+                    <ChevronRight className="h-5 w-5 shrink-0 text-[#111827]/65" />
                   </Link>
                 </li>
               ))}

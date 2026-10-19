@@ -15,11 +15,11 @@ export default async function BookACallPage({
 }) {
   const query = await searchParams;
   const asString = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
-  const m = messagesFor(await resolveLocale(params));
+  const m = (await messagesFor(await resolveLocale(params)));
   const t = m.bookingPage;
 
   return (
-    <main className="bg-[#f7f9fc] min-h-[100svh]">
+    <main id="main-content" className="bg-[#f7f9fc] min-h-[100svh]">
       <div className="mx-auto max-w-[900px] px-6 md:px-10 pt-[calc(var(--header-h)+3rem)] pb-20 md:pb-28">
         <div className="mb-12 md:mb-14 text-center">
           <span className="ref-tag text-[#2f5daa] justify-center">{t.eyebrow}</span>
@@ -62,7 +62,7 @@ export default async function BookACallPage({
 
         <div className="mt-8 flex items-center gap-4">
           <div className="h-px flex-1 bg-[#e4e8ee]" />
-          <p className="font-utility text-xs text-[#111827]/40 uppercase tracking-wider">
+          <p className="font-utility text-xs text-[#111827]/65 uppercase tracking-wider">
             {t.talkNow}
           </p>
           <div className="h-px flex-1 bg-[#e4e8ee]" />
@@ -79,7 +79,7 @@ export default async function BookACallPage({
           >
             +91 98747 74440
           </a>
-          <p className="mt-3 text-[#111827]/50 text-sm">
+          <p className="mt-3 text-[#111827]/65 text-sm">
             {t.hours}
           </p>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 
 type Props = {
   children: React.ReactNode;
@@ -17,7 +17,7 @@ export default function ScrollReveal({ children, className, delay = 0, x = 0, y 
   // server's `opacity: 0` in place, so those visitors saw empty sections.
   // Reduced motion now just makes the reveal instant.
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, x, y }}
       whileInView={{ opacity: 1, x: 0, y: 0 }}
       viewport={{ once: true, margin: "-8%" }}
@@ -25,6 +25,6 @@ export default function ScrollReveal({ children, className, delay = 0, x = 0, y 
       className={className}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }

@@ -15,7 +15,7 @@ const label = 'mb-1.5 block text-xs uppercase tracking-[0.1em] text-gray-500'
 // equipment_category_mismatch otherwise), so the add-model form is locked to
 // that category rather than offering all four EquipmentCategory values.
 const CATEGORY_LABEL: Partial<Record<EquipmentCategory, string>> = { module: 'Module', inverter: 'Inverter' }
-const field = 'w-full min-h-[44px] rounded-xl border border-[#e4e8ee] bg-white px-3 py-2 text-sm outline-none focus:border-[#2f5daa]'
+const field = 'w-full min-h-[44px] rounded-xl border border-[#e4e8ee] bg-white px-3 py-2 text-sm outline-none focus-visible:border-[#2f5daa] focus-visible:ring-2 focus-visible:ring-[#2f5daa]/25'
 
 /**
  * Match an unmatched unit to a catalogue item. `locked` is true once the register

@@ -12,9 +12,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      // Private staff area, per-customer proposal links and the signed-in
+      // Private staff area, per-customer proposal and handover links and the signed-in
       // associate / preferred portals must not be indexed.
-      disallow: ["/dashboard", "/proposal/", ...PORTAL_PATHS],
+      disallow: ["/dashboard", "/proposal/", "/handover/", "/api/", ...PORTAL_PATHS],
     },
     sitemap: "https://www.gridnova.in/sitemap.xml",
     host: "https://www.gridnova.in",

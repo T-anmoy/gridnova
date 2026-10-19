@@ -20,7 +20,7 @@ function OnboardingSummary({ onboarding: onb, isLoser }: { onboarding: Attributi
       <p className="text-xs text-gray-500 mt-1">
         Owner: {onb.owner.full_name} ({onb.owner.associate_type})
       </p>
-      <p className="text-xs text-gray-400 mt-1">Created {formatDatetime(onb.created_at)}</p>
+      <p className="text-xs text-gray-500 mt-1">Created {formatDatetime(onb.created_at)}</p>
       <Badge variant="gray" className="mt-2">
         {onb.status}
       </Badge>

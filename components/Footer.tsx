@@ -7,7 +7,7 @@ import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { scrollToTop } from "@/lib/lenis";
 import { useMessages } from "@/lib/i18n/client";
 import { useBarePathname } from "@/lib/i18n/navigation";
-import headerLogo from "@/public/brand/header-logo.png";
+import headerLogo from "@/public/brand/header-logo.webp";
 
 const SITEMAP = [
   { key: "about", href: "/about" },
@@ -63,11 +63,11 @@ export default function Footer() {
             <p className="mt-5 text-white/50 text-sm leading-relaxed max-w-[38ch]">
               {t.tagline}
             </p>
-            <p className="mt-5 font-utility text-[11px] tracking-[0.15em] text-white/35 uppercase">
+            <p className="mt-5 font-utility text-[11px] tracking-[0.15em] text-white/60 uppercase">
               {t.serviceLine}
             </p>
             <div className="mt-6">
-              <p className="font-utility text-[11px] tracking-[0.15em] text-white/40 uppercase mb-2.5">
+              <p className="font-utility text-[11px] tracking-[0.15em] text-white/60 uppercase mb-2.5">
                 {t.language}
               </p>
               <LanguageSwitcher size="md" />
@@ -75,7 +75,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <p className="font-utility text-[11px] tracking-[0.15em] text-white/40 uppercase mb-5">
+            <p className="font-utility text-[11px] tracking-[0.15em] text-white/60 uppercase mb-5">
               {t.sitemap}
             </p>
             <ul className="space-y-3">
@@ -83,9 +83,9 @@ export default function Footer() {
                 <li key={l.href}>
                   <Link
                     href={l.href}
-                    className="py-1 text-white/60 hover:text-white text-sm transition-all duration-200 hover:translate-x-1 inline-flex items-center gap-1.5 group"
+                    className="py-1 text-white/60 hover:text-white text-sm transition-[color,transform] duration-200 hover:translate-x-1 motion-reduce:transition-none motion-reduce:hover:translate-x-0 inline-flex items-center gap-1.5 group"
                   >
-                    <span className="w-0 group-hover:w-2.5 overflow-hidden transition-all duration-200 opacity-0 group-hover:opacity-100">
+                    <span className="w-0 group-hover:w-2.5 overflow-hidden transition-[width,opacity] duration-200 opacity-0 motion-reduce:transition-none group-hover:opacity-100">
                       <span className="block h-px bg-[#f7a800]" />
                     </span>
                     {nav.links[l.key]}
@@ -96,7 +96,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <p className="font-utility text-[11px] tracking-[0.15em] text-white/40 uppercase mb-5">
+            <p className="font-utility text-[11px] tracking-[0.15em] text-white/60 uppercase mb-5">
               {t.legal}
             </p>
             <ul className="space-y-3">
@@ -104,9 +104,9 @@ export default function Footer() {
                 <li key={l.href}>
                   <Link
                     href={l.href}
-                    className="py-1 text-white/60 hover:text-white text-sm transition-all duration-200 hover:translate-x-1 inline-flex items-center gap-1.5 group"
+                    className="py-1 text-white/60 hover:text-white text-sm transition-[color,transform] duration-200 hover:translate-x-1 motion-reduce:transition-none motion-reduce:hover:translate-x-0 inline-flex items-center gap-1.5 group"
                   >
-                    <span className="w-0 group-hover:w-2.5 overflow-hidden transition-all duration-200 opacity-0 group-hover:opacity-100">
+                    <span className="w-0 group-hover:w-2.5 overflow-hidden transition-[width,opacity] duration-200 opacity-0 motion-reduce:transition-none group-hover:opacity-100">
                       <span className="block h-px bg-[#f7a800]" />
                     </span>
                     {t.legalLinks[l.key]}
@@ -117,7 +117,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <p className="font-utility text-[11px] tracking-[0.15em] text-white/40 uppercase mb-5">
+            <p className="font-utility text-[11px] tracking-[0.15em] text-white/60 uppercase mb-5">
               {t.kolkataOffice}
             </p>
             <ul className="space-y-3.5 text-white/60 text-sm">
@@ -141,7 +141,7 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   className="hover:text-white transition-colors"
                 >
-                  <span className="block text-white/40 text-[10px] uppercase tracking-[0.1em] mb-1">
+                  <span className="block text-white/60 text-[10px] uppercase tracking-[0.1em] mb-1">
                     {t.patnaOffice}
                   </span>
                   C/O Parbati Bhawan, West Ram Krishna Nagar, New Bypass
@@ -192,12 +192,12 @@ export default function Footer() {
           <Link
             href="/"
             onClick={handleHomeClick}
-            className="text-white/35 hover:text-white/55 text-xs font-utility transition-colors duration-200"
+            className="text-white/60 hover:text-white/55 text-xs font-utility transition-colors duration-200"
           >
             © {new Date().getFullYear()} {t.copyright}
           </Link>
           <div className="flex items-center gap-4">
-            <p className="text-white/35 text-xs font-utility">
+            <p className="text-white/60 text-xs font-utility">
               {t.credit}{" "}
               <a
                 href="https://www.highlinework.com"

@@ -7,9 +7,9 @@ import { localizedMetadata } from "@/lib/i18n/metadata";
 export const generateMetadata = localizedMetadata("contact", "/contact");
 
 export default async function ContactPage({ params }: LangParams) {
-  const t = messagesFor(await resolveLocale(params)).contact;
+  const t = (await messagesFor(await resolveLocale(params))).contact;
   return (
-    <main className="bg-[#f7f9fc] min-h-[100svh]">
+    <main id="main-content" className="bg-[#f7f9fc] min-h-[100svh]">
       <div className="mx-auto max-w-[1280px] px-6 md:px-10 pt-[calc(var(--header-h)+3rem)] pb-20 md:pb-28">
         {/* Page heading — different from any other page on the site */}
         <div className="mb-14 md:mb-16">
@@ -28,7 +28,7 @@ export default async function ContactPage({ params }: LangParams) {
           {/* Contact info column */}
           <div className="space-y-10">
             <div>
-              <p className="font-utility text-[11px] tracking-[0.22em] text-[#111827]/40 uppercase mb-6">
+              <p className="font-utility text-[11px] tracking-[0.22em] text-[#111827]/65 uppercase mb-6">
                 {t.kolkataOffice}
               </p>
               <ul className="space-y-5">
@@ -42,7 +42,7 @@ export default async function ContactPage({ params }: LangParams) {
                 <li className="flex gap-3.5 text-[#111827]/70 leading-relaxed">
                   <MapPin className="h-5 w-5 text-[#f7a800] shrink-0 mt-0.5" />
                   <span>
-                    <span className="block font-utility text-[11px] tracking-[0.15em] text-[#111827]/40 uppercase mb-1">
+                    <span className="block font-utility text-[11px] tracking-[0.15em] text-[#111827]/65 uppercase mb-1">
                       {t.patnaOffice}
                     </span>
                     C/O Parbati Bhawan, West Ram Krishna Nagar, New Bypass Road,<br />
@@ -82,7 +82,7 @@ export default async function ContactPage({ params }: LangParams) {
 
             {/* Real Google Maps — no overlay, full color */}
             <div>
-              <p className="font-utility text-[11px] tracking-[0.22em] text-[#111827]/40 uppercase mb-4">
+              <p className="font-utility text-[11px] tracking-[0.22em] text-[#111827]/65 uppercase mb-4">
                 {t.location}
               </p>
               <div
@@ -102,7 +102,7 @@ export default async function ContactPage({ params }: LangParams) {
             </div>
 
             <div className="pt-6 border-t border-[#e4e8ee]">
-              <p className="font-utility text-[11px] tracking-[0.22em] text-[#111827]/40 uppercase mb-3">
+              <p className="font-utility text-[11px] tracking-[0.22em] text-[#111827]/65 uppercase mb-3">
                 {t.expectTitle}
               </p>
               <ul className="space-y-3 text-[#111827]/65 text-sm leading-relaxed">
@@ -139,7 +139,7 @@ export default async function ContactPage({ params }: LangParams) {
 
             <div className="mt-8 flex items-center gap-4">
               <div className="h-px flex-1 bg-[#e4e8ee]" />
-              <p className="font-utility text-xs text-[#111827]/40 uppercase tracking-wider">
+              <p className="font-utility text-xs text-[#111827]/65 uppercase tracking-wider">
                 {t.writeInstead}
               </p>
               <div className="h-px flex-1 bg-[#e4e8ee]" />

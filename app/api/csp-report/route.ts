@@ -1,9 +1,9 @@
 import { getClientIp } from "@/lib/backend-mirror";
 import { rateLimit } from "@/lib/rate-limit";
 
-// Receives Content-Security-Policy-Report-Only violation reports (see
+// Receives Content-Security-Policy violation reports (enforcing or report-only; see
 // next.config.ts → lib/security-headers.ts) and writes one short log line per
-// report, so the policy can be tuned from Vercel logs before it is enforced.
+// report, so a blocked source shows up in the Vercel logs.
 // Nothing is stored. Browsers send these unauthenticated, so it is limited per
 // IP (in-memory, first layer only — see lib/rate-limit.ts) and never echoes input.
 export async function POST(request: Request) {

@@ -723,14 +723,14 @@ export default function ProposalDetailPage() {
                     <div className="flex items-center justify-between">
                       <span className="font-utility text-xs font-semibold text-[#091c3c]">v{v.version}</span>
                       {v.id === proposal.id && (
-                        <span className="font-utility text-[10px] text-[#f7a800] font-medium">Current</span>
+                        <span className="font-utility text-[10px] text-[#8a5a00] font-medium">Current</span>
                       )}
                     </div>
                     <Badge variant={statusVariant(v.status)} className="mt-1 text-[10px]">
                       {v.status.replace(/_/g, ' ')}
                     </Badge>
                     {v.date_created && (
-                      <p className="font-utility text-[10px] text-[#111827]/40 mt-1">{formatDate(v.date_created)}</p>
+                      <p className="font-utility text-[10px] text-[#111827]/65 mt-1">{formatDate(v.date_created)}</p>
                     )}
                   </div>
                 ))}

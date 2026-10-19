@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated reports.
+    "coverage/**",
+    "playwright-report/**",
+    "test-results/**",
   ]),
   // The backend URL is read in exactly one place (lib/config.ts) so a missing
   // value can never silently fall back to localhost in production.

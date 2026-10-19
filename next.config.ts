@@ -15,6 +15,8 @@ const nextConfig: NextConfig = {
       apiOrigin: new URL(API_BASE_URL).origin,
       clerkHost: clerkHostFromPublishableKey(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY),
       dev: process.env.NODE_ENV !== "production",
+      // Emergency switch: CSP_REPORT_ONLY=1 turns the enforcing policy back into report-only.
+      reportOnly: process.env.CSP_REPORT_ONLY === "1",
     });
   },
 };

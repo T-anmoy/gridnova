@@ -69,19 +69,19 @@ function ReviewSection({
       <p className="font-utility text-sm font-semibold text-[#0e2a63]">{r.title}</p>
       <p className="flex flex-wrap items-center gap-2">
         <span className={`rounded-full px-3 py-1 text-xs font-semibold font-utility ${OUTCOME_STYLE[outcome]}`} data-testid="review-outcome">{r.outcomes[outcome]}</span>
-        {review.reviewed_at && <span className="text-xs text-[#111827]/55">{fmt(r.reviewedAt, { when: formatDatetime(review.reviewed_at) })}</span>}
+        {review.reviewed_at && <span className="text-xs text-[#111827]/65">{fmt(r.reviewedAt, { when: formatDatetime(review.reviewed_at) })}</span>}
       </p>
       {review.revised_after_review && <p className="text-sm text-amber-800" data-testid="review-revised">{r.revisedNote}</p>}
       {outcome === 'not_feasible' && <p className="text-sm text-red-700">{r.notFeasibleNote}</p>}
       {review.notes && (
         <div>
-          <p className="text-xs text-[#111827]/55">{r.notesLabel}</p>
+          <p className="text-xs text-[#111827]/65">{r.notesLabel}</p>
           <p className="whitespace-pre-wrap text-sm text-[#111827]/85">{review.notes}</p>
         </div>
       )}
       {review.conditions.length > 0 && (
         <div>
-          <p className="text-xs text-[#111827]/55">{r.conditionsTitle}</p>
+          <p className="text-xs text-[#111827]/65">{r.conditionsTitle}</p>
           <ul className="list-disc pl-5 text-sm text-[#111827]/85">{review.conditions.map((c, i) => <li key={i}>{c}</li>)}</ul>
         </div>
       )}
@@ -150,7 +150,7 @@ function ReportButton({ onboardingId, generatedAt }: { onboardingId: number; gen
       >
         <Download className="h-4 w-4" aria-hidden="true" /> {busy ? t.report.opening : t.report.download}
       </button>
-      <p className="mt-1 text-xs text-[#111827]/55">{fmt(t.report.readyAt, { when: formatDatetime(generatedAt) })}</p>
+      <p className="mt-1 text-xs text-[#111827]/65">{fmt(t.report.readyAt, { when: formatDatetime(generatedAt) })}</p>
       <div aria-live="polite">{error && <p role="alert" className="mt-1 text-sm text-red-700">{error}</p>}</div>
     </div>
   )
@@ -185,7 +185,7 @@ export function CorrectionHistory({ items }: { items: SurveyCorrection[] }) {
           <li key={it.correction_id} className="rounded-xl border border-[#e4e8ee] p-3" data-testid={`correction-${it.correction_id}`} data-status={it.status}>
             <p className="flex flex-wrap items-center gap-2">
               <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${it.status === 'applied' ? 'bg-green-100 text-green-800' : it.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-900'}`}>{c.statuses[it.status]}</span>
-              <span className="text-xs text-[#111827]/55">{fmt(c.requestedAt, { when: formatDatetime(it.requested_at) })}</span>
+              <span className="text-xs text-[#111827]/65">{fmt(c.requestedAt, { when: formatDatetime(it.requested_at) })}</span>
             </p>
             <ul className="mt-1.5 text-sm text-[#111827]/85">
               {Object.entries(it.changes).map(([field, value]) => (
@@ -194,11 +194,11 @@ export function CorrectionHistory({ items }: { items: SurveyCorrection[] }) {
                 </li>
               ))}
             </ul>
-            <p className="mt-1 text-xs text-[#111827]/55">{c.reasonLabel}</p>
+            <p className="mt-1 text-xs text-[#111827]/65">{c.reasonLabel}</p>
             <p className="whitespace-pre-wrap text-sm text-[#111827]/80">{it.reason}</p>
             {it.review_note && (
               <p className="mt-1 text-sm text-[#111827]/80">
-                <span className="text-xs text-[#111827]/55">{c.reviewerNote}: </span>
+                <span className="text-xs text-[#111827]/65">{c.reviewerNote}: </span>
                 {it.review_note}
               </p>
             )}

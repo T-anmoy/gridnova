@@ -47,7 +47,7 @@ function EstimateCard({ estimate, copy, catalogue }: { estimate: Estimate; copy:
             <PriceListSummary fields={fields} catalogue={catalogue} chosenLabel={pricing.packages.chosen} />
           )}
         </div>
-        <p className="mt-3 text-xs text-[#111827]/40 font-utility">{formatDatetime(estimate.created_at)}</p>
+        <p className="mt-3 text-xs text-[#111827]/65 font-utility">{formatDatetime(estimate.created_at)}</p>
       </div>
     )
   }
@@ -60,28 +60,28 @@ function EstimateCard({ estimate, copy, catalogue }: { estimate: Estimate; copy:
       </div>
       <div className="mt-4 grid grid-cols-2 gap-4">
         <div>
-          <p className="text-xs text-[#111827]/50 font-utility">{copy.result.systemSizeLabel}</p>
+          <p className="text-xs text-[#111827]/65 font-utility">{copy.result.systemSizeLabel}</p>
           <p className="mt-1 font-display text-lg font-semibold text-[#0e2a63]">{r.recommended_size_kw} kW</p>
         </div>
         <div>
-          <p className="text-xs text-[#111827]/50 font-utility">{copy.result.subsidyLabel}</p>
+          <p className="text-xs text-[#111827]/65 font-utility">{copy.result.subsidyLabel}</p>
           <p className="mt-1 font-display text-lg font-semibold text-[#0e2a63]">{formatCurrency(r.subsidy_inr)}</p>
         </div>
         <div className="col-span-2">
-          <p className="text-xs text-[#111827]/50 font-utility">{copy.result.netCostLabel}</p>
+          <p className="text-xs text-[#111827]/65 font-utility">{copy.result.netCostLabel}</p>
           {r.is_indicative_range ? (
             <>
               <p className="mt-1 font-display text-xl font-bold text-[#0e2a63]">
                 {formatCurrency(r.net_cost_range_min)} – {formatCurrency(r.net_cost_range_max)}
               </p>
-              <p className="mt-1 text-xs text-[#111827]/50">{copy.result.rangeNote}</p>
+              <p className="mt-1 text-xs text-[#111827]/65">{copy.result.rangeNote}</p>
             </>
           ) : (
             <p className="mt-1 font-display text-xl font-bold text-[#0e2a63]">{formatCurrency(r.net_cost)}</p>
           )}
         </div>
       </div>
-      <p className="mt-3 text-xs text-[#111827]/40 font-utility">{formatDatetime(estimate.created_at)}</p>
+      <p className="mt-3 text-xs text-[#111827]/65 font-utility">{formatDatetime(estimate.created_at)}</p>
     </div>
   )
 }
@@ -181,8 +181,8 @@ export default function EstimateSection({ onboardingId, copy }: { onboardingId: 
       )}
 
       <div className="mt-4 space-y-3">
-        {isLoading && <Loader2 className="h-5 w-5 animate-spin text-[#111827]/30" />}
-        {estimates && estimates.length === 0 && <p className="text-sm text-[#111827]/50 font-utility">{copy.history.empty}</p>}
+        {isLoading && <Loader2 className="h-5 w-5 animate-spin text-[#111827]/65" />}
+        {estimates && estimates.length === 0 && <p className="text-sm text-[#111827]/65 font-utility">{copy.history.empty}</p>}
         {estimates?.map((e) => <EstimateCard key={e.estimate_id} estimate={e} copy={copy} catalogue={catalogue} />)}
       </div>
     </div>

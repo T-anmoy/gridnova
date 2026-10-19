@@ -13,13 +13,16 @@ export class ApiError extends Error {
    * (not just a friendly message) read this instead of re-parsing `.detail`.
    */
   structuredDetail?: Record<string, unknown>
+  /** Whole seconds from a `Retry-After` response header, when the backend sent one (429s). */
+  retryAfterSeconds?: number
 
-  constructor(status: number, message: string, detail?: string, structuredDetail?: Record<string, unknown>) {
+  constructor(status: number, message: string, detail?: string, structuredDetail?: Record<string, unknown>, retryAfterSeconds?: number) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.detail = detail
     this.structuredDetail = structuredDetail
+    this.retryAfterSeconds = retryAfterSeconds
   }
 }
 

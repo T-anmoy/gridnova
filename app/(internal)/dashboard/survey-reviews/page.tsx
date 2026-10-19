@@ -92,7 +92,7 @@ function SurveyReviews() {
                   <TableRow key={i}>{Array.from({ length: 5 }).map((__, j) => <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>)}</TableRow>
                 ))
               ) : !data || data.items.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="py-12 text-center text-gray-400">Nothing here.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="py-12 text-center text-gray-500">Nothing here.</TableCell></TableRow>
               ) : (
                 data.items.map((it) => (
                   <ClickableRow key={it.onboarding_id} href={`/dashboard/onboardings/${it.onboarding_id}`} data-testid="survey-review-row">
@@ -109,7 +109,7 @@ function SurveyReviews() {
                       {it.revised_after_review && <Badge variant="amber" className="ml-2">Revised</Badge>}
                     </TableCell>
                     <TableCell>
-                      {it.review.outcome ? <Badge variant={OUTCOME_VARIANT[it.review.outcome]}>{OUTCOME_LABEL[it.review.outcome]}</Badge> : <span className="text-gray-400">—</span>}
+                      {it.review.outcome ? <Badge variant={OUTCOME_VARIANT[it.review.outcome]}>{OUTCOME_LABEL[it.review.outcome]}</Badge> : <span className="text-gray-500">—</span>}
                     </TableCell>
                     <TableCell className="text-sm text-gray-600">{formatDatetime(it.waiting_since)}</TableCell>
                   </ClickableRow>

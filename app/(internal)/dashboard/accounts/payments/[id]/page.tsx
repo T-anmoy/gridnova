@@ -113,7 +113,7 @@ function PaymentDetailView({ p, canAct, isAdmin }: { p: PaymentDetail; canAct: b
             {p.dishonoured_at && <Row label="Dishonoured">{formatDatetime(p.dishonoured_at)}{p.dishonoured_by ? ` · ${p.dishonoured_by}` : ''}{p.dishonour_reason ? ` — ${p.dishonour_reason}` : ''}</Row>}
             {p.cancelled_at && <Row label="Cancelled">{formatDatetime(p.cancelled_at)}{p.cancelled_by ? ` · ${p.cancelled_by}` : ''}{p.cancel_reason ? ` — ${p.cancel_reason}` : ''}</Row>}
             <Row label="Proof">
-              {p.has_proof ? <Button variant="outline" size="sm" onClick={() => void viewProof()}>View {p.proof_filename ?? 'proof'}</Button> : <span className="text-gray-400">None attached</span>}
+              {p.has_proof ? <Button variant="outline" size="sm" onClick={() => void viewProof()}>View {p.proof_filename ?? 'proof'}</Button> : <span className="text-gray-500">None attached</span>}
             </Row>
           </dl>
           {proofMissing && canAct && (

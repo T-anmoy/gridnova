@@ -14,8 +14,8 @@ import type { Milestone, Payment, RecordPaymentInput } from '@/lib/associate/pay
 const INSTRUMENT_MODES = ['cheque', 'demand_draft']
 
 const field =
-  'w-full min-h-[44px] rounded-xl border border-[#e4e8ee] bg-white px-4 py-3 text-[#111827] text-sm font-utility outline-none focus:border-[#2f5daa] focus:ring-2 focus:ring-[#2f5daa]/10'
-const label = 'mb-1.5 block font-utility text-xs uppercase tracking-[0.1em] text-[#111827]/55'
+  'w-full min-h-[44px] rounded-xl border border-[#e4e8ee] bg-white px-4 py-3 text-[#111827] text-sm font-utility outline-none focus-visible:border-[#2f5daa] focus-visible:ring-2 focus-visible:ring-[#2f5daa]/25'
+const label = 'mb-1.5 block font-utility text-xs uppercase tracking-[0.1em] text-[#111827]/65'
 
 const EMPTY = { mode: '', amount: '', reference: '', bank_name: '', instrument_date: '', payer_name: '', milestone_id: '' }
 
@@ -133,7 +133,7 @@ export default function RecordPaymentForm({
       <div>
         <label htmlFor={`${idPrefix}-amount`} className={label}>{copy.amount}</label>
         <input id={`${idPrefix}-amount`} className={field} inputMode="decimal" autoComplete="off" value={v.amount} onChange={(e) => set('amount', e.target.value)} />
-        <p className="mt-1 text-[11px] text-[#111827]/45 font-utility">{copy.amountHint}</p>
+        <p className="mt-1 text-[11px] text-[#111827]/65 font-utility">{copy.amountHint}</p>
         {err('amount')}
       </div>
       <div>

@@ -9,7 +9,7 @@ import type { Messages } from '@/lib/i18n/types'
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
-      <p className="font-utility text-[11px] uppercase tracking-wide text-[#111827]/40">{label}</p>
+      <p className="font-utility text-[11px] uppercase tracking-wide text-[#111827]/65">{label}</p>
       <p className="font-utility text-sm text-[#091c3c] mt-0.5">{value ?? '—'}</p>
     </div>
   )
@@ -22,7 +22,7 @@ export default function PortalProfile({ copy }: { copy: Messages['associates']['
   if (isLoading || !me) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-[#111827]/30" />
+        <Loader2 className="h-6 w-6 animate-spin text-[#111827]/65" />
       </div>
     )
   }
