@@ -100,7 +100,7 @@ To use any of these rights, write to **info@gridnova.in**. We will respond withi
 We use only essential cookies and similar browser storage needed to run the website securely, remember your language choice, and keep staff and Associates signed in. We do not use advertising cookies. If we introduce analytics in future, we will update this Policy and ask for your consent where required.
 
 ### 1.11 Grievance Officer
-Shouvik Biswas, Grievance Officer, Grid Nova Energy, Plot No. 83, Kasba Industrial Estate, Phase II, Kolkata – 700107, West Bengal, India, shouvik@gridnova.in, +965 9782 8553.
+Shouvik Biswas, Grievance Officer, Grid Nova Energy, Plot No. 83, Kasba Industrial Estate, Phase II, Kolkata – 700107, West Bengal, India, shouvik@gridnova.in, +91 93212 05088.
 
 ### 1.12 Changes to this Policy
 We will post any update here with a new effective date. Where a change significantly affects how we use your data, we will tell you directly or ask for fresh consent.
