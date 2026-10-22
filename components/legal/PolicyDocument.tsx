@@ -92,6 +92,10 @@ export default function PolicyDocument({
 }) {
   const slug = doc.slug as PolicySlug;
   const toc = doc.sections.filter((s) => s.heading);
+  // The "draft, items shown like this are unconfirmed" banner only appears while a
+  // [pending] item is still left in the text; once Grid Nova has confirmed everything
+  // the page reads as a final policy.
+  const hasPending = /\[[^\]\n]+\]/.test(JSON.stringify(doc));
   const metaLabel = (label: string) =>
     label === "Version" ? t.version : label === "Effective date" ? t.effective : label;
 
@@ -111,15 +115,19 @@ export default function PolicyDocument({
           ))}
         </dl>
 
-        <div role="note" className="mt-8 rounded-xl border border-[#f7a800]/40 bg-[#fff7e0] px-5 py-4 text-sm leading-relaxed text-[#5c3d00]">
-          <p>
-            {t.draftNotice}{" "}
-            <mark className="rounded px-1.5 py-0.5 bg-[#fff1c2] text-[#6b4700] border border-dashed border-[#d99a00] font-medium">
-              {t.pendingSample}
-            </mark>
-          </p>
-          {englishOnly && <p className="mt-2 font-semibold">{t.englishOnly}</p>}
-        </div>
+        {(hasPending || englishOnly) && (
+          <div role="note" className="mt-8 rounded-xl border border-[#f7a800]/40 bg-[#fff7e0] px-5 py-4 text-sm leading-relaxed text-[#5c3d00]">
+            {hasPending && (
+              <p>
+                {t.draftNotice}{" "}
+                <mark className="rounded px-1.5 py-0.5 bg-[#fff1c2] text-[#6b4700] border border-dashed border-[#d99a00] font-medium">
+                  {t.pendingSample}
+                </mark>
+              </p>
+            )}
+            {englishOnly && <p className={hasPending ? "mt-2 font-semibold" : "font-semibold"}>{t.englishOnly}</p>}
+          </div>
+        )}
 
         <div className="mt-12 grid lg:grid-cols-[230px_1fr] gap-10 lg:gap-14 items-start">
           {toc.length > 1 ? (

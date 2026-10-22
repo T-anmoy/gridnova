@@ -173,7 +173,7 @@
                 "**Enquiries that do not become projects:** up to 24 months from our last interaction, then deleted or anonymised.",
                 "**Customer project records:** for the life of the project, the warranty period, and any longer period required by tax, accounting or government-scheme rules.",
                 "**Associate records:** for the period of association, and afterwards only as long as required for commission, tax and legal purposes.",
-                "**Chat conversations:** [12] months, unless they form part of a customer or project record."
+                "**Chat conversations:** 12 months, unless they form part of a customer or project record."
               ]
             }
           ]
@@ -198,7 +198,7 @@
             },
             {
               "type": "p",
-              "text": "To use any of these rights, write to **info@gridnova.in**. We will respond within [30] days. If you are not satisfied with our response, you may approach the Data Protection Board of India."
+              "text": "To use any of these rights, write to **info@gridnova.in**. We will respond within 30 days. If you are not satisfied with our response, you may approach the Data Protection Board of India."
             }
           ]
         },
@@ -473,7 +473,7 @@
               "items": [
                 "You collect customer information yourself, in person, and enter it in your portal. You must explain to the customer why the information is collected, using the Customer Information Notice, and record their agreement.",
                 "Every detail you enter must be true and collected from the customer or their documents. Site photographs must be taken on site through the portal.",
-                "A customer is attributed to the first Associate whose complete submission is verified by Grid Nova. The attribution stays with that Associate for [90] days, or until the project is completed or closed, whichever applies under the Commission & Payout Policy."
+                "A customer is attributed to the first Associate whose complete submission is verified by Grid Nova. The attribution stays with that Associate until the project is completed or closed, as set out in the Commission & Payout Policy."
               ]
             },
             {
@@ -513,7 +513,7 @@
             },
             {
               "type": "p",
-              "text": "You may leave the Network at any time with [15] days' written notice through your portal. Grid Nova may suspend or terminate your association with immediate effect for any breach of these Terms, fraud, misconduct or harm to Grid Nova's reputation, and otherwise on [30] days' notice. Commission already earned on verified payments before termination remains payable, subject to any reversal or recovery under the Commission & Payout Policy."
+              "text": "You may leave the Network at any time with 15 days' written notice through your portal. Grid Nova may suspend or terminate your association with immediate effect for any breach of these Terms, fraud, misconduct or harm to Grid Nova's reputation, and otherwise on [30] days' notice. Commission already earned on verified payments before termination remains payable, subject to any reversal or recovery under the Commission & Payout Policy."
             },
             {
               "type": "h4",
@@ -537,7 +537,7 @@
             },
             {
               "type": "p",
-              "text": "Grid Nova may update these Terms and the commission rate schedule with [15] days' notice in your portal. Continuing in the Network after that date means you accept the change."
+              "text": "Grid Nova may update these Terms and the commission rate schedule with 15 days' notice in your portal. Continuing in the Network after that date means you accept the change."
             },
             {
               "type": "h4",
@@ -713,7 +713,7 @@
           "blocks": [
             {
               "type": "p",
-              "text": "Raise any query about a commission entry through your portal within 30 days of it appearing. Grid Nova will respond within [15] working days."
+              "text": "Raise any query about a commission entry through your portal within 30 days of it appearing. Grid Nova will respond within 15 working days."
             }
           ]
         },
@@ -827,34 +827,9 @@
         "Effective date of each document"
       ],
       [
-        "4",
-        "1.8",
-        "Retention period for chat conversations (draft: 12 months)"
-      ],
-      [
-        "5",
-        "1.9",
-        "Response time for data requests (draft: 30 days)"
-      ],
-      [
-        "7",
-        "3 (A7)",
-        "Customer attribution lock period (draft: 90 days)"
-      ],
-      [
         "8",
         "3 (A11)",
-        "Notice period for an Associate leaving (draft: 15 days) and for termination without cause (draft: 30 days)"
-      ],
-      [
-        "9",
-        "3 (A14)",
-        "Notice period for changes to the Associate Network Terms (draft: 15 days; the 15 days' notice for rate changes in 4.1 is confirmed)"
-      ],
-      [
-        "11",
-        "4.8",
-        "Response time for commission queries (draft: 15 working days)"
+        "Notice period when Grid Nova ends an Associate's membership without cause (draft: 30 days). Confirmed 21 Oct 2026: 15 days' notice for an Associate leaving, 15 days for changes to the Terms, 15 working days for commission queries, 12 months chat retention, 30 days for data requests; the customer attribution lock period has been removed"
       ],
       [
         "13",
