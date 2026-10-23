@@ -29,6 +29,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { formatDate } from '@/lib/dashboard/utils'
+import ShareSignInCard from '@/components/dashboard/ShareSignInCard'
 import type { ApplicationType } from '@/lib/associate/types'
 import type { Role } from '@/lib/dashboard/types'
 
@@ -182,6 +183,16 @@ export default function ApplicationDetailPage() {
           Approved — the invite and documents are being prepared.{' '}
           <Link href={`/dashboard/associate-network/associates/${approvedId}`} className="font-medium underline">View the associate</Link>
         </div>
+      )}
+
+      {role === 'admin' && (app.status === 'approved' || approvedId) && (app.associate_id ?? approvedId) && (
+        <ShareSignInCard
+          fullName={app.full_name}
+          associateId={(app.associate_id ?? approvedId)!}
+          type={app.application_type}
+          mobile={app.mobile}
+          email={app.email}
+        />
       )}
 
       <div className="mb-6 flex items-start justify-between">

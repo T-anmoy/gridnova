@@ -55,7 +55,7 @@ const ONBOARDING: Onboarding = {
   checklist: { required: ['electricity_bill'], present: ['electricity_bill'], missing: [] },
   notice: { version: 'v1', acknowledged_at: '2026-01-01T00:00:00Z', recorded_by: 'GNA-1' },
   verification: { completed: true, verified_at: '2026-01-02T00:00:00Z' },
-  attribution: { locked_until: null, under_review: false },
+  attribution: { locked: false, released_reason: null, under_review: false },
   score: null,
   formal_proposal_blocked: null,
   submitted_at: '2026-01-01T00:00:00Z',

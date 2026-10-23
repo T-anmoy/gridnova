@@ -6,6 +6,7 @@ import { WithPending } from "@/components/legal/Pending";
 import { ASSOCIATE_PORTAL_OPEN, ASSOCIATE_ROUTES } from "@/lib/associates";
 import { messagesFor, resolveLocale, type LangParams } from "@/lib/i18n/messages";
 import { localizedMetadata } from "@/lib/i18n/metadata";
+import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/lib/contact";
 
 export const generateMetadata = localizedMetadata("careers", "/careers");
 
@@ -287,8 +288,8 @@ export default async function CareersPage({ params }: LangParams) {
           <aside className="rounded-2xl bg-[#f7f9fc] border border-[#e4e8ee] p-7 lg:sticky lg:top-28">
             <h3 className="font-display text-[#0e2a63] text-lg font-semibold">{t.faq.helplineTitle}</h3>
             <p className="mt-2 text-[#111827]/60 text-sm leading-relaxed">{t.faq.helplineBody}</p>
-            <a href="tel:+919874774440" className="mt-5 flex items-center gap-2.5 font-display text-[#0e2a63] text-xl font-bold">
-              <Phone className="h-4 w-4 text-[#f7a800]" /> +91 98747 74440
+            <a href={HELPLINE_TEL} className="mt-5 flex items-center gap-2.5 font-display text-[#0e2a63] text-xl font-bold">
+              <Phone className="h-4 w-4 text-[#f7a800]" /> {HELPLINE_DISPLAY}
             </a>
             <a href="mailto:info@gridnova.in" className="mt-2 flex items-center gap-2.5 font-utility text-[#0e2a63]">
               <Mail className="h-4 w-4 text-[#f7a800]" /> info@gridnova.in

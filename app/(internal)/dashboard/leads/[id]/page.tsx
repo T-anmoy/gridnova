@@ -527,6 +527,11 @@ export default function LeadDetailPage() {
                 {lead.customer.company && (
                   <p className="font-utility text-sm text-[#111827]/60">{lead.customer.company}</p>
                 )}
+                {lead.referred_by && (
+                  <p className="font-utility text-sm text-[#111827]/80" data-testid="lead-referred-by">
+                    <span className="text-[#111827]/60">{copy.detail.referredBy}:</span> {lead.referred_by.full_name} ({lead.referred_by.associate_id})
+                  </p>
+                )}
               </CardContent>
             </Card>
           )}

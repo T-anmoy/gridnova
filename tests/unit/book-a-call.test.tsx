@@ -463,3 +463,49 @@ describe("BookingWidget — ask-then-confirm flow", () => {
     expect(screen.getByLabelText("Name")).toHaveValue("Asha Roy");
   });
 });
+
+describe("BookingWidget — an Associate's referral link (FE-8)", () => {
+  const BOOKED = { success: true, lead_id: 1, meeting_id: 2, scheduled_at: EXACT_SLOT_ISO, duration_minutes: 30, meet_link: null };
+
+  async function bookWith(consent: boolean) {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValueOnce(jsonResponse(AVAILABILITY_WITH_EXACT)).mockResolvedValueOnce(jsonResponse(BOOKED));
+    const user = userEvent.setup();
+    render(withI18n(<BookingWidget />));
+    await askFor(user, ASK.dateStr, ASK.timeLabel);
+    await user.type(await screen.findByLabelText("Name"), "Asha Roy");
+    await user.type(screen.getByLabelText("Email"), "asha@example.com");
+    const box = screen.queryByRole("checkbox", { name: /Share my details with the Grid Nova Associate who referred me/ });
+    if (box) expect(box).not.toBeChecked();
+    if (consent && box) await user.click(box);
+    await user.click(screen.getByRole("button", { name: /confirm booking/i }));
+    await screen.findByText(`You’re booked for ${ASK.label}`);
+    return { box, body: JSON.parse((fetchMock.mock.calls[1][1] as RequestInit).body as string) };
+  }
+
+  afterEach(() => {
+    window.sessionStorage.clear();
+    window.history.replaceState(null, "", "/");
+  });
+
+  it("carries a ref remembered from the estimate page; consent only when ticked", async () => {
+    window.sessionStorage.setItem("gn-referral-ref", "GNA-WB-26-00001");
+    const { box, body } = await bookWith(false);
+    expect(box).not.toBeNull();
+    expect(body.ref).toBe("GNA-WB-26-00001");
+    expect(body).not.toHaveProperty("share_with_referrer");
+  });
+
+  it("sends share_with_referrer: true when the visitor ticks the box", async () => {
+    window.history.replaceState(null, "", "/book-a-call?ref=GNA-WB-26-00001");
+    const { body } = await bookWith(true);
+    expect(body).toMatchObject({ ref: "GNA-WB-26-00001", share_with_referrer: true });
+  });
+
+  it("without a ref: no consent box and no referral fields", async () => {
+    const { box, body } = await bookWith(true);
+    expect(box).toBeNull();
+    expect(body).not.toHaveProperty("ref");
+    expect(body).not.toHaveProperty("share_with_referrer");
+  });
+});

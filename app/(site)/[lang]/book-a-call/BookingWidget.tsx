@@ -10,6 +10,8 @@ import { fmt } from "@/lib/i18n/types";
 import { ApiShapeError } from "@/lib/dashboard/api-error";
 import { istDateKey } from "@/lib/dashboard/utils";
 import { bookingErrorKey } from "@/lib/booking-errors";
+import { referralFields, useReferral } from "@/lib/referral";
+import ReferralConsent from "@/components/forms/ReferralConsent";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   bookingAvailabilityResponseSchema,
@@ -162,6 +164,9 @@ export default function BookingWidget({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  // An Associate's referral link (?ref=…, kept for the visit); consent is opt-in.
+  const referral = useReferral();
+  const [shareWithReferrer, setShareWithReferrer] = useState(false);
   const [touched, setTouched] = useState<{ name?: boolean; email?: boolean; phone?: boolean }>({});
   const [submitError, setSubmitError] = useState("");
 
@@ -375,6 +380,7 @@ export default function BookingWidget({
           sizing_method: sizingMethod || undefined,
           sizing_value: sizingValue ? Number(sizingValue) : undefined,
           source: source || undefined,
+          ...referralFields(referral, shareWithReferrer),
         }),
       });
 
@@ -710,6 +716,10 @@ export default function BookingWidget({
                 </p>
               )}
             </div>
+
+            {referral && (
+              <ReferralConsent label={t.referralConsent} checked={shareWithReferrer} onChange={setShareWithReferrer} />
+            )}
 
             {submitError && (
               <p className="text-sm text-red-600" role="alert">

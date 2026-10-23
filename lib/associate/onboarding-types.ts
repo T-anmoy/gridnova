@@ -171,8 +171,12 @@ export interface OnboardingVerification {
   verified_by_employee_id?: string
 }
 
+// BE-11 (attribution_lock.md): a verified onboarding stays locked until the
+// project is completed, the lead is lost, or an Admin closes it. Before
+// verification `locked` is false with a null reason.
 export interface OnboardingAttribution {
-  locked_until: string | null
+  locked: boolean
+  released_reason: 'project_completed' | 'lead_lost' | 'closed' | null
   under_review: boolean
   // Staff-only.
   open_flags?: number
@@ -212,6 +216,15 @@ export interface OnboardingSiteAssessment {
   [key: string]: unknown
 }
 
+export interface EstimatedCommission {
+  amount: string | null
+  rate: string | null
+  basis: 'accepted_proposal' | 'indicative_estimate'
+  value_used: string
+  basis_amount: string | null
+  pending_reason: 'placeholder_rates' | 'basis_unavailable' | null
+}
+
 export interface Onboarding {
   onboarding_id: number
   status: OnboardingStatus
@@ -243,6 +256,9 @@ export interface Onboarding {
   progress_summary?: ProgressSummary
   // Associate-only.
   can_edit?: boolean
+  // BE-10 (associate_ease.md §2), associate list + detail. An estimate only —
+  // null for a closed record, a territory (non-owner) viewer, or no basis yet.
+  estimated_commission?: EstimatedCommission | null
   // Staff-only.
   closed_reason?: string | null
 }
@@ -273,7 +289,6 @@ export interface OnboardingOptions {
   documents: DocumentOption[]
   photo_slots: PhotoSlotOption[]
   customer_timelines: string[]
-  attribution_lock_days: number
   site_location: SiteLocationOptions
   // S1 site survey (site_survey.md §2).
   survey: import('./survey-types').SurveyOptions

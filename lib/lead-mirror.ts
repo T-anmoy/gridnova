@@ -40,6 +40,9 @@ export function estimateMirrorPayload(d: EstimateRequestInput): Record<string, u
     roof_area: bounded(parseLooseNumber(d.roofAreaSqFt), 0, 10_000_000),
     floors: floorsOf(d.floors),
     connection_phase: clean(d.connectionPhase),
+    // associate_ease.md §1.2: the consent is sent only with a ref, and only when ticked.
+    ref: d.ref,
+    share_with_referrer: d.ref && d.shareWithReferrer ? true : undefined,
   }
 }
 

@@ -1,11 +1,13 @@
 'use client'
 
-import { AlertCircle, ChevronRight, Plus } from 'lucide-react'
+import { AlertCircle, ChevronRight, Plus, Share2 } from 'lucide-react'
 import Link from '@/components/i18n/Link'
 import { useAssociateMe } from '@/lib/associate/api-client'
 import { useAssociateHome } from '@/lib/associate/home-api-client'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import PinnedAction from '@/components/associate/PinnedAction'
+import InstallAppCard from '@/components/associate/InstallAppCard'
+import { useOptionalMessages } from '@/lib/i18n/client'
 import { describeTodo, todoHref, todoKey, todoTitle } from '@/lib/onboarding/todo'
 import { fmt, type Messages } from '@/lib/i18n/types'
 
@@ -47,6 +49,7 @@ export default function PortalHome({
 }) {
   const { data: me, error: meError, refetch: refetchMe } = useAssociateMe()
   const { data: home, isLoading, error, refetch } = useAssociateHome()
+  const referral = useOptionalMessages('portalEase')?.referral
 
   if (meError) return <DashboardError error={meError} onRetry={() => void refetchMe()} />
 
@@ -64,6 +67,25 @@ export default function PortalHome({
         </>
       ) : (
         <div className="h-16 animate-pulse rounded-xl bg-[#eef1f6]" />
+      )}
+
+      <InstallAppCard />
+
+      {referral && (
+        <Link
+          href={`${portalBase}/referrals`}
+          data-testid="referral-home-card"
+          className="mt-6 flex min-h-[72px] items-center justify-between gap-3 rounded-2xl border border-[#e4e8ee] bg-white p-4"
+        >
+          <div className="flex min-w-0 items-start gap-3">
+            <Share2 className="mt-0.5 h-5 w-5 shrink-0 text-[#b87700]" aria-hidden="true" />
+            <div className="min-w-0">
+              <p className="font-display text-base font-semibold text-[#0e2a63]">{referral.homeTitle}</p>
+              <p className="mt-0.5 text-sm text-[#111827]/70">{referral.homeBody}</p>
+            </div>
+          </div>
+          <ChevronRight className="h-5 w-5 shrink-0 text-[#111827]/65" aria-hidden="true" />
+        </Link>
       )}
 
       {error ? (

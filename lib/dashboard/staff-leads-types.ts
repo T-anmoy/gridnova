@@ -19,11 +19,14 @@ export interface LeadFilters {
   /** YYYY-MM-DD, an IST calendar day, inclusive. */
   createdFrom: string
   createdTo: string
+  /** BE-10: an Associate ID — leads that came through that Associate's referral link. */
+  referredBy?: string
 }
 
 // §3 structured 422 `{detail: {code, message, field}}`.
 export const FILTER_ERROR_CODES = [
   'unknown_stage', 'unknown_score', 'invalid_score_range', 'invalid_date', 'invalid_date_range',
+  'invalid_associate_id',
 ] as const
 export type FilterErrorCode = (typeof FILTER_ERROR_CODES)[number]
 

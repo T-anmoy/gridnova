@@ -3,6 +3,7 @@ import Link from "@/components/i18n/Link";
 import MagneticButton from "./MagneticButton";
 import ScrollReveal from "@/components/ScrollReveal";
 import type { Messages } from "@/lib/i18n/types";
+import { HELPLINE_TEL } from "@/lib/contact";
 
 export default function CTASection({ t }: { t: Messages["cta"] }) {
   return (
@@ -38,7 +39,7 @@ export default function CTASection({ t }: { t: Messages["cta"] }) {
           </Link>
         </div>
         <a
-          href="tel:+919874774440"
+          href={HELPLINE_TEL}
           className="mt-6 inline-flex items-center gap-1.5 text-white/60 hover:text-white/70 font-utility text-xs transition-colors duration-300"
         >
           <Phone className="h-3 w-3" />

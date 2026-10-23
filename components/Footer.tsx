@@ -8,6 +8,7 @@ import { scrollToTop } from "@/lib/lenis";
 import { useMessages } from "@/lib/i18n/client";
 import { useBarePathname } from "@/lib/i18n/navigation";
 import headerLogo from "@/public/brand/header-logo.webp";
+import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/lib/contact";
 
 const SITEMAP = [
   { key: "about", href: "/about" },
@@ -151,8 +152,8 @@ export default function Footer() {
               </li>
               <li className="flex gap-2.5 items-center">
                 <Phone className="h-4 w-4 shrink-0 text-[#f7a800]" />
-                <a href="tel:+919874774440" className="hover:text-white transition-colors">
-                  +91 98747 74440
+                <a href={HELPLINE_TEL} className="hover:text-white transition-colors">
+                  {HELPLINE_DISPLAY}
                 </a>
               </li>
               <li className="flex gap-2.5 items-center">

@@ -7,6 +7,7 @@ import { useOnboardings } from '@/lib/associate/onboarding-api-client'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import PinnedAction from '@/components/associate/PinnedAction'
 import LocationChip from '@/components/associate/LocationChip'
+import EstimatedCommissionNote from '@/components/associate/EstimatedCommissionNote'
 import { nextStepKeyFromSummary } from '@/lib/onboarding/progress'
 import type { Onboarding } from '@/lib/associate/onboarding-types'
 import type { Messages } from '@/lib/i18n/types'
@@ -58,6 +59,8 @@ function CustomerCard({
       </div>
 
       <NextStepLine summary={onboarding.progress_summary} blocked={onboarding.formal_proposal_blocked} nextStepCopy={nextStepCopy} actionNeededLabel={actionNeededLabel} />
+
+      <EstimatedCommissionNote value={onboarding.estimated_commission} inLink />
     </Link>
   )
 }

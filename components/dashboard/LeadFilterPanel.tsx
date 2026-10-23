@@ -1,11 +1,11 @@
 'use client'
 
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { ChevronDown, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LEAD_STAGES, SCORE_ORDER, type LeadFilters } from '@/lib/dashboard/staff-leads-types'
 import {
-  activeFilterCount, filterFieldGroup, validateFilters, type FilterApiError,
+  activeFilterCount, cleanAssociateId, filterFieldGroup, validateFilters, type FilterApiError,
 } from '@/lib/dashboard/lead-filters'
 import { fmt, type StaffLeadsCopy } from '@/lib/dashboard/staff-leads-copy'
 import type { PipelineStage } from '@/lib/dashboard/types'
@@ -37,7 +37,17 @@ export function LeadFilterPanel({
   const [open, setOpen] = useState(count > 0)
 
   const guard = validateFilters(filters)
-  const messages: Record<'stage' | 'score' | 'date', string[]> = { stage: [], score: [], date: [] }
+  const messages: Record<'stage' | 'score' | 'date' | 'referredBy', string[]> = { stage: [], score: [], date: [], referredBy: [] }
+  // Typed locally and applied on Enter/blur, so a half-typed ID never reaches the server.
+  const [referredDraft, setReferredDraft] = useState(filters.referredBy ?? '')
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- follow a filter changed elsewhere (Clear, back/forward)
+    setReferredDraft(filters.referredBy ?? '')
+  }, [filters.referredBy])
+  function applyReferred() {
+    const next = cleanAssociateId(referredDraft)
+    if (next !== (filters.referredBy ?? '')) onChange({ ...filters, referredBy: next })
+  }
   for (const g of guard) messages[filterFieldGroup(g.field) ?? 'score'].push(c.errors[g.code])
   if (serverError) {
     const group = filterFieldGroup(serverError.field)
@@ -161,6 +171,34 @@ export function LeadFilterPanel({
             </div>
             <p id={`${panelId}-date-help`} className="mt-2 font-utility text-xs text-[#111827]/65">{c.dateHelp}</p>
             <FieldMessages id={`${panelId}-date-err`} messages={messages.date} />
+          </fieldset>
+
+          <fieldset aria-describedby={`${panelId}-ref-help`}>
+            <legend className="font-utility text-sm font-medium text-[#091c3c]">{c.referredBy}</legend>
+            <label className="mt-2 grid gap-1 font-utility text-sm text-[#111827]">
+              {c.referredByLabel}
+              <input
+                type="text"
+                inputMode="text"
+                autoComplete="off"
+                spellCheck={false}
+                maxLength={64}
+                className={CONTROL}
+                value={referredDraft}
+                aria-invalid={messages.referredBy.length > 0}
+                onChange={(e) => setReferredDraft(e.target.value)}
+                onBlur={applyReferred}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    applyReferred()
+                  }
+                }}
+                data-testid="referred-by-filter"
+              />
+            </label>
+            <p id={`${panelId}-ref-help`} className="mt-2 font-utility text-xs text-[#111827]/65">{c.referredByHelp}</p>
+            <FieldMessages id={`${panelId}-ref-err`} messages={messages.referredBy} />
           </fieldset>
         </div>
       </div>

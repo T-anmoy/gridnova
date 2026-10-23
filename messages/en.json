@@ -305,7 +305,7 @@
         "Purnia",
         "Katihar",
         "Nawada",
-        "Seohar",
+        "Sheohar",
         "Hooghly",
         "Burdwan",
         "Malda",
@@ -777,7 +777,8 @@
       "bookInstead": "Book a call now instead",
       "noPrice": "No price is calculated here — a member of our team will follow up with you directly.",
       "sending": "Sending…",
-      "submit": "Get My Estimate"
+      "submit": "Get My Estimate",
+      "referralConsent": "Share my details with the Grid Nova Associate who referred me"
     }
   },
   "calculatorPage": {
@@ -1024,7 +1025,8 @@
         "contact": "Contact page",
         "homepage": "homepage"
       }
-    }
+    },
+    "referralConsent": "Share my details with the Grid Nova Associate who referred me"
   },
   "home": {
     "hero": {
@@ -1804,7 +1806,8 @@
         "signOut": "Sign out",
         "customers": "My Customers",
         "navLabel": "Portal",
-        "earnings": "Earnings"
+        "earnings": "Earnings",
+        "referrals": "My link"
       },
       "associate": {
         "home": {
@@ -2891,7 +2894,53 @@
     "recommendedTag": "Recommended",
     "fileTooLarge": "\"{name}\" is larger than the {max} MB limit.",
     "removeFile": "Remove {name}",
-    "chooseFileFor": "{action}: {label}"
+    "chooseFileFor": "{action}: {label}",
+    "guide": {
+      "toggle": "How to take this photo",
+      "exampleAlt": "Example photo",
+      "tips": {
+        "panel_installation_area": [
+          "Take it in daylight, without the sun directly in front of the camera.",
+          "Fit the whole roof or terrace in the frame.",
+          "Include the edge or parapet so the size can be judged."
+        ],
+        "front": [
+          "Stand back far enough to fit the whole front of the building.",
+          "Hold the phone straight and keep the house number or gate visible if there is one.",
+          "Take it in daylight."
+        ],
+        "array_installed": [
+          "Fit every panel of the array in one photo.",
+          "Take it from a slight height or an angle so the mounting structure shows.",
+          "Use daylight and avoid glare on the panels."
+        ],
+        "inverter_installed": [
+          "Fill the frame with the inverter and its cables.",
+          "Make sure the label or display is sharp and readable.",
+          "Turn on a light or use the flash if the spot is dark."
+        ],
+        "earthing": [
+          "Show the earthing pit or the earth connection up close.",
+          "Keep the cable joining it in the frame.",
+          "Hold the phone steady so the photo is not blurred."
+        ],
+        "meter_and_net_meter": [
+          "Fit both meters in the frame if they are side by side.",
+          "Make sure the meter numbers and display are readable.",
+          "Avoid reflections on the meter glass."
+        ],
+        "completion_overview": [
+          "Step back and show the whole installation in one photo.",
+          "Take it in daylight.",
+          "Keep the building in the frame so the site can be recognised."
+        ],
+        "default": [
+          "Take it in daylight or with good light.",
+          "Hold the phone steady and tap the screen to focus.",
+          "Fit the whole subject in the frame."
+        ]
+      }
+    }
   },
   "siteLocation": {
     "title": "At the house",
@@ -3561,8 +3610,12 @@
         "unknown_score": "That score is not recognised. Choose Low, Medium or High.",
         "invalid_score_range": "The lowest score is above the highest score. Swap them or change one.",
         "invalid_date": "That date is not valid. Use a real calendar day.",
-        "invalid_date_range": "The start date is after the end date. Swap them or change one."
-      }
+        "invalid_date_range": "The start date is after the end date. Swap them or change one.",
+        "invalid_associate_id": "That is not a valid Associate ID. Check it and try again."
+      },
+      "referredBy": "Referred by Associate",
+      "referredByLabel": "Associate ID",
+      "referredByHelp": "Leads that came through this Associate's referral link. Press Enter to apply."
     },
     "list": {
       "totalCount": "{count} total leads",
@@ -3572,7 +3625,8 @@
       "noMatch": "No leads match these filters.",
       "previous": "Previous",
       "next": "Next",
-      "filterRejected": "The server did not accept these filters. See the message in the filter panel."
+      "filterRejected": "The server did not accept these filters. See the message in the filter panel.",
+      "referredBy": "Referred by {name}"
     },
     "export": {
       "button": "Export CSV",
@@ -3590,7 +3644,8 @@
       "notFound": "Lead not found",
       "back": "Back",
       "technicalTitle": "Technical view",
-      "technicalNote": "Your role sees the technical fields of this lead only."
+      "technicalNote": "Your role sees the technical fields of this lead only.",
+      "referredBy": "Referred by"
     },
     "meeting": {
       "action": "Schedule meeting",
@@ -3716,6 +3771,77 @@
         "network": "Could not reach the server. Check your connection and try again.",
         "generic": "Reflection could not be started. Try again."
       }
+    }
+  },
+  "portalEase": {
+    "help": {
+      "button": "Need help?",
+      "title": "Need help? Talk to Grid Nova",
+      "call": "Call",
+      "whatsapp": "WhatsApp",
+      "close": "Close",
+      "whatsappText": "Hello Grid Nova, I am a Grid Nova Associate (ID {associateId}) and I need help with the portal.",
+      "whatsappTextNoId": "Hello Grid Nova, I am a Grid Nova Associate and I need help with the portal.",
+      "whatsappHelp": "Message Grid Nova on WhatsApp"
+    },
+    "install": {
+      "title": "Install the Grid Nova app",
+      "body": "Open the portal straight from your home screen, like any other app.",
+      "button": "Install Grid Nova app",
+      "iosTitle": "Add Grid Nova to your home screen",
+      "iosStep1": "Tap the Share button at the bottom of Safari.",
+      "iosStep2": "Choose \"Add to Home Screen\", then tap Add.",
+      "dismiss": "Not now"
+    },
+    "commission": {
+      "amount": "Estimated commission {amount}",
+      "basis": {
+        "accepted_proposal": "Based on the accepted proposal",
+        "indicative_estimate": "Based on the indicative estimate"
+      },
+      "paidNote": "Paid after the customer's payment is verified.",
+      "policyLink": "See the Commission Policy.",
+      "ratePending": "Commission rate will be confirmed by Grid Nova"
+    },
+    "attribution": {
+      "locked": "Attributed to you until the project is completed or closed."
+    },
+    "referral": {
+      "nav": "My link",
+      "title": "My link",
+      "body": "Share this link with anyone who may want solar. When they ask for an estimate or book a call through it, the enquiry shows below.",
+      "attributionNote": "A referral is for your information. The customer is attributed to you only when you onboard them, as before.",
+      "homeTitle": "Share your link",
+      "homeBody": "Send your own Grid Nova link on WhatsApp or print its QR code.",
+      "homeOpen": "Open my link",
+      "linkLabel": "Your link",
+      "whatsapp": "Share on WhatsApp",
+      "copy": "Copy link",
+      "copied": "Link copied",
+      "copyFailed": "Couldn't copy. Press and hold the link to copy it.",
+      "downloadQr": "Download QR",
+      "qrAlt": "QR code for your Grid Nova link",
+      "shareText": "Get a free rooftop solar estimate from Grid Nova Energy: {url}",
+      "listTitle": "Referred enquiries",
+      "listEmpty": "No enquiries through your link yet.",
+      "showMore": "Show more",
+      "kind": {
+        "estimate": "Estimate request",
+        "call_booked": "Call booked",
+        "other": "Enquiry"
+      },
+      "status": {
+        "received": "Received",
+        "in_progress": "In progress",
+        "proposal_sent": "Proposal sent",
+        "won": "Won",
+        "closed": "Closed"
+      },
+      "callCustomer": "Call",
+      "whatsappCustomer": "WhatsApp",
+      "notShared": "The customer did not share their contact details.",
+      "noLocation": "Location not given",
+      "pin": "PIN {pin}"
     }
   }
 }

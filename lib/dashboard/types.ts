@@ -72,6 +72,13 @@ export interface LeadSummary {
   created_at: string
   assigned_employee_id?: string | null
   project_reference_id?: string | null
+  // BE-10: the Associate whose referral link the enquiry came through.
+  referred_by?: ReferredBy | null
+}
+
+export interface ReferredBy {
+  associate_id: string
+  full_name: string
 }
 
 export interface ProjectRecord {
@@ -93,6 +100,8 @@ export interface LeadDetail {
   lead_id: number
   customer: Customer | null
   pipeline_stage: PipelineStage
+  // BE-10, non-Engineer detail only.
+  referred_by?: ReferredBy | null
   lead_score: LeadScore | null
   collected_fields: Record<string, unknown> | null
   assigned_employee_id?: string | null
@@ -501,6 +510,8 @@ export interface LeadListParams {
   max_score?: LeadScore
   created_from?: string
   created_to?: string
+  // BE-10 (associate_ease.md §1.4): leads from that Associate's referral link.
+  referred_by_associate_id?: string
   source?: string
   // Sales-scoping filter (Prompt 02b): 'any' means own + unassigned for
   // Sales specifically — any other role sending a non-empty value gets a 422.

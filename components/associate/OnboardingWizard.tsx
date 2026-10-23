@@ -645,6 +645,7 @@ function WizardInner({
   const renderPhotoSlot = (slot: (typeof options.photo_slots)[number]) => (
     <PhotoCaptureSlot
       key={slot.key}
+      slotKey={slot.key}
       label={slot.label}
       exampleUrl={slot.example_image_url}
       exampleLabel={copy.photos.exampleLabel}

@@ -44,8 +44,12 @@
         "unknown_score": "That score is not recognised. Choose Low, Medium or High.",
         "invalid_score_range": "The lowest score is above the highest score. Swap them or change one.",
         "invalid_date": "That date is not valid. Use a real calendar day.",
-        "invalid_date_range": "The start date is after the end date. Swap them or change one."
-      }
+        "invalid_date_range": "The start date is after the end date. Swap them or change one.",
+        "invalid_associate_id": "That is not a valid Associate ID. Check it and try again."
+      },
+      "referredBy": "Referred by Associate",
+      "referredByLabel": "Associate ID",
+      "referredByHelp": "Leads that came through this Associate's referral link. Press Enter to apply."
     },
     "list": {
       "totalCount": "{count} total leads",
@@ -55,7 +59,8 @@
       "noMatch": "No leads match these filters.",
       "previous": "Previous",
       "next": "Next",
-      "filterRejected": "The server did not accept these filters. See the message in the filter panel."
+      "filterRejected": "The server did not accept these filters. See the message in the filter panel.",
+      "referredBy": "Referred by {name}"
     },
     "export": {
       "button": "Export CSV",
@@ -73,7 +78,8 @@
       "notFound": "Lead not found",
       "back": "Back",
       "technicalTitle": "Technical view",
-      "technicalNote": "Your role sees the technical fields of this lead only."
+      "technicalNote": "Your role sees the technical fields of this lead only.",
+      "referredBy": "Referred by"
     },
     "meeting": {
       "action": "Schedule meeting",

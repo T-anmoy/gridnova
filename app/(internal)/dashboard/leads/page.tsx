@@ -310,6 +310,7 @@ function LeadsContent() {
     ...(sendable.maxScore ? { max_score: sendable.maxScore } : {}),
     ...(sendable.createdFrom ? { created_from: sendable.createdFrom } : {}),
     ...(sendable.createdTo ? { created_to: sendable.createdTo } : {}),
+    ...(sendable.referredBy ? { referred_by_associate_id: sendable.referredBy } : {}),
     ...(sourceFilter ? { source: sourceFilter } : {}),
     ...(urlQuery ? { q: urlQuery } : {}),
     ...(canFilterByAssignment && effectiveAssignedFilter ? { assigned: effectiveAssignedFilter } : {}),
@@ -341,6 +342,7 @@ function LeadsContent() {
           ...(sendable.maxScore ? { max_score: sendable.maxScore } : {}),
           ...(sendable.createdFrom ? { created_from: sendable.createdFrom } : {}),
           ...(sendable.createdTo ? { created_to: sendable.createdTo } : {}),
+          ...(sendable.referredBy ? { referred_by_associate_id: sendable.referredBy } : {}),
           source: sourceFilter || undefined },
         token,
       )
@@ -515,6 +517,11 @@ function LeadsContent() {
                         <Badge variant={sourceBadgeVariant(lead.source)}>
                           {SOURCE_LABEL[lead.source] ?? lead.source}
                         </Badge>
+                        {lead.referred_by && (
+                          <p className="mt-1 font-utility text-xs text-[#111827]/65" data-testid="lead-referred-by">
+                            {fmt(copy.list.referredBy, { name: `${lead.referred_by.full_name} (${lead.referred_by.associate_id})` })}
+                          </p>
+                        )}
                       </TableCell>
                       <TableCell className="font-utility text-sm text-[#111827]/60">{formatDate(lead.created_at)}</TableCell>
                       {!isEngineer && (

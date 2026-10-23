@@ -66,7 +66,9 @@ describe('PortalShell', () => {
       )
     )
     const switcher = screen.getByTestId('portal-language-switcher')
-    expect(within(switcher).getAllByRole('button')).toHaveLength(3)
+    // The header row also holds "Need help?" (FE-8); the language switcher itself is three buttons.
+    const help = within(switcher).getByTestId('portal-help-menu')
+    expect(within(switcher).getAllByRole('button').filter((b) => !help.contains(b))).toHaveLength(3)
     expect(switcher).toHaveTextContent('EN')
     expect(screen.getByText('content')).toBeInTheDocument()
   })

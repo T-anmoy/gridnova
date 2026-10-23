@@ -1,4 +1,5 @@
 import { OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { HELPLINE_SCHEMA } from "@/lib/contact";
 
 // Organization / LocalBusiness JSON-LD, shared by both root layouts. Names and
 // addresses stay exactly as written (English) in every locale.
@@ -29,7 +30,7 @@ export const organizationSchema = {
   alternateName: "Grid Nova Energy — Eco-Energy Initiative",
   url: SITE_URL,
   logo: `${SITE_URL}/brand/header-logo.png`,
-  telephone: "+91-9874774440",
+  telephone: HELPLINE_SCHEMA,
   email: "info@gridnova.in",
   address: POSTAL_ADDRESS,
   sameAs: [],
@@ -50,7 +51,7 @@ export const localBusinessSchema = {
   name: "Grid Nova Energy — Kolkata Office",
   image: `${SITE_URL}${OG_IMAGE.url}`,
   url: SITE_URL,
-  telephone: "+91-9874774440",
+  telephone: HELPLINE_SCHEMA,
   email: "info@gridnova.in",
   priceRange: "$$",
   address: POSTAL_ADDRESS,

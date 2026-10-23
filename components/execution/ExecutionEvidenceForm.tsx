@@ -272,6 +272,7 @@ export default function ExecutionEvidenceForm({
                     {copy.required} · {onFile ? `${copy.onFile}: ${onFile.filename}` : copy.notYet}
                   </p>
                   <PhotoCaptureSlot
+                    slotKey={k}
                     label={labelFor(copy.photoSlots, k)}
                     captureLabel={photosCopy.captureButton}
                     locationRequiredLabel={photosCopy.locationRequired}

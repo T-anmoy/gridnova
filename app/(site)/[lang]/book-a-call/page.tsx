@@ -4,6 +4,7 @@ import BookingWidget from "./BookingWidget";
 import { I18nProvider } from "@/lib/i18n/client";
 import { messagesFor, resolveLocale, type LangParams } from "@/lib/i18n/messages";
 import { localizedMetadata } from "@/lib/i18n/metadata";
+import { HELPLINE_DISPLAY, HELPLINE_TEL, HELPLINE_WHATSAPP } from "@/lib/contact";
 
 export const generateMetadata = localizedMetadata("booking", "/book-a-call");
 
@@ -33,7 +34,7 @@ export default async function BookACallPage({
             {t.intro}
           </p>
           <a
-            href="https://wa.me/919874774440"
+            href={HELPLINE_WHATSAPP}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-secondary mt-6"
@@ -73,11 +74,11 @@ export default async function BookACallPage({
             <Phone className="h-5 w-5 text-[#f7a800]" />
           </div>
           <a
-            href="tel:+919874774440"
+            href={HELPLINE_TEL}
             className="mt-5 inline-flex items-center gap-2.5 font-display text-[#0e2a63] font-bold hover:text-[#2f5daa] transition-colors duration-300 active:scale-[0.97]"
             style={{ fontSize: "clamp(1.6rem,5vw,2.25rem)" }}
           >
-            +91 98747 74440
+            {HELPLINE_DISPLAY}
           </a>
           <p className="mt-3 text-[#111827]/65 text-sm">
             {t.hours}

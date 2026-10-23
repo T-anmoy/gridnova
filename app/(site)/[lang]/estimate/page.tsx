@@ -2,6 +2,7 @@ import { MessageCircle } from "lucide-react";
 import EstimateForm from "./EstimateForm";
 import { messagesFor, resolveLocale, type LangParams } from "@/lib/i18n/messages";
 import { localizedMetadata } from "@/lib/i18n/metadata";
+import { HELPLINE_WHATSAPP } from "@/lib/contact";
 
 export const generateMetadata = localizedMetadata("estimate", "/estimate");
 
@@ -22,7 +23,7 @@ export default async function EstimatePage({ params }: LangParams) {
             {t.intro}
           </p>
           <a
-            href="https://wa.me/919874774440"
+            href={HELPLINE_WHATSAPP}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-secondary mt-6"

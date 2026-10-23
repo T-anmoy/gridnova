@@ -83,6 +83,8 @@ const leadSummarySchema = z.object({
   created_at: z.string(),
   assigned_employee_id: z.string().nullable().optional(),
   project_reference_id: z.string().nullable().optional(),
+  // BE-10 (associate_ease.md §1.4).
+  referred_by: z.object({ associate_id: z.string(), full_name: z.string() }).nullable().optional(),
 })
 // BE-1 §2: the standard paged envelope (it used to be a bare array).
 export const leadListResponseSchema = z.object({

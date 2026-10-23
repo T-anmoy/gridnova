@@ -20,6 +20,15 @@ const numericText = (label: string) =>
 const required = (max: number, label: string, requiredMessage: string) =>
   z.string({ error: requiredMessage }).trim().min(1, requiredMessage).max(max, `${label} must be ${max} characters or fewer.`)
 
+const referralRef = z
+  .unknown()
+  .optional()
+  .transform((v) => {
+    if (typeof v !== 'string') return undefined
+    const t = v.trim()
+    return t && t.length <= 64 ? t : undefined
+  })
+
 const customerType = z.enum(['residential', 'society'], { error: REQUIRED_MESSAGE })
 
 const email = (requiredMessage: string) =>
@@ -42,6 +51,10 @@ export const estimateRequestSchema = z.object({
   roofAreaSqFt: numericText('Roof area'),
   floors: numericText('Floors'),
   connectionPhase: optionalText(50, 'Connection phase'),
+  // An Associate's referral link (associate_ease.md §1.2). Never refused: a
+  // bad ref is dropped, and the consent counts only when it is exactly true.
+  ref: referralRef,
+  shareWithReferrer: z.unknown().optional().transform((v) => (v === true ? true : undefined)),
 })
 export type EstimateRequestInput = z.infer<typeof estimateRequestSchema>
 

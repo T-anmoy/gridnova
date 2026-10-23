@@ -23,6 +23,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { formatDate } from '@/lib/dashboard/utils'
+import ShareSignInCard from '@/components/dashboard/ShareSignInCard'
 import type { Role } from '@/lib/dashboard/types'
 
 function errorMessage(err: unknown, fallback: string): string {
@@ -191,6 +192,16 @@ export default function AssociateDetailPage() {
           </Button>
         )}
       </Card>
+
+      {role === 'admin' && associate.status === 'active' && (
+        <ShareSignInCard
+          fullName={associate.full_name}
+          associateId={associate.associate_id}
+          type={associate.associate_type}
+          mobile={associate.mobile}
+          email={associate.email}
+        />
+      )}
 
       <Card className="p-6 mb-4">
         <h2 className="font-display text-sm font-semibold text-[#091c3c] mb-4">Documents</h2>

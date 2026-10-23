@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { Camera, AlertCircle, MapPin, Loader2, Image as ImageIcon, CloudOff } from 'lucide-react'
+import { Camera, AlertCircle, MapPin, Loader2, Image as ImageIcon, CloudOff, Lightbulb } from 'lucide-react'
 import { useMessages } from '@/lib/i18n/client'
 import { prepareImage, PhotoPrepError, type PhotoPrepErrorCode } from '@/lib/associate/image-prep'
 import type { CapturedPhoto, PhotoUploadStatus } from '@/lib/associate/photo-types'
+import { photoGuideFor } from '@/lib/associate/photo-guides'
 
 export type { CapturedPhoto } from '@/lib/associate/photo-types'
 
@@ -28,6 +29,7 @@ const BUTTON_SECONDARY = `${BUTTON_BASE} border-2 border-dashed border-[#e4e8ee]
 // the photo, gets its own message and Retry, and offers the gallery path for
 // that same photo so the associate's work is never lost.
 export default function PhotoCaptureSlot({
+  slotKey,
   label,
   exampleUrl,
   exampleLabel,
@@ -42,6 +44,8 @@ export default function PhotoCaptureSlot({
   status,
   progress,
 }: {
+  /** The slot id — picks the "How to take this photo" tips (lib/associate/photo-guides.ts). */
+  slotKey?: string
   label: string
   exampleUrl?: string | null
   exampleLabel?: string
@@ -152,6 +156,7 @@ export default function PhotoCaptureSlot({
         // eslint-disable-next-line @next/next/no-img-element
         <img src={exampleUrl} alt={exampleLabel ?? label} className="mt-2 h-20 w-28 rounded-lg object-cover border border-[#e4e8ee]" />
       )}
+      <PhotoGuideToggle slotKey={slotKey} label={label} hasExample={!!exampleUrl} />
 
       {value && previewUrl && (
         <div className="mt-2.5 flex items-center gap-3 rounded-xl border border-[#e4e8ee] px-4 py-3">
@@ -255,5 +260,27 @@ export default function PhotoCaptureSlot({
         </div>
       )}
     </div>
+  )
+}
+
+function PhotoGuideToggle({ slotKey, label, hasExample }: { slotKey?: string; label: string; hasExample: boolean }) {
+  const guide = useMessages('photoSlot').guide
+  const { tipsKey, exampleImage } = photoGuideFor(slotKey)
+  return (
+    <details className="group mt-1" data-testid="photo-guide">
+      <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-1.5 font-utility text-sm font-semibold text-[#2f5daa] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5daa] [&::-webkit-details-marker]:hidden">
+        <Lightbulb className="h-4 w-4 text-[#b87700]" aria-hidden="true" />
+        {guide.toggle}
+      </summary>
+      <ul className="mb-2 list-disc space-y-1 pl-6 text-sm text-[#111827]/80">
+        {guide.tips[tipsKey].map((tip) => (
+          <li key={tip}>{tip}</li>
+        ))}
+      </ul>
+      {exampleImage && !hasExample && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={exampleImage} alt={`${guide.exampleAlt}: ${label}`} loading="lazy" className="mb-2 h-28 w-40 rounded-lg border border-[#e4e8ee] object-cover" />
+      )}
+    </details>
   )
 }

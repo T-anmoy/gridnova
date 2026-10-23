@@ -16,7 +16,53 @@
     "recommendedTag": "Recommended",
     "fileTooLarge": "\"{name}\" is larger than the {max} MB limit.",
     "removeFile": "Remove {name}",
-    "chooseFileFor": "{action}: {label}"
+    "chooseFileFor": "{action}: {label}",
+    "guide": {
+      "toggle": "How to take this photo",
+      "exampleAlt": "Example photo",
+      "tips": {
+        "panel_installation_area": [
+          "Take it in daylight, without the sun directly in front of the camera.",
+          "Fit the whole roof or terrace in the frame.",
+          "Include the edge or parapet so the size can be judged."
+        ],
+        "front": [
+          "Stand back far enough to fit the whole front of the building.",
+          "Hold the phone straight and keep the house number or gate visible if there is one.",
+          "Take it in daylight."
+        ],
+        "array_installed": [
+          "Fit every panel of the array in one photo.",
+          "Take it from a slight height or an angle so the mounting structure shows.",
+          "Use daylight and avoid glare on the panels."
+        ],
+        "inverter_installed": [
+          "Fill the frame with the inverter and its cables.",
+          "Make sure the label or display is sharp and readable.",
+          "Turn on a light or use the flash if the spot is dark."
+        ],
+        "earthing": [
+          "Show the earthing pit or the earth connection up close.",
+          "Keep the cable joining it in the frame.",
+          "Hold the phone steady so the photo is not blurred."
+        ],
+        "meter_and_net_meter": [
+          "Fit both meters in the frame if they are side by side.",
+          "Make sure the meter numbers and display are readable.",
+          "Avoid reflections on the meter glass."
+        ],
+        "completion_overview": [
+          "Step back and show the whole installation in one photo.",
+          "Take it in daylight.",
+          "Keep the building in the frame so the site can be recognised."
+        ],
+        "default": [
+          "Take it in daylight or with good light.",
+          "Hold the phone steady and tap the screen to focus.",
+          "Fit the whole subject in the frame."
+        ]
+      }
+    }
   },
   "portalErrors": {
     "wrongAccount": {

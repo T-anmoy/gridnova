@@ -37,6 +37,7 @@ import {
 } from "./lib";
 import CalculatorReveal from "./CalculatorReveal";
 import { parsePriceListEstimate, type PriceListFields } from "@/lib/pricing/price-list";
+import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/lib/contact";
 
 const TOTAL_STEPS = 5;
 
@@ -531,8 +532,8 @@ export default function SolarCalculator() {
             />
             <p className="text-[#111827]/65 text-xs font-utility leading-relaxed rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] px-4 py-3.5">
               {t.site.shareDocs}{" "}
-              <a href="tel:+919874774440" className="text-[#0e2a63] font-medium hover:underline">
-                +91 98747 74440
+              <a href={HELPLINE_TEL} className="text-[#0e2a63] font-medium hover:underline">
+                {HELPLINE_DISPLAY}
               </a>{" "}
               {t.orEmail}{" "}
               <a href="mailto:info@gridnova.in" className="text-[#0e2a63] font-medium hover:underline">

@@ -3,6 +3,7 @@ import ContactForm from "./ContactForm";
 import { Phone, Globe, MapPin, Mail, ArrowRight, Calendar } from "lucide-react";
 import { messagesFor, resolveLocale, type LangParams } from "@/lib/i18n/messages";
 import { localizedMetadata } from "@/lib/i18n/metadata";
+import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/lib/contact";
 
 export const generateMetadata = localizedMetadata("contact", "/contact");
 
@@ -53,10 +54,10 @@ export default async function ContactPage({ params }: LangParams) {
                 <li className="flex gap-3.5 items-center">
                   <Phone className="h-5 w-5 text-[#f7a800] shrink-0" />
                   <a
-                    href="tel:+919874774440"
+                    href={HELPLINE_TEL}
                     className="text-[#0e2a63] font-utility font-semibold hover:text-[#2f5daa] transition-colors"
                   >
-                    +91 98747 74440
+                    {HELPLINE_DISPLAY}
                   </a>
                 </li>
                 <li className="flex gap-3.5 items-center">

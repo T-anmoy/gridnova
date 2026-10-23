@@ -3,6 +3,7 @@ import SolarCalculator from "./SolarCalculator";
 import { I18nProvider } from "@/lib/i18n/client";
 import { messagesFor, resolveLocale, type LangParams } from "@/lib/i18n/messages";
 import { localizedMetadata } from "@/lib/i18n/metadata";
+import { HELPLINE_WHATSAPP } from "@/lib/contact";
 
 export const generateMetadata = localizedMetadata("calculator", "/solar-calculator");
 
@@ -24,7 +25,7 @@ export default async function SolarCalculatorPage({ params }: LangParams) {
             {t.intro}
           </p>
           <a
-            href="https://wa.me/919874774440"
+            href={HELPLINE_WHATSAPP}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-secondary mt-6"

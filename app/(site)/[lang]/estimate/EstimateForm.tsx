@@ -6,6 +6,8 @@ import { FormFieldLabel, fieldA11y, fieldClass, focusFirstInvalid } from "@/comp
 import { ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 import Link from "@/components/i18n/Link";
 import { fmt, type Messages } from "@/lib/i18n/types";
+import ReferralConsent from "@/components/forms/ReferralConsent";
+import { useReferral } from "@/lib/referral";
 
 type T = Messages["estimate"]["form"];
 
@@ -89,6 +91,9 @@ export default function EstimateForm({ t }: { t: T }) {
   const [touched, setTouched] = useState<Partial<Record<RequiredField, boolean>>>({});
   // Honeypot: invisible to real users, bots fill it, submission silently rejected
   const [honeypot, setHoneypot] = useState("");
+  // An Associate's referral link (?ref=…); the consent line shows only with one.
+  const referral = useReferral();
+  const [shareWithReferrer, setShareWithReferrer] = useState(false);
 
   const formRef = useRef<HTMLFormElement>(null);
   const successRef = useRef<HTMLHeadingElement>(null);
@@ -134,7 +139,12 @@ export default function EstimateForm({ t }: { t: T }) {
       const res = await fetch("/api/estimate-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customerType, ...values, website: honeypot }),
+        body: JSON.stringify({
+          customerType,
+          ...values,
+          website: honeypot,
+          ...(referral ? { ref: referral, ...(shareWithReferrer ? { shareWithReferrer: true } : {}) } : {}),
+        }),
       });
       const data = await res.json();
 
@@ -403,6 +413,10 @@ export default function EstimateForm({ t }: { t: T }) {
           />
         </div>
       </div>
+
+      {referral && (
+        <ReferralConsent label={t.referralConsent} checked={shareWithReferrer} onChange={setShareWithReferrer} />
+      )}
 
       <AnimatePresence>
         {status === "error" && submitError && (

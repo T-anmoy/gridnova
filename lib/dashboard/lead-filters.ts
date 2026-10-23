@@ -8,7 +8,15 @@ import {
   type FilterErrorCode, type LeadFilters, type ScoreLabel,
 } from '@/lib/dashboard/staff-leads-types'
 
-export const EMPTY_FILTERS: LeadFilters = { stages: [], minScore: '', maxScore: '', createdFrom: '', createdTo: '' }
+export const EMPTY_FILTERS: LeadFilters = { stages: [], minScore: '', maxScore: '', createdFrom: '', createdTo: '', referredBy: '' }
+
+const MAX_ASSOCIATE_ID = 64
+
+/** The referred-by Associate ID as typed, trimmed and bounded. Its format is the server's to judge (422 invalid_associate_id). */
+export function cleanAssociateId(v: string | null | undefined): string {
+  const t = (v ?? '').trim()
+  return t.length <= MAX_ASSOCIATE_ID ? t : ''
+}
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
@@ -39,6 +47,7 @@ export function filtersFromParams(sp: URLSearchParams): LeadFilters {
     maxScore: isScoreLabel(max) ? max : '',
     createdFrom: isIsoDay(from) ? from : '',
     createdTo: isIsoDay(to) ? to : '',
+    referredBy: cleanAssociateId(sp.get('referred_by_associate_id')),
   }
 }
 
@@ -49,21 +58,22 @@ export function filtersFromParams(sp: URLSearchParams): LeadFilters {
  */
 export function filtersToParams(filters: LeadFilters, base?: URLSearchParams): URLSearchParams {
   const next = new URLSearchParams(base?.toString() ?? '')
-  for (const k of ['stage', 'min_score', 'max_score', 'created_from', 'created_to', 'page']) next.delete(k)
+  for (const k of ['stage', 'min_score', 'max_score', 'created_from', 'created_to', 'referred_by_associate_id', 'page']) next.delete(k)
   for (const s of filters.stages) next.append('stage', s)
   if (filters.minScore) next.set('min_score', filters.minScore)
   if (filters.maxScore) next.set('max_score', filters.maxScore)
   if (filters.createdFrom) next.set('created_from', filters.createdFrom)
   if (filters.createdTo) next.set('created_to', filters.createdTo)
+  if (filters.referredBy) next.set('referred_by_associate_id', filters.referredBy)
   return next
 }
 
 export function hasActiveFilters(f: LeadFilters): boolean {
-  return f.stages.length > 0 || !!f.minScore || !!f.maxScore || !!f.createdFrom || !!f.createdTo
+  return f.stages.length > 0 || !!f.minScore || !!f.maxScore || !!f.createdFrom || !!f.createdTo || !!f.referredBy
 }
 
 export function activeFilterCount(f: LeadFilters): number {
-  return (f.stages.length > 0 ? 1 : 0) + (f.minScore ? 1 : 0) + (f.maxScore ? 1 : 0) + (f.createdFrom ? 1 : 0) + (f.createdTo ? 1 : 0)
+  return (f.stages.length > 0 ? 1 : 0) + (f.minScore ? 1 : 0) + (f.maxScore ? 1 : 0) + (f.createdFrom ? 1 : 0) + (f.createdTo ? 1 : 0) + (f.referredBy ? 1 : 0)
 }
 
 // ── Client-side guards ────────────────────────────────────────────────────────
@@ -110,6 +120,7 @@ export function leadQueryPairs(filters: LeadFilters, extras: LeadQueryExtras = {
   if (f.maxScore) pairs.push(['max_score', f.maxScore])
   if (f.createdFrom) pairs.push(['created_from', f.createdFrom])
   if (f.createdTo) pairs.push(['created_to', f.createdTo])
+  if (f.referredBy) pairs.push(['referred_by_associate_id', f.referredBy])
   for (const key of ['source', 'assigned', 'q'] as const) {
     const v = extras[key]
     if (v) pairs.push([key, v])
@@ -146,8 +157,9 @@ export function filterApiError(err: unknown): FilterApiError | null {
 }
 
 /** Which form control a field-level message belongs under. */
-export function filterFieldGroup(field: string): 'stage' | 'score' | 'date' | null {
+export function filterFieldGroup(field: string): 'stage' | 'score' | 'date' | 'referredBy' | null {
   if (field === 'stage') return 'stage'
+  if (field === 'referred_by_associate_id') return 'referredBy'
   if (field === 'min_score' || field === 'max_score') return 'score'
   if (field === 'created_from' || field === 'created_to') return 'date'
   return null
@@ -165,6 +177,7 @@ export function filtersFromListParams(p: LeadListParams): LeadFilters {
     maxScore: p.max_score ?? '',
     createdFrom: p.created_from ?? '',
     createdTo: p.created_to ?? '',
+    referredBy: p.referred_by_associate_id ?? '',
   }
 }
 

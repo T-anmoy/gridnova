@@ -52,7 +52,6 @@ export const ONBOARDING_OPTIONS: OnboardingOptions = {
   ],
   // openapi.json CustomerTimeline.
   customer_timelines: ['within_1_month', 'within_3_months', 'within_6_months', 'later', 'unsure'],
-  attribution_lock_days: 7,
   site_location: {
     accuracy_good_m: 20,
     accuracy_warn_m: 50,
@@ -168,7 +167,7 @@ export function makeOnboarding(over: Partial<Onboarding> = {}): Onboarding {
     checklist: { required: [], present: [], missing: [] },
     notice: { version: 'v1', acknowledged_at: '2026-01-01T00:00:00Z', recorded_by: 'GNA-1' },
     verification: { completed: false, verified_at: null },
-    attribution: { locked_until: null, under_review: false },
+    attribution: { locked: false, released_reason: null, under_review: false },
     score: null,
     formal_proposal_blocked: null,
     submitted_at: null,

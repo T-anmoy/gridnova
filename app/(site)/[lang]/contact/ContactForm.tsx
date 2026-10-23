@@ -5,6 +5,7 @@ import { m, AnimatePresence } from "framer-motion";
 import { FormFieldLabel, fieldA11y, fieldClass, focusFirstInvalid } from "@/components/forms/FormField";
 import { ArrowRight, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { fmt, type Messages } from "@/lib/i18n/types";
+import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/lib/contact";
 
 type T = Messages["contact"]["form"];
 
@@ -303,7 +304,7 @@ export default function ContactForm({ t }: { t: T }) {
             <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
             <span>
               {submitError} {t.alsoCall}{" "}
-              <a href="tel:+919874774440" className="font-semibold underline">+91 98747 74440</a>{" "}
+              <a href={HELPLINE_TEL} className="font-semibold underline">{HELPLINE_DISPLAY}</a>{" "}
               {t.orEmail}{" "}
               <a href="mailto:info@gridnova.in" className="font-semibold underline">info@gridnova.in</a>.
             </span>

@@ -3,15 +3,17 @@
 import { useEffect } from 'react'
 import { useClerk } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
-import { Home, IdCard, User, HelpCircle, Map, LogOut, Users, Wallet } from 'lucide-react'
+import { Home, IdCard, User, HelpCircle, Map, LogOut, Users, Wallet, Share2 } from 'lucide-react'
 import Link from '@/components/i18n/Link'
 import { useLocale, useOptionalMessages } from '@/lib/i18n/client'
 import OfflineBanner from '@/components/OfflineBanner'
 import LanguageSwitcher from '@/components/i18n/LanguageSwitcher'
 import PortalHomeLink from '@/components/associate/PortalHomeLink'
+import PortalHelpMenu from '@/components/associate/PortalHelpMenu'
 import { clearPortalDeviceData, purgeStaleDeviceData } from '@/lib/associate/portal-session'
+import { listenForInstallPrompt } from '@/lib/associate/install-prompt'
 
-type NavKey = 'home' | 'idCard' | 'profile' | 'help' | 'territory' | 'customers' | 'earnings'
+type NavKey = 'home' | 'idCard' | 'profile' | 'help' | 'territory' | 'customers' | 'earnings' | 'referrals'
 
 const ICONS: Record<NavKey, React.ElementType> = {
   home: Home,
@@ -21,6 +23,7 @@ const ICONS: Record<NavKey, React.ElementType> = {
   territory: Map,
   customers: Users,
   earnings: Wallet,
+  referrals: Share2,
 }
 
 export default function PortalShell({
@@ -43,10 +46,13 @@ export default function PortalShell({
   const locale = useLocale()
   const skipLabel = useOptionalMessages('common')?.skipToContent ?? 'Skip to main content'
 
-  const items: { key: NavKey; href: string }[] = [
+  // `phone: false` keeps an item out of the bottom tab bar, which is already
+  // full at 360 px; on phones "My link" is reached from its card on Home.
+  const items: { key: NavKey; href: string; phone?: false }[] = [
     { key: 'home', href: base },
     { key: 'customers', href: `${base}/customers` },
     { key: 'earnings', href: `${base}/earnings` },
+    { key: 'referrals', href: `${base}/referrals`, phone: false },
     ...(showTerritory ? [{ key: 'territory' as const, href: `${base}/territory` }] : []),
     { key: 'idCard', href: `${base}/id-card` },
     { key: 'profile', href: `${base}/profile` },
@@ -55,6 +61,8 @@ export default function PortalShell({
 
   useEffect(() => {
     purgeStaleDeviceData()
+    // Chrome's install offer can fire on any portal screen; keep it for the home card.
+    listenForInstallPrompt()
   }, [])
 
   async function handleSignOut() {
@@ -99,9 +107,12 @@ export default function PortalShell({
 
         <div className="flex-1 min-w-0">
           {/* One tap away on every portal screen — the site header hides it behind the menu on phones. */}
-          <div className="mb-4 flex items-center justify-between gap-3" data-testid="portal-language-switcher">
+          <div className="relative mb-4 flex items-center justify-between gap-3" data-testid="portal-language-switcher">
             <PortalHomeLink />
-            <LanguageSwitcher tone="light" />
+            <div className="flex items-center gap-2">
+              <PortalHelpMenu />
+              <LanguageSwitcher tone="light" />
+            </div>
           </div>
           <OfflineBanner />
           <main id="main-content" tabIndex={-1} className="outline-none">
@@ -116,7 +127,7 @@ export default function PortalShell({
         data-testid="portal-tab-bar"
         className="fixed inset-x-0 bottom-0 z-30 flex border-t border-[#e4e8ee] bg-white pb-[env(safe-area-inset-bottom)] md:hidden"
       >
-        {items.map(({ key, href }) => {
+        {items.filter((i) => i.phone !== false).map(({ key, href }) => {
           const Icon = ICONS[key]
           const isActive = key === active
           return (

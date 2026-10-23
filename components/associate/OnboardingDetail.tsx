@@ -20,8 +20,9 @@ import LocationDetailCard from '@/components/associate/LocationDetailCard'
 import SurveyCard from '@/components/associate/survey/SurveyCard'
 import EstimateSection from '@/components/associate/EstimateSection'
 import FileUploadSlot from '@/components/associate/FileUploadSlot'
+import EstimatedCommissionNote from '@/components/associate/EstimatedCommissionNote'
 import { ApiError } from '@/lib/dashboard/api-error'
-import { useMessages } from '@/lib/i18n/client'
+import { useMessages, useOptionalMessages } from '@/lib/i18n/client'
 import { useSurveyStatus } from '@/lib/associate/survey-api-client'
 import { isNeedsReverification, proposalGateCode, proposalGateRefuses } from '@/lib/associate/survey-review'
 import { formatCurrency, formatDatetime } from '@/lib/dashboard/utils'
@@ -316,6 +317,7 @@ export default function OnboardingDetail({
   // Payments are owner-only (a Preferred Associate gets 403 on a downline customer's), so only the owner is offered them.
   const isOwner = !!me && !!onboarding && onboarding.owner.associate_id === me.associate_id
   const acceptedRecorded = !!progress?.stages.some((st) => st.stage === 'accepted' && st.recorded)
+  const ease = useOptionalMessages('portalEase')
 
   if (error) return <DashboardError error={error} onRetry={() => void refetch()} />
   if (isLoading || !onboarding) {
@@ -332,6 +334,10 @@ export default function OnboardingDetail({
         <div>
           <h1 className="font-display text-2xl font-bold text-[#091c3c]">{onboarding.customer.name}</h1>
           <p className="mt-1 text-sm text-[#111827]/65 font-utility">{onboarding.customer.mobile}</p>
+          {/* BE-11: locked from Grid Nova's verification until the project is completed or closed. */}
+          {onboarding.attribution.locked && ease && (
+            <p data-testid="attribution-locked" className="mt-1 text-sm text-[#0e2a63] font-utility">{ease.attribution.locked}</p>
+          )}
         </div>
         {onboarding.can_edit && (
           <Link
@@ -406,6 +412,8 @@ export default function OnboardingDetail({
           </ul>
         )}
       </div>
+
+      <EstimatedCommissionNote value={onboarding.estimated_commission} />
 
       <div className="rounded-2xl border border-[#e4e8ee] bg-white p-5">
         <EstimateSection onboardingId={onboardingId} copy={estimateCopy} />
