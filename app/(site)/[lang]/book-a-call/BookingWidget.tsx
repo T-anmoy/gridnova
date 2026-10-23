@@ -19,6 +19,7 @@ import {
   bookingCreateResponseSchema,
   formatZodError,
 } from "@/lib/dashboard/schemas";
+import MotionProvider from "@/components/MotionProvider";
 
 const API_BASE = API_BASE_URL;
 
@@ -127,7 +128,7 @@ function nearestAlternatives(slots: Slot[], requested: Date, count: number): Slo
 type Stage = "ask" | "checking" | "alternatives" | "form" | "submitting" | "success" | "load-error";
 type AltBanner = "no-exact-match" | "slot-taken";
 
-export default function BookingWidget({
+function BookingWidgetInner({
   estimatedTotal,
   sizingMethod,
   sizingValue,
@@ -749,5 +750,15 @@ export default function BookingWidget({
         </m.div>
       )}
     </div>
+  );
+}
+
+// framer-motion is not in the site-wide layout any more (it only ships to the
+// pages that animate with it), so this component brings its own LazyMotion.
+export default function BookingWidget(props: React.ComponentProps<typeof BookingWidgetInner>) {
+  return (
+    <MotionProvider>
+      <BookingWidgetInner {...props} />
+    </MotionProvider>
   );
 }

@@ -2,11 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import Image, { type StaticImageData } from "next/image";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowRight } from "lucide-react";
 import Link from "@/components/i18n/Link";
 import TiltCard from "./TiltCard";
+import { observeRevealGroup } from "@/lib/reveal";
 import type { Messages } from "@/lib/i18n/types";
 import rooftopPhoto from "@/public/images/PM SURYA GHAR.webp";
 import epcPhoto from "@/public/images/SOLAR EPC.webp";
@@ -33,16 +32,11 @@ export default function ServicesGrid({ t }: { t: Messages["home"]["services"] })
   const ref = useRef<HTMLElement>(null);
   const [featured, ...rest] = t.rows;
 
+  // Cards rise in with a short stagger as the section arrives (CSS
+  // transitions on the shared reveal observer; visible without JavaScript).
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    gsap.registerPlugin(ScrollTrigger);
-    const ctx = gsap.context(() => {
-      gsap.fromTo(".service-card", { opacity: 0, y: 40 }, {
-        opacity: 1, y: 0, duration: 0.8, ease: "power3.out", stagger: 0.08,
-        scrollTrigger: { trigger: ref.current, start: "top 78%" },
-      });
-    }, ref);
-    return () => ctx.revert();
+    const el = ref.current;
+    return el ? observeRevealGroup(el, ".service-card", 0.08, () => ({ "--reveal-y": "40px" })) : undefined;
   }, []);
 
   return (

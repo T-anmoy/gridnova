@@ -8,6 +8,7 @@ import Link from "@/components/i18n/Link";
 import { fmt, type Messages } from "@/lib/i18n/types";
 import ReferralConsent from "@/components/forms/ReferralConsent";
 import { useReferral } from "@/lib/referral";
+import MotionProvider from "@/components/MotionProvider";
 
 type T = Messages["estimate"]["form"];
 
@@ -73,7 +74,7 @@ function validateField(field: RequiredField, value: string, e: T["errors"]): str
 
 // ── Main form ─────────────────────────────────────────────────────────────────
 
-export default function EstimateForm({ t }: { t: T }) {
+function EstimateFormInner({ t }: { t: T }) {
   const [customerType, setCustomerType] = useState<CustomerType>("residential");
   const [values, setValues] = useState<Record<Field, string>>({
     name: "",
@@ -448,5 +449,15 @@ export default function EstimateForm({ t }: { t: T }) {
         </m.button>
       </div>
     </form>
+  );
+}
+
+// framer-motion is not in the site-wide layout any more (it only ships to the
+// pages that animate with it), so this component brings its own LazyMotion.
+export default function EstimateForm(props: { t: T }) {
+  return (
+    <MotionProvider>
+      <EstimateFormInner {...props} />
+    </MotionProvider>
   );
 }

@@ -8,13 +8,16 @@ import { useMessages } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/types";
 import { ASK_NOVA_ENABLED } from "@/lib/config";
 import {
-  classifyChatError,
   nextRevealLength,
   readSessionToken,
   REVEAL_TICK_MS,
-  sendChatMessage,
   writeSessionToken,
 } from "@/lib/ask-nova/chat";
+import MotionProvider from "@/components/MotionProvider";
+
+// The transport (zod + API client, ~65 KB gzip) is fetched on the first send,
+// not with the widget.
+const loadTransport = () => import("@/lib/ask-nova/transport");
 
 // Production kill-switch: NEXT_PUBLIC_ASK_NOVA_ENABLED=false disables the live,
 // backend-connected chat and falls back to FAQ-only quick answers (no network
@@ -48,7 +51,7 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
-export default function AskNova() {
+function AskNovaInner() {
   // Fixed, fact-checked question/answer set (messages: nova.faq) surfaced as
   // quick answers — no network call. Live replies from the backend stay in
   // whatever language the backend answers in.
@@ -59,7 +62,6 @@ export default function AskNova() {
   const [thread, setThread] = useState<ThreadMsg[]>([]);
   const [bubbleVisible, setBubbleVisible] = useState(false);
   const [footerNear, setFooterNear] = useState(false);
-  const [bubbleText, setBubbleText] = useState("");
 
   // ── Real chat state ───────────────────────────────────────────────────────
   const [input, setInput] = useState("");
@@ -171,50 +173,6 @@ export default function AskNova() {
     return () => observer.disconnect();
   }, []);
 
-  // ── Bubble typewriter: cycle all questions (both normal and reduced motion) ─
-  useEffect(() => {
-    if (!bubbleVisible) return;
-    const questions = ASK_NOVA_FAQ.map((f) => f.q);
-    let cancelled = false;
-    const sleep = (ms: number) =>
-      new Promise<void>((res) => setTimeout(res, ms));
-    // Don't burn timers while the tab is hidden.
-    const whileHidden = () =>
-      document.hidden
-        ? new Promise<void>((res) =>
-            document.addEventListener("visibilitychange", () => res(), { once: true }),
-          )
-        : Promise.resolve();
-
-    (async () => {
-      let qi = 0;
-      while (!cancelled) {
-        await whileHidden();
-        if (cancelled) return;
-        bubbleIndexRef.current = qi;
-        const q = questions[qi];
-        if (reduced) {
-          setBubbleText(q);
-          await sleep(2800);
-        } else {
-          for (let i = 1; i <= q.length && !cancelled; i++) {
-            setBubbleText(q.slice(0, i));
-            await sleep(34);
-          }
-          await sleep(1900);
-          for (let i = q.length - 1; i >= 0 && !cancelled; i--) {
-            setBubbleText(q.slice(0, i));
-            await sleep(16);
-          }
-          await sleep(180);
-        }
-        qi = (qi + 1) % questions.length;
-      }
-    })();
-
-    return () => { cancelled = true; };
-  }, [bubbleVisible, reduced, ASK_NOVA_FAQ]);
-
   // ── Answer typewriter: advance the last still-typing Nova message ──────────
   useEffect(() => {
     const last = thread[thread.length - 1];
@@ -276,7 +234,12 @@ export default function AskNova() {
         ),
       );
 
+    const { sendChatMessage, classifyChatError } = await loadTransport().catch(() => ({
+      sendChatMessage: null,
+      classifyChatError: () => "network" as const,
+    }));
     try {
+      if (!sendChatMessage) throw new Error("transport unavailable");
       const data = await sendChatMessage({
         message: text,
         sessionToken: sessionTokenRef.current ?? readSessionToken(),
@@ -640,9 +603,9 @@ export default function AskNova() {
             aria-label={t.bubbleLabel}
             className="relative text-left rounded-2xl rounded-br-sm px-4 py-3 w-[min(258px,calc(100vw-5.5rem))] shadow-[0_16px_40px_-10px_rgba(9,28,60,0.6)] active:scale-[0.98]"
             style={{
+              // No backdrop blur: at 97% opacity it was invisible, but it was
+              // re-run on every typewriter tick and every scroll frame.
               backgroundColor: "rgba(4,14,40,0.97)",
-              backdropFilter: "blur(20px) saturate(150%)",
-              WebkitBackdropFilter: "blur(20px) saturate(150%)",
               border: "1px solid rgba(247,168,0,0.22)",
               borderTop: "1px solid rgba(247,168,0,0.4)",
             }}
@@ -654,10 +617,11 @@ export default function AskNova() {
               </span>
             </span>
             <span className="block text-white/90 text-[13px] font-utility leading-snug min-h-[2.4em]">
-              {bubbleText}
-              {!reduced && (
-                <span className="inline-block w-[2px] h-3.5 ml-0.5 align-middle bg-[#f7a800] animate-pulse" />
-              )}
+              <BubbleTypewriter
+                questions={ASK_NOVA_FAQ}
+                reduced={reduced}
+                indexRef={bubbleIndexRef}
+              />
             </span>
             <span className="block mt-1.5 text-white/60 text-[10px] font-utility">
               {t.bubbleTap}
@@ -712,5 +676,97 @@ export default function AskNova() {
         </AnimatePresence>
       </m.button>
     </div>
+  );
+}
+
+// The teaser bubble's typewriter. It lives in its own component so each
+// keystroke re-renders one text node instead of the whole widget, and it only
+// exists while the bubble is on screen: hidden near the footer or with the
+// panel open, nothing ticks. It also pauses while the tab is hidden and while
+// the page is being scrolled, so it never adds a text layout to a scroll frame.
+function BubbleTypewriter({
+  questions,
+  reduced,
+  indexRef,
+}: {
+  questions: { q: string }[];
+  reduced: boolean;
+  indexRef: React.RefObject<number>;
+}) {
+  const [text, setText] = useState("");
+
+  useEffect(() => {
+    const qs = questions.map((f) => f.q);
+    let cancelled = false;
+    const sleep = (ms: number) => new Promise<void>((res) => setTimeout(res, ms));
+    const whileHidden = () =>
+      document.hidden
+        ? new Promise<void>((res) =>
+            document.addEventListener("visibilitychange", () => res(), { once: true }),
+          )
+        : Promise.resolve();
+    let lastScroll = 0;
+    const onScroll = () => {
+      lastScroll = performance.now();
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    const whileScrolling = async () => {
+      while (!cancelled && performance.now() - lastScroll < 200) await sleep(120);
+    };
+    const step = async (ms: number) => {
+      await sleep(ms);
+      await whileScrolling();
+    };
+
+    (async () => {
+      // Resume from the question the bubble last showed.
+      let qi = indexRef.current % qs.length;
+      while (!cancelled) {
+        await whileHidden();
+        if (cancelled) return;
+        indexRef.current = qi;
+        const q = qs[qi];
+        if (reduced) {
+          setText(q);
+          await step(2800);
+        } else {
+          for (let i = 1; i <= q.length && !cancelled; i++) {
+            setText(q.slice(0, i));
+            await step(34);
+          }
+          await step(1900);
+          for (let i = q.length - 1; i >= 0 && !cancelled; i--) {
+            setText(q.slice(0, i));
+            await step(16);
+          }
+          await step(180);
+        }
+        qi = (qi + 1) % qs.length;
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [questions, reduced, indexRef]);
+
+  return (
+    <>
+      {text}
+      {!reduced && (
+        <span className="inline-block w-[2px] h-3.5 ml-0.5 align-middle bg-[#f7a800] animate-pulse" />
+      )}
+    </>
+  );
+}
+
+// framer-motion is not in the site-wide layout any more (it only ships to the
+// pages that animate with it), so this component brings its own LazyMotion.
+export default function AskNova() {
+  return (
+    <MotionProvider>
+      <AskNovaInner />
+    </MotionProvider>
   );
 }

@@ -1,34 +1,42 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
+// The 2px reading-progress bar. It used to set React state on every scroll
+// event and animate `width`, which meant a re-render plus a layout and paint
+// per scroll frame on every page. Now it is a compositor-only `scaleX`:
+// - where CSS scroll-driven animations exist (Chrome/Edge/Android Chrome,
+//   Safari 26+) the browser drives it from `.scroll-progress` in globals.css
+//   with no JavaScript at all;
+// - elsewhere a passive listener writes the transform once per animation
+//   frame through a ref (still no React state).
+// Hidden under prefers-reduced-motion (globals.css).
 export default function ScrollProgress() {
-  const [pct, setPct] = useState(0);
-  const [show, setShow] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (typeof CSS !== "undefined" && CSS.supports?.("animation-timeline: scroll()")) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = setTimeout(() => setShow(true), 0);
-    const onScroll = () => {
+
+    let frame = 0;
+    const update = () => {
+      frame = 0;
       const doc = document.documentElement;
-      const scrolled = doc.scrollTop;
       const total = doc.scrollHeight - doc.clientHeight;
-      setPct(total > 0 ? (scrolled / total) * 100 : 0);
+      el.style.transform = `scaleX(${total > 0 ? Math.min(1, doc.scrollTop / total) : 0})`;
     };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      clearTimeout(id);
+      cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
     };
   }, []);
 
-  if (!show) return null;
-
-  return (
-    <div
-      aria-hidden="true"
-      className="fixed top-0 left-0 z-[999] h-[2px] bg-[#f7a800] pointer-events-none origin-left"
-      style={{ width: `${pct}%`, transition: "width 0.04s linear" }}
-    />
-  );
+  return <div ref={ref} aria-hidden="true" data-testid="scroll-progress" className="scroll-progress" />;
 }

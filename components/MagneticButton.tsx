@@ -1,8 +1,12 @@
 "use client";
 
 import { useRef } from "react";
-import { m, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
+import { prefersReducedMotion } from "@/lib/reveal";
 
+// The CTA leans toward a mouse pointer and springs back when it leaves. Touch
+// screens never fire these mouse events, so phones pay nothing. The transform
+// is written straight to the element (no React state, no animation library);
+// the springy settle is the CSS transition's slight overshoot.
 export default function MagneticButton({
   children,
   className,
@@ -13,29 +17,28 @@ export default function MagneticButton({
   strength?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const reduceMotion = useReducedMotion();
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const sx = useSpring(x, { stiffness: 380, damping: 26 });
-  const sy = useSpring(y, { stiffness: 380, damping: 26 });
 
   return (
-    <m.div
+    <div
       ref={ref}
-      style={{ x: sx, y: sy, display: "inline-block" }}
+      style={{
+        display: "inline-block",
+        transition: "transform 0.4s cubic-bezier(0.34, 1.4, 0.64, 1)",
+      }}
       onMouseMove={(e) => {
-        if (!ref.current || reduceMotion) return;
-        const r = ref.current.getBoundingClientRect();
-        x.set((e.clientX - r.left - r.width / 2) * strength);
-        y.set((e.clientY - r.top - r.height / 2) * strength);
+        const el = ref.current;
+        if (!el || prefersReducedMotion()) return;
+        const r = el.getBoundingClientRect();
+        const x = (e.clientX - r.left - r.width / 2) * strength;
+        const y = (e.clientY - r.top - r.height / 2) * strength;
+        el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
       }}
       onMouseLeave={() => {
-        x.set(0);
-        y.set(0);
+        if (ref.current) ref.current.style.transform = "";
       }}
       className={className}
     >
       {children}
-    </m.div>
+    </div>
   );
 }

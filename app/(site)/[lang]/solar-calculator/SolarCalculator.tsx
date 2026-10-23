@@ -38,6 +38,7 @@ import {
 import CalculatorReveal from "./CalculatorReveal";
 import { parsePriceListEstimate, type PriceListFields } from "@/lib/pricing/price-list";
 import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/lib/contact";
+import MotionProvider from "@/components/MotionProvider";
 
 const TOTAL_STEPS = 5;
 
@@ -56,7 +57,7 @@ function scrollToTopRespectingMotion() {
 type EstimateStatus = "idle" | "loading" | "success" | "error";
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
 
-export default function SolarCalculator() {
+function SolarCalculatorInner() {
   const t = useMessages("calculator");
   const STEP_NAMES = t.stepNames;
   const [step, setStep] = useState(0);
@@ -711,5 +712,15 @@ export default function SolarCalculator() {
         )}
       </div>
     </div>
+  );
+}
+
+// framer-motion is not in the site-wide layout any more (it only ships to the
+// pages that animate with it), so this component brings its own LazyMotion.
+export default function SolarCalculator() {
+  return (
+    <MotionProvider>
+      <SolarCalculatorInner />
+    </MotionProvider>
   );
 }

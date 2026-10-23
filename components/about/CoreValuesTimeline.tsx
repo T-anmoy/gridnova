@@ -1,68 +1,26 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { observeReveal } from "@/lib/reveal";
 import type { Messages } from "@/lib/i18n/types";
 
 export default function CoreValuesTimeline({ t }: { t: Messages["about"]["values"] }) {
   const VALUES = t.items.map((v, i) => ({ ...v, n: String(i + 1).padStart(2, "0") }));
   const ref = useRef<HTMLDivElement>(null);
 
+  // Each row slides in from its own side (odd rows from the left, even from
+  // the right) as it arrives, and its number badge pops a beat later
+  // (globals.css: .value-row). The rail fill follows the scroll position
+  // (.scrub-fill). CSS only, on the shared reveal observer; everything is
+  // visible without JavaScript or under reduced motion.
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    gsap.registerPlugin(ScrollTrigger);
-    const ctx = gsap.context(() => {
-      // Vertical line grows as page scrolls through section
-      gsap.fromTo(
-        ".value-line",
-        { scaleY: 0 },
-        {
-          scaleY: 1,
-          transformOrigin: "top",
-          ease: "none",
-          scrollTrigger: {
-            trigger: ref.current,
-            start: "top 65%",
-            end: "bottom 80%",
-            scrub: 0.5,
-          },
-        }
-      );
-
-      // Odd rows (01, 03, 05) from left; even rows (02, 04) from right
-      gsap.utils.toArray<HTMLElement>(".value-row").forEach((row, i) => {
-        const fromLeft = i % 2 === 0;
-        const badge = row.querySelector<HTMLElement>(".value-badge");
-
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: row,
-            start: "top 82%",
-            toggleActions: "play reverse play reverse",
-          },
-        });
-
-        // Row slides in from its origin side
-        tl.fromTo(
-          row,
-          { opacity: 0, x: fromLeft ? -80 : 80 },
-          { opacity: 1, x: 0, duration: 0.7, ease: "power3.out" },
-          0
-        );
-
-        // Number badge pops in slightly after row starts
-        if (badge) {
-          tl.fromTo(
-            badge,
-            { scale: 0.5 },
-            { scale: 1, duration: 0.45, ease: "back.out(1.7)" },
-            0.12
-          );
-        }
-      });
-    }, ref);
-    return () => ctx.revert();
+    const rows = Array.from(ref.current?.querySelectorAll<HTMLElement>(".value-row") ?? []);
+    const cleanups = rows.map((row, i) => {
+      row.style.setProperty("--reveal-x", i % 2 === 0 ? "-80px" : "80px");
+      row.style.setProperty("--reveal-y", "0px");
+      return observeReveal(row);
+    });
+    return () => cleanups.forEach((c) => c());
   }, []);
 
   return (
@@ -73,9 +31,9 @@ export default function CoreValuesTimeline({ t }: { t: Messages["about"]["values
           {t.title}
         </h2>
 
-        <div className="relative mt-16 max-w-[760px]">
+        <div className="scrub-track relative mt-16 max-w-[760px]">
           <div className="absolute left-[19px] top-2 bottom-2 w-px bg-[#e4e8ee]">
-            <div className="value-line absolute inset-0 bg-gradient-to-b from-[#f7a800] to-[#f7a800]/30" />
+            <div className="value-line scrub-fill absolute inset-0 bg-gradient-to-b from-[#f7a800] to-[#f7a800]/30" />
           </div>
           <div className="space-y-10">
             {VALUES.map((v) => (

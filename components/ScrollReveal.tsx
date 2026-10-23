@@ -1,30 +1,40 @@
 "use client";
 
-import { m, useReducedMotion } from "framer-motion";
+import { useEffect, useRef } from "react";
+import { observeReveal } from "@/lib/reveal";
 
 type Props = {
   children: React.ReactNode;
   className?: string;
+  /** Seconds, as before. */
   delay?: number;
+  /** Starting offset in px. */
   x?: number;
   y?: number;
 };
 
+// Fade-and-slide in on first scroll into view. Plain CSS transitions on one
+// shared IntersectionObserver (lib/reveal.ts) — no animation library, no
+// per-instance motion values. The server renders it visible; it is hidden
+// only after hydration and only when it starts below the fold, so it never
+// delays the first paint or the LCP. Reduced motion: never hidden.
 export default function ScrollReveal({ children, className, delay = 0, x = 0, y = 24 }: Props) {
-  const reduced = useReducedMotion();
-  // Always the same element on server and client: swapping to a plain <div>
-  // for reduced-motion visitors caused a hydration mismatch that left the
-  // server's `opacity: 0` in place, so those visitors saw empty sections.
-  // Reduced motion now just makes the reveal instant.
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    return el ? observeReveal(el) : undefined;
+  }, []);
+
+  const style = {
+    "--reveal-x": `${x}px`,
+    "--reveal-y": `${y}px`,
+    ...(delay ? { "--reveal-delay": `${delay}s` } : {}),
+  } as React.CSSProperties;
+
   return (
-    <m.div
-      initial={{ opacity: 0, x, y }}
-      whileInView={{ opacity: 1, x: 0, y: 0 }}
-      viewport={{ once: true, margin: "-8%" }}
-      transition={reduced ? { duration: 0 } : { duration: 0.7, ease: [0.16, 1, 0.3, 1], delay }}
-      className={className}
-    >
+    <div ref={ref} data-reveal="" className={className} style={style}>
       {children}
-    </m.div>
+    </div>
   );
 }

@@ -35,11 +35,18 @@ describe('SEO — private pages are noindex and disallowed', () => {
 })
 
 describe('hero and loading — nothing hides the first paint', () => {
-  it('the hero is CSS-driven (no GSAP), respects reduced motion, and never fades the photo in from 0', () => {
+  it('the hero is CSS-driven (no GSAP, no framer-motion), respects reduced motion, and never fades the photo in from 0', () => {
     const hero = read('components/Hero.tsx')
     expect(hero).not.toMatch(/gsap/i)
-    expect(hero).toContain('useReducedMotion')
+    // FE-10: the parallax moved from framer's useScroll to a CSS scroll-driven
+    // animation, so the hero is a server component with no motion runtime.
+    expect(hero).not.toMatch(/framer-motion|use client/)
     const css = read('app/globals.css')
+    const parallax = css.slice(css.indexOf('.hero-section { view-timeline'))
+    const guard = css.slice(0, css.indexOf('.hero-section { view-timeline'))
+    expect(parallax).toContain('.hero-parallax')
+    // The parallax only exists where scroll timelines exist and motion is welcome.
+    expect(guard.slice(guard.lastIndexOf('@supports'))).toMatch(/@supports \(animation-timeline: view\(\)\) \{\s*@media \(prefers-reduced-motion: no-preference\)/)
     const block = css.slice(css.indexOf('@media (prefers-reduced-motion: no-preference)'))
     expect(block).toContain('.hero-eyebrow')
     expect(block).not.toMatch(/\.hero-photo-wrap\s*\{/)
@@ -56,10 +63,27 @@ describe('hero and loading — nothing hides the first paint', () => {
     expect(readFileSync(path.resolve(root, 'public/brand/header-logo.png')).length).toBeLessThan(50_000)
   })
 
-  it('the site is wrapped in LazyMotion strict, and no file uses the full `motion` component', () => {
+  it('LazyMotion stays strict, and no file uses the full `motion` component', () => {
     expect(read('components/MotionProvider.tsx')).toContain('strict')
     const leftovers = execSync(`grep -rln "motion\\.\\(div\\|span\\|button\\|input\\|section\\|p\\)" app components --include=*.tsx || true`, { cwd: root }).toString().trim()
     expect(leftovers).toBe('')
+  })
+
+  // FE-10: framer-motion left the public site's shared layout, so pages that
+  // do not animate with it no longer download it. Every public-site file that
+  // still uses `m.*` must therefore bring its own LazyMotion (MotionProvider).
+  it('framer-motion is not in the public layout, and every public file using it wraps itself in MotionProvider', () => {
+    expect(read('app/(site)/[lang]/layout.tsx')).not.toMatch(/import MotionProvider/)
+    const users = execSync(`grep -rl 'from "framer-motion"' "app/(site)" components --include=*.tsx || true`, { cwd: root })
+      .toString().trim().split('\n').filter((f) => f && f !== 'components/MotionProvider.tsx')
+    expect(users.sort()).toEqual([
+      'app/(site)/[lang]/book-a-call/BookingWidget.tsx',
+      'app/(site)/[lang]/contact/ContactForm.tsx',
+      'app/(site)/[lang]/estimate/EstimateForm.tsx',
+      'app/(site)/[lang]/solar-calculator/SolarCalculator.tsx',
+      'components/AskNova.tsx',
+    ])
+    for (const f of users) expect(read(f)).toMatch(/<MotionProvider>/)
   })
 })
 

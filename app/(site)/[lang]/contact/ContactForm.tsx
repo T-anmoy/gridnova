@@ -6,6 +6,7 @@ import { FormFieldLabel, fieldA11y, fieldClass, focusFirstInvalid } from "@/comp
 import { ArrowRight, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { fmt, type Messages } from "@/lib/i18n/types";
 import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/lib/contact";
+import MotionProvider from "@/components/MotionProvider";
 
 type T = Messages["contact"]["form"];
 
@@ -77,7 +78,7 @@ function validateField(field: Field, value: string, e: T["errors"]): string | un
 
 // ── Main form ─────────────────────────────────────────────────────────────────
 
-export default function ContactForm({ t }: { t: T }) {
+function ContactFormInner({ t }: { t: T }) {
   const [values, setValues] = useState<Record<Field, string>>({
     name: "", email: "", phone: "", interest: "", message: "",
   });
@@ -335,5 +336,15 @@ export default function ContactForm({ t }: { t: T }) {
         </m.button>
       </div>
     </form>
+  );
+}
+
+// framer-motion is not in the site-wide layout any more (it only ships to the
+// pages that animate with it), so this component brings its own LazyMotion.
+export default function ContactForm(props: { t: T }) {
+  return (
+    <MotionProvider>
+      <ContactFormInner {...props} />
+    </MotionProvider>
   );
 }

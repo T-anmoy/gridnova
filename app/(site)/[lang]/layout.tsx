@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "../../globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import SiteChrome from "@/components/SiteChrome";
-import MotionProvider from "@/components/MotionProvider";
 import ScrollProgress from "@/components/ScrollProgress";
 import JsonLd from "@/components/JsonLd";
 import DraftTranslationNotice from "@/components/i18n/DraftTranslationNotice";
@@ -74,12 +73,13 @@ export default async function SiteRootLayout({
         <ScrollProgress />
         <SmoothScroll>
           <I18nProvider locale={locale} messages={chromeMessages(messages)}>
-            <MotionProvider>
-              <SiteChrome>
-                {children}
-                <DraftTranslationNotice draft={isMachineDraft(messages)} />
-              </SiteChrome>
-            </MotionProvider>
+            {/* No site-wide LazyMotion: framer-motion ships only with the
+                components that use it (Ask Nova, the forms), each wrapped in
+                its own MotionProvider. */}
+            <SiteChrome>
+              {children}
+              <DraftTranslationNotice draft={isMachineDraft(messages)} />
+            </SiteChrome>
           </I18nProvider>
         </SmoothScroll>
       </body>

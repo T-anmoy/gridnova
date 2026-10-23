@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import type { NextFetchEvent, NextRequest } from 'next/server'
 import { localeRouting } from '@/lib/i18n/routing'
 
 // The sign-in route itself must stay excluded from protection — it's the
@@ -41,7 +42,7 @@ const isPreferredPortalRoute = createRouteMatcher((req) => {
   return path === '/preferred/portal' || path.startsWith('/preferred/portal/')
 })
 
-export default clerkMiddleware(async (auth, req) => {
+const clerk = clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) {
     await auth.protect({ unauthenticatedUrl: new URL('/dashboard/sign-in', req.url).toString() })
     return
@@ -59,10 +60,33 @@ export default clerkMiddleware(async (auth, req) => {
   return localeRouting(req)
 })
 
+// Only the parts of the site that use Clerk go through it: the staff
+// dashboard, the proposal pages, the API, and the Associate/Preferred trees
+// (portals, sign-in, registration). Public marketing pages never read a Clerk
+// session, and sending them through clerkMiddleware cost every first-time
+// visitor a cross-site handshake redirect (measured ~2 s on mobile — FE-10)
+// whenever the deployment runs Clerk development keys. The three protection
+// matchers above are part of this test, so a protected route can never skip it.
+const LOCALE_SEGMENT = /^\/(?:en|hi|bn)(?=\/|$)/
+function usesClerk(req: NextRequest): boolean {
+  if (isProtectedRoute(req) || isAssociatePortalRoute(req) || isPreferredPortalRoute(req)) return true
+  const path = req.nextUrl.pathname
+  if (/^\/(?:dashboard|proposal|api|trpc)(?:\/|$)/.test(path)) return true
+  const bare = path.replace(LOCALE_SEGMENT, '') || '/'
+  return /^\/(?:associates|preferred)(?:\/|$)/.test(bare)
+}
+
+export default function proxy(req: NextRequest, event: NextFetchEvent) {
+  if (usesClerk(req)) return clerk(req, event)
+  // Public site only: `/dashboard`, `/proposal` and `/api` are left untouched
+  // (English, unprefixed) by localeRouting itself.
+  return localeRouting(req)
+}
+
 // Next internals and real static assets are skipped; everything else — including
 // dynamic routes whose last segment merely looks like a file (/dashboard/leads/1.html,
-// /dashboard/exports/x.csv) — goes through clerkMiddleware, so a crafted suffix can
-// never bypass the protection above. Documents/data extensions (html, csv, docx,
+// /dashboard/exports/x.csv) — goes through the proxy (and clerkMiddleware wherever
+// usesClerk says), so a crafted suffix can never bypass the protection above. Documents/data extensions (html, csv, docx,
 // xlsx, zip) are deliberately NOT in this list.
 // (The matcher must stay a literal: Next analyses it statically at build time.)
 export const config = {

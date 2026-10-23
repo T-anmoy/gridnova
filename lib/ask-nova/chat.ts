@@ -2,14 +2,11 @@
 // A conversation is identified ONLY by the opaque `session_token` the backend
 // returns; the browser keeps it and sends it back. No lead/customer ids are
 // sent, received or stored.
-import { publicFetch } from '@/lib/api/http'
-import { ApiError } from '@/lib/dashboard/api-error'
-import { chatMessageResponseSchema } from '@/lib/dashboard/schemas'
-import type { z } from 'zod'
-
-export type ChatResponse = z.infer<typeof chatMessageResponseSchema>
-
-export const CHAT_PATH = '/api/v1/chat/message'
+//
+// The network half (sendChatMessage, classifyChatError) lives in ./transport,
+// which brings zod and the API client with it; the widget imports it only when
+// a visitor actually sends a message, so it is not downloaded on every page.
+export type { ChatResponse, ChatErrorKind, SendChatArgs } from './transport'
 
 const SESSION_TOKEN_KEY = 'nova_session_token'
 // Keys from before the session token existed. Cleared, never read.
@@ -32,32 +29,6 @@ export function writeSessionToken(token: string): void {
   } catch {
     /* storage unavailable — the in-memory token still carries the conversation */
   }
-}
-
-export type ChatErrorKind = 'rate_limit' | 'server' | 'network' | 'other'
-
-export function classifyChatError(error: unknown): ChatErrorKind {
-  if (!(error instanceof ApiError)) return 'other'
-  if (error.status === 429) return 'rate_limit'
-  if (error.status >= 500) return 'server'
-  if (error.status === 0) return 'network'
-  return 'other'
-}
-
-export interface SendChatArgs {
-  message: string
-  sessionToken: string | null
-  signal?: AbortSignal
-}
-
-export function sendChatMessage({ message, sessionToken, signal }: SendChatArgs): Promise<ChatResponse> {
-  const body: { message: string; session_token?: string } = { message }
-  if (sessionToken) body.session_token = sessionToken
-  return publicFetch(
-    CHAT_PATH,
-    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal },
-    chatMessageResponseSchema
-  )
 }
 
 // ── Reveal ──────────────────────────────────────────────────────────────────

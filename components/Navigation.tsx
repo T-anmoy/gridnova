@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { m, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { Menu, X, ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "@/components/i18n/Link";
@@ -27,15 +26,36 @@ const NAV_LINKS: { key: NavKey; href: string }[] = [
 export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  // The drawer stays mounted for its 0.3s exit animation (.nav-panel in
+  // globals.css) after `open` turns false.
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [closing, setClosing] = useState(false);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
+    setClosing(!open);
+  }
+  useEffect(() => {
+    if (!closing) return;
+    const id = window.setTimeout(() => setClosing(false), 300);
+    return () => window.clearTimeout(id);
+  }, [closing]);
+  const drawer = open ? "open" : closing ? "closing" : null;
   const [hovered, setHovered] = useState<string | null>(null);
-  const { scrollY } = useScroll();
   // Locale-free path, so `/hi/about` still marks "About" active.
   const pathname = useBarePathname();
   const t = useMessages("nav");
 
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    setScrolled(latest > 24);
-  });
+  // "Scrolled" = the page has moved more than 24px. A 24px sentinel at the top
+  // of the document and one IntersectionObserver report that, instead of a
+  // JavaScript callback on every scroll frame.
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([entry]) => setScrolled(!entry.isIntersecting));
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const toggleRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -85,29 +105,30 @@ export default function Navigation() {
   };
 
   return (
+    <>
+    <div ref={sentinelRef} aria-hidden="true" className="pointer-events-none absolute top-0 left-0 h-[24px] w-px" />
     <header className="fixed top-0 left-0 right-0 z-[60] flex justify-center px-4 xs:px-6 pt-[max(1rem,env(safe-area-inset-top))]">
-      <m.div
-        initial={false}
-        animate={{
-          // Real content need (logo + 8 nav links + language switcher +
-          // primary CTA) is kept under the ~1232px of room the header has at
-          // xl: (1280px). "Book a Call" joins the bar from 2xl: (1536px), where
-          // the wider cap below gives it space; below that it lives in the
-          // drawer. Hindi/Bengali labels were measured at xl: too.
+      <div
+        // Real content need (logo + 8 nav links + language switcher +
+        // primary CTA) is kept under the ~1232px of room the header has at
+        // xl: (1280px). "Book a Call" joins the bar from 2xl: (1536px), where
+        // the wider cap below gives it space; below that it lives in the
+        // drawer. Hindi/Bengali labels were measured at xl: too.
+        // Background: a confident, near-solid navy regardless of what's behind
+        // it — the site's own other glass surface (Hero's stats panel) sits at
+        // 0.80; this previously sat at 0.42/0.72, which read as flat grey over
+        // the light bg-[#f7f9fc] most non-homepage pages open with.
+        // The change between the two states is a CSS transition (.nav-pill).
+        style={{
           maxWidth: scrolled ? 1340 : 1400,
           paddingTop: scrolled ? 8 : 14,
           paddingBottom: scrolled ? 8 : 14,
-          // A confident, near-solid navy regardless of what's behind it — the
-          // site's own other glass surface (Hero's stats panel) sits at 0.80;
-          // this previously sat at 0.42/0.72, which read as flat grey over
-          // the light bg-[#f7f9fc] most non-homepage pages open with.
           backgroundColor: scrolled ? "rgba(9,28,60,0.94)" : "rgba(9,28,60,0.86)",
           boxShadow: scrolled
             ? "0 8px 32px -8px rgba(9,28,60,0.35)"
             : "0 4px 20px -8px rgba(9,28,60,0.15)",
         }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="glass relative z-20 w-full rounded-full flex items-center justify-between px-5 md:px-7"
+        className="nav-pill glass relative z-20 w-full rounded-full flex items-center justify-between px-5 md:px-7"
       >
         <Link href="/" onClick={(e) => handleNavClick(e, "/")} className="flex items-center shrink-0 active:scale-[0.97] transition-transform">
           <span className="bg-white/95 rounded-xl px-2.5 py-1 inline-flex items-center shadow-sm">
@@ -198,35 +219,27 @@ export default function Navigation() {
             {open ? <X className="h-5 w-5 md:h-6 md:w-6" aria-hidden="true" /> : <Menu className="h-5 w-5 md:h-6 md:w-6" aria-hidden="true" />}
           </button>
         </div>
-      </m.div>
+      </div>
 
-      <AnimatePresence>
-        {open && (
+      {drawer && (
           <>
             {/* Backdrop — tapping anywhere outside the panel closes the menu */}
-            <m.div
-              key="nav-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
+            <div
+              data-state={drawer}
               onClick={() => setOpen(false)}
               aria-hidden="true"
-              className="fixed inset-0 z-10 xl:hidden bg-[#040e28]/40"
+              className="nav-backdrop fixed inset-0 z-10 xl:hidden bg-[#040e28]/40"
             />
-          <m.div
-            key="nav-panel"
+          <div
             id="site-mobile-nav"
             ref={panelRef}
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            data-state={drawer}
+            inert={drawer === "closing"}
             // Below md: a full-bleed mobile sheet (left-3/right-3). From
             // md: up (tablet), it becomes a fixed-width card anchored to the
             // right edge instead — a proper dropdown panel appropriate for a
             // wider screen, not a phone sheet stretched edge to edge.
-            className="glass fixed top-[84px] left-3 right-3 xs:left-4 xs:right-4 md:left-auto md:right-6 md:w-[400px] z-20 rounded-3xl p-5 xs:p-6 md:p-6 xl:hidden overflow-y-auto shadow-[0_28px_70px_-14px_rgba(4,14,40,0.65)]"
+            className="nav-panel glass fixed top-[84px] left-3 right-3 xs:left-4 xs:right-4 md:left-auto md:right-6 md:w-[400px] z-20 rounded-3xl p-5 xs:p-6 md:p-6 xl:hidden overflow-y-auto shadow-[0_28px_70px_-14px_rgba(4,14,40,0.65)]"
             style={{ backgroundColor: "rgba(9,28,60,0.92)", maxHeight: "calc(100dvh - 100px)" }}
           >
             <nav className="flex flex-col divide-y divide-white/10">
@@ -267,10 +280,10 @@ export default function Navigation() {
               <span className="text-white/70 text-xs font-utility">{t.language}</span>
               <LanguageSwitcher size="md" onSwitch={() => setOpen(false)} />
             </div>
-          </m.div>
+          </div>
           </>
-        )}
-      </AnimatePresence>
+      )}
     </header>
+    </>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Phone, Globe, MapPin, Mail } from "lucide-react";
 import Link from "@/components/i18n/Link";
@@ -175,17 +176,7 @@ export default function Footer() {
                 </a>
               </li>
             </ul>
-            <div className="mt-4 overflow-hidden rounded-xl border border-white/10" style={{ aspectRatio: "16/9" }}>
-              <iframe
-                src="https://www.google.com/maps?q=22.514723,88.405869&z=17&output=embed"
-                width="100%"
-                height="100%"
-                style={{ border: 0, filter: "brightness(0.82) saturate(0.85)" }}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title={t.mapTitle}
-              />
-            </div>
+            <OfficeMap title={t.mapTitle} label={t.showMap} />
           </div>
         </div>
 
@@ -213,5 +204,45 @@ export default function Footer() {
         </div>
       </div>
     </footer>
+  );
+}
+
+// The office map is a Google Maps embed: a few hundred KB of third-party
+// JavaScript that used to start downloading and running as soon as a visitor
+// scrolled near the footer, on every page, mid-scroll. It now loads only when
+// asked for. The placeholder keeps the same 16:9 frame so nothing shifts.
+function OfficeMap({ title, label }: { title: string; label: string }) {
+  const [show, setShow] = useState(false);
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  // Keyboard users keep their place: focus moves from the button to the map.
+  useEffect(() => {
+    if (show) frameRef.current?.focus();
+  }, [show]);
+  return (
+    <div className="mt-4 overflow-hidden rounded-xl border border-white/10" style={{ aspectRatio: "16/9" }}>
+      {show ? (
+        <iframe
+          ref={frameRef}
+          src="https://www.google.com/maps?q=22.514723,88.405869&z=17&output=embed"
+          width="100%"
+          height="100%"
+          style={{ border: 0, filter: "brightness(0.82) saturate(0.85)" }}
+          referrerPolicy="no-referrer-when-downgrade"
+          title={title}
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setShow(true)}
+          className="group blueprint-grid relative flex h-full w-full flex-col items-center justify-center gap-2.5 bg-white/[0.04] text-white/75 hover:text-white hover:bg-white/[0.07] transition-colors duration-200"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f7a800] text-[#091c3c] shadow-[0_0_0_6px_rgba(247,168,0,0.18)]">
+            <MapPin className="h-5 w-5" aria-hidden="true" />
+          </span>
+          <span className="font-utility text-sm font-semibold">{label}</span>
+          <span className="sr-only">{title}</span>
+        </button>
+      )}
+    </div>
   );
 }

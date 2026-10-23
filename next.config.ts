@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: {
     qualities: [75, 80, 85],
+    // AVIF first, WebP for browsers without it. Next maps WebP q80 to AVIF
+    // q50 (its own perceptual match); measured in FE-10 the mobile hero went
+    // from 161 KB to 80 KB at the same width — it is the LCP image and the
+    // largest high-priority download on the home page. Cost: a slower first
+    // encode per variant, then served from cache.
+    formats: ["image/avif", "image/webp"],
   },
   async headers() {
     return securityHeaders({

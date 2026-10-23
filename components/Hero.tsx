@@ -1,8 +1,4 @@
-"use client";
-
-import { useRef } from "react";
 import { getImageProps } from "next/image";
-import { m, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Link from "@/components/i18n/Link";
 import CountUp from "./CountUp";
@@ -40,29 +36,22 @@ export default function Hero({ t }: { t: Messages["home"]["hero"] }) {
     quality: 80,
   });
 
-  const sectionRef = useRef<HTMLElement>(null);
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end start"],
-  });
-
-  // Image drifts down as page scrolls — creates parallax at ~30% lag vs. viewport
-  const reduceMotion = useReducedMotion();
-  const imgY = useTransform(scrollYProgress, [0, 1], ["0%", reduceMotion ? "0%" : "28%"]);
-
+  // A server component: the entrance and the parallax are CSS (globals.css:
+  // .hero-*, .hero-parallax), so the hero ships no JavaScript of its own
+  // beyond the count-up and the magnetic button.
   return (
     <section
-      ref={sectionRef}
-      className="on-dark relative min-h-[100svh] w-full overflow-hidden flex items-center"
+      className="hero-section on-dark relative min-h-[100svh] w-full overflow-hidden flex items-center"
     >
-      {/* ── Parallax container (Framer y-transform only) ── */}
-      <m.div
-        className="absolute"
+      {/* ── Parallax container: the image drifts down as the hero scrolls
+          away (~28%), driven by the scroll position on the compositor where
+          CSS scroll-driven animations exist; static elsewhere and under
+          reduced motion. ── */}
+      <div
+        className="hero-parallax absolute"
         style={{
           left: 0, right: 0,
           top: "-15%", bottom: "-15%",
-          y: imgY,
         }}
       >
         {/* The photo is the LCP element: it is painted at full opacity from the first frame. */}
@@ -81,7 +70,7 @@ export default function Hero({ t }: { t: Messages["home"]["hero"] }) {
             </picture>
           </div>
         </div>
-      </m.div>
+      </div>
 
       {/* ── Legibility scrims — tuned for WCAG AA across breakpoints ── */}
       {/* Left-to-right: text column protection at /90, fades to nothing on right */}

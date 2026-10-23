@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "@/components/i18n/Link";
+import { observeRevealGroup } from "@/lib/reveal";
 import { fmt, type Messages } from "@/lib/i18n/types";
 
 // "How your rooftop project works" — the eight real steps, in plain words.
@@ -12,30 +11,13 @@ import { fmt, type Messages } from "@/lib/i18n/types";
 export default function ProjectJourney({ t }: { t: Messages["home"]["journey"] }) {
   const ref = useRef<HTMLElement>(null);
 
+  // Steps rise in with a stagger; the rail's gold fill is drawn by the
+  // scroll position itself (.scrub-fill in globals.css, a CSS scroll-driven
+  // animation, no JavaScript per frame). Without support it is simply full.
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    gsap.registerPlugin(ScrollTrigger);
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        ".journey-fill",
-        { scaleY: 0 },
-        {
-          scaleY: 1,
-          transformOrigin: "top",
-          ease: "none",
-          scrollTrigger: { trigger: ".journey-list", start: "top 70%", end: "bottom 70%", scrub: 0.5 },
-        },
-      );
-      gsap.fromTo(
-        ".journey-step",
-        { opacity: 0, y: 24 },
-        {
-          opacity: 1, y: 0, duration: 0.6, ease: "power3.out", stagger: 0.07,
-          scrollTrigger: { trigger: ".journey-list", start: "top 78%" },
-        },
-      );
-    }, ref);
-    return () => ctx.revert();
+    const el = ref.current;
+    const list = el?.querySelector(".journey-list");
+    return list ? observeRevealGroup(list, ".journey-step", 0.07) : undefined;
   }, []);
 
   return (
@@ -51,10 +33,10 @@ export default function ProjectJourney({ t }: { t: Messages["home"]["journey"] }
           <p className="text-[#111827]/60 leading-relaxed max-w-[52ch]">{t.intro}</p>
         </div>
 
-        <div className="relative">
+        <div className="scrub-track relative">
           {/* Progress rail: left edge on small screens */}
           <div className="lg:hidden absolute left-[19px] top-2 bottom-2 w-px bg-[#e4e8ee]" aria-hidden="true">
-            <div className="journey-fill absolute inset-0 bg-gradient-to-b from-[#f7a800] to-[#f7a800]/30" />
+            <div className="journey-fill scrub-fill absolute inset-0 bg-gradient-to-b from-[#f7a800] to-[#f7a800]/30" />
           </div>
           <ol className="journey-list relative grid lg:grid-cols-4 gap-x-6 gap-y-8 lg:gap-y-12">
             {t.steps.map((step, i) => (
