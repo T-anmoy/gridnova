@@ -288,6 +288,16 @@ html[data-script="bengali"] .clip-line {
 @media print {
   [data-reveal="hidden"] { opacity: 1; transform: none; }
 }
+
+/* Without JavaScript: controls that need script (tab rows, carousel dots)
+   are dropped, and panels they would switch between are all shown. */
+@media (scripting: none) {
+  .js-only { display: none !important; }
+  [data-nojs-show][hidden] { display: block !important; }
+}
+@media (scripting: enabled) {
+  .nojs-only { display: none; }
+}
 /* About values: the number badge pops in just after its row (back-out). */
 .value-row .value-badge {
   transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.12s;

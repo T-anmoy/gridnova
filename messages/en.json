@@ -1258,101 +1258,82 @@
     }
   },
   "careers": {
-    "pendingLabel": "Pending confirmation by Grid Nova",
     "hero": {
       "eyebrow": "Careers & Associates",
       "title": "Two ways to work with Grid Nova.",
-      "intro": "Join our team as an employee, or work on your own account as a Grid Nova Associate — introducing solar customers in your area and earning commission.",
+      "promise": "Earn as an independent Associate, or join our team.",
+      "noFee": "Grid Nova does not charge any joining fee, registration fee or deposit. If anyone asks you for money to join, report it to us.",
       "associateTitle": "Become an Associate",
-      "associateBody": "Independent work, your own hours. Introduce customers, help them through the process, and earn on every verified payment.",
-      "associateCta": "See the Associate programme",
-      "careersTitle": "Join the team",
-      "careersBody": "Engineering, project management and sales roles across West Bengal and Bihar.",
-      "careersCta": "See careers"
+      "associateBody": "Your own hours. Introduce solar customers and earn on their verified payments.",
+      "careersTitle": "Work at Grid Nova",
+      "careersBody": "Engineering, project and sales roles in West Bengal and Bihar."
     },
     "programme": {
       "eyebrow": "Associate Programme",
-      "title": "No fee. No deposit. Paid on verified payments.",
-      "noFee": "Grid Nova does not charge any registration fee, joining fee or security deposit. If anyone asks you for money to join, report it to us.",
+      "title": "Choose your role.",
+      "tabsLabel": "Associate programmes",
+      "forLabel": "Who it is for",
+      "doLabel": "What you do",
+      "earnLabel": "How you earn",
+      "moreLabel": "More about this role",
       "programmes": [
         {
           "id": "associate",
           "name": "Associate",
-          "tagline": "For individuals who know people who want solar.",
-          "points": [
-            "Sales Associate — find and introduce customers, collect their information and documents, and hand them to Grid Nova. Grid Nova does the site assessment, proposal, installation and completion.",
-            "Execution Associate — also manage the project stages Grid Nova assigns to you: site assessment, document collection, installation coordination, recording the installed equipment, and follow-up to completion.",
+          "forWho": "Individuals who know people who want solar.",
+          "does": [
+            "Find customers and meet them in person.",
+            "Collect their details and documents in your portal.",
+            "As an Execution Associate, also run the project stages Grid Nova assigns to you."
+          ],
+          "earn": "Commission on every verified payment from your customers, at the rate shown in your portal — paid monthly by the 10th.",
+          "more": [
+            "Sales Associate — you introduce customers and hand them to Grid Nova. Grid Nova does the site assessment, proposal, installation and completion.",
+            "Execution Associate — you also manage the stages assigned to you: site assessment, document collection, installation coordination, recording the installed equipment, and follow-up to completion.",
             "You choose one when you register; Grid Nova approves it."
           ]
         },
         {
           "id": "preferred",
           "name": "Preferred Associate",
-          "tagline": "For established people appointed to a territory.",
-          "points": [
-            "Appointed to a territory and level: State Head (at most two per state), District Head (one per district) or Block Associate.",
-            "Introduce customers and carry out the project stages assigned to you, to the same standards as an Execution Associate.",
-            "Support the Associates in your territory and recommend new applicants — Grid Nova makes the final decision.",
-            "Earn commission on your own customers plus a territory commission on verified business in your territory."
+          "forWho": "Established people appointed to a territory.",
+          "does": [
+            "Introduce customers and carry out the project stages assigned to you.",
+            "Support the Associates in your territory.",
+            "Recommend new applicants — Grid Nova makes the final decision."
+          ],
+          "earn": "Commission on every verified payment from your customers, at the rate shown in your portal — paid monthly by the 10th.",
+          "more": [
+            "Levels: State Head (at most two per state), District Head (one per district) or Block Associate.",
+            "You work to the same standards as an Execution Associate.",
+            "You may also earn a territory commission on verified business in your territory, at the rate Grid Nova sets in your portal."
           ]
         }
-      ],
-      "eligibilityTitle": "Who can apply",
-      "eligibility": [
-        "You are at least 18 years old and live in India.",
-        "You have a valid PAN.",
-        "You have a bank account in your own name.",
-        "You agree to a verification phone call before approval."
-      ],
-      "docsTitle": "Documents you will need",
-      "docs": [
-        "A recent photograph",
-        "Aadhaar — a masked copy showing only the last four digits (you can download it from UIDAI)",
-        "PAN card copy",
-        "Bank account details and a cancelled cheque",
-        "Address, mobile number and email"
-      ],
-      "docsPreferredTitle": "Preferred Associates also need",
-      "docsPreferred": [
-        "Business details",
-        "GSTIN, if you have one",
-        "Your experience and references"
-      ],
-      "earningsTitle": "How earnings work, in plain words",
-      "earnings": [
-        "You earn only when a customer’s payment has reached Grid Nova’s bank account and been checked. A payment that is only promised earns nothing.",
-        "You earn in step with the payment: if the customer has paid part of the price, you earn on that part.",
-        "Each entry in your portal moves from Earned to Approved to Paid, and shows which customer and which payment it belongs to.",
-        "Approved commission is paid into a bank account in your own name, [monthly, by the 10th of the following month].",
-        "Tax is deducted at source as the law requires, and you receive TDS certificates.",
-        "If a payment is reversed — a cheque bounces, a refund is made, a project is cancelled — the commission on it is reversed too."
-      ],
-      "earningsNote": "Commission rates for each programme and level are shown in your portal, not on this page."
+      ]
     },
     "howItWorks": {
       "eyebrow": "How It Works",
       "title": "From application to your first payout.",
-      "intro": "A walkthrough of the Associate portal. The screens below are illustrations of how it will work, not the live portal.",
+      "intro": "The screens are illustrations, not the live portal.",
       "illustration": "Illustration",
       "steps": [
         {
           "title": "Apply and verify",
-          "body": "Fill in your details, upload your documents and accept the KYC & data consent notice. We verify everything, including a phone call, before approval.",
+          "body": "Send your details and documents, and accept the KYC & data consent notice. We verify everything, including a phone call.",
           "screen": {
             "heading": "Your application",
             "fields": [
               "Full name",
               "Mobile number",
               "PAN",
-              "Masked Aadhaar (upload)",
-              "Bank account + cancelled cheque"
+              "Masked Aadhaar (upload)"
             ],
             "status": "Verification call — pending"
           }
         },
         {
-          "title": "Get your Associate ID",
-          "body": "Once approved you receive a unique Associate ID, a digital ID card and welcome letter, and a physical welcome kit. Your ID card carries a QR code anyone can scan to confirm you.",
+          "title": "Get your ID card",
+          "body": "Once approved: a unique Associate ID, a digital ID card, a welcome letter and a welcome kit. Anyone can scan your card’s QR code to check you.",
           "screen": {
             "heading": "Grid Nova ID card",
             "name": "Your name",
@@ -1363,7 +1344,7 @@
         },
         {
           "title": "Add a customer",
-          "body": "Meet the customer in person. Read them the Customer Information Notice, record their agreement, and enter their details. Site photos are taken on site, through the portal.",
+          "body": "Meet the customer, read them the Customer Information Notice and record their agreement. Take site photos on site, in the portal.",
           "screen": {
             "heading": "New customer",
             "notice": "Customer Information Notice read to customer",
@@ -1372,15 +1353,8 @@
           }
         },
         {
-          "title": "Follow the project",
-          "body": "See every customer’s project move through the same eight steps shown on our homepage, from enquiry to subsidy.",
-          "screen": {
-            "heading": "Sample customer — rooftop project"
-          }
-        },
-        {
-          "title": "Track your commission",
-          "body": "Every entry shows its customer, its payment and its status. Paid entries carry the bank reference.",
+          "title": "Follow projects, get paid",
+          "body": "Track each project through its eight steps. Every commission entry shows its customer, payment and status.",
           "screen": {
             "heading": "Commission",
             "columns": [
@@ -1409,43 +1383,94 @@
         }
       ]
     },
-    "guidelines": {
-      "eyebrow": "Guidelines",
-      "title": "How every Grid Nova Associate works.",
-      "items": [
-        {
-          "title": "No cash, ever",
-          "body": "Customers pay only into Grid Nova’s own bank account — by cheque, demand draft, NEFT, RTGS, IMPS or UPI. Never accept cash, and never let a customer pay you or any other account."
-        },
-        {
-          "title": "No price promises",
-          "body": "Don’t promise a price, discount, subsidy, approval, timeline or warranty that Grid Nova hasn’t confirmed in writing."
-        },
-        {
-          "title": "Approved brands only",
-          "body": "Recommend only the equipment, brands and categories Grid Nova has approved."
-        },
-        {
-          "title": "Customer data stays in the portal",
-          "body": "Collect details in person, explain why using the Customer Information Notice, and never copy customer information outside the portal."
-        }
-      ],
-      "photoTitle": "Taking good site photos",
-      "photoTips": [
-        "Take them on site, through the portal camera — never upload photos from another site or from the internet.",
-        "Shoot in daylight. First the whole roof in one frame, then close-ups.",
-        "Show everything that can cast shade: water tanks, walls, trees, towers, nearby buildings.",
-        "Photograph the electricity meter and the main distribution board.",
-        "Keep them sharp and unedited — no filters, no screenshots."
-      ],
-      "portalTitle": "Helping a customer approve the agreement on the PM Surya Ghar portal",
-      "portalSteps": [
-        "The customer signs in to the national PM Surya Ghar portal with their own login.",
-        "Together, check that Grid Nova is shown as the vendor and that the details match the customer’s proposal.",
-        "The customer approves the agreement themselves.",
-        "Never ask for the customer’s password or OTP, and never approve on their behalf."
-      ],
-      "portalNote": "Portal screens can change. Always follow the steps the portal itself shows."
+    "needs": {
+      "eyebrow": "Before You Apply",
+      "title": "What you need to know.",
+      "eligibility": {
+        "title": "Who can apply",
+        "summary": "18 or older, living in India, with a PAN and a bank account.",
+        "items": [
+          "You are at least 18 years old and live in India.",
+          "You have a valid PAN.",
+          "You have a bank account in your own name.",
+          "You agree to a verification phone call before approval."
+        ]
+      },
+      "docs": {
+        "title": "Documents",
+        "summary": "Photo, masked Aadhaar, PAN and bank details.",
+        "allTitle": "Everyone",
+        "all": [
+          "A recent photograph",
+          "Aadhaar — a masked copy showing only the last four digits (you can download it from UIDAI)",
+          "PAN card copy",
+          "Bank account details and a cancelled cheque",
+          "Address, mobile number and email"
+        ],
+        "preferredTitle": "Preferred Associates also need",
+        "preferred": [
+          "Business details",
+          "GSTIN, if you have one",
+          "Your experience and references"
+        ]
+      },
+      "pay": {
+        "title": "How you are paid",
+        "summary": "Only on verified payments. Paid monthly, by the 10th.",
+        "items": [
+          "You earn only when a customer’s payment has reached Grid Nova’s bank account and been checked. A promised payment earns nothing.",
+          "If the customer has paid part of the price, you earn on that part.",
+          "Each entry in your portal moves from Earned to Approved to Paid, and shows its customer and payment.",
+          "Approved commission is paid monthly, by the 10th of the following month, into a bank account in your own name.",
+          "Grid Nova sets the rates and shows them in your portal, not on this page. Any change is announced in your portal 15 days ahead.",
+          "Tax is deducted at source only where the law requires it. Your portal shows the rate before any deduction is made.",
+          "If a payment is reversed — a cheque bounces, a refund is made, a project is cancelled — the commission on it is reversed too."
+        ]
+      },
+      "rules": {
+        "title": "Rules you follow",
+        "summary": "No cash, no price promises, approved brands, data stays in the portal.",
+        "items": [
+          {
+            "title": "No cash, ever",
+            "body": "Customers pay only into Grid Nova’s own bank account — by cheque, demand draft, NEFT, RTGS, IMPS or UPI. Never take cash or let a customer pay you or any other account."
+          },
+          {
+            "title": "No price promises",
+            "body": "Don’t promise a price, discount, subsidy, approval, timeline or warranty that Grid Nova hasn’t confirmed in writing."
+          },
+          {
+            "title": "Approved brands only",
+            "body": "Recommend only the equipment, brands and categories Grid Nova has approved."
+          },
+          {
+            "title": "Customer data stays in the portal",
+            "body": "Collect details in person, explain why with the Customer Information Notice, and never copy customer information outside the portal."
+          }
+        ]
+      },
+      "photos": {
+        "title": "Site photo tips",
+        "summary": "On site, in daylight, sharp and unedited.",
+        "items": [
+          "Take them on site, with the portal camera — never upload photos from another site or the internet.",
+          "Shoot in daylight. First the whole roof in one frame, then close-ups.",
+          "Show everything that can cast shade: water tanks, walls, trees, towers, nearby buildings.",
+          "Photograph the electricity meter and the main distribution board.",
+          "Keep them sharp and unedited — no filters, no screenshots."
+        ]
+      },
+      "suryaGhar": {
+        "title": "Helping on PM Surya Ghar",
+        "summary": "The customer approves the agreement themselves.",
+        "steps": [
+          "The customer signs in to the national PM Surya Ghar portal with their own login.",
+          "Together, check that Grid Nova is shown as the vendor and the details match the customer’s proposal.",
+          "The customer approves the agreement themselves.",
+          "Never ask for the customer’s password or OTP, and never approve on their behalf."
+        ],
+        "note": "Portal screens can change. Always follow the steps the portal itself shows."
+      }
     },
     "join": {
       "eyebrow": "Apply or Sign In",
@@ -1454,15 +1479,17 @@
       "applyAssociate": "Apply as an Associate",
       "applyPreferred": "Apply as a Preferred Associate",
       "loginTitle": "Already approved?",
+      "loginBody": "Sign in to add customers, follow projects and see your commission.",
       "loginAssociate": "Associate Portal",
       "loginPreferred": "Preferred Associate Portal",
-      "loginBody": "Sign in to add customers, follow projects and see your commission.",
       "openingSoon": "Opening soon",
-      "openingSoonNote": "Applications and the Associate portals are opening soon. To register your interest now, call +91 98747 74440 or email info@gridnova.in."
+      "openingSoonNote": "Applications and the Associate portals are opening soon. To register your interest now, call +91 98747 74440 or email info@gridnova.in.",
+      "barApply": "Apply now"
     },
     "faq": {
       "eyebrow": "Questions",
       "title": "Associate FAQ",
+      "more": "More questions",
       "items": [
         {
           "q": "Is there a fee to join?",
@@ -1474,7 +1501,7 @@
         },
         {
           "q": "When do I get paid?",
-          "a": "Commission is earned when the customer’s payment is verified in Grid Nova’s bank account. After Grid Nova approves it, it is paid to your bank account [monthly, by the 10th of the following month]."
+          "a": "Commission is earned when the customer’s payment is verified in Grid Nova’s bank account. Once Grid Nova approves it, it is paid to your bank account monthly, by the 10th of the following month."
         },
         {
           "q": "How will customers know I am genuine?",
@@ -1482,23 +1509,26 @@
         },
         {
           "q": "What if two Associates bring the same customer?",
-          "a": "The customer belongs to the first Associate whose complete submission Grid Nova verifies. It stays with that Associate for [90] days, or until the project is completed or closed."
+          "a": "The customer belongs to the first Associate whose complete submission Grid Nova verifies, until the project is completed or closed."
         },
         {
           "q": "Can I stop being an Associate?",
-          "a": "Yes, with [15] days’ written notice through your portal. Commission already earned on verified payments remains payable."
+          "a": "Yes, with 15 days’ written notice through your portal. Commission already earned on verified payments remains payable, subject to any reversal."
+        },
+        {
+          "q": "Is tax deducted from my commission?",
+          "a": "Only where the law requires it. Your portal shows the rate before any deduction is made, and Grid Nova issues TDS certificates for tax deducted."
         }
       ],
       "helplineTitle": "Associate helpline",
-      "helplineBody": "Questions about the programme? Call us or write to us."
+      "helplineBody": "Questions? Call or WhatsApp us.",
+      "call": "Call",
+      "whatsapp": "WhatsApp"
     },
     "jobs": {
       "eyebrow": "Careers",
       "title": "Build the grid with us.",
-      "intro": "Grid Nova Energy is a growing renewable energy company executing solar EPC projects across West Bengal and Bihar. We’re looking for engineers, project managers and sales professionals who care about doing this right — not just fast.",
-      "thriveTitle": "The kind of person who thrives here",
-      "thrive1": "You understand that solar EPC is infrastructure work — methodical, detail-intensive, and accountable across a 25-year system lifetime. You prefer getting it right over getting it done fast.",
-      "thrive2": "You’re comfortable in the field as much as in a spreadsheet. You know that DISCOM processes and MNRE compliance aren’t bureaucratic nuisances — they’re the job.",
+      "intro": "We build solar EPC projects across West Bengal and Bihar, and look for people who do it right — not just fast.",
       "values": [
         {
           "label": "Engineering integrity",
@@ -1511,15 +1541,10 @@
         {
           "label": "Customer accountability",
           "desc": "Every team member is a direct point of contact for the client."
-        },
-        {
-          "label": "Continuous learning",
-          "desc": "Solar EPC evolves rapidly. Curiosity is a requirement, not a bonus."
         }
       ],
-      "openingsLabel": "Current Openings",
       "openingsTitle": "No roles listed right now.",
-      "openingsBody": "We hire when we find the right person for a specific need — not the other way around. If your background is in solar EPC, project management, electrical engineering or renewable energy sales, send us your CV and we’ll reach out when something opens that fits.",
+      "openingsBody": "We hire when the right person meets a real need. Send your CV — we’ll reach out when something fits.",
       "emailCv": "Email Your CV",
       "learnAbout": "Learn About Us",
       "mailSubject": "Career Enquiry — Grid Nova Energy"
