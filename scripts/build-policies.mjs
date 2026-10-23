@@ -163,7 +163,6 @@ export function parseDraft(md) {
     }
     out[target[0]][target[1]] = { number, sourceTitle: numbered[2].trim(), meta, sections, slug: target[1] }
   }
-  if (!out.pendingItems) throw new Error('Pending-items table missing')
   return out
 }
 

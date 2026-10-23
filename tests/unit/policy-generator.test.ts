@@ -34,25 +34,24 @@ describe('policy generator (npm run policies)', () => {
   it('refuses a draft it cannot place, instead of dropping text', () => {
     const md = readFileSync(path.resolve(root, 'content/policies/GridNova_Policies_Draft_v1.md'), 'utf8')
     expect(() => parseDraft(md.replace('## 7. CUSTOMER INFORMATION NOTICE', '## 9. SOMETHING ELSE'))).toThrow(/no slug mapping/)
-    expect(() => parseDraft(md.replace('## ITEMS FOR GRID NOVA TO CONFIRM', '## UNKNOWN HEADING'))).toThrow(/Unrecognised top-level heading/)
+    expect(() => parseDraft(`${md}\n## UNKNOWN HEADING\n`)).toThrow(/Unrecognised top-level heading/)
   })
 })
 
-describe('[bracketed] values vs the draft\'s own "items to confirm" table', () => {
-  // How many [bracketed] placeholders each row of the table accounts for. If a
-  // placeholder is added to or removed from the draft, this fails until the
-  // table (and this list) are updated — so no unconfirmed fact slips through.
-  const BRACKETS_PER_ITEM = [5, 1, 0]
+describe('published policy set', () => {
+  const { policies, notices } = generate() as {
+    policies: { documents: Record<string, unknown>; pendingItems: unknown }
+    notices: { notices: Record<string, unknown> }
+  }
 
-  it('every bracket in the policy set is accounted for by a row of the table', () => {
-    const { policies, notices } = generate() as {
-      policies: { documents: Record<string, unknown>; pendingItems: { rows: string[][] } }
-      notices: { notices: Record<string, unknown> }
-    }
-    const rows = policies.pendingItems.rows
-    expect(rows).toHaveLength(BRACKETS_PER_ITEM.length)
+  it('has no [bracketed] placeholders left in the policies or notices', () => {
     const text = JSON.stringify([policies.documents, notices.notices])
-    const found = text.match(/\[[^\][\\"]+\]/g) ?? []
-    expect(found).toHaveLength(BRACKETS_PER_ITEM.reduce((a, b) => a + b, 0))
+    expect(text.match(/\[[^\][\\"]+\]/g) ?? []).toEqual([])
+  })
+
+  it('has no pending-items table in the source, and pendingItems is null', () => {
+    const md = readFileSync(path.resolve(root, 'content/policies/GridNova_Policies_Draft_v1.md'), 'utf8')
+    expect(md).not.toMatch(/ITEMS FOR GRID NOVA TO CONFIRM/)
+    expect(policies.pendingItems).toBeNull()
   })
 })

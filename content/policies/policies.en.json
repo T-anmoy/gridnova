@@ -7,7 +7,7 @@
       "meta": [
         {
           "label": "Effective date",
-          "value": "[date of publication]"
+          "value": "23 October 2026"
         }
       ],
       "sections": [
@@ -241,7 +241,7 @@
       "meta": [
         {
           "label": "Effective date",
-          "value": "[date of publication]"
+          "value": "23 October 2026"
         }
       ],
       "sections": [
@@ -398,7 +398,7 @@
         },
         {
           "label": "Effective date",
-          "value": "[date]"
+          "value": "23 October 2026"
         }
       ],
       "sections": [
@@ -513,7 +513,7 @@
             },
             {
               "type": "p",
-              "text": "You may leave the Network at any time with 15 days' written notice through your portal. Grid Nova may suspend or terminate your association with immediate effect for any breach of these Terms, fraud, misconduct or harm to Grid Nova's reputation, and otherwise on [30] days' notice. Commission already earned on verified payments before termination remains payable, subject to any reversal or recovery under the Commission & Payout Policy."
+              "text": "You may leave the Network at any time with 15 days' written notice through your portal. Grid Nova may suspend or terminate your association with immediate effect for any breach of these Terms, fraud, misconduct or harm to Grid Nova's reputation, and otherwise on 30 days' notice. Commission already earned on verified payments before termination remains payable, subject to any reversal or recovery under the Commission & Payout Policy."
             },
             {
               "type": "h4",
@@ -633,7 +633,7 @@
       "meta": [
         {
           "label": "Effective date",
-          "value": "[date]"
+          "value": "23 October 2026"
         }
       ],
       "sections": [
@@ -736,7 +736,7 @@
       "meta": [
         {
           "label": "Effective date",
-          "value": "[date]"
+          "value": "23 October 2026"
         }
       ],
       "sections": [
@@ -814,28 +814,5 @@
       "slug": "payment-policy"
     }
   },
-  "pendingItems": {
-    "head": [
-      "#",
-      "Where",
-      "Item"
-    ],
-    "rows": [
-      [
-        "3",
-        "All documents",
-        "Effective date of each document"
-      ],
-      [
-        "8",
-        "3 (A11)",
-        "Notice period when Grid Nova ends an Associate's membership without cause (draft: 30 days). Confirmed 21 Oct 2026: 15 days' notice for an Associate leaving, 15 days for changes to the Terms, 15 working days for commission queries, 12 months chat retention, 30 days for data requests; the customer attribution lock period has been removed"
-      ],
-      [
-        "13",
-        "4.6",
-        "TDS — awaiting Grid Nova's Chartered Accountant"
-      ]
-    ]
-  }
+  "pendingItems": null
 }

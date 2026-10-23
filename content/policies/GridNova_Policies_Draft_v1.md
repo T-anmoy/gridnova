@@ -21,7 +21,7 @@
 
 ## 1. PRIVACY POLICY
 
-**Effective date:** [date of publication]
+**Effective date:** 23 October 2026
 
 ### 1.1 Who we are
 Grid Nova Energy ("Grid Nova", "we", "us", "our") is a partnership firm, GSTIN 19ABEFG7809A1ZI. Our Kolkata office is at Plot No. 83, Kasba Industrial Estate, Phase II, Kolkata – 700107, West Bengal, and our Patna office is at C/O Parbati Bhawan, West Ram Krishna Nagar, New Bypass Road, Opposite Metro Pillar No. 81, P.O. New Jaganpura, Patna – 800027, Bihar.
@@ -109,7 +109,7 @@ We will post any update here with a new effective date. Where a change significa
 
 ## 2. TERMS OF USE
 
-**Effective date:** [date of publication]
+**Effective date:** 23 October 2026
 
 ### 2.1 About these Terms
 These Terms govern your use of www.gridnova.in and its features, including the Solar Calculator, the Nova assistant, call booking and online proposal acceptance. By using the site you agree to them. If you do not agree, please do not use the site.
@@ -157,7 +157,7 @@ Grid Nova Energy, Plot No. 83, Kasba Industrial Estate, Phase II, Kolkata – 70
 
 ## 3. ASSOCIATE NETWORK TERMS
 
-**Version:** 1.0 · **Effective date:** [date]
+**Version:** 1.0 · **Effective date:** 23 October 2026
 
 These Terms form an agreement between Grid Nova and each person approved to join the Grid Nova Associate Network. Part A applies to everyone. Part B applies to Associates. Part C applies to Preferred Associates. By submitting your registration and accepting these Terms, you agree to be bound by them.
 
@@ -201,7 +201,7 @@ When you collect customer information for Grid Nova, you do so on Grid Nova's be
 You earn commission only as set out in the Commission & Payout Policy and the rate schedule shown in your portal.
 
 **A11. Suspension and termination**
-You may leave the Network at any time with 15 days' written notice through your portal. Grid Nova may suspend or terminate your association with immediate effect for any breach of these Terms, fraud, misconduct or harm to Grid Nova's reputation, and otherwise on [30] days' notice. Commission already earned on verified payments before termination remains payable, subject to any reversal or recovery under the Commission & Payout Policy.
+You may leave the Network at any time with 15 days' written notice through your portal. Grid Nova may suspend or terminate your association with immediate effect for any breach of these Terms, fraud, misconduct or harm to Grid Nova's reputation, and otherwise on 30 days' notice. Commission already earned on verified payments before termination remains payable, subject to any reversal or recovery under the Commission & Payout Policy.
 
 **A12. Confidentiality**
 Prices, rate schedules, customer lists and business information you receive from Grid Nova are confidential, during and after your association.
@@ -246,7 +246,7 @@ In addition to commission on your own customers, you may earn a territory commis
 
 ## 4. COMMISSION & PAYOUT POLICY
 
-**Effective date:** [date]
+**Effective date:** 23 October 2026
 
 **4.1 Rate schedule**
 Commission rates for each Associate type, level and role are published in your portal. Grid Nova may update the schedule with 15 days' notice; the rate that applies is the one in force on the date the customer's agreement is signed.
@@ -279,7 +279,7 @@ Grid Nova may recognise outstanding performance through awards, certificates and
 
 ## 5. CUSTOMER PAYMENT POLICY
 
-**Effective date:** [date]
+**Effective date:** 23 October 2026
 
 **5.1 No cash, ever**
 Grid Nova does not accept cash for any product or service, at any stage.
@@ -351,15 +351,3 @@ You can ask Grid Nova to see, correct or delete your information at any time: in
 ☐ The customer has been informed and agrees.
 
 ---
-
----
-
-## ITEMS FOR GRID NOVA TO CONFIRM (every bracketed value in this set)
-
-| # | Where | Item |
-|---|---|---|
-| 3 | All documents | Effective date of each document |
-| 8 | 3 (A11) | Notice period when Grid Nova ends an Associate's membership without cause (draft: 30 days). Confirmed 21 Oct 2026: 15 days' notice for an Associate leaving, 15 days for changes to the Terms, 15 working days for commission queries, 12 months chat retention, 30 days for data requests; the customer attribution lock period has been removed |
-| 13 | 4.6 | TDS — awaiting Grid Nova's Chartered Accountant |
-
-*End of draft. Recommended next step: Grid Nova's legal adviser and CA review every bracketed item, and sections 1.6 (service providers), 1.8 (retention periods), 4.5–4.6 (payout and tax) and Part C of document 3, before these are published or shown in the portals.*

@@ -25,13 +25,17 @@ const routes = [
   "/payment-policy",
 ];
 
+// The policy set was published on this date.
+const POLICY_ROUTES = new Set(["/privacy", "/terms", "/associate-terms", "/commission-policy", "/payment-policy"]);
+const POLICY_PUBLISHED = new Date("2026-10-23");
+
 const absolute = (path: string) => `${SITE_URL}${path === "/" ? "" : path}`;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return routes.flatMap((route) =>
     LOCALES.map((locale) => ({
       url: absolute(localizeHref(route, locale)),
-      lastModified: new Date(),
+      lastModified: POLICY_ROUTES.has(route) ? POLICY_PUBLISHED : new Date(),
       changeFrequency: "monthly" as const,
       priority: route === "/" ? 1 : 0.7,
       alternates: {

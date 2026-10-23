@@ -95,7 +95,8 @@ export default function PolicyDocument({
   // The "draft, items shown like this are unconfirmed" banner only appears while a
   // [pending] item is still left in the text; once Grid Nova has confirmed everything
   // the page reads as a final policy.
-  const hasPending = /\[[^\]\n]+\]/.test(JSON.stringify(doc));
+  // (quotes excluded so the JSON array syntax of the serialised document never counts)
+  const hasPending = /\[[^\]\n"\\]+\]/.test(JSON.stringify(doc));
   const metaLabel = (label: string) =>
     label === "Version" ? t.version : label === "Effective date" ? t.effective : label;
 

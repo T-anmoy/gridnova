@@ -1,9 +1,9 @@
 import policies from "./policies.en.json";
 import notices from "./notices.en.json";
 
-// Grid Nova policy set, Draft v1.1 — generated verbatim from
-// GridNova_Policies_Draft_v1.md in this folder. `[bracketed]` text is a fact
-// Grid Nova has not confirmed yet and is rendered as a visible placeholder.
+// Grid Nova policy set — generated verbatim from GridNova_Policies_Draft_v1.md
+// in this folder. Any `[bracketed]` text would be a fact Grid Nova has not
+// confirmed yet and is rendered as a visible placeholder.
 // English only: legal text is not machine-translated (see the hi/bn notice).
 
 export type PolicyBlock =
@@ -34,8 +34,8 @@ export function getPolicy(slug: PolicySlug): PolicyDoc {
   return (policies.documents as Record<PolicySlug, PolicyDoc>)[slug];
 }
 
-/** Every value in the set still awaiting Grid Nova (the draft's own list). */
-export const POLICY_PENDING_ITEMS = policies.pendingItems;
+/** Values still awaiting Grid Nova (the draft's own list); null once everything is confirmed. */
+export const POLICY_PENDING_ITEMS = (policies as { pendingItems?: unknown }).pendingItems ?? null;
 
 /**
  * Documents 6 and 7 are not pages. The KYC & Data Consent Notice is shown on

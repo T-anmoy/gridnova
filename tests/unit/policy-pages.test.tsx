@@ -16,20 +16,41 @@ const draft = readFileSync(path.resolve(root, "content/policies/GridNova_Policie
 
 describe("policy pages", () => {
   for (const slug of POLICY_SLUGS) {
-    it(`${slug}: renders every section, and shows each [bracketed] item as a pending marker, never as raw text`, () => {
+    it(`${slug}: renders every section, with no [bracketed] text, draft banner or pending marker`, () => {
       const doc = getPolicy(slug);
       const { container } = render(withI18n(<PolicyDocument doc={doc} t={en.legal} englishOnly={false} />));
       expect(screen.getByRole("heading", { level: 1, name: en.legal.titles[slug] })).toBeInTheDocument();
       for (const s of doc.sections.filter((x) => x.heading)) {
         expect(container.querySelector(`#${CSS.escape(s.id)}`)).not.toBeNull();
       }
-      const article = container.querySelector("article")!;
-      expect(article.textContent).not.toMatch(/\[[^\]]+\]/);
-      const bracketsInSource = JSON.stringify(doc).match(/\[[^\]"]+\]/g) ?? [];
-      const marks = container.querySelectorAll("mark.pending-value");
-      expect(marks.length).toBeGreaterThanOrEqual(bracketsInSource.length);
+      expect(container.textContent).not.toMatch(/\[[^\]]+\]/);
+      expect(container.querySelector("mark.pending-value")).toBeNull();
+      expect(container.querySelector('[role="note"]')).toBeNull();
+      expect(container.textContent).not.toMatch(/Draft v1|prepared for review|pending confirmation/i);
+    });
+
+    it(`${slug}: effective date reads 23 October 2026`, () => {
+      const { container } = render(withI18n(<PolicyDocument doc={getPolicy(slug)} t={en.legal} englishOnly={false} />));
+      expect(getPolicy(slug).meta.find((m) => m.label === "Effective date")?.value).toBe("23 October 2026");
+      expect(container.querySelector("dl")?.textContent).toContain("23 October 2026");
     });
   }
+
+  it("still shows the marker and the draft banner when a document has a [pending] item", () => {
+    const doc = {
+      ...getPolicy("privacy"),
+      meta: [{ label: "Effective date", value: "[date of publication]" }],
+    };
+    const { container } = render(withI18n(<PolicyDocument doc={doc} t={en.legal} englishOnly={false} />));
+    expect(container.querySelector("mark.pending-value")).not.toBeNull();
+    expect(container.querySelector('[role="note"]')).not.toBeNull();
+  });
+
+  it("associate terms A11 says Grid Nova otherwise ends membership on 30 days' notice, with no marker", () => {
+    const { container } = render(withI18n(<PolicyDocument doc={getPolicy("associate-terms")} t={en.legal} englishOnly={false} />));
+    expect(container.textContent).toContain("otherwise on 30 days' notice");
+    expect(container.querySelector("mark.pending-value")).toBeNull();
+  });
 
   it("no longer carries the outdated 'January 2025' pages", () => {
     const { container } = render(withI18n(<PolicyDocument doc={getPolicy("privacy")} t={en.legal} englishOnly={false} />));
