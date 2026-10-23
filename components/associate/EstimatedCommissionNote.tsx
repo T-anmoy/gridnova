@@ -19,7 +19,8 @@ export const COMMISSION_POLICY_HREF = '/commission-policy'
  * as plain text (a link inside a link is not valid HTML).
  */
 export default function EstimatedCommissionNote({ value, inLink = false }: { value: EstimatedCommission | null | undefined; inLink?: boolean }) {
-  const copy = useOptionalMessages('portalEase')?.commission
+  const messages = useOptionalMessages('portalEase')
+  const copy = messages?.commission
   if (!copy || !value) return null
 
   if (value.amount == null) {
@@ -33,7 +34,12 @@ export default function EstimatedCommissionNote({ value, inLink = false }: { val
 
   return (
     <div data-testid="estimated-commission" data-state="amount" className="mt-3 rounded-xl bg-[#fffaf0] px-3 py-2">
-      <p className="font-display text-sm font-semibold text-[#0e2a63]">{fmt(copy.amount, { amount: formatInr(value.amount) })}</p>
+      <p className="font-display text-sm font-semibold text-[#0e2a63]">
+        {fmt(copy.amount, { amount: formatInr(value.amount) })}
+        {value.rate_source === 'individual' && messages?.rate && (
+          <span data-testid="individual-rate-tag" className="ml-2 rounded-full bg-[#2f5daa]/10 px-2 py-0.5 font-utility text-[11px] font-semibold text-[#0e2a63]">{messages.rate.tag}</span>
+        )}
+      </p>
       <p className="mt-0.5 font-utility text-xs text-[#111827]/70">{copy.basis[value.basis]}</p>
       <p className="mt-0.5 font-utility text-xs text-[#111827]/70">
         {copy.paidNote}{' '}

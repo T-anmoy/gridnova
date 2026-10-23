@@ -6,9 +6,11 @@ import {
   associatePayoutsSchema,
   commissionQuerySchema,
   entryQueriesSchema,
+  myRateSchema,
   type AssociateCommissions,
   type AssociatePayouts,
   type CommissionQuery,
+  type MyRate,
 } from './schemas'
 
 // Associate-audience commission endpoints (BE-4). An Associate sees only their own entries;
@@ -77,5 +79,16 @@ export function useRaiseCommissionQuery() {
       void qc.invalidateQueries({ queryKey: ['commission-queries', entryId] })
       void qc.invalidateQueries({ queryKey: ['home'] })
     },
+  })
+}
+
+/** The caller's own commission rate today and every scheduled change (BE-12). */
+export function useMyRate() {
+  const token = useToken()
+  return useQuery({
+    queryKey: ['my-commission-rate'],
+    queryFn: async ({ signal }) => apiFetch<MyRate>(`${BASE}/commission-rate`, await token(), { signal }, myRateSchema),
+    staleTime: 60_000,
+    retry: false,
   })
 }

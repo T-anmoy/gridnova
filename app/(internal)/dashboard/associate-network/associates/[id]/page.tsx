@@ -24,6 +24,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { formatDate } from '@/lib/dashboard/utils'
 import ShareSignInCard from '@/components/dashboard/ShareSignInCard'
+import AssociateRateCard from '@/components/dashboard/associate-network/AssociateRateCard'
+import AssociatePerformancePanel from '@/components/dashboard/associate-network/AssociatePerformancePanel'
 import type { Role } from '@/lib/dashboard/types'
 
 function errorMessage(err: unknown, fallback: string): string {
@@ -132,7 +134,7 @@ export default function AssociateDetailPage() {
   const preparing = isPreparing(associate)
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-5xl">
       <button onClick={() => router.push('/dashboard/associate-network/associates')} className="font-utility text-sm text-[#0e2a63] mb-4">
         ← Back to associates
       </button>
@@ -202,6 +204,12 @@ export default function AssociateDetailPage() {
           email={associate.email}
         />
       )}
+
+      {/* Personal-sale rate only: territory commission always follows the standard schedule. */}
+      <div className="mb-4 grid gap-4 lg:grid-cols-2">
+        <AssociateRateCard associateId={associateId} canEdit={role === 'admin'} />
+        <AssociatePerformancePanel associateId={associateId} />
+      </div>
 
       <Card className="p-6 mb-4">
         <h2 className="font-display text-sm font-semibold text-[#091c3c] mb-4">Documents</h2>

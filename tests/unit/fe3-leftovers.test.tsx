@@ -18,6 +18,11 @@ vi.mock('@/lib/associate/api-client', async (orig) => ({
 vi.mock('next/navigation', () => ({ useParams: () => ({ id: 'GNA-WB-26-00001' }), useRouter: () => ({ push: vi.fn() }), usePathname: () => '/dashboard', useSearchParams: () => new URLSearchParams() }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 const signOut = vi.fn(async () => {})
+vi.mock('@/lib/commissions/staff-api-client', () => ({
+  useAssociateRate: () => ({ data: undefined, isLoading: true }),
+  useSetAssociateRate: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useAssociatePerformance: () => ({ data: undefined, isLoading: true }),
+}))
 vi.mock('@clerk/nextjs', () => ({
   ClerkProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useUser: () => ({ user: { publicMetadata: { role: 'admin' }, firstName: 'Ann', emailAddresses: [] } }),

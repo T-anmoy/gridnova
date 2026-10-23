@@ -72,7 +72,10 @@ const MESSAGES: Record<string, string | ((d: Record<string, unknown>) => string)
   invalid_rate_keys: 'The schedule must contain every rate, and only the known ones.',
   invalid_rate: 'Each rate must be between 0 and 100 with at most 4 decimals.',
   notice_period: (d) => `A new rate schedule needs notice: it cannot start before ${formatDate(String(d.earliest_effective_from ?? ''))}.`,
-  effective_in_past: 'A placeholder schedule cannot start in the past.',
+  effective_in_past: (d) =>
+    typeof d.earliest_effective_from === 'string' && d.earliest_effective_from
+      ? `A schedule cannot start in the past. The earliest date is ${formatDate(d.earliest_effective_from)}.`
+      : 'A schedule cannot start in the past.',
   concurrent_publish: 'Another schedule was published at the same moment. Reload and try again.',
   schedule_is_placeholder: 'A placeholder schedule has no real rates, so entries cannot be re-rated from it.',
   invalid_period: 'Choose a valid month.',

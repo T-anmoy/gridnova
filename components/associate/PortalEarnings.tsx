@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { CircleAlert, FileText, Loader2 } from 'lucide-react'
 import Link from '@/components/i18n/Link'
 import { DashboardError } from '@/components/dashboard/DashboardError'
+import MyRateCard from '@/components/associate/MyRateCard'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { humanize } from '@/lib/associate/execution-labels'
 import { ApiError } from '@/lib/dashboard/api-error'
@@ -236,7 +237,12 @@ function EntryCard({ entry, copy, highlighted, now }: { entry: CommissionEntry; 
         {entry.rate_percent != null && (
           <div>
             <dt className="font-utility text-xs text-[#111827]/65">{copy.entry.rate}</dt>
-            <dd className="text-[#111827]">{formatRate(entry.rate_percent)}</dd>
+            <dd className="text-[#111827]">
+              {formatRate(entry.rate_percent)}
+              {entry.rate_source === 'individual' && (
+                <span data-testid="individual-rate-tag" className="ml-2 rounded-full bg-[#2f5daa]/10 px-2 py-0.5 font-utility text-[11px] font-semibold text-[#0e2a63]">{copy.entry.individualRate}</span>
+              )}
+            </dd>
           </div>
         )}
       </dl>
@@ -413,6 +419,8 @@ export default function PortalEarnings({ copy, policyHref, territory = false }: 
           )}
         </>
       )}
+
+      <MyRateCard />
 
       <Link href={policyHref} className={`inline-flex min-h-[44px] items-center gap-2 font-utility text-sm font-semibold text-[#0e2a63] underline ${FOCUS}`}>
         <FileText className="h-4 w-4" aria-hidden="true" /> {copy.policy}

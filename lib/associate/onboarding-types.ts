@@ -223,6 +223,8 @@ export interface EstimatedCommission {
   value_used: string
   basis_amount: string | null
   pending_reason: 'placeholder_rates' | 'basis_unavailable' | null
+  // BE-12: which rate the estimate used; null when there is no rate yet.
+  rate_source?: 'standard' | 'individual' | null
 }
 
 export interface Onboarding {

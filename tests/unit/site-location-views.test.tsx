@@ -22,6 +22,7 @@ vi.mock('@/lib/associate/api-client', () => ({
 vi.mock('@/lib/associate/onboarding-api-client', () => ({
   useOnboardings: () => ({ ...h.onboardings, refetch: vi.fn() }),
 }))
+vi.mock('@/lib/commissions/associate-api-client', () => ({ useMyRate: () => ({ data: undefined, isLoading: false }) }))
 vi.mock('@clerk/nextjs', () => ({ useAuth: () => ({ getToken: async () => 't' }), useClerk: () => ({ signOut: vi.fn() }) }))
 
 const m = en.siteLocation

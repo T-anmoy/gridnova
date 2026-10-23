@@ -25,6 +25,7 @@ vi.mock('@/lib/associate/onboarding-api-client', () => ({
   useOnboardings: () => ({ ...h.onboardings, refetch: h.refetch }),
   useOnboardingProgress: (...args: unknown[]) => h.progressCalls(...args),
 }))
+vi.mock('@/lib/commissions/associate-api-client', () => ({ useMyRate: () => ({ data: undefined, isLoading: false }) }))
 vi.mock('@clerk/nextjs', () => ({ useAuth: () => ({ getToken: async () => 't' }), useClerk: () => ({ signOut: vi.fn() }) }))
 
 const feed = en.associates.portal.feed
@@ -73,7 +74,7 @@ describe('describeTodo — the contract keys', () => {
     const keys = Object.keys(en.associates.portal.feed.todo).sort()
     expect(Object.keys(hi.associates.portal.feed.todo).sort()).toEqual(keys)
     expect(Object.keys(bn.associates.portal.feed.todo).sort()).toEqual(keys)
-    expect(keys).toEqual(['commission_payout_paid', 'commission_query_answered', 'documents_missing', 'execution_next_step', 'formal_proposal_ready', 'generic', 'handover_pending', 'party_associate', 'party_customer', 'payment_due', 'payment_overdue', 'ready_to_submit', 'receipt_available', 'service_request_closed', 'service_request_open', 'site_location_missing', 'site_location_unconfirmed', 'stage_rejected', 'survey_resign_needed', 'survey_revisit_correction', 'survey_revisit_edit', 'upload_signed_agreement'])
+    expect(keys).toEqual(['commission_payout_paid', 'commission_query_answered', 'commission_rate_changed', 'commission_rate_cleared', 'commission_rate_starts', 'documents_missing', 'execution_next_step', 'formal_proposal_ready', 'generic', 'handover_pending', 'party_associate', 'party_customer', 'payment_due', 'payment_overdue', 'ready_to_submit', 'receipt_available', 'service_request_closed', 'service_request_open', 'site_location_missing', 'site_location_unconfirmed', 'stage_rejected', 'survey_resign_needed', 'survey_revisit_correction', 'survey_revisit_edit', 'upload_signed_agreement'])
   })
 
   it('translates in Hindi and Bengali too', () => {

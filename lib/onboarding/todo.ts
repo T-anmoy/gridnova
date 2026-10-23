@@ -1,5 +1,7 @@
 import { humanize } from '@/lib/associate/execution-labels'
 import { formatInr } from '@/lib/money'
+import { formatRate } from '@/lib/commissions/rates'
+import { formatDate } from '@/lib/dashboard/utils'
 import type { HomeItem } from '@/lib/associate/home-api-client'
 import { fmt, type Messages } from '@/lib/i18n/types'
 import { correctionHref, editStepHref, revisitStep } from '@/lib/associate/survey-review'
@@ -44,6 +46,7 @@ export function todoTitle(item: HomeItem, copy: FeedCopy): string {
 export function todoHref(item: HomeItem, portalBase: string): string {
   // Commission payouts and answered queries land on the Earnings page, not on a customer.
   if (item.kind === 'commission_payout_paid') return `${portalBase}/earnings?tab=payouts`
+  if (item.kind === 'commission_rate_changed') return `${portalBase}/earnings`
   if (item.kind === 'commission_query_answered') {
     const entry = num((item.params ?? {}).entry_id)
     return entry != null ? `${portalBase}/earnings?entry=${entry}` : `${portalBase}/earnings`
@@ -123,6 +126,15 @@ export function describeTodo(item: HomeItem, copy: FeedCopy, stageNames: StageNa
       })
     case 'todo.commission_query_answered':
       return copy.todo.commission_query_answered
+    case 'todo.commission_rate_changed': {
+      // Rates are the server's decimal strings (null = no confirmed rate); the date is the day the rate starts.
+      const from = p.rate_percent_from == null ? null : str(p.rate_percent_from)
+      const to = p.rate_percent_to == null ? null : str(p.rate_percent_to)
+      const date = formatDate(str(p.effective_from))
+      if (to == null) return fmt(copy.todo.commission_rate_cleared, { from: formatRate(from), date })
+      if (from == null) return fmt(copy.todo.commission_rate_starts, { to: formatRate(to), date })
+      return fmt(copy.todo.commission_rate_changed, { from: formatRate(from), to: formatRate(to), date })
+    }
     case 'todo.handover_pending':
       return copy.todo.handover_pending
     case 'todo.service_request_open': {

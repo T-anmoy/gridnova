@@ -3,6 +3,9 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { apiDownload, apiFetch, buildQS, notAuthenticatedError } from '@/lib/api/http'
 import {
   approveResultSchema,
+  associatePerformanceSchema,
+  associateRateSchema,
+  setAssociateRateResultSchema,
   commissionQuerySchema,
   networkSummarySchema,
   payoutBatchListSchema,
@@ -13,6 +16,8 @@ import {
   reverseResultSchema,
   staffCommissionsSchema,
   staffQueriesSchema,
+  type AssociatePerformance,
+  type AssociateRate,
   type CommissionEntry,
   type CommissionQuery,
   type NetworkSummary,
@@ -242,5 +247,59 @@ export function useNetworkSummary(params: { date_from?: string; date_to?: string
       apiFetch<NetworkSummary>(`${BASE}/network/summary${buildQS({ ...params })}`, await token(), { signal }, networkSummarySchema),
     placeholderData: keepPreviousData,
     staleTime: 60_000,
+  })
+}
+
+// ── Individual rate and performance (BE-12) ────────────────────────────────
+// Admin and Management read; only Admin sets. The server decides, so a 403 is shown as such.
+
+export function useAssociateRate(associateId: string) {
+  const token = useToken()
+  return useQuery({
+    queryKey: ['associate-rate', associateId],
+    queryFn: async ({ signal }) =>
+      apiFetch<AssociateRate>(`${BASE}/associates/${encodeURIComponent(associateId)}/commission-rate`, await token(), { signal }, associateRateSchema),
+    enabled: !!associateId,
+    staleTime: 20_000,
+    retry: false,
+  })
+}
+
+export interface SetAssociateRateInput {
+  /** A percentage string, or null = back to the standard schedule. A JSON number is refused by the server. */
+  rate_percent: string | null
+  effective_from: string
+  reason: string
+}
+
+export function useSetAssociateRate(associateId: string) {
+  const token = useToken()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (input: SetAssociateRateInput) =>
+      apiFetch<{ change: unknown; rate: AssociateRate }>(
+        `${BASE}/associates/${encodeURIComponent(associateId)}/commission-rate`,
+        await token(),
+        postInit(input),
+        setAssociateRateResultSchema,
+      ),
+    onSuccess: ({ rate }) => {
+      qc.setQueryData(['associate-rate', associateId], rate)
+      void qc.invalidateQueries({ queryKey: ['associate-performance', associateId] })
+      void qc.invalidateQueries({ queryKey: ['staff-commissions'] })
+    },
+  })
+}
+
+export function useAssociatePerformance(associateId: string, range: { date_from?: string; date_to?: string }) {
+  const token = useToken()
+  return useQuery({
+    queryKey: ['associate-performance', associateId, range],
+    queryFn: async ({ signal }) =>
+      apiFetch<AssociatePerformance>(`${BASE}/associates/${encodeURIComponent(associateId)}/performance${buildQS({ ...range })}`, await token(), { signal }, associatePerformanceSchema),
+    enabled: !!associateId,
+    placeholderData: keepPreviousData,
+    staleTime: 60_000,
+    retry: false,
   })
 }

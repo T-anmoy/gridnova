@@ -35,6 +35,7 @@ vi.mock('@/lib/commissions/associate-api-client', () => ({
   useMyPayouts: () => ({ refetch: vi.fn(), ...hooks.payouts }),
   useEntryQueries: () => ({ ...hooks.queries }),
   useRaiseCommissionQuery: () => ({ mutateAsync: hooks.raise, isPending: false }),
+  useMyRate: () => ({ data: undefined, isLoading: false }),
 }))
 vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(hooks.search),

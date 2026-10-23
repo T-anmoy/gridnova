@@ -2596,7 +2596,10 @@
           "commission_query_answered": "Grid Nova has answered your commission query.",
           "handover_pending": "Installation is commissioned. Handover to the customer is still pending.",
           "service_request_open": "Service request ({category}) is {status}.{warranty}",
-          "service_request_closed": "Service request ({category}) was {outcome}."
+          "service_request_closed": "Service request ({category}) was {outcome}.",
+          "commission_rate_changed": "Your commission rate changes from {from} to {to} from {date}.",
+          "commission_rate_starts": "Your commission rate is {to} from {date}.",
+          "commission_rate_cleared": "From {date}, Grid Nova will confirm your commission rate (now {from})."
         },
         "blocked": {
           "formal_proposal_blocked": "The formal proposal is on hold.",
@@ -2608,7 +2611,8 @@
         "titles": {
           "commission_payout_paid": "Commission payout",
           "commission_query_answered": "Commission query",
-          "generic": "Update"
+          "generic": "Update",
+          "commission_rate_changed": "Commission rate"
         },
         "service": {
           "categories": {
@@ -2677,7 +2681,8 @@
           "inPayout": "In the {period} payout",
           "reason": "Reason: {reason}",
           "rateDate": "Rate as on {date}",
-          "minus": "Money taken back"
+          "minus": "Money taken back",
+          "individualRate": "Individual rate"
         },
         "roles": {
           "personal_sale": "Your own sale",
@@ -3868,6 +3873,29 @@
       "notShared": "The customer did not share their contact details.",
       "noLocation": "Location not given",
       "pin": "PIN {pin}"
+    },
+    "rate": {
+      "title": "Your commission rate",
+      "loading": "Loading your commission rate",
+      "standard": "Standard rate",
+      "individual": "Your individual rate",
+      "appliesFrom": "Applies to agreements signed from {date}.",
+      "recorded": "Commission already recorded does not change.",
+      "pending": "Grid Nova will confirm your commission rate.",
+      "upcomingTitle": "Coming up",
+      "upcoming": "From {date}: {rate}",
+      "upcomingNone": "From {date}: rate to be confirmed",
+      "upcomingIndividual": "your individual rate",
+      "upcomingStandard": "standard rate",
+      "tag": "Individual rate",
+      "seeDetails": "See your earnings",
+      "keys": {
+        "personal_sale.associate.sales": "Associate — sales",
+        "personal_sale.associate.execution": "Associate — execution",
+        "personal_sale.preferred_associate.state_head": "Preferred Associate — State Head",
+        "personal_sale.preferred_associate.district_head": "Preferred Associate — District Head",
+        "personal_sale.preferred_associate.block": "Preferred Associate — Block"
+      }
     }
   }
 }

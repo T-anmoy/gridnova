@@ -99,6 +99,7 @@ function EntryDetail({ entry, onClose, canReverse, onReverse }: { entry: Commiss
               <Detail label="Basis">{entry.basis_amount != null ? `${formatInr(entry.basis_amount)} (verified amount without GST)` : '—'}</Detail>
               <Detail label="Rate">
                 {formatRate(entry.rate_percent)}
+                {entry.rate_source === 'individual' && <Badge variant="blue" className="ml-2" data-testid="individual-rate-tag">Individual rate</Badge>}
                 {entry.schedule_version != null && <span className="text-xs text-gray-500"> · schedule v{entry.schedule_version}</span>}
                 {entry.agreement_date && <span className="text-xs text-gray-500"> · as on {formatDate(entry.agreement_date)}</span>}
               </Detail>
@@ -285,7 +286,7 @@ export default function CommissionEntries() {
                       {EARNING_ROLE_LABEL[e.earning_role] ?? e.earning_role}
                       {deduction && <Badge variant="red" className="ml-2" data-testid="deduction-badge">{ENTRY_KIND_LABEL[e.kind]}</Badge>}
                     </TableCell>
-                    <TableCell className="text-sm">{e.basis_amount != null ? `${formatInr(e.basis_amount)} × ${formatRate(e.rate_percent)}` : '—'}</TableCell>
+                    <TableCell className="text-sm">{e.basis_amount != null ? `${formatInr(e.basis_amount)} × ${formatRate(e.rate_percent)}` : '—'}{e.rate_source === 'individual' && <Badge variant="blue" className="ml-1" data-testid="individual-rate-tag">Individual rate</Badge>}</TableCell>
                     <TableCell><Amount entry={e} /></TableCell>
                     <TableCell><Badge variant={ENTRY_STATUS_VARIANT[e.status] ?? 'gray'}>{ENTRY_STATUS_LABEL[e.status] ?? e.status}</Badge></TableCell>
                     <TableCell className="text-sm text-gray-500">{formatDate(e.created_at)}</TableCell>

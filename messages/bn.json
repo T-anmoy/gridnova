@@ -2596,7 +2596,10 @@
           "commission_query_answered": "গ্রিড নোভা আপনার কমিশন-প্রশ্নের উত্তর দিয়েছে।",
           "handover_pending": "ইনস্টলেশন চালু হয়েছে। গ্রাহককে হ্যান্ডওভার এখনও বাকি।",
           "service_request_open": "সার্ভিস অনুরোধ ({category}) {status}।{warranty}",
-          "service_request_closed": "সার্ভিস অনুরোধ ({category}) {outcome}।"
+          "service_request_closed": "সার্ভিস অনুরোধ ({category}) {outcome}।",
+          "commission_rate_changed": "আপনার কমিশনের হার {date} থেকে {from} থেকে বদলে {to} হবে।",
+          "commission_rate_starts": "আপনার কমিশনের হার {date} থেকে {to}।",
+          "commission_rate_cleared": "{date} থেকে আপনার কমিশনের হার গ্রিড নোভা নিশ্চিত করবে (এখন {from})।"
         },
         "blocked": {
           "formal_proposal_blocked": "আনুষ্ঠানিক প্রস্তাব স্থগিত আছে।",
@@ -2608,7 +2611,8 @@
         "titles": {
           "commission_payout_paid": "কমিশন পেআউট",
           "commission_query_answered": "কমিশন-প্রশ্ন",
-          "generic": "আপডেট"
+          "generic": "আপডেট",
+          "commission_rate_changed": "কমিশনের হার"
         },
         "service": {
           "categories": {
@@ -2677,7 +2681,8 @@
           "inPayout": "{period}-এর পেআউটে",
           "reason": "কারণ: {reason}",
           "rateDate": "{date}-এর হার",
-          "minus": "ফেরত নেওয়া অর্থ"
+          "minus": "ফেরত নেওয়া অর্থ",
+          "individualRate": "নিজস্ব হার"
         },
         "roles": {
           "personal_sale": "আপনার নিজের বিক্রি",
@@ -3868,6 +3873,29 @@
       "notShared": "গ্রাহক তাঁর যোগাযোগের বিবরণ শেয়ার করেননি।",
       "noLocation": "অবস্থান দেওয়া হয়নি",
       "pin": "পিন {pin}"
+    },
+    "rate": {
+      "title": "আপনার কমিশনের হার",
+      "loading": "আপনার কমিশনের হার লোড হচ্ছে",
+      "standard": "স্ট্যান্ডার্ড হার",
+      "individual": "আপনার নিজস্ব হার",
+      "appliesFrom": "{date} বা তার পরে স্বাক্ষর হওয়া চুক্তির ক্ষেত্রে প্রযোজ্য।",
+      "recorded": "আগে যে কমিশন নথিভুক্ত হয়েছে তা বদলায় না।",
+      "pending": "আপনার কমিশনের হার গ্রিড নোভা নিশ্চিত করবে।",
+      "upcomingTitle": "আসন্ন পরিবর্তন",
+      "upcoming": "{date} থেকে: {rate}",
+      "upcomingNone": "{date} থেকে: হার নিশ্চিত করা বাকি",
+      "upcomingIndividual": "আপনার নিজস্ব হার",
+      "upcomingStandard": "স্ট্যান্ডার্ড হার",
+      "tag": "নিজস্ব হার",
+      "seeDetails": "আপনার আয় দেখুন",
+      "keys": {
+        "personal_sale.associate.sales": "অ্যাসোসিয়েট — বিক্রি",
+        "personal_sale.associate.execution": "অ্যাসোসিয়েট — ইনস্টলেশনের কাজ",
+        "personal_sale.preferred_associate.state_head": "প্রেফার্ড অ্যাসোসিয়েট — রাজ্য প্রধান",
+        "personal_sale.preferred_associate.district_head": "প্রেফার্ড অ্যাসোসিয়েট — জেলা প্রধান",
+        "personal_sale.preferred_associate.block": "প্রেফার্ড অ্যাসোসিয়েট — ব্লক"
+      }
     }
   }
 }

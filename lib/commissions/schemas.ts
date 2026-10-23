@@ -25,6 +25,8 @@ export const commissionEntrySchema = z.looseObject({
   pending_reason: str,
   pending_message_key: str,
   schedule_version: z.number().nullish(),
+  rate_source: str,
+  individual_rate_id: z.number().nullish(),
   agreement_date: str,
   reverses_entry_id: z.number().nullish(),
   reversed_by_entry_id: z.number().nullish(),
@@ -159,6 +161,8 @@ export const rateSchedulesSchema = z.looseObject({
   in_force_schedule_id: z.number().nullish(),
   rate_keys: z.array(z.string()),
   earliest_effective_from: z.string(),
+  // BE-12: true while no real schedule has ever been published (it may then start today).
+  next_real_schedule_is_first: z.boolean().nullish(),
 })
 export type RateSchedules = z.infer<typeof rateSchedulesSchema>
 export const reRateSchema = z.looseObject({
@@ -214,3 +218,72 @@ export type NetworkSummary = z.infer<typeof networkSummarySchema>
 
 export const approveResultSchema = z.looseObject({ approved: z.number(), items: z.array(commissionEntrySchema) })
 export const reverseResultSchema = z.looseObject({ entry: commissionEntrySchema })
+
+// ── BE-12: individual commission rates (docs/api/commission_rates_individual.md) ──
+// Rates are decimal STRINGS ("8.0000"); null means "no confirmed rate" / "back to standard".
+
+const effectiveRate = z.looseObject({
+  rate_percent: str,
+  source: str,
+  effective_from: str,
+  pending_reason: str,
+})
+const scheduledChange = z.looseObject({ effective_from: z.string(), rate_percent: str, source: str })
+export type ScheduledRateChange = z.infer<typeof scheduledChange>
+
+export const individualRateRowSchema = z.looseObject({
+  individual_rate_id: z.number(),
+  rate_key: z.string(),
+  rate_percent: str,
+  effective_from: z.string(),
+  reason: str,
+  set_by: str,
+  created_at: z.string(),
+  status: z.string(),
+})
+export type IndividualRateRow = z.infer<typeof individualRateRowSchema>
+
+export const associateRateSchema = z.looseObject({
+  associate_id: z.string(),
+  full_name: z.string(),
+  rate_key: z.string(),
+  today: z.string(),
+  standard: z.looseObject({ rate_percent: str, schedule_id: z.number().nullish(), schedule_version: z.number().nullish(), effective_from: str }).nullish(),
+  individual: z.looseObject({ individual_rate_id: z.number().nullish(), rate_percent: str, effective_from: str }).nullish(),
+  effective: effectiveRate,
+  scheduled_changes: z.array(scheduledChange),
+  history: z.array(individualRateRowSchema),
+  notice: z.looseObject({
+    increase_earliest_effective_from: z.string(),
+    reduction_earliest_effective_from: z.string(),
+    increase_needs_notice: z.boolean(),
+    notice_days: z.number(),
+  }),
+  bounds: z.looseObject({ min_percent: str, max_percent: str }),
+})
+export type AssociateRate = z.infer<typeof associateRateSchema>
+
+export const setAssociateRateResultSchema = z.looseObject({ change: individualRateRowSchema, rate: associateRateSchema })
+
+export const associatePerformanceSchema = z.looseObject({
+  associate_id: z.string(),
+  period: z.looseObject({ date_from: z.string(), date_to: z.string() }),
+  customers: z.looseObject({ onboarded: z.number(), verified: z.number(), commissioned: z.number() }),
+  verified_payments: z.looseObject({ credits: z.string(), reversals: z.string(), net: z.string() }),
+  commission: z.looseObject({
+    earned: z.string(),
+    earned_personal_sale: z.string(),
+    reversed: z.string(),
+    pending_count: z.number(),
+  }),
+})
+export type AssociatePerformance = z.infer<typeof associatePerformanceSchema>
+
+/** GET /associate/commission-rate — the caller's own rate; never a reason, never who set it. */
+export const myRateSchema = z.looseObject({
+  rate_key: z.string(),
+  today: z.string(),
+  effective: effectiveRate,
+  scheduled_changes: z.array(scheduledChange),
+})
+export type MyRate = z.infer<typeof myRateSchema>

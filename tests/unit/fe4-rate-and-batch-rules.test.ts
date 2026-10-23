@@ -23,8 +23,8 @@ describe('rates', () => {
   })
 
   it('labels the contract’s rate keys readably', () => {
-    expect(rateKeyLabel('personal_sale.preferred_associate.state_head')).toBe('Personal sale · Preferred Associate · State Head')
-    expect(rateKeyLabel('territory_block')).toBe('Territory — block')
+    expect(rateKeyLabel('personal_sale.preferred_associate.state_head')).toBe('Preferred Associate — State Head')
+    expect(rateKeyLabel('territory_block')).toBe('Territory — Block')
     expect(rateKeyLabel('brand_new.key')).toBe('brand new · key')
   })
 })

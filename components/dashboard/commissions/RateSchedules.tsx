@@ -82,12 +82,17 @@ function PublishForm({ data, today }: { data: RateSchedulesData; today: string }
   const nextVersion = Math.max(0, ...data.items.map((s) => s.version)) + 1
   const dateId = `${id}-date`
   const min = isPlaceholder ? today : data.earliest_effective_from
+  // BE-12: while no real schedule has ever been published, the first one may start today.
+  const first = data.next_real_schedule_is_first === true && !isPlaceholder
 
   function validate(): FormErrors {
     const next: FormErrors = { rates: {} }
     const problem = effectiveFromProblem({ effectiveFrom, isPlaceholder, earliestEffectiveFrom: data.earliest_effective_from, todayIst: today })
     if (problem === 'required') next.date = 'Choose the date this schedule starts.'
-    else if (problem === 'notice_period') next.date = `A real schedule needs notice: it cannot start before ${formatDate(data.earliest_effective_from)}.`
+    else if (problem === 'notice_period')
+      next.date = first
+        ? `This date has passed. The first schedule can start from ${formatDate(data.earliest_effective_from)}.`
+        : `A real schedule needs notice: it cannot start before ${formatDate(data.earliest_effective_from)}.`
     else if (problem === 'effective_in_past') next.date = 'A placeholder schedule cannot start in the past.'
     for (const k of data.rate_keys) {
       const v = (rates[k] ?? '').trim()
@@ -165,7 +170,11 @@ function PublishForm({ data, today }: { data: RateSchedulesData; today: string }
                 className="h-11 md:h-9"
               />
               <p id={`${dateId}-hint`} className="mt-1 text-xs text-gray-500" data-testid="notice-hint">
-                {isPlaceholder ? `A placeholder can start today (${formatDate(today)}) or later.` : `Earliest allowed: ${formatDate(data.earliest_effective_from)} (the notice period).`}
+                {isPlaceholder
+                  ? `A placeholder can start today (${formatDate(today)}) or later.`
+                  : first
+                    ? `This first schedule can take effect today (${formatDate(data.earliest_effective_from)}) or later.`
+                    : `Earliest allowed: ${formatDate(data.earliest_effective_from)} (the notice period).`}
               </p>
               {errors.date && <p id={`${dateId}-err`} role="alert" className="mt-1 text-sm text-red-600">{errors.date}</p>}
             </div>
@@ -190,6 +199,9 @@ function PublishForm({ data, today }: { data: RateSchedulesData; today: string }
 
           <fieldset className="space-y-3">
             <legend className="text-sm font-medium text-gray-700">Rates (% of the verified amount without GST) *</legend>
+            <p className="text-xs text-gray-500" data-testid="associate-keys-note">
+              Enter a rate for both Associate lines. Each Associate has one personal-sale line, sales or execution, fixed for life; an Admin can later set an individual rate for one Associate.
+            </p>
             <div className="grid gap-3 sm:grid-cols-2">
               {data.rate_keys.map((k) => {
                 const inputId = `${id}-rate-${k}`

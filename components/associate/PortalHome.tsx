@@ -7,6 +7,7 @@ import { useAssociateHome } from '@/lib/associate/home-api-client'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import PinnedAction from '@/components/associate/PinnedAction'
 import InstallAppCard from '@/components/associate/InstallAppCard'
+import MyRateCard from '@/components/associate/MyRateCard'
 import { useOptionalMessages } from '@/lib/i18n/client'
 import { describeTodo, todoHref, todoKey, todoTitle } from '@/lib/onboarding/todo'
 import { fmt, type Messages } from '@/lib/i18n/types'
@@ -68,6 +69,8 @@ export default function PortalHome({
       ) : (
         <div className="h-16 animate-pulse rounded-xl bg-[#eef1f6]" />
       )}
+
+      <MyRateCard className="mt-6" />
 
       <InstallAppCard />
 

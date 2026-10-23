@@ -2596,7 +2596,10 @@
           "commission_query_answered": "ग्रिड नोवा ने आपके कमीशन प्रश्न का उत्तर दे दिया है।",
           "handover_pending": "इंस्टॉलेशन चालू हो चुका है। ग्राहक को हैंडओवर अभी बाकी है।",
           "service_request_open": "सर्विस अनुरोध ({category}) {status}।{warranty}",
-          "service_request_closed": "सर्विस अनुरोध ({category}) {outcome}।"
+          "service_request_closed": "सर्विस अनुरोध ({category}) {outcome}।",
+          "commission_rate_changed": "आपकी कमीशन दर {date} से {from} से बदलकर {to} हो जाएगी।",
+          "commission_rate_starts": "आपकी कमीशन दर {date} से {to} है।",
+          "commission_rate_cleared": "{date} से आपकी कमीशन दर की पुष्टि ग्रिड नोवा करेगा (अभी {from})।"
         },
         "blocked": {
           "formal_proposal_blocked": "औपचारिक प्रस्ताव रुका हुआ है।",
@@ -2608,7 +2611,8 @@
         "titles": {
           "commission_payout_paid": "कमीशन भुगतान",
           "commission_query_answered": "कमीशन प्रश्न",
-          "generic": "अपडेट"
+          "generic": "अपडेट",
+          "commission_rate_changed": "कमीशन दर"
         },
         "service": {
           "categories": {
@@ -2677,7 +2681,8 @@
           "inPayout": "{period} के भुगतान में",
           "reason": "कारण: {reason}",
           "rateDate": "{date} की दर",
-          "minus": "वापस ली गई राशि"
+          "minus": "वापस ली गई राशि",
+          "individualRate": "व्यक्तिगत दर"
         },
         "roles": {
           "personal_sale": "आपकी अपनी बिक्री",
@@ -3868,6 +3873,29 @@
       "notShared": "ग्राहक ने अपने संपर्क विवरण साझा नहीं किए।",
       "noLocation": "स्थान नहीं दिया गया",
       "pin": "पिन {pin}"
+    },
+    "rate": {
+      "title": "आपकी कमीशन दर",
+      "loading": "आपकी कमीशन दर लोड हो रही है",
+      "standard": "मानक दर",
+      "individual": "आपकी व्यक्तिगत दर",
+      "appliesFrom": "यह उन समझौतों पर लागू होती है जिन पर {date} से या उसके बाद हस्ताक्षर होंगे।",
+      "recorded": "जो कमीशन पहले दर्ज हो चुका है, वह नहीं बदलता।",
+      "pending": "आपकी कमीशन दर की पुष्टि ग्रिड नोवा द्वारा की जाएगी।",
+      "upcomingTitle": "आने वाला बदलाव",
+      "upcoming": "{date} से: {rate}",
+      "upcomingNone": "{date} से: दर की पुष्टि होना बाकी",
+      "upcomingIndividual": "आपकी व्यक्तिगत दर",
+      "upcomingStandard": "मानक दर",
+      "tag": "व्यक्तिगत दर",
+      "seeDetails": "अपनी कमाई देखें",
+      "keys": {
+        "personal_sale.associate.sales": "एसोसिएट — बिक्री",
+        "personal_sale.associate.execution": "एसोसिएट — इंस्टॉलेशन कार्य",
+        "personal_sale.preferred_associate.state_head": "प्रीफ़र्ड एसोसिएट — राज्य प्रमुख",
+        "personal_sale.preferred_associate.district_head": "प्रीफ़र्ड एसोसिएट — ज़िला प्रमुख",
+        "personal_sale.preferred_associate.block": "प्रीफ़र्ड एसोसिएट — ब्लॉक"
+      }
     }
   }
 }
