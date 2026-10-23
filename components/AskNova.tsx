@@ -601,7 +601,7 @@ function AskNovaInner() {
                 : { type: "spring", stiffness: 380, damping: 26 }
             }
             aria-label={t.bubbleLabel}
-            className="relative text-left rounded-2xl rounded-br-sm px-4 py-3 w-[min(258px,calc(100vw-5.5rem))] shadow-[0_16px_40px_-10px_rgba(9,28,60,0.6)] active:scale-[0.98]"
+            className="nova-teaser relative text-left rounded-2xl rounded-br-sm px-4 py-3 w-[min(258px,calc(100vw-5.5rem))] shadow-[0_16px_40px_-10px_rgba(9,28,60,0.6)] active:scale-[0.98]"
             style={{
               // No backdrop blur: at 97% opacity it was invisible, but it was
               // re-run on every typewriter tick and every scroll frame.

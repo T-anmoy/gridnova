@@ -5,7 +5,7 @@
 // scrolls. Without JavaScript the row is dropped (.js-only).
 export default function StepDots({ count }: { count: number }) {
   return (
-    <div id="step-dots" aria-hidden="true" className="js-only mt-4 flex justify-center gap-2 lg:hidden">
+    <div id="step-dots" aria-hidden="true" className="js-only mt-3 md:mt-4 flex justify-center gap-2 lg:hidden">
       {Array.from({ length: count }, (_, i) => (
         <span
           key={i}

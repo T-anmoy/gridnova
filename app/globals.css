@@ -84,11 +84,13 @@ h1, h2, h3, h4 {
   font-family: var(--font-utility);
 }
 
-/* Glass surfaces */
+/* Glass surfaces. The prefixed line must come first: Lightning CSS (the
+   build's CSS optimiser) folds the two into one property and keeps whichever
+   is written last, so with -webkit- last only Safari got the blur. */
 .glass {
   background: color-mix(in srgb, white 10%, transparent);
-  backdrop-filter: blur(20px) saturate(140%);
   -webkit-backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(20px) saturate(140%);
   border: 1px solid color-mix(in srgb, white 18%, transparent);
 }
 /* Blueprint grid backdrop */
@@ -297,6 +299,13 @@ html[data-script="bengali"] .clip-line {
 }
 @media (scripting: enabled) {
   .nojs-only { display: none; }
+}
+
+/* While the careers page's sticky Apply bar is showing, the Ask Nova teaser
+   bubble would sit right above it and cover the page; the round Ask Nova
+   button stays. Pure CSS, so no extra JavaScript on either side. */
+body:has(#apply-bar[data-state="shown"]) .nova-teaser {
+  display: none;
 }
 /* About values: the number badge pops in just after its row (back-out). */
 .value-row .value-badge {

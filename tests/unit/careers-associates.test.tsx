@@ -181,6 +181,28 @@ describe("Careers & Associates page", () => {
     expect(dots.children[0]).toHaveAttribute("data-current");
   });
 
+  it("keeps step cards short on phones: mock screens only from md up", async () => {
+    await renderPage();
+    const figures = screen.getAllByRole("figure");
+    for (const f of figures) {
+      expect(f.className).toMatch(/(^|\s)hidden(\s|$)/);
+      expect(f.className).toMatch(/(^|\s)md:block(\s|$)/);
+    }
+  });
+
+  it("lays the mock screens out so nothing can spill past the card", async () => {
+    await renderPage();
+    const [, idCard, , commission] = screen.getAllByRole("figure");
+    // ID card: the heading sits on its own line, outside the photo/QR row.
+    const heading = within(idCard).getByText(en.careers.howItWorks.steps[1].screen.heading);
+    expect(heading.parentElement?.className ?? "").not.toMatch(/\bflex\b/);
+    // Commission: a list with the status pill pinned right, not a table.
+    expect(commission.querySelector("table")).toBeNull();
+    const pills = within(commission).getAllByText(/^(Paid|Approved|Earned)$/);
+    expect(pills).toHaveLength(3);
+    for (const pill of pills) expect(pill.className).toContain("shrink-0");
+  });
+
   it("offers the helpline by call and WhatsApp, and keeps the CV email", async () => {
     await renderPage();
     expect(screen.getByRole("link", { name: en.careers.faq.call })).toHaveAttribute("href", "tel:+919874774440");
