@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, Pencil } from 'lucide-react'
+import { Download, Loader2, Pencil } from 'lucide-react'
 import Link from '@/components/i18n/Link'
 import {
   useOnboarding,
@@ -159,9 +159,18 @@ function ProposalSection({
         )}
       </dl>
       {formalProposal.pdf && (
-        <a href={formalProposal.pdf.url} target="_blank" rel="noreferrer" className="mt-2 inline-block text-sm text-[#2f5daa] underline">
-          {copy.detail.pdfLink}
-        </a>
+        <div className="mt-2">
+          <a
+            href={formalProposal.pdf.url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[#e4e8ee] px-3 text-sm font-semibold text-[#0e2a63] font-utility"
+          >
+            <Download className="h-4 w-4" aria-hidden="true" /> {copy.detail.pdfLink}
+          </a>
+          {/* The signed link to the approved PDF the customer receives — read-only. */}
+          <p className="mt-1 text-xs text-[#111827]/65 font-utility">{copy.detail.pdfNote}</p>
+        </div>
       )}
 
       {!formalProposal.accepted_at && isOwner && (

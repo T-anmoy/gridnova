@@ -17,6 +17,7 @@ import {
 } from './schemas'
 import type {
   ActivityItem,
+  AdjustPricingInput,
   AdjustPricingResponse,
   AgentAuditResponse,
   AssignableEmployee,
@@ -90,7 +91,11 @@ function optimisticProposalUpdate<V>(
       if (ctx?.previous) qc.setQueryData(['proposal', ctx.proposalId], ctx.previous)
     },
     onSettled: (_data: unknown, _err: unknown, _vars: V, ctx: OptimisticCtx | undefined) => {
-      if (ctx?.proposalId) void qc.invalidateQueries({ queryKey: ['proposal', ctx.proposalId] })
+      if (ctx?.proposalId) {
+        void qc.invalidateQueries({ queryKey: ['proposal', ctx.proposalId] })
+        // Approval locks the document and allocates its reference and date.
+        void qc.invalidateQueries({ queryKey: ['proposal-document', ctx.proposalId] })
+      }
       void qc.invalidateQueries({ queryKey: ['proposals'] })
     },
   }
@@ -779,17 +784,24 @@ export function useSendProposal() {
   })
 }
 
+/** The wire body: exactly one price field plus the reason. */
+export function adjustPricingBody(input: AdjustPricingInput): Record<string, string | number> {
+  if (input.basicPrice != null) return { basic_price: input.basicPrice, reason: input.reason }
+  if (input.ratePerKwp != null) return { rate_per_kwp: input.ratePerKwp, reason: input.reason }
+  return { new_value: input.newValue as number, reason: input.reason }
+}
+
 export function useAdjustPricing() {
   const { getToken } = useAuth()
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ proposalId, newValue, reason }: { proposalId: number; newValue: number; reason: string }) => {
+    mutationFn: async (input: AdjustPricingInput) => {
       const token = await getToken()
       if (!token) throw notAuthenticatedError()
       return dashboardFetch<AdjustPricingResponse>(
-        `/api/v1/dashboard/proposals/${proposalId}/adjust-pricing`,
+        `/api/v1/dashboard/proposals/${input.proposalId}/adjust-pricing`,
         token,
-        { method: 'PATCH', body: JSON.stringify({ new_value: newValue, reason }) }
+        { method: 'PATCH', body: JSON.stringify(adjustPricingBody(input)) }
       )
     },
     // The pricing section content is rewritten server-side — a full refetch
@@ -797,6 +809,7 @@ export function useAdjustPricing() {
     // updated content, per the contract note on this endpoint.
     onSuccess: (_data, vars) => {
       void qc.invalidateQueries({ queryKey: ['proposal', vars.proposalId] })
+      void qc.invalidateQueries({ queryKey: ['proposal-document', vars.proposalId] })
       void qc.invalidateQueries({ queryKey: ['proposals'] })
     },
   })

@@ -88,6 +88,12 @@ vi.mock('@/lib/handover/staff-api-client', () => ({
   fetchRequestPhotoLink: vi.fn(),
 }))
 
+// FE-13: the page also reads the BE-13 document; these proposals have none.
+vi.mock('@/lib/proposals/document-api-client', () => ({
+  useProposalDocument: () => ({ data: undefined, isLoading: false, error: null, refetch: () => {} }),
+  useEditDocumentSection: () => ({ mutateAsync: () => Promise.resolve(), isPending: false }),
+  fetchPreviewPdf: () => Promise.reject(new Error('not used')),
+}))
 vi.mock('@/lib/dashboard/api-client', () => ({
   useEmployeeMe: () => ({ data: { id: 'EMP-OPS-1' } }),
   useEmployees: () => ({ data: [] }),

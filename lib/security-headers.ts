@@ -60,7 +60,8 @@ export function contentSecurityPolicy({ apiOrigin, clerkHost, dev }: SecurityHea
       // Signed uploads / downloads go straight to object storage.
       'https://*.r2.cloudflarestorage.com',
     ],
-    'frame-src': ["'self'", 'https://www.google.com', 'https://maps.google.com', 'https://challenges.cloudflare.com', ...clerk],
+    // blob: — the staff proposal editor shows its authenticated preview PDF from a blob URL.
+    'frame-src': ["'self'", 'blob:', 'https://www.google.com', 'https://maps.google.com', 'https://challenges.cloudflare.com', ...clerk],
     'worker-src': ["'self'", 'blob:'],
     'manifest-src': ["'self'"],
     'object-src': ["'none'"],

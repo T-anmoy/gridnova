@@ -296,16 +296,21 @@ export interface ProposalDetail {
     lead_score: LeadScore
   } | null
   versions: ProposalVersion[]
+  // BE-13: the structured document, its figures and what blocks approval (the
+  // same object as GET …/document; `has_document: false` for an older proposal).
+  document?: import('@/lib/proposals/document-types').DocumentView | null
 }
 
 // PATCH /proposals/{id}/adjust-pricing — verified against the real backend
 // source (Prompt 03b). Who: admin and sales (`can_adjust_pricing`) — never
 // management. Sales is further scoped by the Sales rule (own/unassigned).
-export interface AdjustPricingInput {
-  proposalId: number
-  newValue: number
-  reason: string
-}
+// BE-13: exactly ONE of new_value (total incl. GST), basic_price (before GST) or
+// rate_per_kwp (× the document's capacity); the last two need a structured document.
+export type AdjustPricingInput = { proposalId: number; reason: string } & (
+  | { newValue: number; basicPrice?: never; ratePerKwp?: never }
+  | { basicPrice: string; newValue?: never; ratePerKwp?: never }
+  | { ratePerKwp: string; newValue?: never; basicPrice?: never }
+)
 
 export interface AdjustPricingResponse {
   status: 'pricing_adjusted'
@@ -313,6 +318,10 @@ export interface AdjustPricingResponse {
   total_value: number
   requires_manager_signoff: boolean
   reason: string
+  list_price_final?: string | null
+  variance?: string | null
+  // BE-13: the document's computed figures (null for a proposal without a document).
+  figures?: import('@/lib/proposals/document-types').DocumentFigures | null
 }
 
 // POST /proposals/{id}/send (200)

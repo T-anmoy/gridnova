@@ -2174,7 +2174,8 @@
           "totalValueLabel": "Total value",
           "dateSentLabel": "Sent",
           "acceptedAtLabel": "Accepted",
-          "pdfLink": "View PDF"
+          "pdfLink": "View PDF",
+          "pdfNote": "This is the same PDF the customer receives. It cannot be changed here."
         },
         "acceptance": {
           "title": "Record in-person acceptance",
@@ -2191,7 +2192,8 @@
             "already_accepted": "This proposal has already been accepted.",
             "not_approved": "This proposal hasn't been approved yet.",
             "placeholder_content": "This proposal still has placeholder content.",
-            "expired": "This proposal has expired."
+            "expired": "This proposal has expired.",
+            "missing_required": "Grid Nova still needs a few details on this proposal before it can be accepted. Please ask your Grid Nova contact."
           }
         },
         "genericError": "Something went wrong. Please try again."

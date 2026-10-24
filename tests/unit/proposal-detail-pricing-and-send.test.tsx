@@ -30,6 +30,12 @@ const mockDraft = vi.fn()
 const mockAdjustPricing = vi.fn()
 const mockFetchProposalPdf = vi.fn()
 
+// FE-13: the page also reads the BE-13 document; these proposals have none.
+vi.mock('@/lib/proposals/document-api-client', () => ({
+  useProposalDocument: () => ({ data: undefined, isLoading: false, error: null, refetch: () => {} }),
+  useEditDocumentSection: () => ({ mutateAsync: () => Promise.resolve(), isPending: false }),
+  fetchPreviewPdf: () => Promise.reject(new Error('not used')),
+}))
 vi.mock('@/lib/dashboard/api-client', () => ({
   useProposal: () => mockUseProposal(),
   useProposalPdf: () => mockUseProposalPdf(),

@@ -216,6 +216,13 @@ export async function apiFetchForm<T>(
   }
 }
 
+/** Authenticated binary GET (a PDF to preview); errors keep the structured detail and Retry-After. */
+export async function apiFetchBlob(path: string, token: string, options?: RequestInit): Promise<Blob> {
+  const res = await send(path, { ...options, headers: { Authorization: `Bearer ${token}`, ...(options?.headers ?? {}) } })
+  if (!res.ok) throw parseApiError(res.status, res.statusText, await res.text().catch(() => ''), res.headers)
+  return res.blob()
+}
+
 /** Authenticated CSV/blob download that reuses the shared error parsing. */
 export async function apiDownload(path: string, token: string, fallbackName: string): Promise<void> {
   const res = await send(path, { headers: { Authorization: `Bearer ${token}` } })

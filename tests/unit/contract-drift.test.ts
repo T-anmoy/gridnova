@@ -55,7 +55,9 @@ describe('request bodies in the shared fixtures satisfy openapi.json', () => {
 
   it('the validator really rejects a wrong body (guards the guard)', () => {
     const schema = requestSchema(spec, '/api/v1/dashboard/proposals/{proposal_id}/adjust-pricing', 'patch')!
-    expect(validate(spec, schema, { new_total_value: 1, reason: 'x' })).not.toEqual([])
+    // BE-13 made new_value optional (exactly one of three is checked server-side), so the
+    // wrong body that must fail is now one without the required `reason`.
+    expect(validate(spec, schema, { new_total_value: 1 })).not.toEqual([])
     expect(validate(spec, requestSchema(spec, '/api/v1/associate/onboardings/{onboarding_id}/payments', 'post')!, { amount: '1', mode: 'cash', reference: 'x' })).toEqual([])
     // `mode` is a free string on PaymentIn (the cash ban is enforced server-side), so no enum failure here;
     // a missing required field must still fail:

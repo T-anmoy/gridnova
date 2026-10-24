@@ -12,7 +12,7 @@ import {
   type AcceptView,
 } from '@/lib/proposal-accept'
 import { formatCurrency, formatDate } from '@/lib/dashboard/utils'
-import { AcceptedBody, Card, MessageScreen, PdfLink, Shell, isMessageScreen } from './AcceptShell'
+import { AcceptedBody, Card, DocumentSummary, MessageScreen, PdfLink, Shell, isMessageScreen } from './AcceptShell'
 
 // The proposal summary is fetched and rendered on the server (page.tsx); this
 // client component owns only the Accept action and what follows it.
@@ -37,7 +37,8 @@ export function AcceptPanel({ token, view }: { token: string; view: AcceptView }
       const body: unknown = await res.json().catch(() => null)
       if (res.ok) {
         const v = normalizeAcceptResponse(validateAcceptResponse(body))
-        setCurrent((prev) => ({ ...prev, ...v, acceptedAt: v.acceptedAt ?? new Date().toISOString() }))
+        // The POST reply carries no document or price: keep the ones already shown.
+        setCurrent((prev) => ({ ...prev, ...v, document: v.document ?? prev.document, totalValue: v.totalValue ?? prev.totalValue, acceptedAt: v.acceptedAt ?? new Date().toISOString() }))
         setScreen('accepted')
         return
       }
@@ -81,11 +82,15 @@ export function AcceptPanel({ token, view }: { token: string; view: AcceptView }
           </div>
         )}
 
+        {current.document && <DocumentSummary doc={current.document} />}
+
         <div className="mt-6 grid grid-cols-1 min-[420px]:grid-cols-2 gap-4">
-          <div className="rounded-xl bg-[#f7f9fc] border border-[#e4e8ee] p-4">
-            <p className="font-utility text-xs text-[#111827]/65 uppercase tracking-wider">Total price</p>
-            <p className="mt-1 font-display text-xl font-bold text-[#091c3c]">{formatCurrency(current.totalValue)}</p>
-          </div>
+          {!current.document && (
+            <div className="rounded-xl bg-[#f7f9fc] border border-[#e4e8ee] p-4">
+              <p className="font-utility text-xs text-[#111827]/65 uppercase tracking-wider">Total price</p>
+              <p className="mt-1 font-display text-xl font-bold text-[#091c3c]">{formatCurrency(current.totalValue)}</p>
+            </div>
+          )}
           <div className="rounded-xl bg-[#f7f9fc] border border-[#e4e8ee] p-4">
             <p className="font-utility text-xs text-[#111827]/65 uppercase tracking-wider">Valid until</p>
             <p className="mt-1 font-display text-xl font-bold text-[#091c3c]">

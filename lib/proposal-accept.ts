@@ -1,5 +1,6 @@
 import { ApiShapeError } from './dashboard/api-error'
 import { proposalAcceptResponseSchema, formatZodError } from './dashboard/schemas'
+import type { AcceptDocument } from './proposals/document-types'
 
 // Pure helpers for the public proposal-accept page. Kept separate from the
 // component so the response normalisation (which tolerates a few plausible
@@ -25,6 +26,8 @@ export interface AcceptView {
   status: string | null
   acceptedAt: string | null
   pdfAvailable: boolean
+  /** BE-13 figures (null for an older proposal — the page then shows what it always did). */
+  document: AcceptDocument | null
 }
 
 export interface ScopeSection {
@@ -51,6 +54,7 @@ export interface RawAccept {
   scope_of_work?: string | null
   content?: { scope_of_work?: string | null } | null
   pdf_available?: boolean | null
+  document?: AcceptDocument | null
 }
 
 function firstDefined<T>(...vals: (T | null | undefined)[]): T | null {
@@ -100,7 +104,15 @@ export function normalizeAcceptResponse(raw: RawAccept | null | undefined): Acce
     status: firstDefined(r.status, r.state),
     acceptedAt: firstDefined(r.accepted_at),
     pdfAvailable: r.pdf_available === true,
+    document: r.document ?? null,
   }
+}
+
+/** The amount in words, whichever form the backend sent. */
+export function acceptTotalInWords(doc: AcceptDocument | null): string | null {
+  const w = doc?.words
+  if (!w) return null
+  return typeof w === 'string' ? w : w.total ?? null
 }
 
 export function isAccepted(v: AcceptView): boolean {

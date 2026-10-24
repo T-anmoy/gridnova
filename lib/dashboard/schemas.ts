@@ -168,6 +168,38 @@ export const proposalAcceptResponseSchema = z.object({
   content: z.object({ scope_of_work: z.string().nullable().optional() }).nullable().optional(),
   already_accepted: z.boolean().optional(),
   pdf_available: z.boolean().optional(),
+  // BE-13: the figures the customer's PDF prints; null for an older proposal.
+  // Money stays as the backend's decimal strings.
+  document: z
+    .object({
+      layout: z.string().nullable().optional(),
+      capacity_kwp: z.string().nullable().optional(),
+      reference: z.string().nullable().optional(),
+      date: z.string().nullable().optional(),
+      basic: z.string().nullable().optional(),
+      gst: z.string().nullable().optional(),
+      total: z.string().nullable().optional(),
+      words: z.union([z.string(), z.object({ total: z.string().nullable().optional() }).passthrough()]).nullable().optional(),
+      payments: z
+        .array(z.object({ percent: z.string(), label: z.string(), short_label: z.string().nullable().optional(), amount: z.string() }))
+        .optional(),
+      subsidy: z
+        .object({
+          applies: z.boolean(),
+          slabs: z.array(z.object({ kw: z.string(), rate: z.string(), amount: z.string() })).optional().default([]),
+          total: z.string().nullable().optional(),
+          effective_cost: z.string().nullable().optional(),
+        })
+        .nullable()
+        .optional(),
+      generation: z
+        .object({ units_per_kwp_per_month: z.number(), monthly_units: z.number().nullable().optional(), annual_units: z.number().nullable().optional() })
+        .nullable()
+        .optional(),
+      customer_scope: z.array(z.string()).optional(),
+    })
+    .nullable()
+    .optional(),
 })
 
 // Ask Nova's chat endpoint.

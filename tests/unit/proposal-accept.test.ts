@@ -28,6 +28,7 @@ describe("normalizeAcceptResponse", () => {
       status: "pending",
       acceptedAt: null,
       pdfAvailable: false,
+      document: null,
     });
   });
 
@@ -53,6 +54,7 @@ describe("normalizeAcceptResponse", () => {
       id: null, customerName: null, company: null, scope: null,
       totalValue: null, validUntil: null, status: null, acceptedAt: null,
       pdfAvailable: false,
+      document: null,
     });
   });
 

@@ -2,8 +2,10 @@ import Image from 'next/image'
 import { CheckCircle2, Clock, Download, FileX2 } from 'lucide-react'
 import headerLogo from '@/public/brand/header-logo.webp'
 import { API_BASE_URL } from '@/lib/config'
-import { acceptPdfPath, type AcceptScreen, type AcceptView } from '@/lib/proposal-accept'
+import { acceptPdfPath, acceptTotalInWords, type AcceptScreen, type AcceptView } from '@/lib/proposal-accept'
 import { formatCurrency, formatDate } from '@/lib/dashboard/utils'
+import { formatInr } from '@/lib/money'
+import type { AcceptDocument } from '@/lib/proposals/document-types'
 import { RetryButton } from './RetryButton'
 
 // Presentational pieces for the customer-facing accept page. No hooks: these
@@ -120,6 +122,85 @@ export function isMessageScreen(screen: AcceptScreen): screen is keyof typeof ME
   return screen in MESSAGES
 }
 
+const LAYOUT_NAME: Record<string, string> = { compact: 'Compact', detailed: 'Detailed' }
+
+/**
+ * The figures printed on the customer's PDF (BE-13), exactly as the backend sent
+ * them: nothing is added up or rounded here. Subsidy lines only when it applies.
+ */
+export function DocumentSummary({ doc }: { doc: AcceptDocument }) {
+  const words = acceptTotalInWords(doc)
+  const subsidy = doc.subsidy?.applies ? doc.subsidy : null
+  return (
+    <div className="mt-6 space-y-5" data-testid="accept-document">
+      <dl className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3 font-utility text-sm">
+        <div>
+          <dt className="text-xs text-[#111827]/65 uppercase tracking-wider">Reference</dt>
+          <dd className="mt-0.5 font-medium text-[#091c3c]">{doc.reference ?? '—'}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-[#111827]/65 uppercase tracking-wider">Date</dt>
+          <dd className="mt-0.5 font-medium text-[#091c3c]">{doc.date ? formatDate(doc.date) : '—'}</dd>
+        </div>
+        {doc.capacity_kwp && (
+          <div>
+            <dt className="text-xs text-[#111827]/65 uppercase tracking-wider">Plant</dt>
+            <dd className="mt-0.5 font-medium text-[#091c3c]">{doc.capacity_kwp} kWp grid-tied solar plant</dd>
+          </div>
+        )}
+        {doc.layout && (
+          <div>
+            <dt className="text-xs text-[#111827]/65 uppercase tracking-wider">Proposal</dt>
+            <dd className="mt-0.5 font-medium text-[#091c3c]">{LAYOUT_NAME[doc.layout] ?? doc.layout}</dd>
+          </div>
+        )}
+      </dl>
+
+      <div className="rounded-xl bg-[#f7f9fc] border border-[#e4e8ee] p-4">
+        <dl className="space-y-1 font-utility text-sm">
+          <div className="flex justify-between gap-3"><dt className="text-[#111827]/65">Basic price</dt><dd>{formatInr(doc.basic)}</dd></div>
+          <div className="flex justify-between gap-3"><dt className="text-[#111827]/65">GST</dt><dd>{formatInr(doc.gst)}</dd></div>
+          <div className="flex justify-between gap-3 border-t border-[#e4e8ee] pt-1 font-semibold text-[#091c3c]"><dt>Total incl. GST</dt><dd data-testid="accept-total">{formatInr(doc.total)}</dd></div>
+        </dl>
+        {words && <p className="mt-2 font-utility text-xs text-[#111827]/70">{words}</p>}
+      </div>
+
+      {doc.payments && doc.payments.length > 0 && (
+        <div>
+          <p className="font-utility text-xs font-semibold uppercase tracking-wider text-[#111827]/65">Payment schedule</p>
+          <ul className="mt-2 space-y-1 font-utility text-sm">
+            {doc.payments.map((p, i) => (
+              <li key={i} className="flex justify-between gap-3">
+                <span>{p.percent}% — {p.label}</span>
+                <span className="font-medium">{formatInr(p.amount)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {subsidy && (
+        <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4" data-testid="accept-subsidy">
+          <p className="font-utility text-xs font-semibold uppercase tracking-wider text-emerald-900">PM Surya Ghar subsidy</p>
+          <dl className="mt-2 space-y-1 font-utility text-sm">
+            <div className="flex justify-between gap-3"><dt>Subsidy</dt><dd>{formatInr(subsidy.total)}</dd></div>
+            <div className="flex justify-between gap-3 font-semibold text-[#091c3c]"><dt>Your effective cost</dt><dd>{formatInr(subsidy.effective_cost)}</dd></div>
+          </dl>
+        </div>
+      )}
+
+      {doc.customer_scope && doc.customer_scope.length > 0 && (
+        <div>
+          <p className="font-utility text-xs font-semibold uppercase tracking-wider text-[#111827]/65">Customer scope</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 font-utility text-sm text-[#111827] leading-relaxed">
+            {doc.customer_scope.map((item, i) => <li key={i}>{item}</li>)}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function AcceptedBody({ view, token }: { view: AcceptView | null; token: string }) {
   return (
     <Card>
@@ -134,7 +215,9 @@ export function AcceptedBody({ view, token }: { view: AcceptView | null; token: 
       {view?.acceptedAt && (
         <p className="mt-4 font-utility text-xs text-[#111827]/65">Accepted on {formatDate(view.acceptedAt)}</p>
       )}
-      {view?.totalValue != null && (
+      {view?.document ? (
+        <DocumentSummary doc={view.document} />
+      ) : view?.totalValue != null && (
         <div className="mt-6 rounded-xl bg-[#f7f9fc] border border-[#e4e8ee] p-4 flex items-center justify-between">
           <span className="font-utility text-sm text-[#111827]/60">Accepted value</span>
           <span className="font-display text-lg font-bold text-[#091c3c]">{formatCurrency(view.totalValue)}</span>

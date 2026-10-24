@@ -1,7 +1,7 @@
 'use client'
 
 import { notAuthenticatedError } from '@/lib/api/http'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
 import { useAuth } from '@clerk/nextjs'
@@ -10,9 +10,16 @@ import {
   AlertCircle, AlertTriangle, ArrowLeft, CheckCircle, Clock, Copy, Download,
   IndianRupee, RefreshCw, Send, ShieldCheck, XCircle,
 } from 'lucide-react'
+import { AdjustPricingDialog } from '@/components/dashboard/AdjustPricingDialog'
+import { NoDocumentNote, ProposalDocumentEditor } from '@/components/dashboard/proposal-document/ProposalDocumentEditor'
+import { ApproveChecklistDialog } from '@/components/dashboard/proposal-document/ApproveChecklistDialog'
+import { useProposalDocument } from '@/lib/proposals/document-api-client'
+import { REFERENCE_PENDING, documentError } from '@/lib/proposals/document-logic'
+import type { MissingField } from '@/lib/proposals/document-types'
+import { useUnsavedGuard } from '@/lib/proposals/use-unsaved-guard'
 import {
   useProposal, useProposalPdf, useApproveProposal, useManagerSignOff,
-  useRequestRevision, useSendProposal, useDraftProposal, useAdjustPricing, fetchProposalPdf,
+  useRequestRevision, useSendProposal, useDraftProposal, fetchProposalPdf,
 } from '@/lib/dashboard/api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { ReverificationBanner } from '@/components/dashboard/ReverificationBanner'
@@ -21,7 +28,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import ProposalPricing from '@/components/dashboard/ProposalPricing'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
@@ -155,14 +161,20 @@ export default function ProposalDetailPage() {
   const revisionMutation = useRequestRevision()
   const sendMutation = useSendProposal()
   const draftMutation = useDraftProposal()
-  const adjustPricingMutation = useAdjustPricing()
+
+  // BE-13: the structured document (shared cache with the editor below).
+  const hasDocument = proposal?.document?.has_document === true
+  const { data: docView } = useProposalDocument(proposalId, hasDocument)
 
   const [revisionReason, setRevisionReason] = useState('')
   const [revisionOpen, setRevisionOpen] = useState(false)
   const [adjustPricingOpen, setAdjustPricingOpen] = useState(false)
-  const [newTotalValue, setNewTotalValue] = useState('')
-  const [pricingReason, setPricingReason] = useState('')
   const [send409, setSend409] = useState<PlaceholderContentDetail | null>(null)
+  // 409 missing_required on approve / send, kept only for the revision it was refused at.
+  const [refusedMissing, setRefusedMissing] = useState<{ revision: number | null | undefined; missing: MissingField[] } | null>(null)
+  const [docDirty, setDocDirty] = useState(false)
+  const onDirtyChange = useCallback((d: boolean) => setDocDirty(d), [])
+  const confirmLeave = useUnsavedGuard(docDirty)
   const [sendResult, setSendResult] = useState<SendResult | null>(null)
   // Fetched fresh on click for an already-sent proposal — never on page load.
   const [sentPdfState, setSentPdfState] = useState<
@@ -172,17 +184,30 @@ export default function ProposalDetailPage() {
   const isSales = role === 'sales'
   const isAdmin = role === 'admin'
   const isManagement = role === 'management'
+  const isEngineer = role === 'engineer'
   const canAct = isAdmin || isSales || isManagement
+  // request-revision is Admin / Sales in the backend (can_approve_standard) — never Management.
+  const canRequestRevision = isAdmin || isSales
   // can_adjust_pricing (verified from backend source, Prompt 03b): admin and
   // sales only — never management. Sales is further scoped by the Sales
   // rule (own/unassigned), enforced server-side.
   const canAdjustPricing = isAdmin || isSales
 
+  // 409 missing_required (BE-13) → the list, as links on the editor. True when handled.
+  function handleMissingRequired(err: unknown): boolean {
+    if (!(err instanceof ApiError) || err.status !== 409 || err.structuredDetail?.code !== 'missing_required') return false
+    setRefusedMissing({ revision: docView?.revision, missing: documentError(err).missing ?? [] })
+    toast.error('Some required details are still missing — see the list above the form.')
+    return true
+  }
+
   async function handleApprove() {
     try {
       await approveMutation.mutateAsync(proposalId)
+      setRefusedMissing(null)
       toast.success('Proposal approved')
     } catch (err) {
+      if (handleMissingRequired(err)) return
       toast.error(err instanceof Error ? err.message : 'Failed to approve')
     }
   }
@@ -190,8 +215,10 @@ export default function ProposalDetailPage() {
   async function handleManagerSignOff() {
     try {
       await signOffMutation.mutateAsync(proposalId)
+      setRefusedMissing(null)
       toast.success('Manager sign-off completed')
     } catch (err) {
+      if (handleMissingRequired(err)) return
       toast.error(err instanceof Error ? err.message : 'Failed to sign off')
     }
   }
@@ -208,33 +235,9 @@ export default function ProposalDetailPage() {
         toast.error('This proposal still has placeholder content')
         return
       }
+      if (handleMissingRequired(err)) return
       // needs_reverification (and any other object detail) → a plain sentence, never [object Object].
       toast.error(err instanceof ApiError && err.structuredDetail ? surveyReviewError(err, 'Failed to send') : errorMessage(err, 'Failed to send'))
-    }
-  }
-
-  async function handleAdjustPricing() {
-    const value = Number(newTotalValue)
-    if (!Number.isFinite(value) || value < 0) {
-      toast.error('Enter a valid total value')
-      return
-    }
-    if (!pricingReason.trim()) {
-      toast.error('A reason is required')
-      return
-    }
-    try {
-      const result = await adjustPricingMutation.mutateAsync({ proposalId, newValue: value, reason: pricingReason.trim() })
-      toast.success(
-        result.requires_manager_signoff
-          ? 'Pricing updated — manager sign-off is now required'
-          : 'Pricing updated'
-      )
-      setAdjustPricingOpen(false)
-      setNewTotalValue('')
-      setPricingReason('')
-    } catch (err) {
-      toast.error(errorMessage(err, 'Failed to adjust pricing'))
     }
   }
 
@@ -338,12 +341,60 @@ export default function ProposalDetailPage() {
   const showPlaceholderBanner = proposal.has_placeholder_content || !!send409
   const needsReverification = proposal.needs_reverification === true
   const reverifyFields = fieldList(proposal.reverification_reason?.fields)
+  const editableStatus = proposal.status === 'draft' || proposal.status === 'pending_pricing_validation' || proposal.status === 'pending_approval'
+  const canAdjustNow = canAdjustPricing && (proposal.status === 'draft' || proposal.status === 'pending_pricing_validation')
+  const missingNow = docView?.missing_required ?? []
+  const serverMissing = refusedMissing && refusedMissing.revision === docView?.revision ? refusedMissing.missing : null
+  const approveBlocked = hasDocument && missingNow.length > 0
+  const reference = docView?.document_reference ?? null
+  const referenceDate = docView?.document_date ?? null
+
+  const revisionDialog = canRequestRevision && proposal.status !== 'sent' && proposal.status !== 'revision_requested' && (
+    <Dialog open={revisionOpen} onOpenChange={setRevisionOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <XCircle className="mr-1.5 h-4 w-4" /> Request Revision
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Request Revision</DialogTitle>
+          <DialogDescription>Provide a reason for the revision request.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2">
+          <Label htmlFor="revision-reason">Reason *</Label>
+          <Textarea
+            id="revision-reason"
+            placeholder="Describe what needs to be revised..."
+            value={revisionReason}
+            onChange={(e) => setRevisionReason(e.target.value)}
+            rows={4}
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => { setRevisionOpen(false); setRevisionReason('') }}>Cancel</Button>
+          <Button
+            onClick={() => void handleRevision()}
+            disabled={revisionMutation.isPending || !revisionReason.trim()}
+          >
+            {revisionMutation.isPending ? 'Sending...' : 'Request Revision'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+
+  const blockedHint = (
+    <p className="basis-full font-utility text-xs text-amber-800" data-testid="approve-blocked-hint">
+      Approval is possible once the required details are filled in (listed below).
+    </p>
+  )
 
   return (
     <div>
       <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => router.back()}>
+          <Button variant="ghost" size="sm" onClick={() => { if (confirmLeave()) router.back() }}>
             <ArrowLeft className="mr-1 h-4 w-4" /> Back
           </Button>
           <div>
@@ -376,102 +427,56 @@ export default function ProposalDetailPage() {
                 {proposal.customer.company && ` · ${proposal.customer.company}`}
               </p>
             )}
-            <p className="font-display text-lg font-semibold text-[#091c3c] mt-1">
-              {formatCurrency(proposal.total_value)}
-            </p>
+            {!isEngineer && (
+              <p className="font-display text-lg font-semibold text-[#091c3c] mt-1">
+                {formatCurrency(proposal.total_value)}
+              </p>
+            )}
+            {hasDocument && !isEngineer && (
+              <p className="font-utility text-xs text-[#111827]/65 mt-1" data-testid="header-reference">
+                Reference {reference ?? REFERENCE_PENDING}{referenceDate ? ` · ${formatDate(referenceDate)}` : ''}
+              </p>
+            )}
           </div>
         </div>
 
         {/* Action buttons */}
         {canAct && (
           <div className="flex flex-wrap gap-2 items-center">
-            {/* Revision request (any non-sent status) */}
-            {proposal.status !== 'sent' && (
-              <Dialog open={revisionOpen} onOpenChange={setRevisionOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <XCircle className="mr-1.5 h-4 w-4" /> Request Revision
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Request Revision</DialogTitle>
-                    <DialogDescription>Provide a reason for the revision request.</DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-2">
-                    <Label htmlFor="revision-reason">Reason *</Label>
-                    <Textarea
-                      id="revision-reason"
-                      placeholder="Describe what needs to be revised..."
-                      value={revisionReason}
-                      onChange={(e) => setRevisionReason(e.target.value)}
-                      rows={4}
-                    />
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => { setRevisionOpen(false); setRevisionReason('') }}>Cancel</Button>
-                    <Button
-                      onClick={() => void handleRevision()}
-                      disabled={revisionMutation.isPending || !revisionReason.trim()}
-                    >
-                      {revisionMutation.isPending ? 'Sending...' : 'Request Revision'}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            )}
+            {/* Revision request — Admin / Sales, any status before sending */}
+            {revisionDialog}
 
             {/* Adjust price — draft/pending_pricing_validation only */}
-            {canAdjustPricing && (proposal.status === 'draft' || proposal.status === 'pending_pricing_validation') && (
-              <Dialog open={adjustPricingOpen} onOpenChange={setAdjustPricingOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <IndianRupee className="mr-1.5 h-4 w-4" /> Adjust Price
+            {canAdjustNow && (
+              <Button variant="outline" size="sm" onClick={() => setAdjustPricingOpen(true)}>
+                <IndianRupee className="mr-1.5 h-4 w-4" /> Adjust Price
+              </Button>
+            )}
+
+            {/* BE-13 documents: approve / sign off through the checklist, while still editable */}
+            {hasDocument && docView && editableStatus && !proposal.requires_manager_signoff && (isAdmin || isSales) && (
+              <>
+                <ApproveChecklistDialog view={docView} managerSignoff={false} onConfirm={() => void handleApprove()} loading={approveMutation.isPending}>
+                  <Button size="sm" disabled={approveBlocked} data-testid="approve-button">
+                    <CheckCircle className="mr-1.5 h-4 w-4" /> Approve
                   </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Adjust Price</DialogTitle>
-                    <DialogDescription>Set a new total value for this proposal. The pricing section is rewritten to match.</DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="new-total-value">New total value (₹) *</Label>
-                      <Input
-                        id="new-total-value"
-                        type="number"
-                        min="0"
-                        value={newTotalValue}
-                        onChange={(e) => setNewTotalValue(e.target.value)}
-                        placeholder={proposal.total_value != null ? String(proposal.total_value) : undefined}
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="pricing-reason">Reason *</Label>
-                      <Textarea
-                        id="pricing-reason"
-                        value={pricingReason}
-                        onChange={(e) => setPricingReason(e.target.value)}
-                        rows={3}
-                        placeholder="Why is the price changing?"
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setAdjustPricingOpen(false)}>Cancel</Button>
-                    <Button
-                      onClick={() => void handleAdjustPricing()}
-                      disabled={adjustPricingMutation.isPending || !newTotalValue.trim() || !pricingReason.trim()}
-                    >
-                      {adjustPricingMutation.isPending ? 'Saving…' : 'Save'}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+                </ApproveChecklistDialog>
+                {approveBlocked && blockedHint}
+              </>
+            )}
+            {hasDocument && docView && editableStatus && proposal.requires_manager_signoff && (isAdmin || isManagement) && (
+              <>
+                <ApproveChecklistDialog view={docView} managerSignoff onConfirm={() => void handleManagerSignOff()} loading={signOffMutation.isPending}>
+                  <Button size="sm" variant="secondary" disabled={approveBlocked} data-testid="signoff-button">
+                    <ShieldCheck className="mr-1.5 h-4 w-4" /> Manager Sign-Off
+                  </Button>
+                </ApproveChecklistDialog>
+                {approveBlocked && blockedHint}
+              </>
             )}
 
             {/* Draft: send for pricing check */}
-            {proposal.status === 'draft' && (isAdmin || isSales) && (
+            {!hasDocument && proposal.status === 'draft' && (isAdmin || isSales) && (
               <ConfirmDialog
                 title="Send for Pricing Check"
                 description="This will submit the proposal for pricing validation. Continue?"
@@ -483,7 +488,7 @@ export default function ProposalDetailPage() {
             )}
 
             {/* Pending approval — standard (no manager signoff required) */}
-            {proposal.status === 'pending_approval' && !proposal.requires_manager_signoff && (isAdmin || isSales) && (
+            {!hasDocument && proposal.status === 'pending_approval' && !proposal.requires_manager_signoff && (isAdmin || isSales) && (
               <ConfirmDialog
                 title="Approve Proposal"
                 description={`Approve proposal #${proposal.id} for ${formatCurrency(proposal.total_value)}?`}
@@ -497,7 +502,7 @@ export default function ProposalDetailPage() {
             )}
 
             {/* Pending approval — manager signoff required, Management/Admin only */}
-            {proposal.status === 'pending_approval' && proposal.requires_manager_signoff && (isAdmin || isManagement) && (
+            {!hasDocument && proposal.status === 'pending_approval' && proposal.requires_manager_signoff && (isAdmin || isManagement) && (
               <ConfirmDialog
                 title="Manager Sign-Off"
                 description={`Provide manager sign-off for proposal #${proposal.id} (${formatCurrency(proposal.total_value)})?`}
@@ -570,8 +575,8 @@ export default function ProposalDetailPage() {
               )
             )}
 
-            {/* Sent: download PDF — fetched fresh on click, never on page load */}
-            {proposal.status === 'sent' && proposal.pdf_available !== false && (
+            {/* Sent (or an older approved proposal): download PDF — fetched fresh on click, never on page load */}
+            {(proposal.status === 'sent' || (!hasDocument && proposal.status === 'approved' && !!approvedPdfUrl)) && proposal.pdf_available !== false && (
               <Button
                 size="sm"
                 variant="outline"
@@ -605,12 +610,23 @@ export default function ProposalDetailPage() {
 
       {showPlaceholderBanner && proposal.status !== 'sent' && <PlaceholderBanner sections={placeholderSections} />}
 
-      <div className="mb-4">
-        <ProposalPricing content={proposal.content} totalValue={proposal.total_value} />
-      </div>
+      {/* A BE-13 proposal shows its price (mode, figures) in the editor's price card instead. */}
+      {!isEngineer && !hasDocument && (
+        <div className="mb-4">
+          <ProposalPricing content={proposal.content} totalValue={proposal.total_value} />
+        </div>
+      )}
+
+      <AdjustPricingDialog
+        proposalId={proposalId}
+        open={adjustPricingOpen}
+        onOpenChange={setAdjustPricingOpen}
+        hasDocument={hasDocument}
+        currentTotal={proposal.total_value}
+      />
 
       {/* PDF generating indicator */}
-      {proposal.status === 'approved' && !approvedPdfUrl && (
+      {proposal.status === 'approved' && !approvedPdfUrl && !isEngineer && (
         <div className="mb-4 rounded-lg bg-blue-50 border border-blue-100 p-3 flex items-center gap-2 text-blue-700 font-utility text-sm">
           <Clock className="h-4 w-4 animate-spin" />
           PDF is being generated... This may take a moment.
@@ -659,6 +675,11 @@ export default function ProposalDetailPage() {
                 : 'Sent to customer — not yet accepted'}
             </p>
           </div>
+          {reference && (
+            <p className="mt-1 font-utility text-xs text-[#111827]/70" data-testid="sent-reference">
+              Reference {reference}{referenceDate ? ` · dated ${formatDate(referenceDate)}` : ''}
+            </p>
+          )}
           {proposal.accept_url && (
             <a
               href={proposal.accept_url}
@@ -680,29 +701,48 @@ export default function ProposalDetailPage() {
         </div>
       )}
 
-      <div className="grid lg:grid-cols-[1fr_260px] gap-6">
-        {/* Main content */}
-        <div>
-          <ContentSection title="Project Overview" content={content.project_overview as string} />
-          <ContentSection title="Scope of Work" content={content.scope_of_work as string} />
-          <ContentSection title="Warranty & Support" content={content.warranty_support as string} />
-          <ContentSection title="Terms & Conditions" content={content.terms_conditions as string} />
-
-          {/* Any other content keys — excluding version_note: it's a static
-              string baked in once at draft time ("Draft — not yet reviewed
-              or approved") that never updates as the proposal progresses,
-              so showing it verbatim goes stale/contradictory next to the
-              real, live status badge above. */}
-          {Object.entries(content)
-            .filter(([k]) => !['project_overview', 'scope_of_work', 'warranty_support', 'terms_conditions', 'version_note'].includes(k))
-            .map(([key, val]) => (
-              <ContentSection
-                key={key}
-                title={key.replace(/_/g, ' ')}
-                content={typeof val === 'string' ? val : JSON.stringify(val, null, 2)}
-              />
-            ))}
+      {hasDocument ? (
+        <div className="mb-6">
+          <ProposalDocumentEditor
+            proposalId={proposalId}
+            totalValue={proposal.total_value}
+            requiresSignoff={proposal.requires_manager_signoff}
+            onAdjustPrice={canAdjustNow ? () => setAdjustPricingOpen(true) : undefined}
+            onDirtyChange={onDirtyChange}
+            revisionAction={proposal.status === 'approved' ? revisionDialog : undefined}
+            serverMissing={serverMissing}
+          />
         </div>
+      ) : (
+        proposal.document && !isEngineer && <div className="mb-4"><NoDocumentNote /></div>
+      )}
+
+      <div className={hasDocument ? '' : 'grid lg:grid-cols-[1fr_260px] gap-6'}>
+        {/* Main content — the older generic template; a BE-13 proposal is shown by the editor above */}
+        {!hasDocument && (
+          <div>
+            <ContentSection title="Project Overview" content={content.project_overview as string} />
+            <ContentSection title="Scope of Work" content={content.scope_of_work as string} />
+            <ContentSection title="Warranty & Support" content={content.warranty_support as string} />
+            <ContentSection title="Terms & Conditions" content={content.terms_conditions as string} />
+
+            {/* Any other content keys — excluding version_note: it's a static
+                string baked in once at draft time ("Draft — not yet reviewed
+                or approved") that never updates as the proposal progresses,
+                so showing it verbatim goes stale/contradictory next to the
+                real, live status badge above. `document` is BE-13's structured
+                document, shown by the editor, never dumped as JSON. */}
+            {Object.entries(content)
+              .filter(([k]) => !['project_overview', 'scope_of_work', 'warranty_support', 'terms_conditions', 'version_note', 'document'].includes(k))
+              .map(([key, val]) => (
+                <ContentSection
+                  key={key}
+                  title={key.replace(/_/g, ' ')}
+                  content={typeof val === 'string' ? val : JSON.stringify(val, null, 2)}
+                />
+              ))}
+          </div>
+        )}
 
         {/* Version history sidebar */}
         {proposal.versions && proposal.versions.length > 0 && (
@@ -718,7 +758,7 @@ export default function ProposalDetailPage() {
                         ? 'border-[#f7a800] bg-[#f7a800]/5'
                         : 'border-[#e4e8ee] hover:bg-[#f7f9fc]'
                     }`}
-                    onClick={() => router.push(`/dashboard/proposals/${v.id}`)}
+                    onClick={() => { if (confirmLeave()) router.push(`/dashboard/proposals/${v.id}`) }}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-utility text-xs font-semibold text-[#091c3c]">v{v.version}</span>
