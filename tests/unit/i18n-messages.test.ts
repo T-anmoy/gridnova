@@ -36,7 +36,8 @@ describe("message files", () => {
     });
 
     it(`${name}.json keeps every {placeholder} its English source has`, () => {
-      const enLeaves = new Map(paths(en).map((p, i) => [p, leaves(en)[i]]));
+      const enLeafValues = leaves(en);
+      const enLeaves = new Map(paths(en).map((p, i) => [p, enLeafValues[i]]));
       const own = paths(file);
       const ownLeaves = leaves(file);
       own.forEach((p, i) => {
@@ -52,8 +53,9 @@ describe("message files", () => {
   // `proof` where no documented figure exists — never filled with a guess.
   it("has no empty strings in any locale (a blank would render as a missing label)", () => {
     for (const file of [en, hi, bn]) {
+      const fileLeaves = leaves(file);
       const empties = paths(file).filter(
-        (p, i) => leaves(file)[i] === "" && !p.endsWith("dropCap") && !p.endsWith(".proof"),
+        (p, i) => fileLeaves[i] === "" && !p.endsWith("dropCap") && !p.endsWith(".proof"),
       );
       expect(empties).toEqual([]);
     }
