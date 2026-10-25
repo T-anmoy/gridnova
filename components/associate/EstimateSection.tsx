@@ -6,6 +6,8 @@ import { useCreateEstimate, useOnboardingEstimates } from '@/lib/associate/onboa
 import { ApiError } from '@/lib/dashboard/api-error'
 import { formatCurrency, formatDatetime } from '@/lib/dashboard/utils'
 import { CustomQuoteNotice, PriceListSummary } from '@/components/pricing/PackageCards'
+import SolarEstimateResult from '@/components/pricing/SolarEstimateResult'
+import { parseSolarEstimate } from '@/lib/pricing/solar-estimate'
 import { usePackageCatalogue } from '@/lib/pricing/usePackageCatalogue'
 import { useMessages } from '@/lib/i18n/client'
 import type { PackageCatalogue, PriceListFields } from '@/lib/pricing/price-list'
@@ -17,6 +19,29 @@ type EstimateCopy = Messages['associates']['portal']['estimate']
 function EstimateCard({ estimate, copy, catalogue }: { estimate: Estimate; copy: EstimateCopy; catalogue: PackageCatalogue | null }) {
   const r = estimate.result
   const pricing = useMessages('pricing')
+  // BE-14: the stored result is the instant estimate itself, so the associate
+  // shows the customer exactly what the website's calculator shows.
+  const solar = r.estimate_version
+    ? parseSolarEstimate({
+        ...r,
+        priced_kw: r.priced_kw ?? estimate.priced_kw,
+        price_list_version: r.price_list_version ?? estimate.price_list_version,
+        chosen_packages: r.chosen_packages ?? estimate.chosen_packages,
+      })
+    : null
+  if (solar) {
+    return (
+      <div className="rounded-xl border border-[#e4e8ee] bg-white p-5" data-testid="estimate-card" data-price-status={solar.price_status}>
+        <div className="rounded-lg bg-[#0e2a63] px-3 py-2">
+          <p className="text-xs font-semibold text-white font-utility uppercase tracking-wide">{copy.banner}</p>
+        </div>
+        <div className="mt-4">
+          <SolarEstimateResult estimate={solar} catalogue={catalogue} hidePrices={catalogue?.price_display === 'hidden'} chosenLabel={pricing.packages.chosen} />
+        </div>
+        <p className="mt-3 text-xs text-[#111827]/65 font-utility">{formatDatetime(estimate.created_at)}</p>
+      </div>
+    )
+  }
   if (r.price_status) {
     // List-priced (or custom-quote) result: both packages as returned, no range.
     const fields: PriceListFields = {

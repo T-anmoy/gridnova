@@ -1,7 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import {
   toSegment,
-  roofAreaToSizeKw,
+  billValid,
+  housesValid,
+  parseInput,
+  positiveValid,
+  unitsValid,
   roofLabelToEngineKey,
   validateEmail,
   validatePhone,
@@ -14,10 +18,17 @@ describe('solar-calculator/lib', () => {
     expect(toSegment('society')).toBe('residential')
   })
 
-  it('converts roof area to an approximate size in kW, clamped to a sane range', () => {
-    expect(roofAreaToSizeKw(800)).toBe(8)
-    expect(roofAreaToSizeKw(50)).toBe(1) // clamped to the minimum
-    expect(roofAreaToSizeKw(100_000)).toBe(500) // clamped to the maximum
+  it('has no sizing of its own any more — roof area, units and bill are only checked against the backend bounds', async () => {
+    const lib = await import('@/app/(site)/[lang]/solar-calculator/lib')
+    expect(lib).not.toHaveProperty('roofAreaToSizeKw')
+    expect(lib).not.toHaveProperty('PLACEHOLDER_ROOF_AREA_SQFT_PER_KW')
+    expect(parseInput(' 360 ')).toBe(360)
+    expect(parseInput('3,600')).toBeUndefined()
+    expect(parseInput('')).toBeUndefined()
+    expect([unitsValid('1'), unitsValid('100000'), unitsValid('0'), unitsValid('100001')]).toEqual([true, true, false, false])
+    expect([billValid('1'), billValid('5000000'), billValid('0.5'), billValid('5000001')]).toEqual([true, true, false, false])
+    expect([housesValid('1'), housesValid('5000'), housesValid('2.5'), housesValid('5001')]).toEqual([true, true, false, false])
+    expect([positiveValid('0.5', 10), positiveValid('0', 10), positiveValid('11', 10)]).toEqual([true, false, false])
   })
 
   it('maps a roof-type label to the engine\'s short key, and "Not Sure" to undefined', () => {

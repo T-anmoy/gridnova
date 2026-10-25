@@ -18,6 +18,8 @@ import { formatDatetime } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
 import { STAFF_SURVEY_COPY } from '@/lib/dashboard/staff-copy'
 import { formatKw, surveyWarningText } from '@/lib/associate/survey'
+import { SolarEstimateWithCatalogue } from '@/components/pricing/SolarEstimateResult'
+import { fromSurveyEstimate } from '@/lib/pricing/solar-estimate'
 import type { SurveyResults, SurveyReviewOutcome, SurveyStatus } from '@/lib/associate/survey-types'
 import {
   fetchStaffSurveyReportLink,
@@ -355,6 +357,8 @@ function ReportControls({ onboardingId, status, canGenerate }: { onboardingId: n
 
 function ResultsBlock({ results }: { results: SurveyResults }) {
   const est = results.estimate
+  // BE-14: the same result the website shows, in English (the dashboard's messages).
+  const solar = est ? fromSurveyEstimate(est as unknown as Record<string, unknown>) : null
   const copy = {
     warnings: STAFF_SURVEY_COPY.warnings as Record<string, string>,
     limiting: STAFF_SURVEY_COPY.limiting as Record<string, string>,
@@ -388,7 +392,11 @@ function ResultsBlock({ results }: { results: SurveyResults }) {
           ))}
         </ul>
       )}
-      {est && est.price_status === 'list_price' && (
+      {solar ? (
+        <div data-testid="staff-survey-estimate" className="pt-2">
+          <SolarEstimateWithCatalogue estimate={solar} />
+        </div>
+      ) : est && est.price_status === 'list_price' && (
         <ul className="text-sm text-gray-700" data-testid="staff-survey-estimate">
           {Object.entries(est.packages).map(([k, p]) => <li key={k}>{p.display_name}: {formatInr(p.final)}</li>)}
         </ul>

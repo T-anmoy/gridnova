@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import SolarCalculator from '@/app/(site)/[lang]/solar-calculator/SolarCalculator'
 import { withI18n } from './helpers/i18n'
+import { fillLocation, fillProperty } from './helpers/calculator'
 
 // Regression test for the silent-discard bug: the public calculator used to
 // show "Electricity Bill" / "Roof Photo" upload slots whose files were never
@@ -15,18 +16,12 @@ afterEach(() => {
 })
 
 async function reachSiteDetailsStep(user: ReturnType<typeof userEvent.setup>) {
-  await user.selectOptions(screen.getByLabelText(/^state/i), 'West Bengal')
-  await user.type(screen.getByLabelText(/^city/i), 'Kolkata')
-  await user.type(screen.getByLabelText(/pin code/i), '700001')
-  await user.click(screen.getByRole('button', { name: /^next$/i }))
-  await screen.findByText(/step 2 of 5/i)
-  await user.type(screen.getByLabelText(/average monthly electricity bill/i), '3500')
-  await user.selectOptions(screen.getByLabelText(/connection phase/i), 'Single Phase')
-  await user.click(screen.getByRole('button', { name: /^next$/i }))
-  await screen.findByText(/step 3 of 5/i)
+  // The site questions now sit on the Usage step, under "Improve accuracy".
+  await fillLocation(user)
+  await fillProperty(user)
 }
 
-describe('SolarCalculator — Site Details step no longer collects files', () => {
+describe('SolarCalculator — the site questions never collect files', () => {
   it('shows no file upload controls and instead tells the visitor how to share files after submitting', async () => {
     window.scrollTo = vi.fn()
     const user = userEvent.setup()

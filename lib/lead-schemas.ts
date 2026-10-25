@@ -58,6 +58,27 @@ export const estimateRequestSchema = z.object({
 })
 export type EstimateRequestInput = z.infer<typeof estimateRequestSchema>
 
+// The estimate the visitor saw (FE-14): copied from the backend's response, so
+// every figure is a decimal string. It only feeds the lead email — anything
+// malformed is dropped rather than losing the lead over it.
+const decimal = z.string().trim().regex(/^-?\d{1,12}(\.\d{1,4})?$/).optional()
+const estimateSnapshot = z
+  .object({
+    estimateVersion: optionalText(40, 'Estimate version'),
+    sizeKw: decimal,
+    priceStatus: z.enum(['list_price', 'custom_quote']).optional(),
+    netCostInr: decimal,
+    netCostIfAnnouncedInr: decimal,
+    subsidyConfirmedInr: decimal,
+    subsidyAnnouncedInr: decimal,
+    subsidyStatus: optionalText(40, 'Subsidy status'),
+    monthlySavingInr: decimal,
+    paybackYears: decimal,
+    confidence: z.enum(['high', 'medium', 'low']).optional(),
+  })
+  .optional()
+  .catch(undefined)
+
 export const configuratorLeadSchema = z.object({
   customerType,
   name: required(200, 'Name', REQUIRED_MESSAGE),
@@ -67,17 +88,20 @@ export const configuratorLeadSchema = z.object({
   city: optionalText(200, 'City'),
   pinCode: optionalText(10, 'PIN code'),
   discom: optionalText(100, 'DISCOM'),
+  numberOfHouses: numericText('Number of flats/houses'),
   sizingMethod: optionalText(50, 'Sizing method'),
   averageMonthlyBill: numericText('Average monthly bill'),
   monthlyUnits: numericText('Monthly units'),
   roofAreaSqFt: numericText('Roof area'),
   connectionPhase: optionalText(50, 'Connection phase'),
+  sanctionedLoadKw: numericText('Sanctioned load'),
   roofType: optionalText(100, 'Roof type'),
   floors: numericText('Floors'),
   accessDifficulty: optionalText(50, 'Access difficulty'),
   shading: optionalText(50, 'Shading'),
   subsidyInterest: z.enum(['yes', 'no']).optional(),
   indicativeTotalInr: z.number().finite().optional(),
+  estimate: estimateSnapshot,
 })
 export type ConfiguratorLeadInput = z.infer<typeof configuratorLeadSchema>
 

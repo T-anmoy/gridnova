@@ -13,6 +13,8 @@ import type { SignatureErrorCode, SignatureParty, SurveyOptions, SurveyResults, 
 import SignaturePad, { type SignaturePadHandle } from '@/components/associate/SignaturePad'
 import { FieldError, FormField, inputClass } from '@/components/associate/wizard-fields'
 import { MissingClaimsNotice } from '@/components/dashboard/DashboardError'
+import { SolarEstimateWithCatalogue } from '@/components/pricing/SolarEstimateResult'
+import { fromSurveyEstimate } from '@/lib/pricing/solar-estimate'
 
 type SurveyCopy = Messages['survey']
 
@@ -118,6 +120,8 @@ export function SurveyResultsPanel({ results }: { results: SurveyResults }) {
     areaReasons: t.areaReasons as Record<string, string>,
   }
   const est = results.estimate
+  // BE-14: the same result the website and the associate estimate show.
+  const solar = est ? fromSurveyEstimate(est as unknown as Record<string, unknown>) : null
   return (
     <div className="space-y-4" data-testid="survey-results" aria-live="polite">
       <div>
@@ -163,7 +167,13 @@ export function SurveyResultsPanel({ results }: { results: SurveyResults }) {
         </div>
       )}
 
-      {est && (
+      {solar ? (
+        <div className="rounded-xl border border-[#e4e8ee] p-4" data-testid="survey-estimate" data-status={solar.price_status}>
+          <p className="font-utility text-sm font-semibold text-[#0e2a63]">{r.estimateTitle}</p>
+          <p className="mt-0.5 mb-3 text-xs font-semibold uppercase tracking-wide text-[#7a5200]">{r.indicativeNote}</p>
+          <SolarEstimateWithCatalogue estimate={solar} />
+        </div>
+      ) : est && (
         <div className="rounded-xl border border-[#e4e8ee] p-4" data-testid="survey-estimate" data-status={est.price_status}>
           <p className="font-utility text-sm font-semibold text-[#0e2a63]">{r.estimateTitle}</p>
           <p className="mt-0.5 text-xs font-semibold uppercase tracking-wide text-[#7a5200]">{r.indicativeNote}</p>

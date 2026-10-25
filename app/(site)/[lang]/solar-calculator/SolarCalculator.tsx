@@ -1,17 +1,16 @@
 "use client";
 
 import { API_BASE_URL } from "@/lib/config";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import Link from "@/components/i18n/Link";
 import { useMessages } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/types";
 import { m } from "framer-motion";
-import { ArrowLeft, ArrowRight, AlertCircle, CheckCircle2, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, AlertCircle, CheckCircle2, ChevronDown, Zap } from "lucide-react";
 import {
   TextField,
   SelectField,
   ToggleGroup,
-  YesNoToggle,
   SectionHeading,
 } from "@/app/(internal)/proposal/new/formPrimitives";
 import { STATES } from "@/app/(internal)/proposal/new/types";
@@ -24,21 +23,28 @@ import {
   roofLabelToEngineKey,
   CONNECTION_PHASES,
   connectionPhaseToEngineKey,
-  ACCESS_DIFFICULTY_LABELS,
-  accessDifficultyLabelToEngineKey,
   SHADING_LABELS,
   shadingLabelToEngineKey,
   discomsForState,
-  roofAreaToSizeKw,
+  INPUT_BOUNDS,
+  billValid,
+  housesValid,
+  parseInput,
+  positiveValid,
+  unitsValid,
   validateEmail,
   validatePhone,
   validateName,
   validatePinCode,
 } from "./lib";
-import CalculatorReveal from "./CalculatorReveal";
-import { parsePriceListEstimate, type PriceListFields } from "@/lib/pricing/price-list";
+import BillCard from "./BillCard";
+import { discomCode, estimateSnapshot, parseSolarEstimate, type SolarEstimate } from "@/lib/pricing/solar-estimate";
 import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/lib/contact";
 import MotionProvider from "@/components/MotionProvider";
+
+// The result (packages, subsidy, savings, "How we calculate") is only needed
+// from the results step on, so it is not part of the page's first load.
+const CalculatorReveal = lazy(() => import("./CalculatorReveal"));
 
 const TOTAL_STEPS = 5;
 
@@ -52,6 +58,19 @@ function labelMap(values: readonly string[], labels: readonly string[]): Record<
 function scrollToTopRespectingMotion() {
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+}
+
+const HINT = "mt-1.5 font-utility text-xs leading-relaxed text-[#111827]/65";
+const LINK =
+  "inline-flex min-h-[44px] items-center font-utility text-sm font-semibold text-[#2f5daa] underline underline-offset-2 hover:text-[#0e2a63] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5daa]";
+
+function ResultLoading({ text }: { text: string }) {
+  return (
+    <div className="rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] p-10 text-center">
+      <Zap className="h-6 w-6 text-[#f7a800] mx-auto animate-pulse motion-reduce:animate-none" aria-hidden="true" />
+      <p className="mt-3 font-utility text-sm text-[#111827]/70">{text}</p>
+    </div>
+  );
 }
 
 type EstimateStatus = "idle" | "loading" | "success" | "error";
@@ -73,29 +92,43 @@ function SolarCalculatorInner() {
     stepRef.current?.focus({ preventScroll: true });
   }, [step]);
 
-  // Step A — Basics
-  const [customerType, setCustomerType] = useState<CustomerType>("residential");
+  // Step 1 — Location
   const [state, setState] = useState("");
+  const [discom, setDiscom] = useState("");
   const [city, setCity] = useState("");
   const [pinCode, setPinCode] = useState("");
-  const [discom, setDiscom] = useState("");
   const [pinTouched, setPinTouched] = useState(false);
 
-  // Step B — Sizing
-  const [sizingMethod, setSizingMethod] = useState<SizingMethod>("bill");
-  const [averageMonthlyBill, setAverageMonthlyBill] = useState("");
+  // Step 2 — Property
+  const [customerType, setCustomerType] = useState<CustomerType>("residential");
+  const [houses, setHouses] = useState("");
+  const isSociety = customerType === "society";
+
+  // Step 3 — Usage. Units first: they give the most accurate estimate; the
+  // bill alongside them gives the engine the customer's own price per unit.
+  const [sizingMethod, setSizingMethod] = useState<SizingMethod>("units");
   const [monthlyUnits, setMonthlyUnits] = useState("");
+  const [averageMonthlyBill, setAverageMonthlyBill] = useState("");
   const [roofAreaSqFt, setRoofAreaSqFt] = useState("");
+  // "Improve accuracy" (all optional)
   const [connectionPhase, setConnectionPhase] = useState("");
-
-  // Step C — Site Details
+  const [sanctionedLoad, setSanctionedLoad] = useState("");
   const [roofTypeLabel, setRoofTypeLabel] = useState("");
-  const [floors, setFloors] = useState("1");
-  const [accessDifficultyLabel, setAccessDifficultyLabel] = useState("");
   const [shadingLabel, setShadingLabel] = useState("");
-  const [subsidyInterest, setSubsidyInterest] = useState<"yes" | "no">("yes");
+  const [improveOpen, setImproveOpen] = useState(false);
 
-  // Step D — Instant Estimate
+  // What reaches the engine, per method — a field the visitor typed under
+  // another method is never sent.
+  const unitsSent = sizingMethod === "units" ? parseInput(monthlyUnits) : undefined;
+  const billSent =
+    sizingMethod === "bill" || (sizingMethod === "units" && billValid(averageMonthlyBill)) ? parseInput(averageMonthlyBill) : undefined;
+  const roofSent = positiveValid(roofAreaSqFt, INPUT_BOUNDS.roofMax) ? parseInput(roofAreaSqFt) : undefined;
+  const sanctionedSent = positiveValid(sanctionedLoad, INPUT_BOUNDS.sanctionedMax) ? parseInput(sanctionedLoad) : undefined;
+  const housesSent = isSociety && housesValid(houses) ? parseInput(houses) : undefined;
+  const phaseSent = connectionPhaseToEngineKey(connectionPhase);
+  const discomSent = discom ? discomCode(discom) : undefined;
+
+  // Step 4 — Instant Estimate
   // The estimate is only valid for the exact inputs it was computed from. It is
   // stored with a key derived from every input that reaches the pricing call; a
   // result whose key no longer matches reads as "idle" (never shown, never
@@ -103,25 +136,28 @@ function SolarCalculatorInner() {
   // send — the previous price.
   const inputsKey = JSON.stringify([
     customerType,
+    housesSent,
     state,
+    discomSent,
     sizingMethod,
-    sizingMethod === "bill" ? averageMonthlyBill : sizingMethod === "units" ? monthlyUnits : roofAreaSqFt,
-    connectionPhase,
+    unitsSent,
+    billSent,
+    roofSent,
+    phaseSent,
+    sanctionedSent,
     roofTypeLabel,
-    floors,
     shadingLabel,
-    accessDifficultyLabel,
   ]);
   const [estimate, setEstimate] = useState<{
     key: string;
     status: EstimateStatus;
-    result: (PriceListFields & Record<string, unknown>) | null;
+    result: (SolarEstimate & Record<string, unknown>) | null;
   }>({ key: "", status: "idle", result: null });
   const estimateFresh = estimate.key === inputsKey;
   const estimateStatus: EstimateStatus = estimateFresh ? estimate.status : "idle";
   const estimateResult = estimateFresh ? estimate.result : null;
 
-  // Step E — Capture
+  // Step 5 — Capture
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -134,6 +170,14 @@ function SolarCalculatorInner() {
   const phoneError = touched.phone ? validatePhone(phone, t.errors) : undefined;
   const emailError = touched.email ? validateEmail(email, t.errors) : undefined;
   const pinError = pinTouched ? validatePinCode(pinCode, t.errors) : undefined;
+  // Range messages show as soon as something out of range is typed; an empty
+  // required field just keeps Next disabled.
+  const rangeError = (value: string, ok: boolean, message: string) => (value.trim() && !ok ? message : undefined);
+  const unitsError = rangeError(monthlyUnits, unitsValid(monthlyUnits), t.errors.unitsRange);
+  const billError = rangeError(averageMonthlyBill, billValid(averageMonthlyBill), t.errors.billRange);
+  const roofError = rangeError(roofAreaSqFt, roofSent !== undefined, t.errors.roofRange);
+  const housesError = rangeError(houses, housesValid(houses), t.errors.housesRange);
+  const sanctionedError = rangeError(sanctionedLoad, sanctionedSent !== undefined, t.errors.sanctionedRange);
 
   function handleStateChange(value: string) {
     setState(value);
@@ -157,35 +201,31 @@ function SolarCalculatorInner() {
       setEstimate({ key, status: "loading", result: null });
       try {
         const apiBase = API_BASE_URL;
-        const sizingValue: Record<string, number> =
-          sizingMethod === "bill"
-            ? { monthly_bill_inr: parseFloat(averageMonthlyBill) }
-            : sizingMethod === "units"
-              ? { monthly_units_kwh: parseFloat(monthlyUnits) }
-              : { usable_roof_area_sqft: parseFloat(roofAreaSqFt) };
-
         const res = await fetch(`${apiBase}/api/v1/pricing/instant-estimate`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             segment: toSegment(customerType),
             state,
+            discom: discomSent,
             sizing_method: sizingMethodToEngineKey(sizingMethod),
-            ...sizingValue,
-            connection_phase: connectionPhaseToEngineKey(connectionPhase),
+            monthly_units_kwh: unitsSent,
+            monthly_bill_inr: billSent,
+            usable_roof_area_sqft: roofSent,
+            connection_phase: phaseSent,
+            sanctioned_load_kw: sanctionedSent,
             roof_type: roofLabelToEngineKey(roofTypeLabel),
-            floors: floors ? parseInt(floors, 10) : undefined,
             shading: shadingLabelToEngineKey(shadingLabel),
-            access_difficulty: accessDifficultyLabelToEngineKey(accessDifficultyLabel),
             is_remote: false,
-            is_housing_society: customerType === "society",
+            is_housing_society: isSociety,
+            number_of_houses: housesSent,
           }),
           signal: AbortSignal.any([controller.signal, AbortSignal.timeout(6000)]),
         });
 
         if (!res.ok) throw new Error(`Pricing endpoint returned ${res.status}`);
 
-        const parsed = parsePriceListEstimate(await res.json());
+        const parsed = parseSolarEstimate(await res.json());
         if (!parsed) throw new Error("Unexpected pricing response shape");
         setEstimate({ key, status: "success", result: parsed });
       } catch {
@@ -209,26 +249,25 @@ function SolarCalculatorInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, inputsKey]);
 
-  function goNext() {
-    setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
+  function goTo(next: number) {
+    setStep(Math.max(0, Math.min(next, TOTAL_STEPS - 1)));
     scrollToTopRespectingMotion();
   }
-
-  function goBack() {
-    setStep((s) => Math.max(s - 1, 0));
-    scrollToTopRespectingMotion();
-  }
+  const goNext = () => goTo(step + 1);
+  const goBack = () => goTo(step - 1);
 
   const step0Valid = !!state && !!city.trim() && !validatePinCode(pinCode, t.errors);
-  const step1Valid =
-    (sizingMethod === "bill"
-      ? !!averageMonthlyBill && Number(averageMonthlyBill) > 0
-      : sizingMethod === "units"
-        ? !!monthlyUnits && Number(monthlyUnits) > 0
-        : !!roofAreaSqFt && Number(roofAreaSqFt) > 0) && !!connectionPhase;
-  // Site Details is entirely optional/never-blocking, per design — every
-  // field here has a sensible backend fallback when omitted.
-  const step2Valid = true;
+  const step1Valid = !isSociety || housesSent !== undefined;
+  // The chosen method's own figure is required; every other field is optional
+  // but, when filled, must be in the backend's range.
+  const step2Valid =
+    (sizingMethod === "units"
+      ? unitsValid(monthlyUnits) && !billError
+      : sizingMethod === "bill"
+        ? billValid(averageMonthlyBill)
+        : roofSent !== undefined) &&
+    !roofError &&
+    !sanctionedError;
 
   async function handleSubmit() {
     if (honeypot) return; // silent bot rejection
@@ -257,18 +296,19 @@ function SolarCalculatorInner() {
           city,
           pinCode,
           discom: discom || undefined,
+          numberOfHouses: housesSent,
           sizingMethod,
-          averageMonthlyBill: sizingMethod === "bill" ? averageMonthlyBill : undefined,
-          monthlyUnits: sizingMethod === "units" ? monthlyUnits : undefined,
-          roofAreaSqFt: sizingMethod === "roof_area" ? roofAreaSqFt : undefined,
+          monthlyUnits: unitsSent !== undefined ? monthlyUnits : undefined,
+          averageMonthlyBill: billSent !== undefined ? averageMonthlyBill : undefined,
+          roofAreaSqFt: roofSent !== undefined ? roofAreaSqFt : undefined,
           connectionPhase: connectionPhase || undefined,
+          sanctionedLoadKw: sanctionedSent !== undefined ? sanctionedLoad : undefined,
           roofType: roofTypeLabel || undefined,
-          floors: floors || undefined,
-          accessDifficulty: accessDifficultyLabel || undefined,
           shading: shadingLabel || undefined,
-          subsidyInterest,
-          // Internal only (the lead email): the back-compat net figure, never shown to the visitor.
+          // Internal only (the lead email/CRM): the back-compat net figure, never shown to the visitor.
           indicativeTotalInr: typeof estimateResult?.net_cost === "number" ? estimateResult.net_cost : undefined,
+          // A copy of the estimate the visitor saw, so the team quotes from the same figures.
+          estimate: estimateResult ? estimateSnapshot(estimateResult) : undefined,
           website: honeypot,
         }),
       });
@@ -309,7 +349,7 @@ function SolarCalculatorInner() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-[#e4e8ee] p-7 md:p-9">
+    <div className="bg-white rounded-2xl border border-[#e4e8ee] p-5 sm:p-7 md:p-9">
       {/* Honeypot — invisible to real users, silently rejected if filled. */}
       <div
         aria-hidden="true"
@@ -358,15 +398,6 @@ function SolarCalculatorInner() {
         {step === 0 && (
           <div className="space-y-6">
             <SectionHeading>{t.basics.heading}</SectionHeading>
-            <ToggleGroup<CustomerType>
-              label={t.basics.enquiringAs}
-              value={customerType}
-              onChange={setCustomerType}
-              options={[
-                ["residential", t.basics.residential],
-                ["society", t.basics.society],
-              ]}
-            />
             <div className="grid sm:grid-cols-2 gap-5">
               <SelectField
                 id="sc-state"
@@ -377,6 +408,21 @@ function SolarCalculatorInner() {
                 labels={t.stateNames}
                 placeholder={t.basics.statePlaceholder}
               />
+              <div>
+                <SelectField
+                  id="sc-discom"
+                  label={t.basics.discom}
+                  value={discom}
+                  onChange={setDiscom}
+                  options={discomsForState(state)}
+                  optional
+                  optionalLabel={t.optional}
+                  placeholder={t.basics.discomPlaceholder}
+                />
+                <p className={HINT}>{t.basics.discomHint}</p>
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-5">
               <TextField
                 id="sc-city"
                 autoComplete="address-level2"
@@ -385,8 +431,6 @@ function SolarCalculatorInner() {
                 onChange={setCity}
                 placeholder={t.basics.cityPlaceholder}
               />
-            </div>
-            <div className="grid sm:grid-cols-2 gap-5">
               <TextField
                 id="sc-pin"
                 autoComplete="postal-code"
@@ -395,18 +439,8 @@ function SolarCalculatorInner() {
                 onChange={(v) => setPinCode(v.replace(/\D/g, "").slice(0, 6))}
                 onBlur={() => setPinTouched(true)}
                 error={pinError}
-                placeholder="700001"
+                placeholder={t.basics.pinPlaceholder}
                 inputMode="numeric"
-              />
-              <SelectField
-                id="sc-discom"
-                label={t.basics.discom}
-                value={discom}
-                onChange={setDiscom}
-                options={discomsForState(state)}
-                optional
-                optionalLabel={t.optional}
-                placeholder={t.basics.discomPlaceholder}
               />
             </div>
           </div>
@@ -414,125 +448,192 @@ function SolarCalculatorInner() {
 
         {step === 1 && (
           <div className="space-y-6">
-            <SectionHeading>{t.sizing.heading}</SectionHeading>
-            <ToggleGroup<SizingMethod>
-              label={t.sizing.method}
-              value={sizingMethod}
-              onChange={setSizingMethod}
+            <SectionHeading>{t.property.heading}</SectionHeading>
+            <ToggleGroup<CustomerType>
+              label={t.property.label}
+              value={customerType}
+              onChange={setCustomerType}
               options={[
-                ["bill", t.sizing.byBill],
-                ["units", t.sizing.byUnits],
-                ["roof_area", t.sizing.byRoof],
+                ["residential", t.property.home],
+                ["society", t.property.society],
               ]}
-              note={t.sizing.note}
             />
-            {sizingMethod === "bill" ? (
-              <TextField
-                id="sc-bill"
-                label={t.sizing.bill}
-                value={averageMonthlyBill}
-                onChange={setAverageMonthlyBill}
-                placeholder="3500"
-                inputMode="numeric"
-              />
-            ) : sizingMethod === "units" ? (
-              <TextField
-                id="sc-units"
-                label={t.sizing.units}
-                value={monthlyUnits}
-                onChange={setMonthlyUnits}
-                placeholder="450"
-                inputMode="numeric"
-              />
-            ) : (
-              <div>
+            {isSociety && (
+              <div className="max-w-xs">
                 <TextField
-                  id="sc-roof-area"
-                  label={t.sizing.roofArea}
-                  value={roofAreaSqFt}
-                  onChange={setRoofAreaSqFt}
-                  placeholder="800"
+                  id="sc-houses"
+                  label={t.property.houses}
+                  value={houses}
+                  onChange={(v) => setHouses(v.replace(/\D/g, ""))}
+                  error={housesError}
+                  placeholder={t.property.housesPlaceholder}
                   inputMode="numeric"
                 />
-                {!!roofAreaSqFt && Number(roofAreaSqFt) > 0 && (
-                  <p className="mt-1.5 text-[#111827]/65 text-xs font-utility">
-                    {fmt(t.sizing.roofAreaHint, { kw: roofAreaToSizeKw(Number(roofAreaSqFt)) })}
-                  </p>
-                )}
+                <p className={HINT}>{t.property.housesHint}</p>
               </div>
             )}
-            <SelectField
-              id="sc-phase"
-              label={t.sizing.phase}
-              value={connectionPhase}
-              onChange={setConnectionPhase}
-              options={CONNECTION_PHASES}
-              labels={labelMap(CONNECTION_PHASES, t.sizing.phases)}
-              placeholder={t.sizing.phasePlaceholder}
-            />
           </div>
         )}
 
         {step === 2 && (
           <div className="space-y-6">
-            <SectionHeading>{t.site.heading}</SectionHeading>
-            <div className="grid sm:grid-cols-2 gap-5">
-              <SelectField
-                id="sc-roof-type"
-                label={t.site.roofType}
-                value={roofTypeLabel}
-                onChange={setRoofTypeLabel}
-                options={ROOF_TYPE_LABELS}
-                labels={labelMap(ROOF_TYPE_LABELS, t.site.roofTypes)}
-                optional
-                optionalLabel={t.optional}
-                placeholder={t.site.roofTypePlaceholder}
-              />
+            <SectionHeading>{t.usage.heading}</SectionHeading>
+            {sizingMethod === "units" ? (
+              <>
+                <p className="-mt-3 font-utility text-sm text-[#111827]/70">{t.usage.accuracy}</p>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div className="space-y-5">
+                    <div>
+                      <TextField
+                        id="sc-units"
+                        label={t.usage.units}
+                        value={monthlyUnits}
+                        onChange={setMonthlyUnits}
+                        error={unitsError}
+                        placeholder={t.usage.unitsPlaceholder}
+                        inputMode="decimal"
+                      />
+                      <p className={HINT}>{t.usage.unitsHint}</p>
+                    </div>
+                    <div>
+                      <TextField
+                        id="sc-bill"
+                        label={t.usage.bill}
+                        value={averageMonthlyBill}
+                        onChange={setAverageMonthlyBill}
+                        error={billError}
+                        optional
+                        optionalLabel={t.optional}
+                        placeholder={t.usage.billPlaceholder}
+                        inputMode="decimal"
+                      />
+                      <p className={HINT}>{t.usage.billWithUnitsHint}</p>
+                    </div>
+                  </div>
+                  <BillCard t={t.usage.billCard} />
+                </div>
+              </>
+            ) : sizingMethod === "bill" ? (
               <TextField
-                id="sc-floors"
-                label={t.site.floors}
-                value={floors}
-                onChange={(v) => setFloors(v.replace(/\D/g, ""))}
-                optional
-                optionalLabel={t.optional}
-                placeholder="1"
-                inputMode="numeric"
+                id="sc-bill"
+                label={t.usage.billOnly}
+                value={averageMonthlyBill}
+                onChange={setAverageMonthlyBill}
+                error={billError}
+                placeholder={t.usage.billPlaceholder}
+                inputMode="decimal"
               />
+            ) : (
+              <div>
+                <TextField
+                  id="sc-roof-area"
+                  label={t.usage.roofOnly}
+                  value={roofAreaSqFt}
+                  onChange={setRoofAreaSqFt}
+                  error={roofError}
+                  placeholder={t.usage.roofPlaceholder}
+                  inputMode="decimal"
+                />
+                <p className={HINT}>{t.usage.roofHint}</p>
+              </div>
+            )}
+            <div className="flex flex-wrap gap-x-5 gap-y-1">
+              {(
+                [
+                  ["units", t.usage.knowUnits],
+                  ["bill", t.usage.onlyBill],
+                  ["roof_area", t.usage.onlyRoof],
+                ] as const
+              )
+                .filter(([m]) => m !== sizingMethod)
+                .map(([m, label]) => (
+                  <button key={m} type="button" onClick={() => setSizingMethod(m)} className={LINK}>
+                    {label}
+                  </button>
+                ))}
             </div>
-            <div className="grid sm:grid-cols-2 gap-5">
-              <SelectField
-                id="sc-access"
-                label={t.site.access}
-                value={accessDifficultyLabel}
-                onChange={setAccessDifficultyLabel}
-                options={ACCESS_DIFFICULTY_LABELS}
-                labels={labelMap(ACCESS_DIFFICULTY_LABELS, t.site.accessLevels)}
-                optional
-                optionalLabel={t.optional}
-                placeholder={t.site.accessPlaceholder}
-              />
-              <SelectField
-                id="sc-shading"
-                label={t.site.shading}
-                value={shadingLabel}
-                onChange={setShadingLabel}
-                options={SHADING_LABELS}
-                labels={labelMap(SHADING_LABELS, t.site.shadingLevels)}
-                optional
-                optionalLabel={t.optional}
-                placeholder={t.site.shadingPlaceholder}
-              />
-            </div>
-            <YesNoToggle
-              label={t.site.subsidy}
-              value={subsidyInterest}
-              onChange={setSubsidyInterest}
-              yesLabel={t.yes}
-              noLabel={t.no}
-              note={t.site.subsidyNote}
-            />
+
+            <details className="group rounded-xl border border-[#e4e8ee]" open={improveOpen} onToggle={(e) => setImproveOpen(e.currentTarget.open)}>
+              <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-3 px-4 py-2 font-utility text-sm font-semibold text-[#0e2a63] [&::-webkit-details-marker]:hidden">
+                <span>
+                  {t.usage.improve.title} <span className="font-normal text-[#111827]/60">{t.optional}</span>
+                </span>
+                <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180 motion-reduce:transition-none" aria-hidden="true" />
+              </summary>
+              <div className="space-y-5 border-t border-[#e4e8ee] px-4 pb-4 pt-3">
+                <p className="font-utility text-xs text-[#111827]/65">{t.usage.improve.intro}</p>
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div>
+                    <SelectField
+                      id="sc-phase"
+                      label={t.usage.improve.phase}
+                      value={connectionPhase}
+                      onChange={setConnectionPhase}
+                      options={CONNECTION_PHASES}
+                      labels={labelMap(CONNECTION_PHASES, t.usage.improve.phases)}
+                      optional
+                      optionalLabel={t.optional}
+                      placeholder={t.usage.improve.phasePlaceholder}
+                    />
+                    <p className={HINT}>{t.usage.improve.phaseHint}</p>
+                  </div>
+                  <div>
+                    <TextField
+                      id="sc-sanctioned"
+                      label={t.usage.improve.sanctioned}
+                      value={sanctionedLoad}
+                      onChange={setSanctionedLoad}
+                      error={sanctionedError}
+                      optional
+                      optionalLabel={t.optional}
+                      placeholder={t.usage.improve.sanctionedPlaceholder}
+                      inputMode="decimal"
+                    />
+                    <p className={HINT}>{t.usage.improve.sanctionedHint}</p>
+                  </div>
+                </div>
+                {sizingMethod !== "roof_area" && (
+                  <TextField
+                    id="sc-improve-roof"
+                    label={t.usage.improve.roofArea}
+                    value={roofAreaSqFt}
+                    onChange={setRoofAreaSqFt}
+                    error={roofError}
+                    optional
+                    optionalLabel={t.optional}
+                    placeholder={t.usage.improve.roofAreaPlaceholder}
+                    inputMode="decimal"
+                  />
+                )}
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <SelectField
+                    id="sc-shading"
+                    label={t.usage.improve.shading}
+                    value={shadingLabel}
+                    onChange={setShadingLabel}
+                    options={SHADING_LABELS}
+                    labels={labelMap(SHADING_LABELS, t.usage.improve.shadingLevels)}
+                    optional
+                    optionalLabel={t.optional}
+                    placeholder={t.usage.improve.shadingPlaceholder}
+                  />
+                  <SelectField
+                    id="sc-roof-type"
+                    label={t.usage.improve.roofType}
+                    value={roofTypeLabel}
+                    onChange={setRoofTypeLabel}
+                    options={ROOF_TYPE_LABELS}
+                    labels={labelMap(ROOF_TYPE_LABELS, t.usage.improve.roofTypes)}
+                    optional
+                    optionalLabel={t.optional}
+                    placeholder={t.usage.improve.roofTypePlaceholder}
+                  />
+                </div>
+              </div>
+            </details>
+
             <p className="text-[#111827]/65 text-xs font-utility leading-relaxed rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] px-4 py-3.5">
-              {t.site.shareDocs}{" "}
+              {t.usage.shareDocs}{" "}
               <a href={HELPLINE_TEL} className="text-[#0e2a63] font-medium hover:underline">
                 {HELPLINE_DISPLAY}
               </a>{" "}
@@ -549,15 +650,33 @@ function SolarCalculatorInner() {
           <div className="space-y-6">
             <SectionHeading>{t.result.heading}</SectionHeading>
 
-            {estimateStatus === "loading" && (
-              <div className="rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] p-10 text-center">
-                <Zap className="h-6 w-6 text-[#f7a800] mx-auto animate-pulse motion-reduce:animate-none" aria-hidden="true" />
-                <p className="mt-3 font-utility text-sm text-[#111827]/70">{t.result.loading}</p>
-              </div>
-            )}
+            {(estimateStatus === "loading" || estimateStatus === "idle") && <ResultLoading text={t.result.loading} />}
 
             {estimateStatus === "success" && estimateResult && (
-              <CalculatorReveal result={estimateResult} />
+              <Suspense fallback={<ResultLoading text={t.result.loading} />}>
+                <CalculatorReveal
+                  result={estimateResult}
+                  phasePrompt={
+                    phaseSent ? undefined : (
+                      <div data-testid="phase-prompt" className="rounded-xl border border-[#2f5daa]/30 bg-[#2f5daa]/5 p-4">
+                        <p className="font-utility text-sm font-semibold text-[#0e2a63]">{t.result.phasePrompt}</p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {CONNECTION_PHASES.slice(0, 2).map((ph, i) => (
+                            <button key={ph} type="button" onClick={() => setConnectionPhase(ph)} className="btn btn-secondary">
+                              {t.usage.improve.phases[i]}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  }
+                  housesPrompt={
+                    <button type="button" onClick={() => goTo(1)} className={`${LINK} mt-1`}>
+                      {t.property.houses}
+                    </button>
+                  }
+                />
+              </Suspense>
             )}
 
             {estimateStatus === "error" && (
@@ -678,8 +797,7 @@ function SolarCalculatorInner() {
           <Link
             href={`/book-a-call?${new URLSearchParams({
               sizingMethod,
-              sizingValue:
-                sizingMethod === "bill" ? averageMonthlyBill : sizingMethod === "units" ? monthlyUnits : roofAreaSqFt,
+              sizingValue: sizingMethod === "units" ? monthlyUnits : sizingMethod === "bill" ? averageMonthlyBill : roofAreaSqFt,
               source: "calculator",
             }).toString()}`}
             className="btn btn-primary"

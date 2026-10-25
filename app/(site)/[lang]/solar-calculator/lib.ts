@@ -77,20 +77,6 @@ export function connectionPhaseToEngineKey(label: string): string | undefined {
 // FIXED_PUBLIC_TIER) and no longer accepts or returns a tier at all. Every
 // Grid Nova installation uses the same top-quality equipment as standard.
 
-// Site-access difficulty — new to the calculator, no prior UI precedent (see
-// app/pricing/engine.py's PLACEHOLDER_ACCESS_DIFFICULTY_MODIFIER: this is
-// about reaching the site at all — stairs-only, tight lane, no crane access —
-// not what the roof is made of, which is the separate Roof Type field above).
-const ACCESS_DIFFICULTIES: [key: string, label: string][] = [
-  ["easy", "Easy — ground floor or good vehicle/crane access"],
-  ["moderate", "Moderate — some stairs or a narrow approach"],
-  ["difficult", "Difficult — stairs-only, tight lane, no crane access"],
-];
-export const ACCESS_DIFFICULTY_LABELS = ACCESS_DIFFICULTIES.map(([, label]) => label);
-export function accessDifficultyLabelToEngineKey(label: string): string | undefined {
-  return ACCESS_DIFFICULTIES.find(([, l]) => l === label)?.[0];
-}
-
 // Shading condition — extends the proposal wizard's own SHADING_CONDITIONS
 // (app/proposal/new/types.ts: no/partial-morning/partial-evening/heavy) with
 // a fifth "significant" option, which is what actually drives this flow's
@@ -140,19 +126,40 @@ export function validatePinCode(value: string, e: ValidationErrors = DEFAULT_VAL
 // duplicated, so both consumers stay in sync with the same real data.
 export { discomsForState } from "@/app/(internal)/proposal/new/types";
 
-// Rough rooftop-solar rule of thumb (~100 sq ft per kW of installed capacity).
-// This is a frontend-only placeholder used solely so a customer who only
-// knows their roof area (not their bill) can still get an instant indicative
-// number — it is independent of, and no more or less "placeholder" than, the
-// backend's own PLACEHOLDER_* pricing constants. Real conversion guidance
-// pending the same business input (Raju Paul) the backend rates are pending.
-export const PLACEHOLDER_ROOF_AREA_SQFT_PER_KW = 100;
-const MIN_SIZE_KW = 1;
-const MAX_SIZE_KW = 500; // sanity ceiling for a mistyped roof area
+// Input bounds — the backend's own (InstantEstimateRequest, BE-14). Checked here
+// only so the visitor sees a plain message before sending; the server stays the
+// authority. Sizing itself (roof area → kW included) is the engine's alone.
+export const INPUT_BOUNDS = {
+  units: { min: 1, max: 100_000 },
+  bill: { min: 1, max: 5_000_000 },
+  houses: { min: 1, max: 5_000 },
+  sanctionedMax: 100_000,
+  roofMax: 10_000_000,
+} as const;
 
-export function roofAreaToSizeKw(roofAreaSqFt: number): number {
-  const raw = roofAreaSqFt / PLACEHOLDER_ROOF_AREA_SQFT_PER_KW;
-  return Math.min(MAX_SIZE_KW, Math.max(MIN_SIZE_KW, Math.round(raw * 10) / 10));
+/** A typed number, or undefined while the field is empty or not a plain number. */
+export function parseInput(value: string): number | undefined {
+  const v = value.trim();
+  if (!/^\d+(\.\d+)?$/.test(v)) return undefined;
+  return Number(v);
+}
+
+const inRange = (n: number | undefined, min: number, max: number) => n !== undefined && n >= min && n <= max;
+
+export function unitsValid(value: string): boolean {
+  return inRange(parseInput(value), INPUT_BOUNDS.units.min, INPUT_BOUNDS.units.max);
+}
+export function billValid(value: string): boolean {
+  return inRange(parseInput(value), INPUT_BOUNDS.bill.min, INPUT_BOUNDS.bill.max);
+}
+export function housesValid(value: string): boolean {
+  const n = parseInput(value);
+  return n !== undefined && Number.isInteger(n) && inRange(n, INPUT_BOUNDS.houses.min, INPUT_BOUNDS.houses.max);
+}
+/** Strictly above zero, as the contract's exclusive minimum. */
+export function positiveValid(value: string, max: number): boolean {
+  const n = parseInput(value);
+  return n !== undefined && n > 0 && n <= max;
 }
 
 export function validateEmail(value: string, e: ValidationErrors = DEFAULT_VALIDATION_ERRORS): string | undefined {

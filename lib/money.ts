@@ -4,18 +4,28 @@
 
 const DECIMAL = /^(-)?(\d+)(?:\.(\d+))?$/
 
-/** "1234567.89" → "₹12,34,567.89" (Indian lakh/crore grouping). Unparseable input is returned untouched. */
-export function formatInr(amount: string | null | undefined): string {
-  if (amount == null || amount === '') return '—'
-  const m = DECIMAL.exec(amount.trim())
-  if (!m) return amount
+function grouped(value: string, prefix: string): string {
+  const m = DECIMAL.exec(value.trim())
+  if (!m) return value
   const [, sign = '', whole, fraction] = m
   const digits = whole.replace(/^0+(?=\d)/, '')
-  const grouped =
+  const body =
     digits.length > 3
       ? `${digits.slice(0, -3).replace(/\B(?=(\d{2})+(?!\d))/g, ',')},${digits.slice(-3)}`
       : digits
-  return `${sign}₹${grouped}${fraction ? `.${fraction}` : ''}`
+  return `${sign}${prefix}${body}${fraction ? `.${fraction}` : ''}`
+}
+
+/** "1234567.89" → "₹12,34,567.89" (Indian lakh/crore grouping). Unparseable input is returned untouched. */
+export function formatInr(amount: string | null | undefined): string {
+  if (amount == null || amount === '') return '—'
+  return grouped(amount, '₹')
+}
+
+/** "132492" → "1,32,492": the same Indian grouping for units and other non-money figures. */
+export function formatGrouped(value: string | number | null | undefined): string {
+  if (value == null || value === '') return '—'
+  return grouped(String(value), '')
 }
 
 /** Format check only (positive amount, at most 2 decimals) — the server stays the authority. */

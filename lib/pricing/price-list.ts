@@ -12,6 +12,8 @@ export interface PackagePrice {
   gst: string
   final: string
   net_after_subsidy?: string | null
+  /** BE-14: net_after_subsidy minus announced state support — information only, never the net cost. */
+  net_if_announced_support_received?: string | null
   display_name?: string
 }
 

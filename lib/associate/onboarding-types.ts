@@ -480,6 +480,10 @@ export interface EstimateResult {
   destination?: string | null
   subsidy_conditions?: string[]
   chosen_packages?: string[] | null
+  // BE-14: the stored result carries every solar-estimate field
+  // (lib/pricing/solar-estimate.ts) — read only through parseSolarEstimate.
+  estimate_version?: string | null
+  [key: string]: unknown
 }
 
 export interface Estimate {

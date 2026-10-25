@@ -1,0 +1,417 @@
+{
+  "recommended_size_kw": 3.5,
+  "sizing_detail": {
+    "consumption_based_kw": 3.33,
+    "area_based_kw": null,
+    "phase_capped": false
+  },
+  "base_cost": null,
+  "adders": {},
+  "component_breakdown": {},
+  "subtotal_before_tax": null,
+  "gst_amount": null,
+  "subsidy_inr": 78000.0,
+  "net_cost": null,
+  "is_indicative_range": false,
+  "net_cost_range_min": null,
+  "net_cost_range_max": null,
+  "note": null,
+  "price_status": "custom_quote",
+  "custom_quote_reasons": [
+    "phase_unknown"
+  ],
+  "recommended_kw_exact": 3.33,
+  "priced_kw": null,
+  "priced_kw_differs": false,
+  "phase": null,
+  "packages": {},
+  "gst_rule": {
+    "effective_rate": "0.089",
+    "components": [
+      {
+        "share_of_basic": "0.70",
+        "rate": "0.05"
+      },
+      {
+        "share_of_basic": "0.30",
+        "rate": "0.18"
+      }
+    ],
+    "description": "GST at 8.9% effective: 5% on 70% of the basic price and 18% on the remaining 30%."
+  },
+  "price_list_version": 1,
+  "destination": "West Bengal",
+  "subsidy_conditions": [
+    "dcr_modules_required",
+    "scheme_eligibility",
+    "grid_connected",
+    "one_subsidy_per_house",
+    "national_portal_registration",
+    "discom_inspection_and_net_metering"
+  ],
+  "estimate_version": "1.1+ebb9f500bf76",
+  "sizing_basis": "monthly_bill_flat_rate",
+  "consumption_basis": "monthly_bill_flat_rate",
+  "monthly_units_used": "444.44",
+  "roof_limited": false,
+  "figures_for_kw": "3.33",
+  "size_options": [],
+  "generation": {
+    "units_per_kwp_per_month": "120",
+    "monthly_units": "400",
+    "annual_units": "4800",
+    "status": "confirmed",
+    "source": "Grid Nova (Raju Paul), 15 Oct 2026: 4 units/kWp/day; sample proposals print ~120 units/kWp/month"
+  },
+  "coverage_percent": "90.0",
+  "subsidy": {
+    "status": "eligible",
+    "reason": null,
+    "central": {
+      "category": "general",
+      "basis": "nominal",
+      "capacity_kwp": "3.33",
+      "slabs": [
+        {
+          "from_kwp": "0",
+          "to_kwp": "2",
+          "kwp": "2",
+          "rate_per_kwp": "30000",
+          "amount": "60000.00"
+        },
+        {
+          "from_kwp": "2",
+          "to_kwp": "3",
+          "kwp": "1",
+          "rate_per_kwp": "18000",
+          "amount": "18000.00"
+        }
+      ],
+      "total": "78000.00",
+      "max_inr": "78000"
+    },
+    "society": null,
+    "state": [
+      {
+        "state": "West Bengal",
+        "amount": "15000.00",
+        "status": "announced",
+        "note": "On top of the central CFA. Additional state support may apply for SC/ST households.",
+        "source": "West Bengal state launch, reported 23 Jul 2026 (government order not located)",
+        "as_of": "2026-07-23",
+        "valid_until": null,
+        "rule": "capacity_steps"
+      }
+    ],
+    "confirmed_total": "78000.00",
+    "announced_total": "15000.00",
+    "conditions": [
+      "dcr_modules_required",
+      "scheme_eligibility",
+      "grid_connected",
+      "one_subsidy_per_house",
+      "national_portal_registration",
+      "discom_inspection_and_net_metering"
+    ],
+    "notes": []
+  },
+  "subsidy_status": "eligible",
+  "announced_state_support": [
+    {
+      "state": "West Bengal",
+      "amount": "15000.00",
+      "status": "announced",
+      "note": "On top of the central CFA. Additional state support may apply for SC/ST households.",
+      "source": "West Bengal state launch, reported 23 Jul 2026 (government order not located)",
+      "as_of": "2026-07-23",
+      "valid_until": null,
+      "rule": "capacity_steps"
+    }
+  ],
+  "net_cost_if_announced_support_received": null,
+  "savings": {
+    "monthly": "3600.00",
+    "annual": "43200.00",
+    "method": "marginal",
+    "tariff_source": "flat_rate",
+    "confidence": "low",
+    "monthly_bill_before": "3999.96",
+    "monthly_bill_after": "399.96",
+    "rate_inr_per_kwh": "9",
+    "tariff_table": null,
+    "free_units_per_month": null
+  },
+  "payback_years": null,
+  "long_term": {
+    "years": 25,
+    "total_generation": "110410",
+    "total_savings": "993690.00",
+    "by_year": [
+      {
+        "year": 1,
+        "output_percent": "100.00",
+        "generation_units": "4800",
+        "savings": "43200.00"
+      },
+      {
+        "year": 2,
+        "output_percent": "98.00",
+        "generation_units": "4704",
+        "savings": "42336.00"
+      },
+      {
+        "year": 3,
+        "output_percent": "97.45",
+        "generation_units": "4678",
+        "savings": "42102.00"
+      },
+      {
+        "year": 4,
+        "output_percent": "96.90",
+        "generation_units": "4651",
+        "savings": "41859.00"
+      },
+      {
+        "year": 5,
+        "output_percent": "96.35",
+        "generation_units": "4625",
+        "savings": "41625.00"
+      },
+      {
+        "year": 6,
+        "output_percent": "95.80",
+        "generation_units": "4598",
+        "savings": "41382.00"
+      },
+      {
+        "year": 7,
+        "output_percent": "95.25",
+        "generation_units": "4572",
+        "savings": "41148.00"
+      },
+      {
+        "year": 8,
+        "output_percent": "94.70",
+        "generation_units": "4546",
+        "savings": "40914.00"
+      },
+      {
+        "year": 9,
+        "output_percent": "94.15",
+        "generation_units": "4519",
+        "savings": "40671.00"
+      },
+      {
+        "year": 10,
+        "output_percent": "93.60",
+        "generation_units": "4493",
+        "savings": "40437.00"
+      },
+      {
+        "year": 11,
+        "output_percent": "93.05",
+        "generation_units": "4466",
+        "savings": "40194.00"
+      },
+      {
+        "year": 12,
+        "output_percent": "92.50",
+        "generation_units": "4440",
+        "savings": "39960.00"
+      },
+      {
+        "year": 13,
+        "output_percent": "91.95",
+        "generation_units": "4414",
+        "savings": "39726.00"
+      },
+      {
+        "year": 14,
+        "output_percent": "91.40",
+        "generation_units": "4387",
+        "savings": "39483.00"
+      },
+      {
+        "year": 15,
+        "output_percent": "90.85",
+        "generation_units": "4361",
+        "savings": "39249.00"
+      },
+      {
+        "year": 16,
+        "output_percent": "90.30",
+        "generation_units": "4334",
+        "savings": "39006.00"
+      },
+      {
+        "year": 17,
+        "output_percent": "89.75",
+        "generation_units": "4308",
+        "savings": "38772.00"
+      },
+      {
+        "year": 18,
+        "output_percent": "89.20",
+        "generation_units": "4282",
+        "savings": "38538.00"
+      },
+      {
+        "year": 19,
+        "output_percent": "88.65",
+        "generation_units": "4255",
+        "savings": "38295.00"
+      },
+      {
+        "year": 20,
+        "output_percent": "88.10",
+        "generation_units": "4229",
+        "savings": "38061.00"
+      },
+      {
+        "year": 21,
+        "output_percent": "87.55",
+        "generation_units": "4202",
+        "savings": "37818.00"
+      },
+      {
+        "year": 22,
+        "output_percent": "87.00",
+        "generation_units": "4176",
+        "savings": "37584.00"
+      },
+      {
+        "year": 23,
+        "output_percent": "86.45",
+        "generation_units": "4150",
+        "savings": "37350.00"
+      },
+      {
+        "year": 24,
+        "output_percent": "85.90",
+        "generation_units": "4123",
+        "savings": "37107.00"
+      },
+      {
+        "year": 25,
+        "output_percent": "85.35",
+        "generation_units": "4097",
+        "savings": "36873.00"
+      }
+    ],
+    "assumptions": {
+      "degradation_first_year_percent": "2.0",
+      "degradation_annual_percent": "0.55",
+      "tariff_escalation_percent_per_year": "0",
+      "o_and_m": "First year free (price list); later years' cost is not modelled and not deducted."
+    }
+  },
+  "assumptions": [
+    {
+      "name": "units_per_kwp_per_month",
+      "value": "120",
+      "unit": "kWh/kWp/month",
+      "status": "confirmed",
+      "source": "Grid Nova (Raju Paul), 15 Oct 2026: 4 units/kWp/day; sample proposals print ~120 units/kWp/month",
+      "as_of": "2026-10-15"
+    },
+    {
+      "name": "target_offset_percent",
+      "value": "90",
+      "unit": "percent",
+      "status": "unconfirmed",
+      "source": "Developer default (was PRC-11)",
+      "as_of": "2026-10-25"
+    },
+    {
+      "name": "flat_rate_inr_per_kwh",
+      "value": "9",
+      "unit": "INR/kWh",
+      "status": "confirmed",
+      "source": "Grid Nova (Raju Paul), 15 Oct 2026: a flat average, not a DISCOM tariff",
+      "as_of": "2026-10-15"
+    },
+    {
+      "name": "discom_tariff_table",
+      "value": "CESC/domestic",
+      "unit": "table",
+      "status": "unconfirmed",
+      "source": "config/solar_estimate.yaml tariffs.discoms",
+      "as_of": null
+    },
+    {
+      "name": "degradation_first_year_percent",
+      "value": "2.0",
+      "unit": "percent",
+      "status": "unconfirmed",
+      "source": "Typical panel datasheet warranty curve (developer default)",
+      "as_of": "2026-10-25"
+    },
+    {
+      "name": "degradation_annual_percent",
+      "value": "0.55",
+      "unit": "percent/year",
+      "status": "unconfirmed",
+      "source": "Typical panel datasheet warranty curve (developer default)",
+      "as_of": "2026-10-25"
+    },
+    {
+      "name": "tariff_escalation_percent_per_year",
+      "value": "0",
+      "unit": "percent/year",
+      "status": "unconfirmed",
+      "source": "Developer default: no escalation (conservative)",
+      "as_of": "2026-10-25"
+    },
+    {
+      "name": "long_term_years",
+      "value": "25",
+      "unit": "years",
+      "status": "confirmed",
+      "source": "Grid Nova price list v1: solar panel life span 25 years",
+      "as_of": "2026-10-04"
+    },
+    {
+      "name": "export_credit",
+      "value": "none",
+      "unit": "INR/kWh",
+      "status": "unconfirmed",
+      "source": "WBERC 2025 prosumer regulations not yet confirmed: no credit assumed (conservative)",
+      "as_of": "2026-10-25"
+    },
+    {
+      "name": "o_and_m_first_year_free",
+      "value": true,
+      "unit": "flag",
+      "status": "confirmed",
+      "source": "Grid Nova price list v1: O&M first year free",
+      "as_of": "2026-10-04"
+    },
+    {
+      "name": "central_cfa",
+      "value": "PM Surya Ghar: Muft Bijli Yojana",
+      "unit": "scheme",
+      "status": "confirmed",
+      "source": "MNRE, PM Surya Ghar operational guidelines for residential CFA (7 Jun 2024); PIB scheme document (Aug 2024); residential CFA unchanged in the 2025–26 amendments",
+      "as_of": "2024-06-07"
+    },
+    {
+      "name": "cfa_capacity_basis",
+      "value": "nominal",
+      "unit": "basis",
+      "status": "unconfirmed",
+      "source": "Developer default until Grid Nova says how many modules a nominal kW gets",
+      "as_of": "2026-10-25"
+    }
+  ],
+  "confidence": "low",
+  "warnings": [
+    "tariff_table_not_available"
+  ],
+  "warning_details": {
+    "tariff_table_not_available": {
+      "discom": "CESC",
+      "category": "domestic",
+      "status": "unconfirmed"
+    }
+  }
+}

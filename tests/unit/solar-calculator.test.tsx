@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import SolarCalculator from '@/app/(site)/[lang]/solar-calculator/SolarCalculator'
 import { withI18n } from './helpers/i18n'
 import { CATALOGUE, CUSTOM_QUOTE, LIST_ESTIMATE } from './fixtures/pricing'
+import { fillLocation, fillProperty, fillUsage, enterUsage, openImproveAccuracy, toResults } from './helpers/calculator'
 
 beforeEach(() => {
   window.scrollTo = vi.fn()
@@ -33,27 +34,6 @@ afterEach(() => {
 
 const INSTANT_ESTIMATE_BODY = LIST_ESTIMATE
 
-async function fillStepA(user: ReturnType<typeof userEvent.setup>) {
-  await user.selectOptions(screen.getByLabelText(/^state/i), 'West Bengal')
-  await user.type(screen.getByLabelText(/^city/i), 'Kolkata')
-  await user.type(screen.getByLabelText(/pin code/i), '700001')
-  await user.click(screen.getByRole('button', { name: /^next$/i }))
-  await screen.findByText(/step 2 of 5/i)
-}
-
-async function fillStepB(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText(/average monthly electricity bill/i), '3500')
-  await user.selectOptions(screen.getByLabelText(/connection phase/i), 'Single Phase')
-  await user.click(screen.getByRole('button', { name: /^next$/i }))
-  await screen.findByText(/step 3 of 5/i)
-}
-
-async function fillStepC(user: ReturnType<typeof userEvent.setup>) {
-  // Site Details is entirely optional — Next is always enabled here.
-  await user.click(screen.getByRole('button', { name: /^next$/i }))
-  await screen.findByText(/step 4 of 5/i)
-}
-
 describe('SolarCalculator — full flow with the pricing endpoint mocked', () => {
   function stubApi(estimate: unknown = INSTANT_ESTIMATE_BODY, catalogue: unknown = CATALOGUE) {
     const fetchMock = vi.fn<typeof fetch>().mockImplementation(async (url) => {
@@ -66,9 +46,7 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
   }
 
   async function reachResult(user: ReturnType<typeof userEvent.setup>) {
-    await fillStepA(user)
-    await fillStepB(user)
-    await fillStepC(user)
+    await toResults(user)
   }
 
   it('shows two equal package cards with the exact list prices, the subsidy separately, and offers a site visit', async () => {
@@ -100,8 +78,8 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
     const subsidy = screen.getByTestId('subsidy-block')
     expect(subsidy).toHaveTextContent(/if eligible/i)
     expect(subsidy).toHaveTextContent('₹78,000')
-    expect(subsidy).toHaveTextContent(/DCR solar modules are required/i)
-    expect(subsidy).toHaveTextContent(/eligible under the scheme/i)
+    expect(subsidy).toHaveTextContent(/Made-in-India panels \(DCR\) are required/i)
+    expect(subsidy).toHaveTextContent(/eligible under the PM Surya Ghar scheme/i)
     expect(within(cards[0]).getByTestId('net-after-subsidy')).toHaveTextContent('₹3,71,044.43')
 
     // GST rule in plain words, footer lines.
@@ -197,9 +175,7 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
     const user = userEvent.setup()
     render(withI18n(<SolarCalculator />))
 
-    await fillStepA(user)
-    await fillStepB(user)
-    await fillStepC(user)
+    await toResults(user)
 
     await screen.findByText(/we.ll calculate your estimate and follow up personally/i)
     // Never stuck — Continue is still there (no result to book a visit
@@ -251,86 +227,148 @@ describe('SolarCalculator — full flow with the pricing endpoint mocked', () =>
     expect(screen.getByRole('button', { name: /^next$/i })).toBeEnabled()
   })
 
-  it('requires a connection phase before Sizing can proceed, even though it used to be optional', async () => {
+  it('asks for units first, with the bill optional, and explains why units are best', async () => {
     vi.stubGlobal('fetch', vi.fn())
     const user = userEvent.setup()
     render(withI18n(<SolarCalculator />))
-    await fillStepA(user)
+    await fillLocation(user)
+    await fillProperty(user)
 
-    await user.type(screen.getByLabelText(/average monthly electricity bill/i), '3500')
-    expect(screen.getByRole('button', { name: /^next$/i })).toBeDisabled()
-
-    await user.selectOptions(screen.getByLabelText(/connection phase/i), 'Three Phase')
-    expect(screen.getByRole('button', { name: /^next$/i })).toBeEnabled()
+    expect(screen.getByText(/units give the most accurate estimate/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/units used per month/i)).toBeInTheDocument()
+    expect(screen.getByText(/find “units consumed” on your bill/i)).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /units consumed/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /only know my bill/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /only know my roof/i })).toBeInTheDocument()
+    // The phase is optional now (asked under "Improve accuracy", or on the result when prices need it).
+    const next = screen.getByRole('button', { name: /^next$/i })
+    expect(next).toBeDisabled()
+    await user.type(screen.getByLabelText(/units used per month/i), '360')
+    expect(next).toBeEnabled()
   })
 
-  it('offers sizing "by units" as a third method, sent to the backend as by_units', async () => {
+  it('refuses out-of-range units, bill and load with a plain message, using the backend bounds', async () => {
+    vi.stubGlobal('fetch', vi.fn())
+    const user = userEvent.setup()
+    render(withI18n(<SolarCalculator />))
+    await fillLocation(user)
+    await fillProperty(user)
+    const next = screen.getByRole('button', { name: /^next$/i })
+
+    await user.type(screen.getByLabelText(/units used per month/i), '100001')
+    expect(screen.getByText(/enter units from 1 to 1,00,000/i)).toBeInTheDocument()
+    expect(next).toBeDisabled()
+    await user.clear(screen.getByLabelText(/units used per month/i))
+    await user.type(screen.getByLabelText(/units used per month/i), '360')
+    expect(next).toBeEnabled()
+
+    await user.type(screen.getByLabelText(/bill amount/i), '0')
+    expect(screen.getByText(/enter an amount from ₹1 to ₹50,00,000/i)).toBeInTheDocument()
+    expect(next).toBeDisabled()
+    await user.clear(screen.getByLabelText(/bill amount/i))
+    expect(next).toBeEnabled()
+
+    await openImproveAccuracy(user)
+    await user.type(screen.getByLabelText(/sanctioned load/i), '0')
+    expect(screen.getByText(/enter a load above 0 kw/i)).toBeInTheDocument()
+    expect(next).toBeDisabled()
+  })
+
+  it('a housing society must give its number of flats before going on', async () => {
+    vi.stubGlobal('fetch', vi.fn())
+    const user = userEvent.setup()
+    render(withI18n(<SolarCalculator />))
+    await fillLocation(user)
+
+    await user.click(screen.getByRole('button', { name: /housing society/i }))
+    const next = screen.getByRole('button', { name: /^next$/i })
+    expect(next).toBeDisabled()
+    await user.type(screen.getByLabelText(/how many flats/i), '0')
+    expect(screen.getByText(/whole number of flats from 1 to 5,000/i)).toBeInTheDocument()
+    expect(next).toBeDisabled()
+    await user.clear(screen.getByLabelText(/how many flats/i))
+    await user.type(screen.getByLabelText(/how many flats/i), '40')
+    expect(next).toBeEnabled()
+    // A home needs no count.
+    await user.click(screen.getByRole('button', { name: /^home$/i }))
+    expect(screen.queryByLabelText(/how many flats/i)).not.toBeInTheDocument()
+    expect(next).toBeEnabled()
+  })
+
+  it('sends units and bill together, the DISCOM code, and every "Improve accuracy" field to the engine', async () => {
     const fetchMock = vi.fn<typeof fetch>().mockImplementation(async (url) => {
-      if (String(url).includes('/api/v1/pricing/instant-estimate')) {
-        return new Response(JSON.stringify(INSTANT_ESTIMATE_BODY), { status: 200 })
-      }
+      if (String(url).includes('/api/v1/pricing/instant-estimate')) return new Response(JSON.stringify(INSTANT_ESTIMATE_BODY), { status: 200 })
+      if (String(url).includes('/api/v1/pricing/packages')) return new Response(JSON.stringify(CATALOGUE), { status: 200 })
       throw new Error(`Unexpected fetch to ${url}`)
     })
     vi.stubGlobal('fetch', fetchMock)
 
     const user = userEvent.setup()
     render(withI18n(<SolarCalculator />))
-    await fillStepA(user)
-
-    await user.click(screen.getByRole('button', { name: /by monthly units/i }))
-    await user.type(screen.getByLabelText(/average monthly consumption/i), '450')
-    await user.selectOptions(screen.getByLabelText(/connection phase/i), 'Single Phase')
-    await user.click(screen.getByRole('button', { name: /^next$/i }))
-    await screen.findByText(/step 3 of 5/i)
-    await fillStepC(user)
-
-    await waitFor(() => expect(fetchMock).toHaveBeenCalled())
-    const sentBody = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string)
-    expect(sentBody).toMatchObject({ sizing_method: 'by_units', monthly_units_kwh: 450 })
-  })
-
-  it('sends the Site Details fields (roof type, floors, access, shading) through to the pricing call', async () => {
-    const fetchMock = vi.fn<typeof fetch>().mockImplementation(async (url) => {
-      if (String(url).includes('/api/v1/pricing/instant-estimate')) {
-        return new Response(JSON.stringify(INSTANT_ESTIMATE_BODY), { status: 200 })
-      }
-      throw new Error(`Unexpected fetch to ${url}`)
+    await fillLocation(user, { discom: 'CESC Limited (Kolkata & parts of Howrah)' })
+    await fillProperty(user, { houses: '40' })
+    await fillUsage(user, {
+      units: '360',
+      bill: '2600',
+      phase: 'Single Phase',
+      sanctioned: '2',
+      improveRoof: '800',
+      shading: 'Significant shading / many obstructions',
+      roofType: 'RCC / Concrete Flat Roof',
     })
-    vi.stubGlobal('fetch', fetchMock)
-
-    const user = userEvent.setup()
-    render(withI18n(<SolarCalculator />))
-    await fillStepA(user)
-
-    await user.type(screen.getByLabelText(/average monthly electricity bill/i), '3500')
-    await user.selectOptions(screen.getByLabelText(/connection phase/i), 'Single Phase')
-    await user.click(screen.getByRole('button', { name: /^next$/i }))
-    await screen.findByText(/step 3 of 5/i)
-
-    await user.selectOptions(screen.getByLabelText(/roof type/i), 'RCC / Concrete Flat Roof')
-    await user.selectOptions(screen.getByLabelText(/site access difficulty/i), 'Easy — ground floor or good vehicle/crane access')
-    await user.selectOptions(screen.getByLabelText(/shading condition/i), 'Significant shading / many obstructions')
-    await user.click(screen.getByRole('button', { name: /^next$/i }))
-    await screen.findByText(/step 4 of 5/i)
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled())
-    const sentBody = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string)
-    expect(sentBody).toMatchObject({
+    const sentBody = JSON.parse((fetchMock.mock.calls.find(([u]) => String(u).includes('instant-estimate'))![1] as RequestInit).body as string)
+    expect(sentBody).toEqual({
+      segment: 'residential',
+      state: 'West Bengal',
+      discom: 'CESC',
+      sizing_method: 'by_units',
+      monthly_units_kwh: 360,
+      monthly_bill_inr: 2600,
+      usable_roof_area_sqft: 800,
+      connection_phase: 'single_phase',
+      sanctioned_load_kw: 2,
       roof_type: 'rcc',
-      access_difficulty: 'easy',
       shading: 'significant',
+      is_remote: false,
+      is_housing_society: true,
+      number_of_houses: 40,
     })
-    expect(sentBody).not.toHaveProperty('tier')
+    // The roof-area guess the browser used to make is gone: sizing is the engine's alone.
+    expect(screen.queryByText(/indicative capacity/i)).not.toBeInTheDocument()
+  })
+
+  it('sends only the chosen method\'s figure — bill-only and roof-only', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockImplementation(async (url) => {
+      if (String(url).includes('/api/v1/pricing/instant-estimate')) return new Response(JSON.stringify(INSTANT_ESTIMATE_BODY), { status: 200 })
+      if (String(url).includes('/api/v1/pricing/packages')) return new Response(JSON.stringify(CATALOGUE), { status: 200 })
+      throw new Error(`Unexpected fetch to ${url}`)
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const user = userEvent.setup()
+    render(withI18n(<SolarCalculator />))
+    await fillLocation(user)
+    await fillProperty(user)
+    // Units typed first, then the visitor switches to "bill only": the units must not be sent.
+    await enterUsage(user, { units: '360' })
+    await fillUsage(user, { only: 'bill', bill: '4000' })
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled())
+    const body = JSON.parse((fetchMock.mock.calls.find(([u]) => String(u).includes('instant-estimate'))![1] as RequestInit).body as string)
+    expect(body).toMatchObject({ sizing_method: 'by_bill', monthly_bill_inr: 4000 })
+    expect(body).not.toHaveProperty('monthly_units_kwh')
+    expect(body).not.toHaveProperty('connection_phase')
+    expect(body).not.toHaveProperty('number_of_houses')
   })
 
   it('never renders an equipment tier selector anywhere in the flow', async () => {
     vi.stubGlobal('fetch', vi.fn())
     const user = userEvent.setup()
     render(withI18n(<SolarCalculator />))
-    await fillStepA(user)
-
-    await user.type(screen.getByLabelText(/average monthly electricity bill/i), '3500')
-    await user.selectOptions(screen.getByLabelText(/connection phase/i), 'Single Phase')
+    await fillLocation(user)
+    await fillProperty(user)
+    await enterUsage(user, { only: 'bill', bill: '3500', phase: 'Single Phase' })
 
     expect(screen.queryByText(/equipment tier/i)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^good$/i })).not.toBeInTheDocument()

@@ -190,37 +190,47 @@ export function PackageGrid({
   )
 }
 
-/** Everything the result of a price-list estimate needs, shared by the calculator and the portal. */
+/**
+ * Everything the result of a price-list estimate needs, shared by the calculator and the portal.
+ * A BE-14 estimate draws its own size and subsidy lines (SolarEstimateResult), so it turns
+ * `showSize` / `showSubsidy` off and keeps only the packages, GST and footer from here.
+ */
 export function PriceListSummary({
   fields,
   catalogue,
   chosenLabel,
   hidePrices,
+  showSize = true,
+  showSubsidy = true,
 }: {
   fields: PriceListFields
   catalogue: PackageCatalogue | null
   chosenLabel?: string
   hidePrices?: boolean
+  showSize?: boolean
+  showSubsidy?: boolean
 }) {
   const m = useMessages('pricing')
   const exact = fields.recommended_kw_exact != null ? String(fields.recommended_kw_exact) : null
   const priced = fields.priced_kw != null ? String(fields.priced_kw) : null
   const conditions = fields.subsidy_conditions ?? []
-  const hasSubsidy = conditions.length > 0
+  const hasSubsidy = showSubsidy && conditions.length > 0
   const version = fields.price_list_version ?? catalogue?.price_list_version
   const destination = fields.destination ?? catalogue?.destination
   return (
     <div className="space-y-4">
-      <div data-testid="size-lines" className="space-y-1">
-        {priced ? (
-          <p className="font-display text-base font-semibold text-[#0e2a63]">{fmt(m.size.priced, { kw: priced })}</p>
-        ) : null}
-        {fields.priced_kw_differs && exact && priced && (
-          <p data-testid="snapped-note" className="font-utility text-sm text-[#111827]/75">
-            {fmt(m.size.snapped, { exact, priced })}
-          </p>
-        )}
-      </div>
+      {showSize && (
+        <div data-testid="size-lines" className="space-y-1">
+          {priced ? (
+            <p className="font-display text-base font-semibold text-[#0e2a63]">{fmt(m.size.priced, { kw: priced })}</p>
+          ) : null}
+          {fields.priced_kw_differs && exact && priced && (
+            <p data-testid="snapped-note" className="font-utility text-sm text-[#111827]/75">
+              {fmt(m.size.snapped, { exact, priced })}
+            </p>
+          )}
+        </div>
+      )}
 
       {hidePrices && <p data-testid="prices-hidden" className="rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] px-4 py-3 font-utility text-sm text-[#111827]/75">{m.hidden}</p>}
 

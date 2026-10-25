@@ -1,0 +1,391 @@
+{
+  "estimate_version": "1.1+ebb9f500bf76",
+  "generation": {
+    "units_per_kwp_per_month": [
+      {
+        "state": "west_bengal",
+        "name": "units_per_kwp_per_month",
+        "value": "120",
+        "unit": "kWh/kWp/month",
+        "status": "confirmed",
+        "source": "Grid Nova (Raju Paul), 15 Oct 2026: 4 units/kWp/day; sample proposals print ~120 units/kWp/month",
+        "as_of": "2026-10-15"
+      },
+      {
+        "state": "bihar",
+        "name": "units_per_kwp_per_month",
+        "value": "120",
+        "unit": "kWh/kWp/month",
+        "status": "confirmed",
+        "source": "Grid Nova (Raju Paul), 15 Oct 2026: 4 units/kWp/day; sample proposals print ~120 units/kWp/month",
+        "as_of": "2026-10-15"
+      },
+      {
+        "state": "other",
+        "name": "units_per_kwp_per_month",
+        "value": "120",
+        "unit": "kWh/kWp/month",
+        "status": "unconfirmed",
+        "source": "Grid Nova default (4 units/kWp/day), not confirmed for states other than West Bengal and Bihar",
+        "as_of": "2026-10-15"
+      }
+    ],
+    "annual_is_monthly_times": 12,
+    "system_losses": "Included in the generation figure; no second derate is applied.",
+    "shading": "Not modelled as a loss; a significant-shading report needs a site visit.",
+    "degradation": [
+      {
+        "name": "degradation_first_year_percent",
+        "value": "2.0",
+        "unit": "percent",
+        "status": "unconfirmed",
+        "source": "Typical panel datasheet warranty curve (developer default)",
+        "as_of": "2026-10-25"
+      },
+      {
+        "name": "degradation_annual_percent",
+        "value": "0.55",
+        "unit": "percent/year",
+        "status": "unconfirmed",
+        "source": "Typical panel datasheet warranty curve (developer default)",
+        "as_of": "2026-10-25"
+      }
+    ]
+  },
+  "roof_area": [
+    {
+      "name": "sqft_per_kwp",
+      "value": "100",
+      "unit": "sq ft/kWp",
+      "status": "unconfirmed",
+      "source": "MNRE PM Surya Ghar guidance (~10 m² per kW); upper end of Grid Nova's sample proposals (PRO-17)",
+      "as_of": "2026-10-25"
+    },
+    {
+      "name": "sqft_per_kwp_low",
+      "value": "83",
+      "unit": "sq ft/kWp",
+      "status": "unconfirmed",
+      "source": "Lower end implied by Grid Nova's two sample proposals (3 kWp → 250; 52 kWp → 4,300)",
+      "as_of": "2026-10-24"
+    }
+  ],
+  "sizing": {
+    "target_offset": {
+      "name": "target_offset_percent",
+      "value": "90",
+      "unit": "percent",
+      "status": "unconfirmed",
+      "source": "Developer default (was PRC-11)",
+      "as_of": "2026-10-25"
+    },
+    "formula": "exact kW = monthly units × 12 × target offset ÷ (units per kWp per month × 12); the smaller of that and roof area ÷ sq ft per kWp; priced at the next whole kW in the phase range, with the whole kW below also shown when in range.",
+    "sanctioned_load": "A size above the sanctioned load is a warning, never a silent cap."
+  },
+  "savings": {
+    "method": "marginal: bill(units) − bill(units − solar units), fixed charges unchanged",
+    "escalation": {
+      "name": "tariff_escalation_percent_per_year",
+      "value": "0",
+      "unit": "percent/year",
+      "status": "unconfirmed",
+      "source": "Developer default: no escalation (conservative)",
+      "as_of": "2026-10-25"
+    },
+    "long_term_years": {
+      "name": "long_term_years",
+      "value": "25",
+      "unit": "years",
+      "status": "confirmed",
+      "source": "Grid Nova price list v1: solar panel life span 25 years",
+      "as_of": "2026-10-04"
+    },
+    "export_credit": [
+      {
+        "state": "west_bengal",
+        "rule": "none",
+        "name": "export_credit",
+        "value": null,
+        "unit": "INR/kWh",
+        "status": "unconfirmed",
+        "source": "WBERC 2025 prosumer regulations not yet confirmed: no credit assumed (conservative)",
+        "as_of": "2026-10-25"
+      },
+      {
+        "state": "bihar",
+        "rule": "none",
+        "name": "export_credit",
+        "value": null,
+        "unit": "INR/kWh",
+        "status": "unconfirmed",
+        "source": "Bihar (BERC) net-metering rules not yet confirmed: no credit assumed (conservative)",
+        "as_of": "2026-10-25"
+      },
+      {
+        "state": "other",
+        "rule": "none",
+        "name": "export_credit",
+        "value": null,
+        "unit": "INR/kWh",
+        "status": "unconfirmed",
+        "source": "No credit assumed (conservative)",
+        "as_of": "2026-10-25"
+      }
+    ],
+    "o_and_m": {
+      "name": "o_and_m_first_year_free",
+      "value": true,
+      "unit": "flag",
+      "status": "confirmed",
+      "source": "Grid Nova price list v1: O&M first year free",
+      "as_of": "2026-10-04"
+    },
+    "payback": "net cost after confirmed subsidies ÷ year-1 annual saving"
+  },
+  "tariffs": {
+    "flat_rate": {
+      "name": "flat_rate_inr_per_kwh",
+      "value": "9",
+      "unit": "INR/kWh",
+      "status": "confirmed",
+      "source": "Grid Nova (Raju Paul), 15 Oct 2026: a flat average, not a DISCOM tariff",
+      "as_of": "2026-10-15"
+    },
+    "implied_rate_sanity": {
+      "min": "3",
+      "max": "20",
+      "unit": "INR/kWh",
+      "status": "unconfirmed",
+      "source": "Developer default (was SRV-6)",
+      "as_of": "2026-10-06"
+    },
+    "discoms": [
+      {
+        "state": "West Bengal",
+        "discom": "WBSEDCL",
+        "category": "domestic",
+        "status": "unconfirmed",
+        "source": "Not available: no WBERC tariff order or real WBSEDCL bill supplied",
+        "as_of": "2026-10-25",
+        "effective_from": null,
+        "available": false,
+        "slabs": null,
+        "fixed_charge": null,
+        "electricity_duty": null
+      },
+      {
+        "state": "West Bengal",
+        "discom": "CESC",
+        "category": "domestic",
+        "status": "unconfirmed",
+        "source": "Not available: no WBERC tariff order or real CESC bill supplied",
+        "as_of": "2026-10-25",
+        "effective_from": null,
+        "available": false,
+        "slabs": null,
+        "fixed_charge": null,
+        "electricity_duty": null
+      },
+      {
+        "state": "Bihar",
+        "discom": "NBPDCL",
+        "category": "domestic_rural",
+        "status": "unconfirmed",
+        "source": "Not available: no BERC tariff order or real NBPDCL bill supplied",
+        "as_of": "2026-10-25",
+        "effective_from": null,
+        "available": false,
+        "slabs": null,
+        "fixed_charge": null,
+        "electricity_duty": null
+      },
+      {
+        "state": "Bihar",
+        "discom": "NBPDCL",
+        "category": "domestic_urban",
+        "status": "unconfirmed",
+        "source": "Not available: no BERC tariff order or real NBPDCL bill supplied",
+        "as_of": "2026-10-25",
+        "effective_from": null,
+        "available": false,
+        "slabs": null,
+        "fixed_charge": null,
+        "electricity_duty": null
+      },
+      {
+        "state": "Bihar",
+        "discom": "SBPDCL",
+        "category": "domestic_rural",
+        "status": "unconfirmed",
+        "source": "Not available: no BERC tariff order or real SBPDCL bill supplied",
+        "as_of": "2026-10-25",
+        "effective_from": null,
+        "available": false,
+        "slabs": null,
+        "fixed_charge": null,
+        "electricity_duty": null
+      },
+      {
+        "state": "Bihar",
+        "discom": "SBPDCL",
+        "category": "domestic_urban",
+        "status": "unconfirmed",
+        "source": "Not available: no BERC tariff order or real SBPDCL bill supplied",
+        "as_of": "2026-10-25",
+        "effective_from": null,
+        "available": false,
+        "slabs": null,
+        "fixed_charge": null,
+        "electricity_duty": null
+      }
+    ],
+    "free_units": [
+      {
+        "state": "Bihar",
+        "discoms": [
+          "NBPDCL",
+          "SBPDCL"
+        ],
+        "name": "free_units_per_month",
+        "value": "125",
+        "unit": "kWh/month",
+        "status": "announced",
+        "source": "Bihar government: 125 free units a month for domestic consumers from July 2025 (announced; order not seen)",
+        "as_of": "2025-07-01"
+      }
+    ]
+  },
+  "confidence_rules": {
+    "high": "Monthly units given and a confirmed DISCOM tariff.",
+    "medium": "The customer's own bill ÷ units, or a bill solved through a confirmed DISCOM tariff; or high with a generation figure not confirmed for the state.",
+    "low": "Grid Nova's flat ₹ per unit, or no consumption given (roof area only)."
+  },
+  "subsidies": {
+    "central": {
+      "scheme": "PM Surya Ghar: Muft Bijli Yojana",
+      "status": "confirmed",
+      "source": "MNRE, PM Surya Ghar operational guidelines for residential CFA (7 Jun 2024); PIB scheme document (Aug 2024); residential CFA unchanged in the 2025–26 amendments",
+      "as_of": "2024-06-07",
+      "residential": {
+        "general": {
+          "slabs": [
+            {
+              "up_to_kwp": "2",
+              "rate_per_kwp": "30000"
+            },
+            {
+              "up_to_kwp": "3",
+              "rate_per_kwp": "18000"
+            }
+          ],
+          "max_inr": "78000"
+        },
+        "special": {
+          "slabs": [
+            {
+              "up_to_kwp": "2",
+              "rate_per_kwp": "33000"
+            },
+            {
+              "up_to_kwp": "3",
+              "rate_per_kwp": "19800"
+            }
+          ],
+          "max_inr": "85800"
+        }
+      },
+      "housing_society": {
+        "rate_per_kwp": {
+          "general": "18000",
+          "special": "19800"
+        },
+        "kwp_per_house": "3",
+        "max_kwp": "500"
+      },
+      "special_category_states": [
+        "Arunachal Pradesh",
+        "Assam",
+        "Manipur",
+        "Meghalaya",
+        "Mizoram",
+        "Nagaland",
+        "Sikkim",
+        "Tripura",
+        "Uttarakhand",
+        "Himachal Pradesh",
+        "Jammu & Kashmir",
+        "Ladakh",
+        "Andaman & Nicobar Islands",
+        "Lakshadweep"
+      ],
+      "eligible_segments": [
+        "residential"
+      ],
+      "eligible_connection_types": [
+        "on_grid",
+        "hybrid"
+      ],
+      "cfa_capacity_basis": {
+        "name": "cfa_capacity_basis",
+        "value": "nominal",
+        "unit": "basis",
+        "status": "unconfirmed",
+        "source": "Developer default until Grid Nova says how many modules a nominal kW gets",
+        "as_of": "2026-10-25"
+      },
+      "conditions": [
+        "dcr_modules_required",
+        "scheme_eligibility",
+        "grid_connected",
+        "one_subsidy_per_house",
+        "national_portal_registration",
+        "discom_inspection_and_net_metering"
+      ]
+    },
+    "state_top_ups": [
+      {
+        "state": "Bihar",
+        "amount_rule": {
+          "type": "per_kw_with_cap",
+          "rate_per_kw": "10000",
+          "cap": "20000"
+        },
+        "applies_to": "residential_individual",
+        "note": "Residential consumers under PM Surya Ghar; paid by DBT; for one year from the cabinet decision. With the central CFA, up to ₹98,000.",
+        "status": "announced",
+        "source": "Bihar cabinet decision, reported 14 Aug 2026 (official order not seen)",
+        "as_of": "2026-08-14",
+        "valid_from": "2026-08-14",
+        "valid_until": "2027-08-13"
+      },
+      {
+        "state": "West Bengal",
+        "amount_rule": {
+          "type": "capacity_steps",
+          "steps": [
+            {
+              "min_kw": "1",
+              "amount": "5000"
+            },
+            {
+              "min_kw": "2",
+              "amount": "10000"
+            },
+            {
+              "min_kw": "3",
+              "amount": "15000"
+            }
+          ]
+        },
+        "applies_to": "residential_individual",
+        "note": "On top of the central CFA. Additional state support may apply for SC/ST households.",
+        "status": "announced",
+        "source": "West Bengal state launch, reported 23 Jul 2026 (government order not located)",
+        "as_of": "2026-07-23",
+        "valid_from": "2026-07-23",
+        "valid_until": null
+      }
+    ],
+    "deduction_rule": "Only confirmed subsidies are deducted from net cost. Announced state support is shown separately and is not guaranteed; nothing unconfirmed is ever deducted."
+  }
+}

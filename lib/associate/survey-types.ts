@@ -175,6 +175,20 @@ export interface SurveyEstimate {
   subsidy_inr?: string | null
   subsidy_conditions?: string[]
   price_list_version?: number | string | null
+  // BE-14 (solar_estimate.md §5): the engine's subsidy, generation, savings and
+  // payback. Absent from results computed before BE-14.
+  estimate_version?: string | null
+  subsidy?: unknown
+  subsidy_status?: string | null
+  announced_state_support?: unknown[]
+  net_cost?: number | string | null
+  net_cost_if_announced_support_received?: string | null
+  generation?: unknown
+  coverage_percent?: string | null
+  savings?: unknown
+  payback_years?: string | null
+  long_term?: unknown
+  confidence?: 'high' | 'medium' | 'low' | null
 }
 
 export interface SurveyResults {

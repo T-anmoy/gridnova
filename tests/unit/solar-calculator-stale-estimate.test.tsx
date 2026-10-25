@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import SolarCalculator from '@/app/(site)/[lang]/solar-calculator/SolarCalculator'
 import { withI18n } from './helpers/i18n'
 import { CATALOGUE, CUSTOM_QUOTE, LIST_ESTIMATE } from './fixtures/pricing'
+import { toResults as toResultsWith } from './helpers/calculator'
 
 // L8 — the estimate belongs to the inputs it was computed from. Changing an
 // input after seeing a price must never leave that price on screen, and must
@@ -58,32 +59,18 @@ const estimateBodies = (fetchMock: ReturnType<typeof stub>['fetchMock']) =>
   fetchMock.mock.calls.filter(([u]) => String(u).includes('instant-estimate')).map(([, init]) => JSON.parse((init as RequestInit).body as string))
 
 async function toResults(user: ReturnType<typeof userEvent.setup>, bill: string) {
-  await user.selectOptions(screen.getByLabelText(/^state/i), 'West Bengal')
-  await user.type(screen.getByLabelText(/^city/i), 'Kolkata')
-  await user.type(screen.getByLabelText(/pin code/i), '700001')
-  await user.click(screen.getByRole('button', { name: /^next$/i }))
-  await screen.findByText(/step 2 of 5/i)
-  await user.type(screen.getByLabelText(/average monthly electricity bill/i), bill)
-  await user.selectOptions(screen.getByLabelText(/connection phase/i), 'Single Phase')
-  await user.click(screen.getByRole('button', { name: /^next$/i }))
-  await screen.findByText(/step 3 of 5/i)
-  await user.click(screen.getByRole('button', { name: /^next$/i }))
-  await screen.findByText(/step 4 of 5/i)
+  await toResultsWith(user, { only: 'bill', bill, phase: 'Single Phase' })
 }
 
 async function backToSizingAndChangeBill(user: ReturnType<typeof userEvent.setup>, bill: string) {
   await user.click(screen.getByRole('button', { name: /^back$/i }))
   await screen.findByText(/step 3 of 5/i)
-  await user.click(screen.getByRole('button', { name: /^back$/i }))
-  await screen.findByText(/step 2 of 5/i)
-  const input = screen.getByLabelText(/average monthly electricity bill/i)
+  const input = screen.getByLabelText(/monthly electricity bill/i)
   await user.clear(input)
   await user.type(input, bill)
 }
 
 async function forwardToResults(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole('button', { name: /^next$/i }))
-  await screen.findByText(/step 3 of 5/i)
   await user.click(screen.getByRole('button', { name: /^next$/i }))
   await screen.findByText(/step 4 of 5/i)
 }
@@ -146,7 +133,7 @@ describe('SolarCalculator — stale estimate', () => {
     render(withI18n(<SolarCalculator />))
     await toResults(user, '3500')
     await screen.findAllByTestId('package-card')
-    await backToSizingAndChangeBill(user, '9000000')
+    await backToSizingAndChangeBill(user, '4900000') // the highest bill the engine accepts is ₹50,00,000
     await forwardToResults(user)
     await screen.findByTestId('custom-quote')
 
@@ -159,7 +146,7 @@ describe('SolarCalculator — stale estimate', () => {
     await waitFor(() => expect(fetchMock.mock.calls.some(([u]) => u === '/api/configurator-lead')).toBe(true))
     const lead = JSON.parse((fetchMock.mock.calls.find(([u]) => u === '/api/configurator-lead')![1] as RequestInit).body as string)
     expect(lead.indicativeTotalInr).toBeUndefined() // not the 357600 from the 3500-bill estimate
-    expect(lead.averageMonthlyBill).toBe('9000000')
+    expect(lead.averageMonthlyBill).toBe('4900000')
   })
 
   it('retries after a failed estimate when the visitor returns to the results step', async () => {

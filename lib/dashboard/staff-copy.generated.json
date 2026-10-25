@@ -258,8 +258,13 @@
       "separate": "The subsidy is shown separately and is not included in the prices above.",
       "conditionsLead": "Conditions:",
       "conditions": {
-        "dcr_modules_required": "DCR solar modules are required.",
-        "scheme_eligibility": "You must be eligible under the scheme."
+        "dcr_modules_required": "Made-in-India panels (DCR) are required for the subsidy.",
+        "scheme_eligibility": "You must be eligible under the PM Surya Ghar scheme.",
+        "grid_connected": "The system must be connected to the grid.",
+        "one_subsidy_per_house": "One subsidy per house (one electricity connection).",
+        "national_portal_registration": "Register on the national PM Surya Ghar portal — Grid Nova helps you do this.",
+        "discom_inspection_and_net_metering": "Your DISCOM inspects the system and fits a net meter before the subsidy is paid.",
+        "other": "Other scheme conditions apply."
       }
     },
     "customQuote": {
@@ -301,6 +306,185 @@
       "size_below_min": "That size is below what our price list covers.",
       "three_phase_below_min": "That size is too small for a three-phase connection in our price list.",
       "generic": "That system size isn’t in our price list."
+    },
+    "estimate": {
+      "summary": {
+        "size": "Recommended size",
+        "kw": "{kw} kW",
+        "net": "Your cost after confirmed subsidy",
+        "netPackage": "{package}, list price minus confirmed subsidy",
+        "saving": "Bill saving",
+        "perMonth": "{amount} a month",
+        "payback": "Pays back in",
+        "years": "about {years} years",
+        "noPayback": "Shown once we have a price"
+      },
+      "basis": {
+        "monthly_units_and_bill": "Based on your {units} units a month and your bill.",
+        "monthly_units": "Based on your {units} units a month.",
+        "monthly_bill_tariff_table": "Based on your bill, about {units} units a month.",
+        "monthly_bill_flat_rate": "Based on your bill, about {units} units a month.",
+        "roof_area": "Limited by your roof area.",
+        "requested_size": "The size asked for."
+      },
+      "options": {
+        "title": "Two sizes that fit",
+        "priced": "Recommended",
+        "floor": "Smaller option",
+        "coverage": "Covers about {percent}% of your use",
+        "generation": "{units} units a month",
+        "net": "{amount} after confirmed subsidy",
+        "saving": "Saves {amount} a month",
+        "payback": "Pays back in about {years} years"
+      },
+      "badge": {
+        "confirmed": "Confirmed",
+        "announced": "Announced — subject to the official order",
+        "unconfirmed": "Not confirmed",
+        "other": "Working figure"
+      },
+      "subsidy": {
+        "title": "Subsidy",
+        "central": "Central government subsidy (PM Surya Ghar)",
+        "special": "Your state gets the higher special-category rate.",
+        "slab": "{from}–{to} kW: {kwp} kW × {rate} per kW",
+        "society": "Housing society subsidy (common roof)",
+        "societyLine": "{kwp} kW × {rate} per kW",
+        "societyLimited": {
+          "houses": "Up to {perHouse} kW per flat × {houses} flats",
+          "installed": "Your whole {kwp} kW system counts ({houses} flats).",
+          "max_kwp": "A society can claim for up to {max} kW."
+        },
+        "state": "{state} government support",
+        "validUntil": "Announced until {date}",
+        "confirmedTotal": "Confirmed subsidy",
+        "net": "Your cost after confirmed subsidy",
+        "netIfAnnounced": "If the announced state support is also received",
+        "notDeducted": "Announced support is not taken off your cost above, because it is not certain until the official order.",
+        "needsHouses": "Tell us how many flats or houses share this roof to see the society subsidy.",
+        "housesUpdate": "Update estimate",
+        "notEligible": {
+          "off_grid_not_eligible": "Off-grid systems do not get the PM Surya Ghar subsidy.",
+          "segment_not_eligible": "The subsidy is for homes and housing societies only.",
+          "other": "This setup does not qualify for the subsidy."
+        },
+        "conditionsLead": "To get the subsidy:",
+        "notes": {
+          "module_wattage_unknown_nominal_used": "The subsidy is worked out on the system’s stated size.",
+          "other": "Our team will confirm the final subsidy amount."
+        }
+      },
+      "generation": {
+        "title": "Electricity your system makes",
+        "monthly": "{units} units a month",
+        "yearly": "{units} units a year",
+        "unconfirmed": "Approximate: our generation figure for your state is not confirmed yet."
+      },
+      "savings": {
+        "title": "Your savings",
+        "monthly": "A month",
+        "yearly": "A year",
+        "payback": "Pays back in",
+        "longTerm": "Over {years} years",
+        "longTermSavings": "{amount} saved",
+        "longTermGeneration": "{units} units made",
+        "longTermNote": "Assumes panel output drops {first}% in year 2 and {annual}% a year after that, and electricity prices rise {escalation}% a year.",
+        "longTermNoteFlat": "Assumes panel output drops {first}% in year 2 and {annual}% a year after that. Electricity prices are kept at today’s level.",
+        "freeUnits": "The first {units} units a month are free in your state, so solar only saves on the units above them.",
+        "none": "Enter your monthly units or bill amount to see your savings."
+      },
+      "confidence": {
+        "label": "How sure is this?",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Approximate",
+        "reason": {
+          "flat_rate": "Based on an average ₹{rate} per unit — enter your units and bill amount for a better estimate.",
+          "customer_bill": "Based on your own bill: about ₹{rate} per unit.",
+          "discom_tariff": "Based on your DISCOM’s tariff.",
+          "none": "Based on your roof area only — enter your units for savings."
+        }
+      },
+      "warnings": {
+        "title": "Please note",
+        "above_sanctioned_load": "This system ({kw} kW) is above your sanctioned load ({load} kW). You may need to increase your sanctioned load with your DISCOM — Grid Nova handles this.",
+        "priced_size_exceeds_roof_area": "A {priced} kW system needs more roof than you entered (about {max} kW fits). We will check this at the site visit.",
+        "generation_unconfirmed_for_state": "Our generation figure for {state} is not confirmed yet, so treat these figures as approximate.",
+        "implied_tariff_outside_range": "Your bill works out to ₹{rate} per unit, which looks unusual. Please check your units and bill amount — we used another method for now.",
+        "implied_rate_unavailable_within_free_units": "Your units are within your free units, so we could not work out your own price per unit from your bill.",
+        "unknown_discom": "We do not have your DISCOM’s tariff yet, so savings use an average price per unit.",
+        "tariff_table_not_available": "We do not have {discom}’s official tariff yet, so savings use your bill or an average price per unit.",
+        "tariff_category_needed": "Your DISCOM has more than one tariff. Our team will confirm which one applies to you.",
+        "bill_not_solvable_with_tariff_table": "We could not match your bill to your DISCOM’s tariff, so we used an average price per unit.",
+        "bill_not_solvable": "We could not work out your units from your bill, so we used an average price per unit.",
+        "other": "Our team will check one more detail during the site survey."
+      },
+      "how": {
+        "title": "How we calculate",
+        "intro": "Every figure above comes from these assumptions. Each one shows where it comes from and whether it is confirmed.",
+        "loading": "Loading the details…",
+        "error": "We could not load the details right now. Please try again later.",
+        "source": "Source: {source}",
+        "asOf": "As of {date}",
+        "version": "Estimate version {version}",
+        "groups": {
+          "generation": "Electricity generation",
+          "roof": "Roof area",
+          "sizing": "System size",
+          "savings": "Savings",
+          "tariffs": "Electricity prices",
+          "subsidies": "Subsidy",
+          "confidence": "How sure each estimate is"
+        },
+        "items": {
+          "units_per_kwp_per_month": "Units a month from each kW of panels",
+          "units_per_kwp_per_month_state": "Units a month from each kW of panels — {state}",
+          "degradation_first_year_percent": "Panel output drop in year 2",
+          "degradation_annual_percent": "Panel output drop each year after",
+          "sqft_per_kwp": "Roof area for each kW",
+          "sqft_per_kwp_low": "Roof area for each kW (lowest)",
+          "target_offset_percent": "Share of your use we size the system for",
+          "tariff_escalation_percent_per_year": "Electricity price rise each year",
+          "long_term_years": "Years we count savings for",
+          "export_credit": "Credit for electricity sent to the grid — {state}",
+          "o_and_m_first_year_free": "Free maintenance in the first year",
+          "flat_rate_inr_per_kwh": "Average price per unit (when we have no bill)",
+          "implied_rate_sanity": "Price per unit we accept from a bill",
+          "free_units_per_month": "Free units a month — {state}",
+          "discom": "{discom} tariff ({category})",
+          "central_cfa": "Central government subsidy",
+          "central_slab": "{category}: up to {kwp} kW",
+          "central_max": "{category}: most you can get",
+          "society": "Housing society: per kW, up to {perHouse} kW per flat, {max} kW in all",
+          "special_states": "Special-category states",
+          "state_top_up": "{state} government support",
+          "cfa_capacity_basis": "Subsidy worked out on",
+          "conditions": "Conditions"
+        },
+        "categories": {
+          "general": "Most states",
+          "special": "Special-category states"
+        },
+        "values": {
+          "true": "Yes",
+          "false": "No",
+          "none": "None assumed",
+          "available": "Available",
+          "notAvailable": "Not available yet",
+          "range": "{min} to {max}",
+          "otherStates": "other states"
+        },
+        "units": {
+          "percent": "{value}%",
+          "percent/year": "{value}% a year",
+          "INR/kWh": "₹{value} per unit",
+          "kWh/kWp/month": "{value} units",
+          "sq ft/kWp": "{value} sq ft",
+          "years": "{value} years",
+          "kWh/month": "{value} units"
+        }
+      },
+      "footer": "This is an estimate only. Final figures come after a site survey by our engineers. The subsidy is paid by the government into your bank account after your DISCOM inspects the system."
     }
   },
   "payments": {

@@ -61,7 +61,7 @@ export default function BookingContextSummary({
             {hasTotal && hasSizing && " · "}
             {hasSizing && (
               <span>
-                {fmt(sizingMethod === "bill" ? t.billValue : t.roofValue, { value: sizingValue! })}
+                {fmt(sizingMethod === "bill" ? t.billValue : sizingMethod === "units" ? t.unitsValue : t.roofValue, { value: sizingValue! })}
               </span>
             )}
           </p>
