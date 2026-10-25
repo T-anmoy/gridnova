@@ -17,7 +17,9 @@ export default function Mission({ t }: { t: Messages["home"]["mission"] }) {
                 src={companyPhoto}
                 alt={t.alt}
                 fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
+                // From lg the box is 4:5 (portrait) and the 4:3 photo is cropped by its
+                // height: width × 1.25 × 1.34 ≈ 1.68 × the column (50vw − 72 px).
+                sizes="(min-width: 1280px) 952px, (min-width: 1024px) calc(83.75vw - 120px), 100vw"
                 className="object-cover object-center"
               />
             </div>

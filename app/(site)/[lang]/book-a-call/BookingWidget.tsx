@@ -20,6 +20,7 @@ import {
   formatZodError,
 } from "@/lib/dashboard/schemas";
 import MotionProvider from "@/components/MotionProvider";
+import DateField from "@/components/forms/DateField";
 
 const API_BASE = API_BASE_URL;
 
@@ -534,16 +535,16 @@ function BookingWidgetInner({
               <label htmlFor="booking-date" className="block text-sm font-medium text-[#0e2a63] mb-1.5">
                 {t.date}
               </label>
-              <input
+              <DateField
                 id="booking-date"
-                type="date"
+                label={t.date}
                 value={askDate}
                 min={dateBounds?.today}
                 max={dateBounds?.max}
-                onChange={(e) => handleDateChange(e.target.value)}
+                onChange={handleDateChange}
                 aria-invalid={!!askError}
                 aria-describedby={askError ? "booking-ask-error" : undefined}
-                className="rounded-xl border border-[#e4e8ee] px-4 py-2.5 text-base outline-none focus-visible:border-[#2f5daa] focus-visible:ring-2 focus-visible:ring-[#2f5daa]/25 transition-colors"
+                className="w-64 max-w-full"
               />
             </div>
             <div>

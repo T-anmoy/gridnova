@@ -7,7 +7,6 @@ import { ArrowRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import NoAccess from '@/components/dashboard/NoAccess'
@@ -18,6 +17,7 @@ import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { useUrlParams } from '@/lib/dashboard/use-url-params'
 import { formatDate, formatDatetime } from '@/lib/dashboard/utils'
 import { formatInr, isNegativeAmount } from '@/lib/money'
+import DateField from '@/components/forms/DateField'
 
 // Recharts is loaded lazily so it is not in this page's first JS.
 const ChartSkeleton = ({ title }: { title: string }) => (
@@ -93,11 +93,11 @@ function Summary({ role }: { role: string }) {
         >
           <div>
             <label htmlFor={`${id}-from`} className="mb-1 block text-xs text-gray-500">From</label>
-            <Input id={`${id}-from`} name="from" type="date" key={from} defaultValue={from} className="h-11 w-40 md:h-9" />
+            <DateField id={`${id}-from`} variant="dashboard" label="From" name="from" key={from} defaultValue={from}  />
           </div>
           <div>
             <label htmlFor={`${id}-to`} className="mb-1 block text-xs text-gray-500">To</label>
-            <Input id={`${id}-to`} name="to" type="date" key={to} defaultValue={to} className="h-11 w-40 md:h-9" />
+            <DateField id={`${id}-to`} variant="dashboard" label="To" name="to" key={to} defaultValue={to}  />
           </div>
           <Button type="submit" variant="outline" className="h-11 md:h-9">Apply</Button>
         </form>

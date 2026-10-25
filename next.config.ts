@@ -4,9 +4,30 @@ import type { NextConfig } from "next";
 import { API_BASE_URL } from "./lib/config";
 import { clerkHostFromPublishableKey, securityHeaders } from "./lib/security-headers";
 
+// The visual viewport matrix (tests/visual, `npm run test:visual`) renders the
+// dashboard and portals with Clerk swapped for a cookie-driven stub. That swap
+// exists only in a build made with VISUAL_STUB_AUTH=1, which goes to its own
+// output folder and refuses any API host that is not a reserved `.test` name,
+// so it can never reach a deployment.
+const visualStubAuth = process.env.VISUAL_STUB_AUTH === "1";
+if (visualStubAuth && !new URL(API_BASE_URL).hostname.endsWith(".test")) {
+  throw new Error(`VISUAL_STUB_AUTH=1 needs a *.test API host, not ${API_BASE_URL}.`);
+}
+
 const nextConfig: NextConfig = {
   // Don't advertise the framework.
   poweredByHeader: false,
+  ...(visualStubAuth && {
+    distDir: ".next-visual",
+    // Next adds the output folder's types to the tsconfig it builds with; this keeps tsconfig.json untouched.
+    typescript: { tsconfigPath: "tsconfig.visual.json" },
+    turbopack: {
+      resolveAlias: {
+        "@clerk/nextjs/server": "./tests/visual/clerk-stub/server.ts",
+        "@clerk/nextjs": "./tests/visual/clerk-stub/client.tsx",
+      },
+    },
+  }),
   images: {
     qualities: [75, 80, 85],
     // AVIF first, WebP for browsers without it. Next maps WebP q80 to AVIF

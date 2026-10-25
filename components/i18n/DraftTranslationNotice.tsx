@@ -26,7 +26,7 @@ export default function DraftTranslationNotice({ draft }: { draft: boolean }) {
           href={path}
           lang="en"
           onClick={() => rememberLocale("en")}
-          className="shrink-0 font-utility font-semibold underline underline-offset-2 whitespace-nowrap"
+          className="inline-flex min-h-11 shrink-0 items-center font-utility font-semibold underline underline-offset-2 whitespace-nowrap"
         >
           {t.readInEnglish}
         </NextLink>

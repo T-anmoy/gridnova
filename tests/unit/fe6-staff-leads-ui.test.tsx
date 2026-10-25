@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, within, act } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { parseApiError } from '@/lib/api/http'
 import { ApiError } from '@/lib/dashboard/api-error'
@@ -11,6 +11,9 @@ import { AskMemoryPanel } from '@/components/dashboard/AskMemoryPanel'
 import { CustomerMemoryPanel } from '@/components/dashboard/CustomerMemoryPanel'
 import { EMPTY_FILTERS } from '@/lib/dashboard/lead-filters'
 import type { LeadFilters, MemoryAskResponse } from '@/lib/dashboard/staff-leads-types'
+import { dateGroup, typeDateField } from './helpers/date-field'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 
 const mockSchedule = vi.fn()
 const mockReflect = vi.fn()
@@ -80,12 +83,7 @@ describe('LeadFilterPanel', () => {
     expect(onChange).toHaveBeenLastCalledWith({ ...EMPTY_FILTERS, minScore: 'medium' })
     await user.selectOptions(screen.getByLabelText('Highest score'), 'high')
     expect(onChange).toHaveBeenLastCalledWith({ ...EMPTY_FILTERS, maxScore: 'high' })
-    await act(async () => {
-      const input = screen.getByLabelText('Created from') as HTMLInputElement
-      const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!
-      set.call(input, '2026-09-01')
-      input.dispatchEvent(new Event('input', { bubbles: true }))
-    })
+    await typeDateField(user, 'Created from', '01092026')
     expect(onChange).toHaveBeenLastCalledWith({ ...EMPTY_FILTERS, createdFrom: '2026-09-01' })
   })
 
@@ -126,7 +124,11 @@ describe('LeadFilterPanel', () => {
     setup()
     for (const box of screen.getAllByRole('checkbox')) expect((box.closest('label') as HTMLElement).className).toContain('min-h-11')
     expect(screen.getByLabelText('Lowest score').className).toContain('min-h-11')
-    expect(screen.getByLabelText('Created to').className).toContain('min-h-11')
+    // The shared date field's box and segments are 44 px tall (its styles are in globals.css).
+    expect(dateGroup('Created to').className).toContain('df-box')
+    const css = readFileSync(path.join(__dirname, '../../app/globals.css'), 'utf8')
+    expect(css).toMatch(/\.df-box \{[^}]*min-height: 44px/)
+    expect(css).toMatch(/\.df-seg \{[^}]*height: 44px/)
   })
 })
 

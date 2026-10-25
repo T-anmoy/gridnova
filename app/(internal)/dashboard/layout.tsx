@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { ClerkProvider, useUser, useClerk, useAuth } from '@clerk/nextjs'
@@ -74,9 +74,9 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
     : user?.firstName?.[0] ?? user?.emailAddresses?.[0]?.emailAddress?.[0]?.toUpperCase() ?? '?'
 
   return (
-    <div className="flex h-full flex-col bg-[#091c3c]">
+    <div className="flex h-full min-h-0 flex-col bg-[#091c3c]">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 py-5">
+      <div className="flex shrink-0 items-center gap-3 px-6 py-5">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f7a800]">
           <Zap className="h-4 w-4 text-[#091c3c]" />
         </div>
@@ -96,18 +96,18 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         )}
       </div>
 
-      <Separator className="bg-white/10" />
+      <Separator className="shrink-0 bg-white/10" />
 
       {/* Role badge */}
       {role && (
-        <div className="px-6 py-3">
+        <div className="shrink-0 px-6 py-3">
           <span className="font-utility text-[10px] uppercase tracking-wider text-white/55">Signed in as </span>
           <span className="font-utility text-[10px] uppercase tracking-wider text-[#f7a800]">{role}</span>
         </div>
       )}
 
-      {/* Nav */}
-      <nav className="flex-1 space-y-0.5 px-3 py-2">
+      {/* Nav: the only part that scrolls, so the logo stays on top and sign-out at the bottom. */}
+      <SidebarScroll pathname={pathname} items={NAV_ITEMS.filter(canSee).length}>
         {NAV_ITEMS.filter(canSee).map((item) => {
           const Icon = item.icon
           const active = isActive(item.href)
@@ -117,6 +117,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
               href={item.href}
               onClick={onClose}
               onMouseEnter={() => prefetchFor(item.href)}
+              aria-current={active ? 'page' : undefined}
               className={cn(
                 'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-utility transition-colors',
                 active
@@ -150,12 +151,12 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
             </Link>
           )
         })}
-      </nav>
+      </SidebarScroll>
 
-      <Separator className="bg-white/10 mx-3" />
+      <Separator className="shrink-0 bg-white/10 mx-3" />
 
       {/* User */}
-      <div className="p-4">
+      <div className="shrink-0 p-4">
         <div className="flex items-center gap-3 rounded-lg px-2 py-2">
           <Avatar className="h-8 w-8">
             <AvatarFallback className="bg-[#0e2a63] text-white text-xs font-utility">
@@ -185,6 +186,58 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   )
 }
 
+/**
+ * The sidebar menu's own scroll area. It never hands its scroll on to the page
+ * (overscroll-contain), fades at the edge that has more items behind it, and
+ * brings the current page's item into view when a page opens — "Equipment" at
+ * the bottom of the Admin menu is visible after navigating to it.
+ */
+const FADE_CLEARANCE = 32
+
+function SidebarScroll({ pathname, items, children }: { pathname: string; items: number; children: React.ReactNode }) {
+  const ref = useRef<HTMLElement>(null)
+
+  // The fades are data attributes set straight on the element: scrolling never re-renders the menu.
+  const updateFades = () => {
+    const el = ref.current
+    if (!el) return
+    el.dataset.moreAbove = String(el.scrollTop > 1)
+    el.dataset.moreBelow = String(el.scrollTop + el.clientHeight < el.scrollHeight - 1)
+  }
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    // Scroll only the menu (not the page, as scrollIntoView would) to show the active item.
+    // FADE_CLEARANCE keeps it clear of the 28 px edge fades (globals.css .sidebar-scroll).
+    const active = el.querySelector<HTMLElement>('[aria-current="page"]')
+    if (active) {
+      const top = active.offsetTop - el.offsetTop
+      if (top < el.scrollTop + FADE_CLEARANCE) el.scrollTop = top - FADE_CLEARANCE
+      else if (top + active.offsetHeight > el.scrollTop + el.clientHeight - FADE_CLEARANCE) el.scrollTop = top + active.offsetHeight - el.clientHeight + FADE_CLEARANCE
+    }
+    updateFades()
+    if (typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(updateFades)
+    ro.observe(el)
+    return () => ro.disconnect()
+    // `items`: the menu is filtered by role, which arrives after the first render, so the
+    // active item may only exist on a later one.
+  }, [pathname, items])
+
+  return (
+    <nav
+      ref={ref}
+      aria-label="Dashboard"
+      onScroll={updateFades}
+      data-testid="sidebar-scroll"
+      className="sidebar-scroll min-h-0 flex-1 space-y-0.5 overflow-y-auto overscroll-contain px-3 py-2"
+    >
+      {children}
+    </nav>
+  )
+}
+
 /** Opens the Ask Nova slide-over. Hidden on the Nova page itself, where the chat is the page. */
 function AskNovaButton({ className }: { className?: string }) {
   const { openPanel } = useNovaShell()
@@ -203,6 +256,14 @@ function AskNovaButton({ className }: { className?: string }) {
 function DashboardShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const pathname = usePathname()
+
+  // Any navigation closes the drawer — a menu link, the command palette or the browser's back button.
+  const [openedOn, setOpenedOn] = useState(pathname)
+  if (mobileOpen && openedOn !== pathname) {
+    setOpenedOn(pathname)
+    setMobileOpen(false)
+  }
 
   return (
     <div className="min-h-screen bg-[#f7f9fc]">
@@ -213,15 +274,15 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         Skip to main content
       </a>
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 md:flex flex-col border-r border-white/10">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 lg:flex flex-col border-r border-white/10">
         <SidebarContent />
       </aside>
 
       {/* Mobile sidebar drawer — a modal dialog, so it is only mounted while
           open and gets a focus trap, Escape, aria-modal and focus return. */}
-      <DialogPrimitive.Root open={mobileOpen} onOpenChange={setMobileOpen}>
+      <DialogPrimitive.Root open={mobileOpen} onOpenChange={(open) => { setOpenedOn(pathname); setMobileOpen(open) }}>
         <DialogPrimitive.Portal>
-          <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-black/60 md:hidden" />
+          <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-black/60 lg:hidden" />
           <DialogPrimitive.Content
             id="dashboard-mobile-nav"
             aria-modal="true"
@@ -231,7 +292,8 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
               menuButtonRef.current?.focus()
             }}
             aria-describedby={undefined}
-            className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col md:hidden"
+            // 100dvh, not 100vh: the browser's own toolbar never hides the sign-out block.
+            className="fixed left-0 top-0 z-50 flex h-dvh w-[min(18rem,85vw)] flex-col bg-[#091c3c] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pt-[env(safe-area-inset-top)] lg:hidden"
           >
             <DialogPrimitive.Title className="sr-only">Navigation menu</DialogPrimitive.Title>
             <SidebarContent onClose={() => setMobileOpen(false)} />
@@ -240,9 +302,9 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
       </DialogPrimitive.Root>
 
       {/* Main content */}
-      <div className="md:pl-64 flex flex-col min-h-screen">
+      <div className="lg:pl-64 flex flex-col min-h-screen">
         {/* Mobile topbar */}
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-[#e4e8ee] bg-white px-4 md:hidden">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-[#e4e8ee] bg-white px-4 lg:hidden">
           <Button
             ref={menuButtonRef}
             variant="ghost"
@@ -265,7 +327,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
           <AskNovaButton className="ml-auto" />
         </header>
         {/* Desktop top bar */}
-        <div className="hidden items-center justify-end border-b border-[#e4e8ee] bg-white px-8 py-2 md:flex">
+        <div className="hidden items-center justify-end border-b border-[#e4e8ee] bg-white px-8 py-2 lg:flex">
           <AskNovaButton />
         </div>
 

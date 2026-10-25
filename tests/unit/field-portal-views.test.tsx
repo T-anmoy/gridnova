@@ -35,6 +35,7 @@ vi.mock('@/lib/pricing/usePackageCatalogue', () => ({ usePackageCatalogue: () =>
 
 import AssociateApplyForm from '@/components/associate/AssociateApplyForm'
 import OnboardingDetail from '@/components/associate/OnboardingDetail'
+import { fillDateField } from './helpers/date-field'
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -55,7 +56,7 @@ describe('H12 — apply form labels and identifier inputs', () => {
     expect(name.className).toContain('text-base')
     expect(name.className).toContain('min-h-[44px]')
     fireEvent.change(name, { target: { value: 'Asha Roy' } })
-    fireEvent.change(screen.getByLabelText(f.date_of_birth.label), { target: { value: '1990-01-01' } })
+    fillDateField(f.date_of_birth.label, '1990-01-01')
     fireEvent.change(mobile, { target: { value: '9876543210' } })
     fireEvent.change(screen.getByLabelText(f.email.label), { target: { value: 'asha@example.com' } })
     fireEvent.click(screen.getByRole('button', { name: en.associates.wizard.common.next }))

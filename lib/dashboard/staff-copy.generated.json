@@ -487,6 +487,30 @@
       "footer": "This is an estimate only. Final figures come after a site survey by our engineers. The subsidy is paid by the government into your bank account after your DISCOM inspects the system."
     }
   },
+  "dateField": {
+    "day": "Day",
+    "month": "Month",
+    "year": "Year",
+    "dayPlaceholder": "DD",
+    "monthPlaceholder": "MM",
+    "yearPlaceholder": "YYYY",
+    "openCalendar": "Choose from a calendar",
+    "closeCalendar": "Close calendar",
+    "calendarLabel": "Choose a date",
+    "monthSelect": "Month",
+    "yearSelect": "Year",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "today": "Today",
+    "invalid": "This date does not exist. Check the day and the month.",
+    "incomplete": "Enter the day, the month and the year.",
+    "future": "The date of birth cannot be in the future.",
+    "underAge": "You must be at least {age} years old.",
+    "tooOld": "Check the year: it is more than {years} years ago.",
+    "beforeMin": "Choose {date} or later.",
+    "afterMax": "Choose {date} or earlier.",
+    "readBackLabel": "You entered"
+  },
   "payments": {
     "title": "Payments",
     "open": "Payments",

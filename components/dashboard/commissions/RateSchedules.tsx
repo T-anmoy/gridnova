@@ -17,6 +17,7 @@ import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { formatDate, formatDatetime, istDateKey } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
 import { usePublishRateSchedule, useRateSchedules, useReRate } from '@/lib/commissions/staff-api-client'
+import DateField from '@/components/forms/DateField'
 
 function ScheduleCard({ schedule, rateKeys, inForce, today, isAdmin, onReRate }: { schedule: RateSchedule; rateKeys: string[]; inForce: boolean; today: string; isAdmin: boolean; onReRate: (s: RateSchedule) => void }) {
   const upcoming = schedule.effective_from > today
@@ -159,15 +160,16 @@ function PublishForm({ data, today }: { data: RateSchedulesData; today: string }
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor={dateId} className="mb-1 block text-sm font-medium text-gray-700">Effective from *</label>
-              <Input
+              <DateField
                 id={dateId}
-                type="date"
+                variant="dashboard"
+                label="Effective from"
+                required
                 min={min}
                 value={effectiveFrom}
-                onChange={(e) => setEffectiveFrom(e.target.value)}
+                onChange={setEffectiveFrom}
                 aria-invalid={errors.date ? true : undefined}
                 aria-describedby={`${dateId}-hint${errors.date ? ` ${dateId}-err` : ''}`}
-                className="h-11 md:h-9"
               />
               <p id={`${dateId}-hint`} className="mt-1 text-xs text-gray-500" data-testid="notice-hint">
                 {isPlaceholder

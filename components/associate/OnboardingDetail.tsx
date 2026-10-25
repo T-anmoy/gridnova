@@ -27,6 +27,8 @@ import { useSurveyStatus } from '@/lib/associate/survey-api-client'
 import { isNeedsReverification, proposalGateCode, proposalGateRefuses } from '@/lib/associate/survey-review'
 import { formatCurrency, formatDatetime } from '@/lib/dashboard/utils'
 import type { Messages } from '@/lib/i18n/types'
+import DateField from '@/components/forms/DateField'
+import { todayIso } from '@/lib/date-field'
 
 type SharedCopy = Messages['associates']['portal']['shared']
 type ProposalCopy = Messages['associates']['portal']['proposal']
@@ -180,13 +182,10 @@ function ProposalSection({
           </button>
           {acceptOpen && (
             <div className="mt-3 space-y-3 rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] p-4">
-              <input
-                type="date"
-                className="w-full rounded-lg border border-[#e4e8ee] px-3 py-2 text-sm font-utility"
-                placeholder={copy.acceptance.deliveredOnLabel}
-                value={deliveredOn}
-                onChange={(e) => setDeliveredOn(e.target.value)}
-              />
+              <div>
+                <label htmlFor="accept-delivered-on" className="mb-1 block text-xs font-utility text-[#111827]/65">{copy.acceptance.deliveredOnLabel}</label>
+                <DateField id="accept-delivered-on" label={copy.acceptance.deliveredOnLabel} max={todayIso()} value={deliveredOn} onChange={setDeliveredOn} />
+              </div>
               <textarea
                 className="w-full rounded-lg border border-[#e4e8ee] px-3 py-2 text-sm font-utility"
                 placeholder={copy.acceptance.noteLabel}
@@ -272,13 +271,10 @@ function AgreementSection({ onboardingId, copy }: { onboardingId: number; copy: 
                 value={stampPaperNumber}
                 onChange={(e) => setStampPaperNumber(e.target.value)}
               />
-              <input
-                type="date"
-                className="w-full rounded-lg border border-[#e4e8ee] px-3 py-2 text-sm font-utility"
-                placeholder={copy.uploadSigned.stampPaperDateLabel}
-                value={stampPaperDate}
-                onChange={(e) => setStampPaperDate(e.target.value)}
-              />
+              <div>
+                <label htmlFor="stamp-paper-date" className="mb-1 block text-xs font-utility text-[#111827]/65">{copy.uploadSigned.stampPaperDateLabel}</label>
+                <DateField id="stamp-paper-date" label={copy.uploadSigned.stampPaperDateLabel} max={todayIso()} value={stampPaperDate} onChange={setStampPaperDate} />
+              </div>
               {error && <p className="text-xs text-red-600 font-utility">{error}</p>}
               <button
                 type="button"

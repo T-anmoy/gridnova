@@ -9,6 +9,7 @@ import { humanize } from '@/lib/associate/execution-labels'
 import { isAmountShapeValid } from '@/lib/money'
 import { useMilestoneLabel } from '@/lib/pricing/useMilestoneLabel'
 import type { Milestone, Payment, RecordPaymentInput } from '@/lib/associate/payment-types'
+import DateField from '@/components/forms/DateField'
 
 // Modes that are written on a physical instrument and so need its bank and date.
 const INSTRUMENT_MODES = ['cheque', 'demand_draft']
@@ -151,7 +152,7 @@ export default function RecordPaymentForm({
       {needsInstrument && (
         <div>
           <label htmlFor={`${idPrefix}-date`} className={label}>{copy.instrumentDate}</label>
-          <input id={`${idPrefix}-date`} type="date" className={field} value={v.instrument_date} onChange={(e) => set('instrument_date', e.target.value)} />
+          <DateField id={`${idPrefix}-date`} label={copy.instrumentDate} value={v.instrument_date} onChange={(d) => set('instrument_date', d)} />
           {err('instrument_date')}
         </div>
       )}

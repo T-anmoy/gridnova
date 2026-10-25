@@ -26,6 +26,7 @@ import { REGISTER_ERRORS, registerErrorMessage, rowErrorsOf, unmatchedUnitIdsOf 
 import { isUnmatched, type StaffRegister, type StaffRegisterUnit } from '@/lib/dashboard/register-staff-types'
 import { formatDate } from '@/lib/dashboard/utils'
 import type { RegisterUnit, RegisterWarning, RowError, SerialCheck, UnitCategory, UnitInput } from '@/lib/associate/register-types'
+import DateField from '@/components/forms/DateField'
 
 const WARNING_TEXT: Record<string, string> = {
   rating_out_of_range: 'The rating looks outside the usual range — please double-check it. (Saved anyway.)',
@@ -271,14 +272,14 @@ function UnitEntry({ onboardingId, locked, isAdmin }: { onboardingId: number; lo
             )}
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="text-xs uppercase tracking-[0.1em] text-gray-500">
+            <div className="text-xs uppercase tracking-[0.1em] text-gray-500">
               Warranty start (optional)
-              <input type="date" className={`${field} mt-1.5`} aria-label={`Unit ${i + 1} warranty start`} value={r.warranty_start} onChange={(e) => patch(r.key, { warranty_start: e.target.value })} />
-            </label>
-            <label className="text-xs uppercase tracking-[0.1em] text-gray-500">
+              <DateField className="mt-1.5 normal-case tracking-normal" label={`Unit ${i + 1} warranty start`} max={r.warranty_end || undefined} value={r.warranty_start} onChange={(v) => patch(r.key, { warranty_start: v })} />
+            </div>
+            <div className="text-xs uppercase tracking-[0.1em] text-gray-500">
               Warranty end (optional)
-              <input type="date" className={`${field} mt-1.5`} aria-label={`Unit ${i + 1} warranty end`} value={r.warranty_end} onChange={(e) => patch(r.key, { warranty_end: e.target.value })} />
-            </label>
+              <DateField className="mt-1.5 normal-case tracking-normal" label={`Unit ${i + 1} warranty end`} min={r.warranty_start || undefined} value={r.warranty_end} onChange={(v) => patch(r.key, { warranty_end: v })} />
+            </div>
           </div>
           {errorsFor(i).map((e, n) => (
             <p key={n} role="alert" className="text-xs text-red-600" data-testid="row-error">
@@ -360,8 +361,8 @@ function EditUnitDialog({ onboardingId, unit, locked, onClose }: { onboardingId:
             <label className="block text-sm">{unit.category === 'module' ? 'Rating (Wp)' : 'Rating (kW)'}<input className={`${field} mt-1`} inputMode="decimal" value={rating} onChange={(e) => setRating(e.target.value)} /></label>
           )}
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block text-sm">Warranty start<input type="date" className={`${field} mt-1`} value={start} onChange={(e) => setStart(e.target.value)} /></label>
-            <label className="block text-sm">Warranty end<input type="date" className={`${field} mt-1`} value={end} onChange={(e) => setEnd(e.target.value)} /></label>
+            <div className="block text-sm">Warranty start<DateField className="mt-1" label="Warranty start" max={end || undefined} value={start} onChange={setStart} /></div>
+            <div className="block text-sm">Warranty end<DateField className="mt-1" label="Warranty end" min={start || undefined} value={end} onChange={setEnd} /></div>
           </div>
           <label className="block text-sm">{locked ? 'Reason (required — register is locked) *' : 'Reason (optional)'}<input className={`${field} mt-1`} value={reason} onChange={(e) => setReason(e.target.value)} /></label>
         </div>

@@ -18,7 +18,8 @@
     "test:unit:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "test:visual": "playwright test -c playwright.visual.config.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.7.1",
@@ -70,6 +71,7 @@
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.5",
     "@vitest/coverage-v8": "^4.1.12",
+    "axe-core": "^4.12.1",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
     "fake-indexeddb": "^6.2.5",

@@ -21,7 +21,7 @@ export default async function PreferredLayout({ children, params }: { children: 
   if (!ASSOCIATE_PORTAL_OPEN) return <PortalClosed t={m.associates.closed} />
   return (
     <ClerkProvider>
-      <I18nProvider messages={{ portalErrors: m.portalErrors, photoSlot: m.photoSlot, siteLocation: m.siteLocation, pricing: m.pricing, survey: m.survey, portalEase: m.portalEase }}>
+      <I18nProvider messages={{ portalErrors: m.portalErrors, photoSlot: m.photoSlot, siteLocation: m.siteLocation, pricing: m.pricing, survey: m.survey, portalEase: m.portalEase, dateField: m.dateField }}>
         <AssociateQueryProvider signInPath="/preferred/sign-in">{children}</AssociateQueryProvider>
       </I18nProvider>
     </ClerkProvider>

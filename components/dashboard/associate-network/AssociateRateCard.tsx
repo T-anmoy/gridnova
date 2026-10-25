@@ -26,6 +26,7 @@ import {
 } from '@/lib/commissions/individual-rate'
 import { formatRate, rateKeyLabel } from '@/lib/commissions/rates'
 import type { AssociateRate } from '@/lib/commissions/schemas'
+import DateField from '@/components/forms/DateField'
 
 const FOCUS = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5daa]'
 const STATUS_LABEL: Record<string, string> = { scheduled: 'Scheduled', in_force: 'In force', superseded: 'Replaced' }
@@ -144,15 +145,15 @@ function ChangeRateDialog({ rate, associateId, mode, open, onOpenChange, onSaved
 
             <div>
               <label htmlFor={fieldId('effective_from')} className="mb-1 block text-sm font-medium text-gray-700">Starts on</label>
-              <Input
+              <DateField
                 id={fieldId('effective_from')}
-                type="date"
+                variant="dashboard"
+                label="Starts on"
                 min={min}
                 value={effectiveFrom}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={setDate}
                 aria-invalid={problems.effective_from ? true : undefined}
                 aria-describedby={`${fieldId('effective_from')}-hint${problems.effective_from ? ` ${fieldId('effective_from')}-err` : ''}`}
-                className="h-11 md:h-9"
               />
               <p id={`${fieldId('effective_from')}-hint`} className="mt-1 text-xs text-gray-500" data-testid="date-hint">
                 {reduction ? `A lower rate needs notice: ${rate.notice.notice_days} days, so the earliest date is ${formatDate(min)}.` : `Earliest date for this change: ${formatDate(min)}.`}

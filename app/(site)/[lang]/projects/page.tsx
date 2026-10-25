@@ -38,7 +38,9 @@ export default async function ProjectsPage({ params }: LangParams) {
           alt={t.coverAlt}
           fill
           priority
-          sizes="100vw"
+          // The section is far taller than wide on phones and the 4:3 photo is
+          // cropped by its height, so it needs more than the screen's width.
+          sizes="(max-width: 767px) 250vw, (max-width: 1279px) 140vw, 100vw"
           className="object-cover object-center -z-20"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#091c3c]/92 via-[#091c3c]/60 to-[#091c3c] -z-10" />
@@ -105,7 +107,7 @@ export default async function ProjectsPage({ params }: LangParams) {
               </div>
               <Link
                 href="/contact"
-                className="mt-8 inline-flex items-center gap-1.5 text-[#0e2a63] font-utility text-sm font-semibold group w-fit active:scale-[0.97] transition-transform"
+                className="mt-8 inline-flex min-h-11 items-center gap-1.5 text-[#0e2a63] font-utility text-sm font-semibold group w-fit active:scale-[0.97] transition-transform"
               >
                 {t.featured.cta}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-0.5" />

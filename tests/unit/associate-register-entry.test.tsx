@@ -7,6 +7,7 @@ import RegisterReadOnly from '@/components/execution/RegisterReadOnly'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { mapRowErrors, toInput, validateRow, emptyRow } from '@/lib/associate/register-entry'
 import { en, withI18n } from './helpers/i18n'
+import { typeDateField } from './helpers/date-field'
 import type { Register, RegisterUnit } from '@/lib/associate/register-types'
 
 const h = vi.hoisted(() => ({
@@ -115,11 +116,11 @@ describe('RegisterEntry — listed model', () => {
     entryForm()
     const user = userEvent.setup()
     await pickListedModule(user, 'SN-1')
-    await user.type(screen.getByLabelText(entry.warrantyStart), '2026-01-01')
+    await typeDateField(user, entry.warrantyStart, '01012026')
     await user.click(screen.getByRole('button', { name: entry.save }))
     expect(screen.getByText(entry.validation.warrantyPair)).toBeInTheDocument()
     expect(h.create).not.toHaveBeenCalled()
-    await user.type(screen.getByLabelText(entry.warrantyEnd), '2036-01-01')
+    await typeDateField(user, entry.warrantyEnd, '01012036')
     await user.click(screen.getByRole('button', { name: entry.save }))
     expect(h.create).toHaveBeenCalledWith(expect.objectContaining({ warranty_start: '2026-01-01', warranty_end: '2036-01-01' }))
   })

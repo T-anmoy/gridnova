@@ -14,6 +14,7 @@ export const STAFF_SHARED_MESSAGES = {
   portalErrors: copy.portalErrors,
   siteLocation: copy.siteLocation,
   pricing: copy.pricing,
+  dateField: copy.dateField,
 }
 export const STAFF_PAYMENT_COPY = copy.payments
 export const STAFF_EXECUTION_COPY = copy.execution

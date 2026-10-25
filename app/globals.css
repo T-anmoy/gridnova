@@ -42,6 +42,13 @@
   box-sizing: border-box;
   min-width: 0; /* prevents flex/grid children from overflowing */
 }
+/* ...but a checkbox or radio beside a long label must keep its size: with
+   min-width 0 a flex row squeezed it to nothing (dashboard lead filters at
+   768 px). */
+input[type="checkbox"],
+input[type="radio"] {
+  flex-shrink: 0;
+}
 
 html {
   scroll-behavior: auto;
@@ -214,6 +221,7 @@ html[data-script="bengali"] .clip-line {
   .btn-text {
     display: inline-flex;
     align-items: center;
+    min-height: 44px; /* a full touch target, though it reads as a text link */
     gap: 0.375rem;
     font-family: var(--font-utility);
     font-size: 0.875rem;
@@ -299,6 +307,93 @@ html[data-script="bengali"] .clip-line {
 }
 @media (scripting: enabled) {
   .nojs-only { display: none; }
+}
+
+/* Home hero photo framing: the portrait photo keeps the crew in frame from
+   28% down; the landscape one (same media query as its <source> in
+   components/Hero.tsx) is centred. */
+.hero-img { object-position: center 28%; }
+@media (min-width: 768px) and (min-aspect-ratio: 1/1) {
+  .hero-img { object-position: center; }
+}
+
+/* The shared date field (components/forms/DateField.tsx). Its look lives here,
+   not in Tailwind strings, so the component's JavaScript stays small. `site`
+   matches the public and portal forms; `dashboard` the staff screens' compact
+   inputs (44 px on touch-size screens, compact from md). */
+.df[data-variant="dashboard"] { width: 14rem; max-width: 100%; }
+.df-anchor { position: relative; }
+.df-box {
+  display: flex; width: 100%; align-items: center; gap: 2px;
+  min-height: 44px; padding: 0 12px; border: 1px solid #e4e8ee; border-radius: 0.75rem;
+  background: #fff; font-family: var(--font-utility); font-size: 1rem; transition: border-color 0.15s;
+}
+.df-box:focus-within { border-color: #2f5daa; outline: 2px solid #2f5daa; outline-offset: 1px; }
+.df[data-variant="dashboard"] .df-box { padding: 0 8px; border-radius: 0.5rem; box-shadow: 0 1px 2px rgb(0 0 0 / 0.05); }
+.df[data-variant="dashboard"] .df-box:focus-within { border-color: #e4e8ee; outline: none; box-shadow: 0 0 0 2px #f7a800; }
+.df-box[data-invalid] { border-color: #f87171; }
+.df-box:has(:disabled) { opacity: 0.5; }
+/* 44 px wide segments when there is room; in a tight container they give way
+   down to the width of their digits, so the field never overflows it. */
+.df-seg {
+  flex: 0 1 44px; width: 44px; min-width: 2.6ch; height: 44px; padding: 0; border-radius: 4px;
+  background: transparent; color: #111827; text-align: center; font: inherit; font-variant-numeric: tabular-nums;
+}
+.df-seg[data-seg="year"] { flex-basis: 52px; width: 52px; min-width: 4.6ch; }
+.df-seg::placeholder { color: rgb(17 24 39 / 0.45); }
+/* The segment being typed in: a tint and an underline (the box carries the focus ring). */
+.df-seg:focus, .df-seg:focus-visible { outline: none; background: rgb(47 93 170 / 0.12); box-shadow: inset 0 -2px 0 #2f5daa; }
+.df-sep { padding: 0 2px; color: rgb(17 24 39 / 0.45); }
+.df-btn {
+  display: flex; flex-shrink: 0; align-items: center; justify-content: center; width: 44px; height: 44px;
+  margin: 0 -4px 0 auto; border-radius: 0.5rem; color: #2f5daa;
+}
+.df-btn:hover { background: rgb(47 93 170 / 0.1); }
+/* The calendar-days outline as a mask in the button's colour: no icon JavaScript. */
+.df-icon {
+  width: 18px; height: 18px; background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v4M16 2v4'/%3E%3Crect width='18' height='18' x='3' y='4' rx='2'/%3E%3Cpath d='M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v4M16 2v4'/%3E%3Crect width='18' height='18' x='3' y='4' rx='2'/%3E%3Cpath d='M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.df-btn:focus-visible { outline: 2px solid #2f5daa; outline-offset: 0; }
+.df-status { margin-top: 4px; font-family: var(--font-utility); font-size: 0.75rem; color: rgb(17 24 39 / 0.65); }
+.df-status[data-error] { color: #dc2626; }
+@media (min-width: 768px) {
+  .df[data-variant="dashboard"] { width: 11rem; }
+  .df[data-variant="dashboard"] .df-box { min-height: 36px; font-size: 0.875rem; }
+  .df[data-variant="dashboard"] .df-seg { flex-basis: 2.8ch; height: 32px; }
+  .df[data-variant="dashboard"] .df-seg[data-seg="year"] { flex-basis: 4.6ch; }
+  .df[data-variant="dashboard"] .df-btn { width: 32px; height: 32px; }
+}
+
+/* Dashboard sidebar menu (app/(internal)/dashboard/layout.tsx): its own scroll
+   area with a thin, visible scrollbar, fading out at whichever edge has more
+   items behind it (the data attributes are kept current on scroll). */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.28) transparent;
+  --fade-top: #000;
+  --fade-bottom: #000;
+  mask-image: linear-gradient(to bottom, var(--fade-top), #000 28px, #000 calc(100% - 28px), var(--fade-bottom));
+}
+.sidebar-scroll[data-more-above="true"] { --fade-top: transparent; }
+.sidebar-scroll[data-more-below="true"] { --fade-bottom: transparent; }
+.sidebar-scroll::-webkit-scrollbar { width: 6px; }
+.sidebar-scroll::-webkit-scrollbar-thumb { background: rgb(255 255 255 / 0.28); border-radius: 3px; }
+
+/* The Ask Nova teaser bubble never sits on a form: it is hidden on the form
+   pages (main[data-form-page]: apply, calculator, estimate, contact, book a
+   call) and on any page while a field has focus. The round Ask Nova button
+   stays. On phones those pages keep room under the last field and the submit
+   button, so neither has to share the bottom corner with the button. */
+body:has(main[data-form-page]) .nova-teaser,
+body:has(:is(input:not([type="hidden"]), textarea, select, [contenteditable="true"]):focus) .nova-teaser {
+  display: none;
+}
+@media (max-width: 767px) {
+  main[data-form-page] {
+    padding-bottom: max(6rem, calc(env(safe-area-inset-bottom) + 5.5rem));
+  }
 }
 
 /* While the careers page's sticky Apply bar is showing, the Ask Nova teaser

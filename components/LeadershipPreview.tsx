@@ -62,7 +62,7 @@ export default function LeadershipPreview({
                     src={l.photo}
                     alt={`${l.name}, ${leaders[l.key].role}`}
                     fill
-                    sizes="(max-width: 1024px) 64px, 170px"
+                    sizes="(min-width: 1024px) 170px, 64px"
                     className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.04]"
                   />
                 </div>

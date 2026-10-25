@@ -19,6 +19,7 @@ import {
   makeEntry,
   makeQuery,
 } from './fixtures/commissions-contract'
+import { dateGroup, dayInput } from './helpers/date-field'
 
 const h = vi.hoisted(() => ({
   role: { role: 'accounts' as string | undefined, isLoaded: true },
@@ -230,15 +231,15 @@ describe('Rate schedules (E8)', () => {
   async function fillRates(value = '2.5') {
     for (const input of screen.getAllByRole('textbox').filter((i) => i.getAttribute('inputmode') === 'decimal')) await userEvent.type(input, value)
   }
-  const dateInput = () => screen.getByLabelText(/Effective from/) as HTMLInputElement
+  const dateInput = () => dayInput(/Effective from/)
 
   it('enforces the notice period before calling the server and focuses the date field', async () => {
     h.role = { role: 'admin', isLoaded: true }
     render(<RateSchedules />)
     expect(screen.getByTestId('notice-hint')).toHaveTextContent('Earliest allowed: 29 Oct 2026')
-    expect(dateInput()).toHaveAttribute('min', '2026-10-29')
+    expect(dateGroup(/Effective from/)).toHaveAttribute('data-min', '2026-10-29')
     await fillRates()
-    await userEvent.type(dateInput(), '2026-10-20')
+    await userEvent.type(dateInput(), '20102026')
     await userEvent.click(screen.getByRole('button', { name: /Review and publish/ }))
     expect(dateInput()).toHaveAttribute('aria-invalid', 'true')
     expect(dateInput()).toHaveFocus()
@@ -253,7 +254,7 @@ describe('Rate schedules (E8)', () => {
     const first = screen.getAllByRole('textbox').find((i) => i.getAttribute('inputmode') === 'decimal')!
     await userEvent.clear(first)
     await userEvent.type(first, '101')
-    await userEvent.type(dateInput(), '2026-11-01')
+    await userEvent.type(dateInput(), '01112026')
     await userEvent.click(screen.getByRole('button', { name: /Review and publish/ }))
     expect(first).toHaveAttribute('aria-invalid', 'true')
     expect(first).toHaveFocus()
@@ -265,7 +266,7 @@ describe('Rate schedules (E8)', () => {
     h.publish.mockResolvedValue({ ...RATE_SCHEDULES.items[0], version: 4, effective_from: '2026-11-01' })
     render(<RateSchedules />)
     await fillRates('2.5')
-    await userEvent.type(dateInput(), '2026-11-01')
+    await userEvent.type(dateInput(), '01112026')
     await userEvent.click(screen.getByRole('button', { name: /Review and publish/ }))
     expect(h.publish).not.toHaveBeenCalled()
     await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Publish schedule' }))
@@ -284,7 +285,7 @@ describe('Rate schedules (E8)', () => {
     h.publish.mockRejectedValue(new ApiError(422, 'x', 'x', { code: 'notice_period', earliest_effective_from: '2026-11-05' }))
     render(<RateSchedules />)
     await fillRates()
-    await userEvent.type(dateInput(), '2026-11-01')
+    await userEvent.type(dateInput(), '01112026')
     await userEvent.click(screen.getByRole('button', { name: /Review and publish/ }))
     await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Publish schedule' }))
     expect((await screen.findAllByText(/cannot start before 05 Nov 2026/)).length).toBeGreaterThan(0)

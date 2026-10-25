@@ -80,12 +80,12 @@ export default function Footer() {
             <p className="font-utility text-[11px] tracking-[0.15em] text-white/60 uppercase mb-5">
               {t.sitemap}
             </p>
-            <ul className="space-y-3">
+            <ul className="md:space-y-3">
               {SITEMAP.map((l) => (
                 <li key={l.href}>
                   <Link
                     href={l.href}
-                    className="py-1 text-white/60 hover:text-white text-sm transition-[color,transform] duration-200 hover:translate-x-1 motion-reduce:transition-none motion-reduce:hover:translate-x-0 inline-flex items-center gap-1.5 group"
+                    className="min-h-11 md:min-h-0 md:py-1 text-white/60 hover:text-white text-sm transition-[color,transform] duration-200 hover:translate-x-1 motion-reduce:transition-none motion-reduce:hover:translate-x-0 inline-flex items-center gap-1.5 group"
                   >
                     <span className="w-0 group-hover:w-2.5 overflow-hidden transition-[width,opacity] duration-200 opacity-0 motion-reduce:transition-none group-hover:opacity-100">
                       <span className="block h-px bg-[#f7a800]" />
@@ -101,12 +101,12 @@ export default function Footer() {
             <p className="font-utility text-[11px] tracking-[0.15em] text-white/60 uppercase mb-5">
               {t.legal}
             </p>
-            <ul className="space-y-3">
+            <ul className="md:space-y-3">
               {LEGAL.map((l) => (
                 <li key={l.href}>
                   <Link
                     href={l.href}
-                    className="py-1 text-white/60 hover:text-white text-sm transition-[color,transform] duration-200 hover:translate-x-1 motion-reduce:transition-none motion-reduce:hover:translate-x-0 inline-flex items-center gap-1.5 group"
+                    className="min-h-11 md:min-h-0 md:py-1 text-white/60 hover:text-white text-sm transition-[color,transform] duration-200 hover:translate-x-1 motion-reduce:transition-none motion-reduce:hover:translate-x-0 inline-flex items-center gap-1.5 group"
                   >
                     <span className="w-0 group-hover:w-2.5 overflow-hidden transition-[width,opacity] duration-200 opacity-0 motion-reduce:transition-none group-hover:opacity-100">
                       <span className="block h-px bg-[#f7a800]" />
@@ -153,25 +153,25 @@ export default function Footer() {
               </li>
               <li className="flex gap-2.5 items-center">
                 <Phone className="h-4 w-4 shrink-0 text-[#f7a800]" />
-                <a href={HELPLINE_TEL} className="hover:text-white transition-colors">
+                <a href={HELPLINE_TEL} className="inline-flex min-h-11 items-center md:min-h-0 hover:text-white transition-colors">
                   {HELPLINE_DISPLAY}
                 </a>
               </li>
               <li className="flex gap-2.5 items-center">
                 <Phone className="h-4 w-4 shrink-0 text-[#f7a800]" />
-                <a href="tel:+919199576535" className="hover:text-white transition-colors">
+                <a href="tel:+919199576535" className="inline-flex min-h-11 items-center md:min-h-0 hover:text-white transition-colors">
                   +91 91995 76535
                 </a>
               </li>
               <li className="flex gap-2.5 items-center">
                 <Globe className="h-4 w-4 shrink-0 text-[#f7a800]" />
-                <a href="https://www.gridnova.in" className="hover:text-white transition-colors">
+                <a href="https://www.gridnova.in" className="inline-flex min-h-11 items-center md:min-h-0 hover:text-white transition-colors">
                   www.gridnova.in
                 </a>
               </li>
               <li className="flex gap-2.5 items-center">
                 <Mail className="h-4 w-4 shrink-0 text-[#f7a800]" />
-                <a href="mailto:info@gridnova.in" className="hover:text-white transition-colors">
+                <a href="mailto:info@gridnova.in" className="inline-flex min-h-11 items-center md:min-h-0 hover:text-white transition-colors">
                   info@gridnova.in
                 </a>
               </li>
@@ -184,7 +184,7 @@ export default function Footer() {
           <Link
             href="/"
             onClick={handleHomeClick}
-            className="text-white/60 hover:text-white/55 text-xs font-utility transition-colors duration-200"
+            className="inline-flex min-h-11 items-center text-white/60 hover:text-white/55 text-xs font-utility transition-colors duration-200"
           >
             © {new Date().getFullYear()} {t.copyright}
           </Link>

@@ -11,13 +11,13 @@ import { DashboardError } from '@/components/dashboard/DashboardError'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ClickableRow } from '@/components/dashboard/ClickableRow'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatCurrency, formatDate } from '@/lib/dashboard/utils'
 import type { ProposalStatus, Role } from '@/lib/dashboard/types'
+import DateField from '@/components/forms/DateField'
 
 const STATUS_OPTIONS: ProposalStatus[] = [
   'draft', 'pending_pricing_validation', 'pending_approval', 'revision_requested', 'approved', 'sent',
@@ -131,19 +131,21 @@ function Proposals() {
                 ))}
               </SelectContent>
             </Select>
-            <Input
-              type="date"
+            <DateField
+              variant="dashboard"
+              label="From date"
+              max={dateTo || undefined}
               value={dateFrom}
-              onChange={(e) => url.set({ from: e.target.value || undefined })}
-              className="w-36"
-              title="From date"
+              onChange={(v) => url.set({ from: v || undefined })}
+              className="w-44"
             />
-            <Input
-              type="date"
+            <DateField
+              variant="dashboard"
+              label="To date"
+              min={dateFrom || undefined}
               value={dateTo}
-              onChange={(e) => url.set({ to: e.target.value || undefined })}
-              className="w-36"
-              title="To date"
+              onChange={(v) => url.set({ to: v || undefined })}
+              className="w-44"
             />
             {(statusFilter || dateFrom || dateTo) && (
               <Button variant="ghost" size="sm" onClick={() => url.set({ status: undefined, from: undefined, to: undefined })}>

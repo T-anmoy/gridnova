@@ -20,7 +20,7 @@ export default async function BookACallPage({
   const t = m.bookingPage;
 
   return (
-    <main id="main-content" className="bg-[#f7f9fc] min-h-[100svh]">
+    <main id="main-content" data-form-page="" className="bg-[#f7f9fc] min-h-[100svh]">
       <div className="mx-auto max-w-[900px] px-6 md:px-10 pt-[calc(var(--header-h)+3rem)] pb-20 md:pb-28">
         <div className="mb-12 md:mb-14 text-center">
           <span className="ref-tag text-[#2f5daa] justify-center">{t.eyebrow}</span>
@@ -52,7 +52,7 @@ export default async function BookACallPage({
           t={m.booking.summary}
         />
 
-        <I18nProvider messages={{ booking: m.booking }}>
+        <I18nProvider messages={{ booking: m.booking, dateField: m.dateField }}>
           <BookingWidget
             estimatedTotal={asString(query.estimatedTotal)}
             sizingMethod={asString(query.sizingMethod)}

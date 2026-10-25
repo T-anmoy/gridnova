@@ -91,6 +91,45 @@ Interactive E2E runner: `npm run test:e2e:ui`.
 > account; set real `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` in
 > `.env.local` to exercise the dashboard.
 
+### Visual viewport matrix
+
+```bash
+npm run test:visual
+```
+
+Every page in scope — the public site (English, plus Hindi and Bengali for the
+long-text pages), both portals, the customer accept page and every Admin
+dashboard page — at 21 viewports (phones portrait and landscape, tablets,
+laptops, desktops, 200 % zoom at 1280×720, and a 125 % root font at 360×800).
+For each one it saves a full-page screenshot to `test-results/visual-matrix/`
+(git-ignored; tall pages as `-partN` images) and **fails** on: anything wider
+than the screen, a control inside a fixed panel (sidebar, drawer) that can never
+be scrolled to, a fixed or sticky element covering a control on load (the Ask
+Nova teaser over any form field included), and page content covering a fixed
+control. Small tap targets, blurry (upscaled) or stretched images, and the
+teaser or launcher over a plain link are written to
+`test-results/visual-matrix/summary.md` for review, along with a page ×
+viewport table.
+
+How it works, and what it needs:
+
+- It runs its **own production build** (`.next-visual/`, port 3200) with
+  `VISUAL_STUB_AUTH=1`, which swaps Clerk for a cookie-driven stub
+  (`tests/visual/clerk-stub/`) so the dashboard and portals render signed in.
+  `next.config.ts` only allows that with a reserved `*.test` API host, and a
+  normal build never contains the stub.
+- API calls are proxied to a **local backend in development mode** (default
+  `http://127.0.0.1:8000`, override with `VISUAL_BACKEND`), which accepts the
+  dev identity headers the proxy adds (Admin for the dashboard, an Associate /
+  Preferred Associate for the portals — ids from `VISUAL_ASSOCIATE_ID` /
+  `VISUAL_PREFERRED_ID`, default `GNA-WB-26-90001` / `GNA-WB-26-90002`). Its
+  database must be migrated to head; without a backend the pages render their
+  error states and only the layout is checked.
+- It takes about 20 minutes with 6 workers. One page:
+  `npm run test:visual -- -g " /dashboard/leads "`.
+- Without Playwright's own browser installed, add `PW_CHANNEL=chrome` to use the
+  installed Google Chrome (this works for `npm run test:e2e` too).
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More

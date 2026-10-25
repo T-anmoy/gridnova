@@ -5,6 +5,7 @@ import PortalPayments from '@/components/associate/PortalPayments'
 import RecordPaymentForm from '@/components/payments/RecordPaymentForm'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { en, withI18n } from './helpers/i18n'
+import { typeDateField } from './helpers/date-field'
 import type { Milestone, Payment, PaymentInstructions, PaymentOverview } from '@/lib/associate/payment-types'
 
 const copy = en.associates.portal.payments
@@ -255,7 +256,7 @@ describe('recording a payment', () => {
     expect(hooks.record).not.toHaveBeenCalled()
     expect(screen.getAllByText(copy.required).length).toBeGreaterThanOrEqual(2)
     await user.type(screen.getByLabelText(new RegExp(copy.bankName)), 'SBI')
-    await user.type(screen.getByLabelText(copy.instrumentDate), '2026-03-05')
+    await typeDateField(user, copy.instrumentDate, '05032026')
     await user.click(screen.getByRole('button', { name: copy.save }))
     expect(hooks.record).toHaveBeenCalledWith(expect.objectContaining({ mode: 'cheque', bank_name: 'SBI', instrument_date: '2026-03-05' }))
   })

@@ -4086,5 +4086,29 @@
         "personal_sale.preferred_associate.block": "প্রেফার্ড অ্যাসোসিয়েট — ব্লক"
       }
     }
+  },
+  "dateField": {
+    "day": "দিন",
+    "month": "মাস",
+    "year": "বছর",
+    "dayPlaceholder": "DD",
+    "monthPlaceholder": "MM",
+    "yearPlaceholder": "YYYY",
+    "openCalendar": "ক্যালেন্ডার থেকে বেছে নিন",
+    "closeCalendar": "ক্যালেন্ডার বন্ধ করুন",
+    "calendarLabel": "তারিখ বেছে নিন",
+    "monthSelect": "মাস",
+    "yearSelect": "বছর",
+    "previousMonth": "আগের মাস",
+    "nextMonth": "পরের মাস",
+    "today": "আজ",
+    "invalid": "এই তারিখটি নেই। দিন আর মাস দেখে নিন।",
+    "incomplete": "দিন, মাস আর বছর লিখুন।",
+    "future": "জন্মতারিখ ভবিষ্যতের হতে পারে না।",
+    "underAge": "আপনার বয়স অন্তত {age} বছর হতে হবে।",
+    "tooOld": "বছরটি দেখে নিন: এটি {years} বছরেরও আগের।",
+    "beforeMin": "{date} বা তার পরের তারিখ বেছে নিন।",
+    "afterMax": "{date} বা তার আগের তারিখ বেছে নিন।",
+    "readBackLabel": "আপনি লিখেছেন"
   }
 }

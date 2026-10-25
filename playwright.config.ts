@@ -25,7 +25,15 @@ export default defineConfig({
     viewport: { width: 1280, height: 800 },
   },
   projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"], hasTouch: true } },
+    {
+      name: "chromium",
+      use: {
+        ...devices["Desktop Chrome"],
+        hasTouch: true,
+        // PW_CHANNEL=chrome uses the installed Google Chrome when `npx playwright install` has not been run.
+        ...(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}),
+      },
+    },
   ],
   webServer: {
     // Self-contained: build then serve the production output on the test port.

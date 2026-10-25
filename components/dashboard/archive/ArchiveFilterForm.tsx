@@ -12,6 +12,7 @@ import {
   validateArchiveDraft,
   type ArchiveFilters,
 } from '@/lib/archive/logic'
+import DateField from '@/components/forms/DateField'
 
 const FIELD_OF: Record<string, keyof ArchiveFilters> = {
   capacity_min: 'capacityMin', capacity_max: 'capacityMax', commissioned_from: 'commissionedFrom', commissioned_to: 'commissionedTo',
@@ -82,10 +83,10 @@ export function ArchiveFilterForm({
           <Input id="af-cmax" inputMode="decimal" className="min-h-11 md:min-h-9" value={draft.capacityMax} onChange={set('capacityMax')} aria-invalid={!!errorFor('capacity_max')} />
         </Field>
         <Field id="af-from" label="Commissioned from" error={errorFor('commissioned_from')}>
-          <Input id="af-from" type="date" className="min-h-11 md:min-h-9" value={draft.commissionedFrom} onChange={set('commissionedFrom')} aria-invalid={!!errorFor('commissioned_from')} />
+          <DateField id="af-from" variant="dashboard" label="Commissioned from" max={draft.commissionedTo || undefined} value={draft.commissionedFrom} onChange={(v) => setDraft((d) => ({ ...d, commissionedFrom: v }))} aria-invalid={!!errorFor('commissioned_from')} />
         </Field>
         <Field id="af-to" label="Commissioned to" error={errorFor('commissioned_to')}>
-          <Input id="af-to" type="date" className="min-h-11 md:min-h-9" value={draft.commissionedTo} onChange={set('commissionedTo')} aria-invalid={!!errorFor('commissioned_to')} />
+          <DateField id="af-to" variant="dashboard" label="Commissioned to" min={draft.commissionedFrom || undefined} value={draft.commissionedTo} onChange={(v) => setDraft((d) => ({ ...d, commissionedTo: v }))} aria-invalid={!!errorFor('commissioned_to')} />
         </Field>
         <Field id="af-module" label="Module make contains">
           <Input id="af-module" className="min-h-11 md:min-h-9" value={draft.moduleMake} onChange={set('moduleMake')} maxLength={100} />

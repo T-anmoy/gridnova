@@ -19,8 +19,10 @@ import {
   isValidIfsc,
   isValidGstin,
   isAdult,
+  MIN_APPLICANT_AGE,
 } from '@/lib/associate/validation'
 import { ApiError } from '@/lib/dashboard/api-error'
+import DateField from '@/components/forms/DateField'
 import FileUploadSlot from '@/components/associate/FileUploadSlot'
 import TerritorySelect from '@/components/associate/TerritorySelect'
 import { useTerritoryCascade } from '@/lib/associate/territory'
@@ -364,7 +366,7 @@ function ApplyForm({ kind, t, draftKey }: { kind: Kind; t: Messages['associates'
               <input className={inputClass(!!errors.full_name)} value={values.full_name} onChange={(e) => set('full_name', e.target.value)} />
             </Field>
             <Field label={fields.date_of_birth.label} why={fields.date_of_birth.why} whyLabel={common.whyWeAsk} example={fields.date_of_birth.example} exampleLabel={common.example} error={errors.date_of_birth}>
-              <input type="date" className={inputClass(!!errors.date_of_birth)} value={values.date_of_birth} onChange={(e) => set('date_of_birth', e.target.value)} />
+              <DateField mode="dob" minAge={MIN_APPLICANT_AGE} label={fields.date_of_birth.label} required value={values.date_of_birth} onChange={(v) => set('date_of_birth', v)} />
             </Field>
             <Field label={fields.mobile.label} why={fields.mobile.why} whyLabel={common.whyWeAsk} example={fields.mobile.example} exampleLabel={common.example} error={errors.mobile}>
               <input type="tel" inputMode="tel" autoComplete="tel" maxLength={14} className={inputClass(!!errors.mobile)} value={values.mobile} onChange={(e) => set('mobile', e.target.value)} />

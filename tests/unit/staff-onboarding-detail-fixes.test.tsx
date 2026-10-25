@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { ApiError } from '@/lib/dashboard/api-error'
 import type { FormalProposalReadResponse, Onboarding, ProgressResponse } from '@/lib/associate/onboarding-types'
 import type { AgreementResponse } from '@/lib/dashboard/onboarding-types'
+import { typeDateField } from './helpers/date-field'
 
 vi.mock('next/navigation', () => ({ useParams: () => ({ id: '77' }) }))
 vi.mock('@/lib/dashboard/use-staff-role', () => ({ useStaffRole: () => ({ role: 'admin', isLoaded: true }) }))
@@ -101,7 +102,7 @@ describe('Staff formal-proposal panel — in-person acceptance gets proposal_id 
     render(<StaffOnboardingDetailPage />)
 
     await user.click(screen.getByRole('button', { name: 'Record in-person acceptance' }))
-    await user.type(screen.getByPlaceholderText('Delivered on'), '2026-01-06')
+    await typeDateField(user, 'Delivered on', '06012026')
     await user.type(screen.getByPlaceholderText('Note (required)'), 'Handed over at site')
     await user.type(screen.getByPlaceholderText('Reference (required)'), 'REF-100')
     await user.click(screen.getByRole('button', { name: 'Confirm acceptance' }))

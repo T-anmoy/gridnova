@@ -9,13 +9,13 @@ import { DashboardError } from '@/components/dashboard/DashboardError'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDatetime } from '@/lib/dashboard/utils'
 import type { AuditLog, Role } from '@/lib/dashboard/types'
+import DateField from '@/components/forms/DateField'
 
 const ENTITY_TYPES = ['lead', 'proposal', 'employee', 'customer', 'audit_log']
 
@@ -83,12 +83,12 @@ export default function AuditLogPage() {
               </SelectContent>
             </Select>
             <div className="flex items-center gap-2">
-              <Label className="text-xs text-[#111827]/60">From</Label>
-              <Input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1) }} className="w-36" />
+              <Label htmlFor="audit-from" className="text-xs text-[#111827]/60">From</Label>
+              <DateField id="audit-from" variant="dashboard" label="From" max={dateTo || undefined} value={dateFrom} onChange={(v) => { setDateFrom(v); setPage(1) }} />
             </div>
             <div className="flex items-center gap-2">
-              <Label className="text-xs text-[#111827]/60">To</Label>
-              <Input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1) }} className="w-36" />
+              <Label htmlFor="audit-to" className="text-xs text-[#111827]/60">To</Label>
+              <DateField id="audit-to" variant="dashboard" label="To" min={dateFrom || undefined} value={dateTo} onChange={(v) => { setDateTo(v); setPage(1) }} />
             </div>
             {(entityType || dateFrom || dateTo) && (
               <Button variant="ghost" size="sm" onClick={() => { setEntityType(''); setDateFrom(''); setDateTo(''); setPage(1) }}>
@@ -144,7 +144,7 @@ export default function AuditLogPage() {
                               onClick={(e) => { e.stopPropagation(); toggleExpand(log.id) }}
                               aria-expanded={expandedId === log.id}
                               aria-label={`${expandedId === log.id ? 'Hide' : 'Show'} changes for ${log.action}`}
-                              className="flex h-8 w-8 items-center justify-center rounded text-[#111827]/65 hover:text-[#111827] focus-visible:outline-2 focus-visible:outline-[#2f5daa]"
+                              className="flex h-11 w-11 md:h-8 md:w-8 items-center justify-center rounded text-[#111827]/65 hover:text-[#111827] focus-visible:outline-2 focus-visible:outline-[#2f5daa]"
                             >
                               {expandedId === log.id
                                 ? <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />

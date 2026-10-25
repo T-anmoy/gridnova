@@ -18,6 +18,7 @@ import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { formatDate } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
 import { useCommissionExport, useCreatePayoutBatch, usePayoutBatches } from '@/lib/commissions/staff-api-client'
+import DateField from '@/components/forms/DateField'
 
 const FY = /^\d{4}-\d{2}$/
 
@@ -121,11 +122,11 @@ function Exports() {
         <div className="flex flex-wrap items-end gap-3">
           <div>
             <label htmlFor={`${id}-from`} className="mb-1 block text-xs text-gray-500">From</label>
-            <Input id={`${id}-from`} type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="h-11 w-44 md:h-9" />
+            <DateField id={`${id}-from`} variant="dashboard" label="From" max={to || undefined} value={from} onChange={setFrom}  />
           </div>
           <div>
             <label htmlFor={`${id}-to`} className="mb-1 block text-xs text-gray-500">To</label>
-            <Input id={`${id}-to`} type="date" value={to} onChange={(e) => setTo(e.target.value)} className="h-11 w-44 md:h-9" />
+            <DateField id={`${id}-to`} variant="dashboard" label="To" min={from || undefined} value={to} onChange={setTo}  />
           </div>
           <Button variant="outline" className="h-11 md:h-9" disabled={busy} onClick={() => void run(() => download({ kind: 'commissions', date_from: from || undefined, date_to: to || undefined }))}>
             <Download className="mr-1 h-3.5 w-3.5" aria-hidden="true" /> Commissions CSV

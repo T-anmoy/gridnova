@@ -155,7 +155,7 @@ export default function ServicesContent({ t }: { t: Messages["services"] }) {
               </p>
               <Link
                 href="/contact"
-                className="mt-8 inline-flex items-center gap-2 text-[#0e2a63] font-utility font-semibold text-sm group active:scale-[0.97] transition-transform"
+                className="mt-8 inline-flex min-h-11 items-center gap-2 text-[#0e2a63] font-utility font-semibold text-sm group active:scale-[0.97] transition-transform"
               >
                 {t.epc.cta}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -181,7 +181,8 @@ export default function ServicesContent({ t }: { t: Messages["services"] }) {
             src={rooftopPhoto}
             alt={t.green.alt}
             fill
-            sizes="100vw"
+            // A 16:9 photo in a 4:3 box on phones is cropped by height: 1.34 × the width.
+            sizes="(max-width: 639px) 135vw, 100vw"
             className="object-cover object-center"
           />
         </div>

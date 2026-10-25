@@ -20,6 +20,8 @@ export function pickStaffCopy(en) {
     portalErrors: en.portalErrors,
     siteLocation: en.siteLocation,
     pricing: en.pricing,
+    // The shared date field (components/forms/DateField.tsx) on staff screens.
+    dateField: en.dateField,
     payments: en.associates.portal.payments,
     execution: en.associates.portal.execution,
     photos: en.associates.portal.wizard.photos,

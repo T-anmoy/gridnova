@@ -107,7 +107,7 @@ export default async function SustainabilityPage({ params }: LangParams) {
             </p>
             <Link
               href="/projects"
-              className="mt-10 inline-flex items-center gap-2 text-[#0e2a63] font-utility font-semibold text-sm group active:scale-[0.97] transition-transform"
+              className="mt-10 inline-flex min-h-11 items-center gap-2 text-[#0e2a63] font-utility font-semibold text-sm group active:scale-[0.97] transition-transform"
             >
               {t.cta}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />

@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import BookingWidget from '@/app/(site)/[lang]/book-a-call/BookingWidget'
 import { withI18n, en } from './helpers/i18n'
+import { dateGroup, fillDateField } from './helpers/date-field'
 import { bookingErrorKey } from '@/lib/booking-errors'
 import { istDateKey } from '@/lib/dashboard/utils'
 
@@ -19,7 +20,7 @@ async function reachFormAndSubmit(postResponse: Response) {
   vi.stubGlobal('fetch', fetchMock)
   const user = userEvent.setup()
   render(withI18n(<BookingWidget />))
-  fireEvent.change(screen.getByLabelText('Date'), { target: { value: dateStr } })
+  fillDateField('Date', dateStr)
   await user.click(screen.getByRole('combobox'))
   await user.click(await screen.findByRole('option', { name: '2:00 PM' }))
   await user.click(screen.getByRole('button', { name: /check availability/i }))
@@ -88,8 +89,8 @@ describe('Booking date bounds use the IST day', () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date('2026-10-12T20:00:00Z')) // 13 Oct in IST, still 12 Oct in UTC
     render(withI18n(<BookingWidget />))
-    const input = screen.getByLabelText('Date')
-    await vi.waitFor(() => expect(input).toHaveAttribute('min', '2026-10-13'))
-    expect(input.getAttribute('max')).toBe(istDateKey(new Date(Date.now() + 14 * 86_400_000)))
+    const input = dateGroup('Date')
+    await vi.waitFor(() => expect(input).toHaveAttribute('data-min', '2026-10-13'))
+    expect(input.getAttribute('data-max')).toBe(istDateKey(new Date(Date.now() + 14 * 86_400_000)))
   })
 })

@@ -36,6 +36,8 @@ import { surveyReviewError } from '@/lib/dashboard/survey-review-ui'
 import { FormalProposalBlockedBanner } from '@/components/dashboard/FormalProposalBlocked'
 import { formatCurrency, formatDatetime } from '@/lib/dashboard/utils'
 import type { SiteLocation } from '@/lib/associate/onboarding-types'
+import DateField from '@/components/forms/DateField'
+import { todayIso } from '@/lib/date-field'
 
 function errorMessage(err: unknown, fallback: string): string {
   if (err instanceof ApiError) return err.detail || err.message
@@ -203,7 +205,8 @@ function FormalProposalSection({ onboardingId, blocked }: { onboardingId: number
                 </Button>
                 {acceptOpen && (
                   <div className="mt-3 space-y-2 rounded-lg border border-gray-200 p-3">
-                    <Input type="date" value={deliveredOn} onChange={(e) => setDeliveredOn(e.target.value)} placeholder="Delivered on" />
+                    <Label htmlFor="accept-delivered-on" className="text-xs">Delivered on</Label>
+                    <DateField id="accept-delivered-on" variant="dashboard" label="Delivered on" max={todayIso()} value={deliveredOn} onChange={setDeliveredOn} />
                     <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Note (required)" />
                     <Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Reference (required)" />
                     <Button size="sm" disabled={acceptMutation.isPending} onClick={() => void handleAccept()}>
@@ -279,7 +282,8 @@ function AgreementSection({ onboardingId }: { onboardingId: number }) {
                   <Label className="text-xs">Signed scan</Label>
                   <Input type="file" accept="image/*,application/pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
                   <Input placeholder="Stamp paper number" value={stampPaperNumber} onChange={(e) => setStampPaperNumber(e.target.value)} />
-                  <Input type="date" value={stampPaperDate} onChange={(e) => setStampPaperDate(e.target.value)} />
+                  <Label htmlFor="stamp-paper-date" className="text-xs">Stamp paper date</Label>
+                  <DateField id="stamp-paper-date" variant="dashboard" label="Stamp paper date" max={todayIso()} value={stampPaperDate} onChange={setStampPaperDate} />
                   {uploadError && <p className="text-xs text-red-600">{uploadError}</p>}
                   <Button size="sm" disabled={!file || uploadMutation.isPending} onClick={() => void handleUpload()}>
                     {uploadMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Upload signed scan'}

@@ -143,7 +143,7 @@ export default async function IndustriesPage({ params }: LangParams) {
               </p>
               <Link
                 href="/projects"
-                className="mt-8 inline-flex items-center gap-2 text-[#f7a800] font-utility text-sm font-semibold group active:scale-[0.97] transition-transform"
+                className="mt-8 inline-flex min-h-11 items-center gap-2 text-[#f7a800] font-utility text-sm font-semibold group active:scale-[0.97] transition-transform"
               >
                 {t.industrial.link}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />

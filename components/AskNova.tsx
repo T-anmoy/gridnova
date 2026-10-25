@@ -294,7 +294,7 @@ function AskNovaInner() {
       .at(-1)?.full ?? "";
 
   return (
-    <div ref={wrapperRef} className="fixed bottom-6 right-6 z-[200] flex flex-col items-end gap-3">
+    <div ref={wrapperRef} data-floating-launcher="" className="fixed bottom-6 right-6 z-[200] flex flex-col items-end gap-3">
       {/* Screen-reader announcements for completed replies */}
       <span role="status" aria-live="polite" aria-atomic="true" className="sr-only">
         {lastDoneText}

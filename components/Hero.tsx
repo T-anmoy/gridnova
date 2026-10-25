@@ -5,6 +5,10 @@ import CountUp from "./CountUp";
 import MagneticButton from "./MagneticButton";
 import type { Messages } from "@/lib/i18n/types";
 
+// The landscape photo is for screens at least 768 px wide that are not portrait
+// (a portrait tablet crops a landscape photo to a sliver and upscales it).
+const HERO_LANDSCAPE = "(min-width: 768px) and (min-aspect-ratio: 1/1)";
+
 // Figures stay in Western digits in every locale; labels are translated.
 const STAT_VALUES = ["4,800+", "330+", "2,350+", "1,200+"] as const;
 
@@ -14,7 +18,13 @@ export default function Hero({ t }: { t: Messages["home"]["hero"] }) {
   // line fits its clip-reveal mask; the last line carries the gold gradient.
   const lines = t.headline;
   const last = lines.length - 1;
-  // Art-directed hero — one image downloads per device width
+  // Art-directed hero — one image downloads per device. Landscape screens get
+  // the landscape photo, portrait screens (phones and portrait tablets) the
+  // portrait one. The photo box is 1.3× the hero's height (the parallax
+  // overscan below) and is cropped by height, so it needs height × 1.3 × the
+  // photo's aspect in width, not just 100vw: 1.78 → 231vh for the landscape
+  // photo. The portrait photo is 1,400 px wide, and a phone's hero (often taller
+  // than a short screen) needs about that at 2×, so portrait screens ask for 700 px.
   const {
     props: { srcSet: desktopSrcSet },
   } = getImageProps({
@@ -22,7 +32,7 @@ export default function Hero({ t }: { t: Messages["home"]["hero"] }) {
     alt: t.imageAlt,
     fill: true,
     priority: true,
-    sizes: "100vw",
+    sizes: "(max-aspect-ratio: 231/100) 231vh, 100vw",
     quality: 85,
   });
   const {
@@ -32,7 +42,7 @@ export default function Hero({ t }: { t: Messages["home"]["hero"] }) {
     alt: t.imageAlt,
     fill: true,
     priority: true,
-    sizes: "100vw",
+    sizes: "(max-aspect-ratio: 4/5) 700px, 100vw",
     quality: 80,
   });
 
@@ -60,12 +70,12 @@ export default function Hero({ t }: { t: Messages["home"]["hero"] }) {
           <div className="ken-burns absolute inset-0">
             {/* picture: browser picks one source — no double download */}
             <picture>
-              <source media="(min-width: 768px)" srcSet={desktopSrcSet} />
+              <source media={HERO_LANDSCAPE} sizes="(max-aspect-ratio: 231/100) 231vh, 100vw" srcSet={desktopSrcSet} />
               {/* img spread carries fill styles + mobile srcSet from getImageProps */}
               <img
                 {...mobileImgProps}
                 alt={t.imageAlt}
-                className="object-cover object-[center_28%] md:object-center"
+                className="hero-img object-cover"
               />
             </picture>
           </div>

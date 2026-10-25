@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import BookACallPage from "@/app/(site)/[lang]/book-a-call/page";
 import BookingWidget from "@/app/(site)/[lang]/book-a-call/BookingWidget";
 import { EN_PARAMS, withI18n } from "./helpers/i18n";
+import { dateGroup, fillDateField } from "./helpers/date-field";
 
 // BookACallPage is an async server component (`searchParams: Promise<...>`).
 // Resolving it once and rendering the returned element is the same shape
@@ -70,12 +71,11 @@ function jsonResponse(body: unknown, status = 200) {
   } as Response;
 }
 
-// The date stays a native input (segmented in real browsers, so setting
-// .value directly via a change event is how it's driven here); the time is
+// The date is the shared DateField, filled by pasting the ISO date; the time is
 // now a real Select dropdown, so it's opened and its option clicked like any
 // other Radix Select in this codebase (see employees-lifecycle.test.tsx).
 async function askFor(user: ReturnType<typeof userEvent.setup>, dateStr: string, timeLabel: string) {
-  fireEvent.change(screen.getByLabelText("Date"), { target: { value: dateStr } });
+  fillDateField("Date", dateStr);
   await user.click(screen.getByRole("combobox"));
   const option = await screen.findByRole("option", { name: timeLabel });
   await user.click(option);
@@ -126,7 +126,7 @@ describe("BookACallPage — direct call section", () => {
   it("opens on the ask-then-confirm prompt, not a slot grid", async () => {
     await renderPage();
     expect(screen.getByText("When works best for you?")).toBeInTheDocument();
-    expect(screen.getByLabelText("Date")).toBeInTheDocument();
+    expect(dateGroup("Date")).toBeInTheDocument();
     expect(screen.getByLabelText("Time")).toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalled();
   });
@@ -190,7 +190,7 @@ describe("BookingWidget — ask-then-confirm flow", () => {
 
     // Availability is fetched the moment a date is picked — before the time
     // selector is even opened, not deferred until "Check availability".
-    fireEvent.change(screen.getByLabelText("Date"), { target: { value: ASK.dateStr } });
+    fillDateField("Date", ASK.dateStr);
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
     expect(fetch).toHaveBeenCalledWith(expect.stringContaining("/api/v1/public/booking/availability"));
 
@@ -313,7 +313,7 @@ describe("BookingWidget — ask-then-confirm flow", () => {
     await screen.findByText(/nearby options/i);
     await user.click(screen.getByRole("button", { name: /try a different time/i }));
 
-    expect(screen.getByLabelText("Date")).toBeInTheDocument();
+    expect(dateGroup("Date")).toBeInTheDocument();
     expect(screen.queryByLabelText("Name")).not.toBeInTheDocument();
   });
 

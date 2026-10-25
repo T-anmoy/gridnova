@@ -7,11 +7,11 @@ import { AlertCircle, TrendingUp } from 'lucide-react'
 import { useAnalytics } from '@/lib/dashboard/api-client'
 import { istDateKey } from '@/lib/dashboard/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import type { Role } from '@/lib/dashboard/types'
+import DateField from '@/components/forms/DateField'
 
 // Recharts (~400KB) is loaded lazily so it's not in the Analytics page's
 // initial JS — it streams in behind a skeleton after the page shell renders.
@@ -132,14 +132,14 @@ export default function AnalyticsPage() {
           )}
         </div>
         {!isSales && (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
-              <Label className="text-xs text-[#111827]/60">From</Label>
-              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-36 h-8 text-xs" />
+              <Label htmlFor="analytics-from" className="text-xs text-[#111827]/60">From</Label>
+              <DateField id="analytics-from" variant="dashboard" label="From" max={dateTo || undefined} value={dateFrom} onChange={setDateFrom} />
             </div>
             <div className="flex items-center gap-2">
-              <Label className="text-xs text-[#111827]/60">To</Label>
-              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-36 h-8 text-xs" />
+              <Label htmlFor="analytics-to" className="text-xs text-[#111827]/60">To</Label>
+              <DateField id="analytics-to" variant="dashboard" label="To" min={dateFrom || undefined} value={dateTo} onChange={setDateTo} />
             </div>
           </div>
         )}

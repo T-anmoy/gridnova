@@ -124,3 +124,31 @@ test.describe("Ask Nova", () => {
       .not.toBe(mobileFirst);
   });
 });
+
+test.describe("Ask Nova teaser on form pages", () => {
+  test("never shows on a form page (or while a field has focus); the round button stays", async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    const bubble = page.getByRole("button", { name: "Ask Nova a quick question" });
+    const launcher = page.locator("[data-floating-launcher] > button").last();
+
+    await page.goto("/contact");
+    await expect(launcher).toBeVisible();
+    // Past the 3.5 s at which it appears everywhere else.
+    await page.waitForTimeout(4_500);
+    await expect(bubble).toBeHidden();
+
+    // On a page without a form it appears, and hides while a field is focused.
+    await page.goto("/");
+    await expect(bubble).toBeVisible({ timeout: 8_000 });
+    await page.evaluate(() => {
+      const input = document.createElement("input");
+      input.setAttribute("aria-label", "probe");
+      input.style.cssText = "position:fixed;top:0;left:0";
+      document.body.append(input);
+      input.focus();
+    });
+    await expect(bubble).toBeHidden();
+    await page.evaluate(() => (document.activeElement as HTMLElement).blur());
+    await expect(bubble).toBeVisible();
+  });
+});

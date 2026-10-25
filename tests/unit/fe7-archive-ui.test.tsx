@@ -7,6 +7,7 @@ import ArchiveProjectPage from '@/app/(internal)/dashboard/archive/[id]/page'
 import ArchiveImportPage from '@/app/(internal)/dashboard/archive/import/page'
 import { navState } from './helpers/mock-navigation'
 import { BATCH_ACTIVE, BATCH_VOIDED, CARD, CARD_FOR_SALES, COMMITTED, DOSSIER, DRY_RUN, PAGE, STATS } from './fixtures/archive-contract'
+import { dateGroup } from './helpers/date-field'
 
 const h = vi.hoisted(() => ({ role: 'admin' as string | undefined, id: '41' }))
 vi.mock('@clerk/nextjs', () => ({
@@ -127,7 +128,7 @@ describe('archive list', () => {
     await screen.findAllByTestId('archive-row')
     expect((screen.getByLabelText('District') as HTMLInputElement).value).toBe('Howrah')
     expect((screen.getByLabelText('Scheme') as HTMLSelectElement).value).toBe('commercial')
-    expect((screen.getByLabelText('Commissioned from') as HTMLInputElement).value).toBe('2025-01-01')
+    expect(dateGroup('Commissioned from')).toHaveAttribute('data-value', '2025-01-01')
     const last = listCalls().at(-1)!
     expect(last.query.get('page')).toBe('2')
     expect(last.query.get('commissioned_from')).toBe('2025-01-01')

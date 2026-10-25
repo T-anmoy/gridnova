@@ -43,7 +43,9 @@ export default function TargetMarkets({ t }: { t: Messages["home"]["markets"] })
                   src={PHOTOS[panel.id]}
                   alt={panel.alt}
                   fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  // The landscape photo (4:3) is cropped into a tall card, so its width
+                  // must cover the card's height × 1.34: 360 px → 482, 420 px → 563.
+                  sizes="(max-width: 479px) 482px, (max-width: 639px) calc(100vw - 48px), (max-width: 767px) 482px, (max-width: 1023px) 563px, 600px"
                   className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#091c3c] via-[#091c3c]/60 to-transparent" />

@@ -89,6 +89,20 @@ vi.mock("next/link", () => ({
     React.createElement("a", { href: resolveHref(href), ...props }, children),
 }));
 
+// Components render in isolation here, without the layouts that provide message
+// namespaces. The shared date field (components/forms/DateField.tsx) sits inside
+// many of them, so tests get its English copy when no provider supplied one; the
+// app itself requires the provider.
+vi.mock("@/lib/i18n/client", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("@/lib/i18n/client")>();
+  const en = (await import("@/messages/en.json")).default;
+  return {
+    ...mod,
+    useMessages: ((ns: string) =>
+      ns === "dateField" ? (mod.useOptionalMessages("dateField") ?? en.dateField) : mod.useMessages(ns as never)) as typeof mod.useMessages,
+  };
+});
+
 // next/navigation hooks used by client components under test.
 vi.mock("next/navigation", () => ({
   usePathname: () => "/",

@@ -4086,5 +4086,29 @@
         "personal_sale.preferred_associate.block": "प्रीफ़र्ड एसोसिएट — ब्लॉक"
       }
     }
+  },
+  "dateField": {
+    "day": "दिन",
+    "month": "महीना",
+    "year": "वर्ष",
+    "dayPlaceholder": "DD",
+    "monthPlaceholder": "MM",
+    "yearPlaceholder": "YYYY",
+    "openCalendar": "कैलेंडर से चुनें",
+    "closeCalendar": "कैलेंडर बंद करें",
+    "calendarLabel": "तारीख चुनें",
+    "monthSelect": "महीना",
+    "yearSelect": "वर्ष",
+    "previousMonth": "पिछला महीना",
+    "nextMonth": "अगला महीना",
+    "today": "आज",
+    "invalid": "यह तारीख मौजूद नहीं है। दिन और महीना जाँचें।",
+    "incomplete": "दिन, महीना और वर्ष भरें।",
+    "future": "जन्म तिथि भविष्य की नहीं हो सकती।",
+    "underAge": "आपकी आयु कम से कम {age} वर्ष होनी चाहिए।",
+    "tooOld": "वर्ष जाँचें: यह {years} वर्ष से भी पहले का है।",
+    "beforeMin": "{date} या उसके बाद की तारीख चुनें।",
+    "afterMax": "{date} या उससे पहले की तारीख चुनें।",
+    "readBackLabel": "आपने दर्ज किया"
   }
 }

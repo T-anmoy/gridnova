@@ -37,10 +37,13 @@ export function isValidGstin(v: string): boolean {
   return /^\d{2}[A-Z]{5}\d{4}[A-Z]\d[A-Z\d]Z[A-Z\d]$/i.test(v)
 }
 
+/** The backend's MINIMUM_AGE_YEARS (app/associates/validation.py check_adult). */
+export const MIN_APPLICANT_AGE = 18
+
 export function isAdult(dob: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dob)) return false
   const birth = new Date(dob)
   if (Number.isNaN(birth.getTime())) return false
-  const eighteenthBirthday = new Date(birth.getFullYear() + 18, birth.getMonth(), birth.getDate())
+  const eighteenthBirthday = new Date(birth.getFullYear() + MIN_APPLICANT_AGE, birth.getMonth(), birth.getDate())
   return eighteenthBirthday.getTime() <= Date.now()
 }

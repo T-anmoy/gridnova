@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import AssociateRateCard from '@/components/dashboard/associate-network/AssociateRateCard'
 import AssociatePerformancePanel from '@/components/dashboard/associate-network/AssociatePerformancePanel'
@@ -15,6 +15,7 @@ import hi from '@/messages/hi.json'
 import bn from '@/messages/bn.json'
 import { RATE, PERFORMANCE, MY_RATE } from './fixtures/individual-rate-contract'
 import { ASSOCIATE_COMMISSIONS, RATE_SCHEDULES, makeEntry } from './fixtures/commissions-contract'
+import { dateGroup, fillDateField } from './helpers/date-field'
 
 const h = vi.hoisted(() => ({
   role: { role: 'admin' as string | undefined, isLoaded: true },
@@ -111,7 +112,7 @@ describe('Admin card — changing the rate', () => {
     return user
   }
   const rateField = () => screen.getByLabelText(/New rate/)
-  const dateField = () => screen.getByLabelText('Starts on') as HTMLInputElement
+  const dateField = () => ({ min: dateGroup('Starts on').dataset.min, value: dateGroup('Starts on').dataset.value })
 
   it('starts from the rate in effect; the stepper moves it by a quarter either way', async () => {
     const user = await open()
@@ -220,18 +221,18 @@ describe('Performance panel', () => {
   it('with no dates the server’s default (this month) is used; a full range is sent as both dates', () => {
     render(<AssociatePerformancePanel associateId="x" />)
     expect(h.perfRange).toHaveBeenLastCalledWith({})
-    fireEvent.change(screen.getByLabelText('From'), { target: { value: '2026-07-01' } })
+    fillDateField('From', '2026-07-01')
     expect(h.perfRange).toHaveBeenLastCalledWith({})
     expect(screen.getByTestId('range-problem')).toHaveTextContent('both dates')
-    fireEvent.change(screen.getByLabelText('To'), { target: { value: '2026-09-30' } })
+    fillDateField('To', '2026-09-30')
     expect(h.perfRange).toHaveBeenLastCalledWith({ date_from: '2026-07-01', date_to: '2026-09-30' })
     expect(screen.queryByTestId('range-problem')).toBeNull()
   })
 
   it('a period over 366 days is refused before the request', () => {
     render(<AssociatePerformancePanel associateId="x" />)
-    fireEvent.change(screen.getByLabelText('From'), { target: { value: '2025-01-01' } })
-    fireEvent.change(screen.getByLabelText('To'), { target: { value: '2026-10-01' } })
+    fillDateField('From', '2025-01-01')
+    fillDateField('To', '2026-10-01')
     expect(screen.getByTestId('range-problem')).toHaveTextContent('366')
     expect(h.perfRange).toHaveBeenLastCalledWith({})
   })
@@ -258,7 +259,7 @@ describe('Rate schedules page (admin)', () => {
     render(<RateSchedules />)
     expect(screen.getByTestId('notice-hint')).toHaveTextContent('This first schedule can take effect today (23 Oct 2026) or later.')
     expect(screen.getByTestId('notice-hint')).not.toHaveTextContent(/notice period/)
-    expect((screen.getByLabelText(/Effective from/) as HTMLInputElement).min).toBe('2026-10-23')
+    expect(dateGroup(/Effective from/)).toHaveAttribute('data-min', '2026-10-23')
   })
 })
 

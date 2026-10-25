@@ -6,6 +6,7 @@ import AccountsPage from '@/app/(internal)/dashboard/accounts/page'
 import PaymentDetailPage from '@/app/(internal)/dashboard/accounts/payments/[id]/page'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { withI18n } from './helpers/i18n'
+import { typeDateField } from './helpers/date-field'
 import type { Milestone, StaffPayment } from '@/lib/associate/payment-types'
 
 const h = vi.hoisted(() => ({
@@ -226,9 +227,8 @@ describe('Accounts workspace — CSV export', () => {
     const user = userEvent.setup()
     render(withI18n(<AccountsPage />))
     const panel = screen.getByTestId('export-panel')
-    const dates = panel.querySelectorAll('input[type="date"]')
-    await user.type(dates[0] as HTMLInputElement, '2026-03-01')
-    await user.type(dates[1] as HTMLInputElement, '2026-03-31')
+    await typeDateField(user, 'Export from', '01032026')
+    await typeDateField(user, 'Export to', '31032026')
     await user.click(within(panel).getByRole('button', { name: /Ledger CSV/ }))
     expect(h.download).toHaveBeenCalledWith('ledger', 'tok', { date_from: '2026-03-01', date_to: '2026-03-31' })
     await user.click(within(panel).getByRole('button', { name: /Payments CSV/ }))

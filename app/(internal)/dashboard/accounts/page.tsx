@@ -24,6 +24,7 @@ import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { formatDate } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
 import { STAFF_PAYMENT_COPY } from '@/lib/dashboard/staff-copy'
+import DateField from '@/components/forms/DateField'
 
 const MODES = Object.entries(STAFF_PAYMENT_COPY.modes)
 const STATUSES = Object.keys(STATUS_LABEL)
@@ -141,8 +142,8 @@ function PaymentsTab() {
             {MODES.map(([k, label]) => <SelectItem key={k} value={k}>{label}</SelectItem>)}
           </SelectContent>
         </Select>
-        <label className="flex items-center gap-1.5 text-xs text-gray-500">From <Input type="date" className="h-9 w-40" value={from} onChange={(e) => { setFrom(e.target.value); reset() }} /></label>
-        <label className="flex items-center gap-1.5 text-xs text-gray-500">To <Input type="date" className="h-9 w-40" value={to} onChange={(e) => { setTo(e.target.value); reset() }} /></label>
+        <div className="flex items-center gap-1.5 text-xs text-gray-500">From <DateField variant="dashboard" label="From" max={to || undefined}  value={from} onChange={(v) => { setFrom(v); reset() }} /></div>
+        <div className="flex items-center gap-1.5 text-xs text-gray-500">To <DateField variant="dashboard" label="To" min={from || undefined}  value={to} onChange={(v) => { setTo(v); reset() }} /></div>
         <SearchBox value={text} onChange={setText} />
       </div>
       {error && <DashboardError error={error} onRetry={() => void refetch()} />}
@@ -344,8 +345,8 @@ function ExportPanel() {
   return (
     <Card>
       <CardContent className="flex flex-wrap items-end gap-3 p-4" data-testid="export-panel">
-        <label className="text-xs text-gray-500">From<Input type="date" className="mt-1 h-9 w-40" value={from} onChange={(e) => setFrom(e.target.value)} /></label>
-        <label className="text-xs text-gray-500">To<Input type="date" className="mt-1 h-9 w-40" value={to} onChange={(e) => setTo(e.target.value)} /></label>
+        <div className="text-xs text-gray-500">From<DateField variant="dashboard" label="Export from" max={to || undefined} className="mt-1" value={from} onChange={setFrom} /></div>
+        <div className="text-xs text-gray-500">To<DateField variant="dashboard" label="Export to" min={from || undefined} className="mt-1" value={to} onChange={setTo} /></div>
         {(['payments', 'receipts', 'ledger'] as const).map((k) => (
           <Button key={k} variant="outline" size="sm" disabled={busy !== null} onClick={() => void run(k)}>
             <Download className="mr-1 h-3 w-3" /> {k.charAt(0).toUpperCase() + k.slice(1)} CSV

@@ -6,6 +6,7 @@ import { useAssociateUpdateUnit, useAssociateVoidUnit } from '@/lib/associate/re
 import { entryErrorOf } from '@/lib/associate/register-entry'
 import type { RegisterUnit } from '@/lib/associate/register-types'
 import type { Messages } from '@/lib/i18n/types'
+import DateField from '@/components/forms/DateField'
 
 type RegisterCopy = Messages['associates']['portal']['execution']['register']
 
@@ -87,8 +88,8 @@ function EditDialog({ onboardingId, unit, copy, onClose }: { onboardingId: numbe
             </>
           )}
           <div className="grid gap-3 sm:grid-cols-2">
-            <div><label htmlFor="edit-ws" className={lbl}>{entry.warrantyStart}</label><input id="edit-ws" type="date" className={field} value={start} onChange={(e) => setStart(e.target.value)} /></div>
-            <div><label htmlFor="edit-we" className={lbl}>{entry.warrantyEnd}</label><input id="edit-we" type="date" className={field} value={end} onChange={(e) => setEnd(e.target.value)} /></div>
+            <div><label htmlFor="edit-ws" className={lbl}>{entry.warrantyStart}</label><DateField id="edit-ws" label={entry.warrantyStart} max={end || undefined} value={start} onChange={setStart} /></div>
+            <div><label htmlFor="edit-we" className={lbl}>{entry.warrantyEnd}</label><DateField id="edit-we" label={entry.warrantyEnd} min={start || undefined} value={end} onChange={setEnd} /></div>
           </div>
         </div>
         {error && <p role="alert" className="text-sm text-red-600">{error}</p>}

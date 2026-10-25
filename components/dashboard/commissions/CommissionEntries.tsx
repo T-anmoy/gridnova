@@ -32,6 +32,7 @@ import { useUrlParams } from '@/lib/dashboard/use-url-params'
 import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { formatDate, formatDatetime } from '@/lib/dashboard/utils'
 import { formatInr, isNegativeAmount } from '@/lib/money'
+import DateField from '@/components/forms/DateField'
 
 const PAGE_SIZE = 25
 
@@ -190,11 +191,11 @@ export default function CommissionEntries() {
         </div>
         <div className="w-[48%] sm:w-40">
           <label htmlFor={`${formId}-from`} className="mb-1 block text-xs text-gray-500">From</label>
-          <Input id={`${formId}-from`} name="from" type="date" key={url.get('from')} defaultValue={url.get('from')} className="h-11 md:h-9" />
+          <DateField id={`${formId}-from`} variant="dashboard" label="From" name="from" key={url.get('from')} defaultValue={url.get('from')} />
         </div>
         <div className="w-[48%] sm:w-40">
           <label htmlFor={`${formId}-to`} className="mb-1 block text-xs text-gray-500">To</label>
-          <Input id={`${formId}-to`} name="to" type="date" key={url.get('to')} defaultValue={url.get('to')} className="h-11 md:h-9" />
+          <DateField id={`${formId}-to`} variant="dashboard" label="To" name="to" key={url.get('to')} defaultValue={url.get('to')} />
         </div>
         <Button type="submit" variant="outline" className="h-11 md:h-9">Apply</Button>
         <Button type="button" variant={filters.pending ? 'default' : 'outline'} className="h-11 md:h-9" aria-pressed={!!filters.pending} onClick={() => url.set({ pending: filters.pending ? undefined : '1' })}>

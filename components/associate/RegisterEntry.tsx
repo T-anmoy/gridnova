@@ -24,6 +24,7 @@ import type { RegisterWarning, RowError, SerialCheck, UnitCategory } from '@/lib
 import type { Messages } from '@/lib/i18n/types'
 import { readSerialDraft, useSerialDraftWriter } from '@/lib/associate/serial-draft'
 import { registerDraftKey, useDraftUserId } from '@/lib/associate/portal-session'
+import DateField from '@/components/forms/DateField'
 
 // What survives a discarded tab: the typed values, never a serial-check result.
 const storedRow = (r: DraftRow): Record<string, unknown> => {
@@ -285,11 +286,11 @@ export default function RegisterEntry({ onboardingId, portalBase, copy }: { onbo
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <label htmlFor={`${id}-ws`} className={label}>{entry.warrantyStart}</label>
-                <input id={`${id}-ws`} type="date" className={field} value={r.warrantyStart} onChange={(e) => patch(r.key, { warrantyStart: e.target.value })} />
+                <DateField id={`${id}-ws`} label={entry.warrantyStart} max={r.warrantyEnd || undefined} value={r.warrantyStart} onChange={(v) => patch(r.key, { warrantyStart: v })} />
               </div>
               <div>
                 <label htmlFor={`${id}-we`} className={label}>{entry.warrantyEnd}</label>
-                <input id={`${id}-we`} type="date" className={field} value={r.warrantyEnd} onChange={(e) => patch(r.key, { warrantyEnd: e.target.value })} />
+                <DateField id={`${id}-we`} label={entry.warrantyEnd} min={r.warrantyStart || undefined} value={r.warrantyEnd} onChange={(v) => patch(r.key, { warrantyEnd: v })} />
               </div>
             </div>
             {err('warrantyPair')}

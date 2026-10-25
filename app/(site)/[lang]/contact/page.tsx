@@ -10,7 +10,7 @@ export const generateMetadata = localizedMetadata("contact", "/contact");
 export default async function ContactPage({ params }: LangParams) {
   const t = (await messagesFor(await resolveLocale(params))).contact;
   return (
-    <main id="main-content" className="bg-[#f7f9fc] min-h-[100svh]">
+    <main id="main-content" data-form-page="" className="bg-[#f7f9fc] min-h-[100svh]">
       <div className="mx-auto max-w-[1280px] px-6 md:px-10 pt-[calc(var(--header-h)+3rem)] pb-20 md:pb-28">
         {/* Page heading — different from any other page on the site */}
         <div className="mb-14 md:mb-16">

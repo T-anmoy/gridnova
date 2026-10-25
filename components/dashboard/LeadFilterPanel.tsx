@@ -9,6 +9,7 @@ import {
 } from '@/lib/dashboard/lead-filters'
 import { fmt, type StaffLeadsCopy } from '@/lib/dashboard/staff-leads-copy'
 import type { PipelineStage } from '@/lib/dashboard/types'
+import DateField from '@/components/forms/DateField'
 
 const CONTROL =
   'min-h-11 w-full rounded-lg border border-[#e4e8ee] bg-white px-3 text-base md:text-sm font-utility text-[#111827] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f7a800]'
@@ -148,26 +149,28 @@ export function LeadFilterPanel({
           <fieldset aria-describedby={`${panelId}-date-help`}>
             <legend className="font-utility text-sm font-medium text-[#091c3c]">{c.created}</legend>
             <div className="mt-2 grid gap-3">
-              <label className="grid gap-1 font-utility text-sm text-[#111827]">
-                {c.createdFrom}
-                <input
-                  type="date"
-                  className={CONTROL}
+              <div className="grid gap-1 font-utility text-sm text-[#111827]">
+                <label htmlFor={`${panelId}-created-from`}>{c.createdFrom}</label>
+                <DateField
+                  id={`${panelId}-created-from`}
+                  label={c.createdFrom}
+                  max={filters.createdTo || undefined}
                   value={filters.createdFrom}
                   aria-invalid={messages.date.length > 0}
-                  onChange={(e) => onChange({ ...filters, createdFrom: e.target.value })}
+                  onChange={(v) => onChange({ ...filters, createdFrom: v })}
                 />
-              </label>
-              <label className="grid gap-1 font-utility text-sm text-[#111827]">
-                {c.createdTo}
-                <input
-                  type="date"
-                  className={CONTROL}
+              </div>
+              <div className="grid gap-1 font-utility text-sm text-[#111827]">
+                <label htmlFor={`${panelId}-created-to`}>{c.createdTo}</label>
+                <DateField
+                  id={`${panelId}-created-to`}
+                  label={c.createdTo}
+                  min={filters.createdFrom || undefined}
                   value={filters.createdTo}
                   aria-invalid={messages.date.length > 0}
-                  onChange={(e) => onChange({ ...filters, createdTo: e.target.value })}
+                  onChange={(v) => onChange({ ...filters, createdTo: v })}
                 />
-              </label>
+              </div>
             </div>
             <p id={`${panelId}-date-help`} className="mt-2 font-utility text-xs text-[#111827]/65">{c.dateHelp}</p>
             <FieldMessages id={`${panelId}-date-err`} messages={messages.date} />

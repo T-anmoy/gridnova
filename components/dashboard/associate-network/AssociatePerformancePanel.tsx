@@ -2,7 +2,6 @@
 
 import { useId, useState } from 'react'
 import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { ApiError } from '@/lib/dashboard/api-error'
@@ -10,6 +9,7 @@ import { formatDate } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
 import { rangeProblem } from '@/lib/commissions/individual-rate'
 import { useAssociatePerformance } from '@/lib/commissions/staff-api-client'
+import DateField from '@/components/forms/DateField'
 
 function Figure({ label, hint, children, testId }: { label: string; hint?: string; children: React.ReactNode; testId: string }) {
   return (
@@ -41,11 +41,11 @@ export default function AssociatePerformancePanel({ associateId }: { associateId
       <div className="mt-3 grid grid-cols-2 gap-3">
         <div>
           <label htmlFor={`${id}-from`} className="mb-1 block text-xs text-gray-600">From</label>
-          <Input id={`${id}-from`} type="date" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} className="h-11 md:h-9" />
+          <DateField id={`${id}-from`} variant="dashboard" label="From" max={to || undefined} value={from} onChange={setFrom} />
         </div>
         <div>
           <label htmlFor={`${id}-to`} className="mb-1 block text-xs text-gray-600">To</label>
-          <Input id={`${id}-to`} type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} className="h-11 md:h-9" />
+          <DateField id={`${id}-to`} variant="dashboard" label="To" min={from || undefined} value={to} onChange={setTo} />
         </div>
       </div>
       {problem ? (

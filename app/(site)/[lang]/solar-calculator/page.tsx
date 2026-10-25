@@ -11,7 +11,7 @@ export default async function SolarCalculatorPage({ params }: LangParams) {
   const m = (await messagesFor(await resolveLocale(params)));
   const t = m.calculatorPage;
   return (
-    <main id="main-content" className="bg-[#f7f9fc] min-h-[100svh]">
+    <main id="main-content" data-form-page="" className="bg-[#f7f9fc] min-h-[100svh]">
       <div className="mx-auto max-w-[900px] px-4 sm:px-6 md:px-10 pt-[calc(var(--header-h)+3rem)] pb-20 md:pb-28">
         <div className="mb-12 md:mb-14 text-center">
           <span className="ref-tag text-[#2f5daa] justify-center">{t.eyebrow}</span>

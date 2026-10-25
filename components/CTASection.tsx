@@ -40,7 +40,7 @@ export default function CTASection({ t }: { t: Messages["cta"] }) {
         </div>
         <a
           href={HELPLINE_TEL}
-          className="mt-6 inline-flex items-center gap-1.5 text-white/60 hover:text-white/70 font-utility text-xs transition-colors duration-300"
+          className="mt-6 inline-flex min-h-11 items-center gap-1.5 text-white/60 hover:text-white/70 font-utility text-xs transition-colors duration-300"
         >
           <Phone className="h-3 w-3" />
           {t.call}
