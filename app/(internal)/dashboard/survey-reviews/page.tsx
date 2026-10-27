@@ -10,11 +10,11 @@ import { ClickableRow } from '@/components/dashboard/ClickableRow'
 import { QueuePager } from '@/components/dashboard/QueuePager'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import NoAccess from '@/components/dashboard/NoAccess'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { useSurveyReviewQueue } from '@/lib/dashboard/survey-review-api-client'
 import { SURVEY_QUEUE_STATES, type SurveyQueueState } from '@/lib/dashboard/survey-review-types'
-import { OUTCOME_LABEL, OUTCOME_VARIANT, isSurveyReader } from '@/lib/dashboard/survey-review-ui'
+import { OUTCOME_LABEL, OUTCOME_VARIANT } from '@/lib/dashboard/survey-review-ui'
 import { formatDatetime } from '@/lib/dashboard/utils'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 const PAGE_SIZE = 25
 const TAB_LABEL: Record<SurveyQueueState, string> = { awaiting: 'Awaiting', overdue: 'Overdue', reviewed: 'Reviewed', revised: 'Revised' }
@@ -31,7 +31,7 @@ function SurveyReviews() {
   const router = useRouter()
   const pathname = usePathname()
   const sp = useSearchParams()
-  const { role, isLoaded } = useStaffRole()
+  const { can, isLoaded } = usePermissions()
   const rawState = sp.get('state')
   const state: SurveyQueueState = (SURVEY_QUEUE_STATES as readonly string[]).includes(rawState ?? '') ? (rawState as SurveyQueueState) : 'awaiting'
   const page = Math.max(1, Number(sp.get('page')) || 1)
@@ -46,7 +46,7 @@ function SurveyReviews() {
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
   }
 
-  if (isLoaded && !isSurveyReader(role)) return <NoAccess what="The survey review queue" />
+  if (isLoaded && !can('surveys.view')) return <NoAccess what="The survey review queue" />
 
   return (
     <div className="space-y-4">

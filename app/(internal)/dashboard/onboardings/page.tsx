@@ -1,5 +1,6 @@
 'use client'
 
+import { RequirePermission } from '@/components/dashboard/RequirePermission'
 import { Suspense } from 'react'
 import { useUrlParams } from '@/lib/dashboard/use-url-params'
 import { useStaffOnboardings } from '@/lib/dashboard/onboarding-api-client'
@@ -26,7 +27,9 @@ export default function OnboardingsListPage() {
   // useSearchParams needs a Suspense boundary.
   return (
     <Suspense fallback={<Skeleton className="m-6 h-64" />}>
-      <OnboardingsList />
+      <RequirePermission rule="onboardings.view" what="Associate-sourced customers">
+        <OnboardingsList />
+      </RequirePermission>
     </Suspense>
   )
 }

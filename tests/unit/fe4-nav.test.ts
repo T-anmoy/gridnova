@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { visibleNavItems } from '@/lib/dashboard/nav'
 import type { Role } from '@/lib/dashboard/types'
+import { permissionsFor } from './helpers/permissions-bridge'
 
-const labels = (role: Role | undefined) => visibleNavItems(role).map((i) => i.label)
+const labels = (role: Role | undefined) => visibleNavItems(permissionsFor(role ? [role] : [])).map((i) => i.label)
 
 describe('FE-4 nav items follow the backend’s permissions', () => {
   it.each([

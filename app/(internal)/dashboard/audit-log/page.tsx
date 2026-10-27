@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import React from 'react'
-import { useUser } from '@clerk/nextjs'
-import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, ShieldOff } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react'
 import { useAuditLog } from '@/lib/dashboard/api-client'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { Card, CardContent } from '@/components/ui/card'
@@ -14,17 +13,24 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDatetime } from '@/lib/dashboard/utils'
-import type { AuditLog, Role } from '@/lib/dashboard/types'
+import type { AuditLog } from '@/lib/dashboard/types'
 import DateField from '@/components/forms/DateField'
+import { RequirePermission } from '@/components/dashboard/RequirePermission'
 
 const ENTITY_TYPES = ['lead', 'proposal', 'employee', 'customer', 'audit_log']
 
 const PAGE_SIZE = 50
 
+// Admin and Management read all of it; the Network Manager the associate network's records (the backend scopes it).
 export default function AuditLogPage() {
-  const { user } = useUser()
-  const role = user?.publicMetadata?.role as Role | undefined
+  return (
+    <RequirePermission rule={['audit.view', 'audit.view_associates']} what="The audit log">
+      <AuditLogView />
+    </RequirePermission>
+  )
+}
 
+function AuditLogView() {
   const [entityType, setEntityType] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -38,19 +44,6 @@ export default function AuditLogPage() {
     page,
     page_size: PAGE_SIZE,
   })
-
-  // Restrict to admin/management via conditional render (not router.push)
-  if (role && role !== 'admin' && role !== 'management') {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center">
-          <ShieldOff className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
-          <p className="font-display text-lg font-semibold text-[#091c3c]">Access Denied</p>
-          <p className="font-utility text-sm text-[#111827]/65 mt-1">The audit log is only available to admins and management.</p>
-        </div>
-      </div>
-    )
-  }
 
   const items = data?.items ?? []
   const total = data?.total ?? 0

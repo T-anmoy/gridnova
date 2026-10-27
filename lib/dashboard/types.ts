@@ -1,6 +1,9 @@
 import type { ReverificationReason } from "./survey-review-types"
 
-export type Role = 'admin' | 'sales' | 'management' | 'engineer' | 'operations' | 'accounts'
+// The role ids the backend knows (access_control.md §1). A type only: what a person may do
+// comes from GET /employees/me `permissions`, and role names are shown through
+// lib/access/roles.ts — no screen compares them.
+export type Role = 'admin' | 'sales' | 'management' | 'network_manager' | 'engineer' | 'operations' | 'accounts'
 
 // ── Equipment / SKU master ───────────────────────────────────────────────────
 
@@ -420,7 +423,12 @@ export interface Employee {
   id: string
   name: string
   email: string
+  /** The primary role (the first held in the backend's order). */
   role: Role
+  /** BE-17: every role held; permissions are their union. */
+  roles?: Role[]
+  /** BE-17: TerritoryState names; empty = every region. */
+  regions?: string[]
   is_active: boolean
   created_at: string | null
   google_calendar_connected?: boolean
@@ -434,10 +442,17 @@ export interface AssignableEmployee {
   role: Role
 }
 
-// GET /employees/me
+// GET /employees/me (access_control.md §2)
 export interface EmployeeMe {
   id: string
+  /** The primary role — for display only; decisions use `permissions`. */
   role: Role
+  roles: Role[]
+  permissions: string[]
+  two_factor_ok: boolean
+  requires_two_factor: boolean
+  can_assign_roles: Role[]
+  regions: string[]
   is_active: boolean
   google_calendar_connected: boolean
 }

@@ -1,21 +1,22 @@
 import { notAuthenticatedError } from '@/lib/api/http'
 import { useAuth } from '@clerk/nextjs'
+import type { PermissionRule } from '@/lib/access/permissions'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardFetch } from '@/lib/dashboard/api-client'
 import { dashboardFetchForm } from '@/lib/associate/onboarding-api-client'
 import type { PaymentOverview, RecordPaymentInput, StaffPayment } from '@/lib/associate/payment-types'
 
-// Staff-audience payment endpoints (/api/v1/dashboard/…). Roles: admin and
-// accounts everything; sales may record and read own/unassigned customers;
-// management reads. Operations and engineers get 403 on every payment route —
+// Staff-audience payment endpoints (/api/v1/dashboard/…). payments.process does
+// everything; payments.record records and (with payments.view) reads own/unassigned
+// customers; payments.view_all reads every customer. Operations and engineers get 403 on every payment route —
 // payment UI is hidden from them (see canSeePayments).
 const BASE = '/api/v1/dashboard'
 
-export type StaffRole = 'admin' | 'sales' | 'management' | 'engineer' | 'operations' | 'accounts'
+type Can = (rule: PermissionRule) => boolean
 
-export const canSeePayments = (role: StaffRole | undefined): boolean =>
-  role === 'admin' || role === 'accounts' || role === 'sales' || role === 'management'
-export const canRecordPayments = (role: StaffRole | undefined): boolean => role === 'admin' || role === 'accounts' || role === 'sales'
+// `can` is usePermissions().can (GET /employees/me).
+export const canSeePayments = (can: Can): boolean => can('payments.view')
+export const canRecordPayments = (can: Can): boolean => can('payments.record')
 
 export interface PaymentProject {
   onboarding_id: number | null

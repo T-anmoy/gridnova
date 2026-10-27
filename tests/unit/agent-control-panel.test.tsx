@@ -120,7 +120,7 @@ describe('AgentsPage — Agent Control Panel', () => {
     mockUseUser.mockReturnValue({ user: { publicMetadata: { role: 'sales' } } })
     render(<AgentsPage />)
 
-    expect(screen.getByText('Access Denied')).toBeInTheDocument()
+    expect(screen.getByTestId('no-access')).toBeInTheDocument()
     expect(screen.queryByText('Nova (Sales Agent)')).not.toBeInTheDocument()
   })
 })

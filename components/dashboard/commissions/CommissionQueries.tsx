@@ -14,16 +14,16 @@ import SelectField from '@/components/dashboard/SelectField'
 import { commissionErrorMessage, ENTRY_STATUS_LABEL } from '@/lib/commissions/labels'
 import type { CommissionQuery } from '@/lib/commissions/schemas'
 import { useStaffCommissionQueries, useRespondToQuery } from '@/lib/commissions/staff-api-client'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { useUrlParams } from '@/lib/dashboard/use-url-params'
 import { formatDate, formatDatetime } from '@/lib/dashboard/utils'
 import { formatInr, isNegativeAmount } from '@/lib/money'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 const PAGE_SIZE = 25
 
 export default function CommissionQueries() {
-  const { role } = useStaffRole()
-  const canAct = role === 'admin' || role === 'accounts'
+  const { can } = usePermissions()
+  const canAct = can('commissions.process')
   const url = useUrlParams()
   const status = url.get('status')
   const overdue = url.get('overdue') === '1'

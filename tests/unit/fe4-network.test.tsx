@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import NetworkCommandCentre from '@/components/dashboard/NetworkCommandCentre'
+import { canFor } from './helpers/permissions-bridge'
 import { associateGroupLabel, associateRows, fillPercent, overdueItems, stageRows } from '@/lib/commissions/network'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { NETWORK_SUMMARY } from './fixtures/commissions-contract'
@@ -11,7 +12,11 @@ const h = vi.hoisted(() => ({
   summary: {} as { data?: unknown; error?: unknown; isLoading?: boolean },
   params: vi.fn(),
 }))
-vi.mock('@/lib/dashboard/use-staff-role', () => ({ useStaffRole: () => h.role }))
+vi.mock('@/lib/access/use-permissions', async () => {
+  const { permissionsValue } = await import('./helpers/permissions-bridge')
+  // The signed-in role (h.role) as the BE-17 permissions it holds.
+  return { usePermissions: () => { const r = h.role as { role?: string; isLoaded?: boolean }; return permissionsValue(r.role ? [r.role as never] : [], { isLoaded: r.isLoaded ?? true }) } }
+})
 vi.mock('@/lib/commissions/staff-api-client', () => ({
   useNetworkSummary: (p: unknown) => (h.params(p), { refetch: vi.fn(), isFetching: false, ...h.summary }),
 }))
@@ -156,7 +161,7 @@ describe('network helpers', () => {
   })
 
   it('does not link a queue the role cannot open', () => {
-    const items = overdueItems(NETWORK_SUMMARY.overdue, 'engineer')
+    const items = overdueItems(NETWORK_SUMMARY.overdue, canFor('engineer'))
     expect(items.find((i) => i.key === 'commission_queries')!.href).toBeNull()
   })
 })

@@ -80,16 +80,8 @@ export function surveyReviewError(err: unknown, fallback = 'Something went wrong
   return err.detail && typeof err.detail === 'string' ? err.detail : fallback
 }
 
-/** Roles the survey endpoints let in (BE-2 §7). Operations and accounts get 403. */
-export const SURVEY_READER_ROLES = ['admin', 'management', 'sales', 'engineer'] as const
-/** Roles that may record a review, generate a report and decide corrections. */
-export const SURVEY_REVIEWER_ROLES = ['admin', 'engineer'] as const
-/** Roles that may clear a proposal's re-verification flag. */
-export const REVERIFY_CLEAR_ROLES = ['admin', 'management', 'engineer'] as const
-
-export const isSurveyReader = (role: string | undefined) => !!role && (SURVEY_READER_ROLES as readonly string[]).includes(role)
-export const isSurveyReviewer = (role: string | undefined) => !!role && (SURVEY_REVIEWER_ROLES as readonly string[]).includes(role)
-export const canClearReverification = (role: string | undefined) => !!role && (REVERIFY_CLEAR_ROLES as readonly string[]).includes(role)
+// Who reads, reviews and clears is now `surveys.view`, `surveys.review` and
+// `proposals.clear_reverification` from GET /employees/me (FE-17, usePermissions).
 
 /**
  * Fields a revisit item may name, per survey section (the backend accepts any

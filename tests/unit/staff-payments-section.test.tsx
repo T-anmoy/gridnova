@@ -6,6 +6,7 @@ import PaymentScheduleEditor from '@/components/dashboard/PaymentScheduleEditor'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { withI18n } from './helpers/i18n'
 import type { Milestone, StaffPayment } from '@/lib/associate/payment-types'
+import { asRoles } from './helpers/permissions-bridge'
 
 const h = vi.hoisted(() => ({
   overview: {} as { data?: unknown; error?: unknown; isLoading?: boolean },
@@ -64,7 +65,7 @@ beforeEach(() => {
   for (const f of [h.save, h.record, h.refetch]) f.mockReset()
 })
 
-const show = (role: Parameters<typeof StaffPaymentsSection>[0]['role']) => render(withI18n(<StaffPaymentsSection onboardingId={5} role={role} />))
+const show = (role: string | undefined) => render(withI18n(asRoles([role], <StaffPaymentsSection onboardingId={5} />)))
 
 describe('StaffPaymentsSection — role gating', () => {
   it.each(['operations', 'engineer', undefined] as const)('renders nothing and makes no payment request for %s', (role) => {

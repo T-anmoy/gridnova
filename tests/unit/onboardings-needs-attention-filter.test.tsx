@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 
 vi.mock('next/navigation', async () => (await import('./helpers/mock-navigation')).navigationMock)
 import { navState } from './helpers/mock-navigation'
+import { asRoles } from './helpers/permissions-bridge'
 
 const mockUseStaffOnboardings = vi.fn()
 vi.mock('@/lib/dashboard/onboarding-api-client', () => ({
@@ -24,7 +25,7 @@ beforeEach(() => {
 describe('Staff onboardings list — "Needs attention" filter', () => {
   it('is off by default (needs_attention omitted from the query)', async () => {
     const { default: OnboardingsListPage } = await import('@/app/(internal)/dashboard/onboardings/page')
-    render(<OnboardingsListPage />)
+    render(asRoles(['admin'], <OnboardingsListPage />))
     expect(mockUseStaffOnboardings).toHaveBeenLastCalledWith(
       expect.objectContaining({ needs_attention: undefined })
     )
@@ -33,7 +34,7 @@ describe('Staff onboardings list — "Needs attention" filter', () => {
   it('toggling the button turns needs_attention on, resets to page 1, and toggling again turns it off', async () => {
     const { default: OnboardingsListPage } = await import('@/app/(internal)/dashboard/onboardings/page')
     const user = userEvent.setup()
-    render(<OnboardingsListPage />)
+    render(asRoles(['admin'], <OnboardingsListPage />))
 
     const button = screen.getByRole('button', { name: 'Needs attention' })
     await user.click(button)

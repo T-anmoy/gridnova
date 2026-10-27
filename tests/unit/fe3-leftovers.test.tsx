@@ -94,6 +94,8 @@ vi.mock('@/lib/dashboard/api-client', async (orig) => ({
   prefetchProposals: vi.fn(),
 }))
 const workQueues = vi.fn((): { data: unknown } => ({ data: undefined }))
+// The shell's second-approval badge (GET /approvals).
+vi.mock('@/lib/access/api', () => ({ useApprovals: () => ({ data: [] }) }))
 vi.mock('@/lib/dashboard/execution-api-client', () => ({ useWorkQueues: () => workQueues() }))
 vi.mock('@/components/dashboard/QueryProvider', () => ({ QueryProvider: ({ children }: { children: React.ReactNode }) => <>{children}</> }))
 vi.mock('@/components/dashboard/CommandPalette', () => ({ CommandPalette: () => null }))

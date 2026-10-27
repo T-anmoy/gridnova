@@ -7,7 +7,6 @@ import HandoverPanel from '@/components/dashboard/handover/HandoverPanel'
 import ProjectServiceRequests from '@/components/dashboard/handover/ProjectServiceRequests'
 import WarrantyPanel from '@/components/dashboard/handover/WarrantyPanel'
 import { useUrlParams } from '@/lib/dashboard/use-url-params'
-import type { Role } from '@/lib/dashboard/types'
 
 const TABS = [
   { key: 'installation', label: 'Installation' },
@@ -17,7 +16,7 @@ const TABS = [
 ] as const
 type TabKey = (typeof TABS)[number]['key']
 
-function Tabs({ onboardingId, role }: { onboardingId: number; role: Role | undefined }) {
+function Tabs({ onboardingId }: { onboardingId: number }) {
   const url = useUrlParams()
   const raw = url.get('tab')
   const tab: TabKey = TABS.some((t) => t.key === raw) ? (raw as TabKey) : 'installation'
@@ -38,7 +37,7 @@ function Tabs({ onboardingId, role }: { onboardingId: number; role: Role | undef
           </button>
         ))}
       </nav>
-      {tab === 'installation' && <ExecutionDetailPanel onboardingId={onboardingId} role={role} />}
+      {tab === 'installation' && <ExecutionDetailPanel onboardingId={onboardingId} />}
       {tab === 'handover' && <HandoverPanel onboardingId={onboardingId} />}
       {tab === 'warranty' && <WarrantyPanel onboardingId={onboardingId} />}
       {tab === 'service' && <ProjectServiceRequests onboardingId={onboardingId} />}
@@ -47,11 +46,11 @@ function Tabs({ onboardingId, role }: { onboardingId: number; role: Role | undef
 }
 
 /** The project screen of the Operations workspace: installation, handover, warranty and service requests. */
-export default function OperationsProjectTabs({ onboardingId, role }: { onboardingId: number; role: Role | undefined }) {
+export default function OperationsProjectTabs({ onboardingId }: { onboardingId: number }) {
   // The active tab lives in the URL (?tab=handover), so useSearchParams needs a Suspense boundary.
   return (
     <Suspense fallback={<Skeleton className="h-40 w-full" />}>
-      <Tabs onboardingId={onboardingId} role={role} />
+      <Tabs onboardingId={onboardingId} />
     </Suspense>
   )
 }

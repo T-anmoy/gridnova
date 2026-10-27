@@ -1,3 +1,4 @@
+import type { PermissionRule } from '@/lib/access/permissions'
 import type { NetworkSummary } from './schemas'
 
 // Reshaping of GET /dashboard/network/summary for display. Only counts (integers) are
@@ -60,17 +61,18 @@ export interface OverdueItem {
   key: keyof NetworkSummary['overdue']
   label: string
   count: number
-  /** where the queue lives; null when this role cannot open it */
+  /** where the queue lives; null when this person cannot open it */
   href: string | null
 }
 
 /** The overdue counters with a link to the queue each one lives in. */
-export function overdueItems(overdue: NetworkSummary['overdue'], role: string | undefined): OverdueItem[] {
-  const accounts = role === 'admin' || role === 'management' || role === 'accounts'
+export function overdueItems(overdue: NetworkSummary['overdue'], can: (rule: PermissionRule) => boolean): OverdueItem[] {
+  const payments = can('payments.view_all')
+  const commissions = can('commissions.view')
   return [
     { key: 'verification_calls', label: 'Customer verification calls overdue', count: overdue.verification_calls, href: '/dashboard/onboardings?attention=1' },
     { key: 'survey_reviews', label: 'Survey reviews overdue', count: overdue.survey_reviews, href: '/dashboard/survey-reviews' },
-    { key: 'payments_awaiting_verification', label: 'Payments waiting too long for verification', count: overdue.payments_awaiting_verification, href: accounts ? '/dashboard/accounts' : null },
-    { key: 'commission_queries', label: 'Commission queries overdue', count: overdue.commission_queries, href: accounts ? '/dashboard/commissions/queries?overdue=1' : null },
+    { key: 'payments_awaiting_verification', label: 'Payments waiting too long for verification', count: overdue.payments_awaiting_verification, href: payments ? '/dashboard/accounts' : null },
+    { key: 'commission_queries', label: 'Commission queries overdue', count: overdue.commission_queries, href: commissions ? '/dashboard/commissions/queries?overdue=1' : null },
   ]
 }

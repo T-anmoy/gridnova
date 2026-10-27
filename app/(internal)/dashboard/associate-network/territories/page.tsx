@@ -2,9 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useUser } from '@clerk/nextjs'
 import { toast } from 'sonner'
-import { ShieldOff } from 'lucide-react'
 import { useAdminTerritories, useTerritorySeats, useReleaseTerritorySeat } from '@/lib/associate/api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { DashboardError } from '@/components/dashboard/DashboardError'
@@ -19,7 +17,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { formatDate } from '@/lib/dashboard/utils'
 import TerritoryAdmin from '@/components/dashboard/TerritoryAdmin'
 import type { AssociateLevel, TerritorySeat } from '@/lib/associate/types'
-import type { Role } from '@/lib/dashboard/types'
+import { RequirePermission } from '@/components/dashboard/RequirePermission'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 const LEVELS: AssociateLevel[] = ['state_head', 'district_head', 'block']
 
@@ -29,9 +28,17 @@ function errorMessage(err: unknown, fallback: string): string {
   return fallback
 }
 
+// Seats (associates.seats.manage) and the district / block editor (territories.manage).
 export default function TerritoriesPage() {
-  const { user } = useUser()
-  const role = user?.publicMetadata?.role as Role | undefined
+  return (
+    <RequirePermission rule={['associates.seats.manage', 'territories.manage']} what="Territories">
+      <Territories />
+    </RequirePermission>
+  )
+}
+
+function Territories() {
+  const { can } = usePermissions()
 
   const [stateLgd, setStateLgd] = useState<number | undefined>(undefined)
   const [levelFilter, setLevelFilter] = useState<AssociateLevel | ''>('')
@@ -47,16 +54,6 @@ export default function TerritoriesPage() {
   })
   const releaseSeat = useReleaseTerritorySeat()
 
-  if (role && role !== 'admin') {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center">
-          <ShieldOff className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
-          <p className="font-display text-lg font-semibold text-[#091c3c]">Access Denied</p>
-        </div>
-      </div>
-    )
-  }
 
   async function confirmRelease() {
     if (!releaseTarget || !reason.trim()) return
@@ -191,7 +188,7 @@ export default function TerritoriesPage() {
         </DialogContent>
       </Dialog>
 
-      {role === 'admin' && <TerritoryAdmin />}
+      {can('territories.manage') && <TerritoryAdmin />}
     </div>
   )
 }

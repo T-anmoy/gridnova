@@ -5,22 +5,24 @@
 // the server's English (except the 409/503 messages the contract says come from
 // the booking/availability layers, which are passed through as `serverText`).
 import { ApiError } from '@/lib/dashboard/api-error'
-import type { Role } from '@/lib/dashboard/types'
+import type { PermissionRule } from '@/lib/access/permissions'
+import { SEES_LEADS } from '@/lib/dashboard/nav'
 import type {
   CustomerMemoryResponse, EngineerLeadDetail, MemoryAskResponse, ReflectResponse, ScheduleMeetingRequest,
 } from '@/lib/dashboard/staff-leads-types'
 import type { LeadDetail } from '@/lib/dashboard/types'
 
-// ── Roles ────────────────────────────────────────────────────────────────────
+// ── Permissions (GET /employees/me; `can` is usePermissions().can) ────────────
+
+type Can = (rule: PermissionRule) => boolean
 
 /** Operations and Accounts see no leads at all (§ visibility rule). */
-export const canSeeLeads = (role: Role | undefined) =>
-  role === 'admin' || role === 'management' || role === 'sales' || role === 'engineer'
-export const canExportLeads = (role: Role | undefined) => role === 'admin' || role === 'management'
-export const canScheduleMeeting = (role: Role | undefined) => role === 'admin' || role === 'sales'
-/** Customer memory, ask-memory and reflect share one role set. */
-export const canUseMemory = (role: Role | undefined) =>
-  role === 'admin' || role === 'management' || role === 'sales'
+export const canSeeLeads = (can: Can) => can(SEES_LEADS)
+/** The CSV exports are company-wide figures (the backend gates them on analytics.view_full). */
+export const canExportLeads = (can: Can) => can('analytics.view_full')
+export const canScheduleMeeting = (can: Can) => can('meetings.schedule')
+/** Customer memory, ask-memory and reflect share one permission. */
+export const canUseMemory = (can: Can) => can('customers.memory_query')
 
 // ── Lead detail shapes ───────────────────────────────────────────────────────
 

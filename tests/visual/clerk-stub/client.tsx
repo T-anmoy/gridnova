@@ -78,7 +78,24 @@ export function useClerk() {
     signOut: async () => {
       document.cookie = 'vm_principal=; Max-Age=0; path=/'
     },
+    openUserProfile: () => {},
   }
+}
+
+// Invitation sign-up (FE-17): the ticket `tok-expired` fails like a withdrawn invitation;
+// any other leaves Clerk's own form (stubbed below) to finish.
+export function useSignUp() {
+  return {
+    signUp: {
+      status: 'missing_requirements',
+      ticket: async ({ ticket }: { ticket: string }) => ({ error: ticket === 'tok-expired' ? { code: 'ticket_expired' } : null }),
+      finalize: async () => ({ error: null }),
+    },
+  }
+}
+
+export function SignUp() {
+  return <p data-testid="visual-stub-sign-up">Sign-up is stubbed in the visual-matrix build.</p>
 }
 
 export function SignIn() {

@@ -7,6 +7,7 @@ import { ApiError } from '@/lib/dashboard/api-error'
 import { withI18n } from './helpers/i18n'
 import type { ExecutionStageStatus, StageSubmission } from '@/lib/associate/execution-types'
 import type { ExecutionQueueItem, StaffExecutionDetail } from '@/lib/dashboard/execution-types'
+import { asRoles } from './helpers/permissions-bridge'
 
 const h = vi.hoisted(() => ({
   detail: {} as { data?: unknown; error?: unknown; isLoading?: boolean },
@@ -110,7 +111,7 @@ function detail(over: Partial<StaffExecutionDetail> = {}): StaffExecutionDetail 
 }
 
 function showPanel(role: 'admin' | 'operations' | 'engineer' = 'operations') {
-  return render(withI18n(<ExecutionDetailPanel onboardingId={5} role={role} />))
+  return render(withI18n(asRoles([role], <ExecutionDetailPanel onboardingId={5} />)))
 }
 
 beforeEach(() => {
@@ -372,7 +373,7 @@ describe('Operations queue page', () => {
   it('marks stalled rows visibly (stuck, awaiting verification, DCR) and links to the project', async () => {
     h.queue = { data: { items: [item()], page: 1, page_size: 25, total: 1 } }
     h.queues = { data: { execution: { pending_stage_verifications: 3, stuck_projects: 2, dcr_mismatch: 1 } } }
-    render(withI18n(<OperationsPage />))
+    render(withI18n(asRoles(['operations'], <OperationsPage />)))
     const row = screen.getByTestId('queue-row')
     expect(within(row).getByTestId('row-stuck')).toBeInTheDocument()
     expect(row).toHaveTextContent('Awaiting verification')
@@ -384,14 +385,14 @@ describe('Operations queue page', () => {
 
   it('marks a project whose models are not matched to the catalogue yet (flags and attention_reasons)', () => {
     h.queue = { data: { items: [item({ flags: ['catalogue_unmatched'], attention_reasons: ['catalogue_unmatched'], pending_submission: null, is_stuck: false })], page: 1, page_size: 25, total: 1 } }
-    render(withI18n(<OperationsPage />))
+    render(withI18n(asRoles(['operations'], <OperationsPage />)))
     expect(screen.getByTestId('queue-row')).toHaveTextContent('Model not matched')
     expect(screen.getByTestId('queue-row')).not.toHaveTextContent('catalogue unmatched')
   })
 
   it('has a one-click needs-attention filter that changes the request', async () => {
     h.queue = { data: { items: [], page: 1, page_size: 25, total: 0 } }
-    render(withI18n(<OperationsPage />))
+    render(withI18n(asRoles(['operations'], <OperationsPage />)))
     await userEvent.setup().click(screen.getByRole('button', { name: 'Needs attention' }))
     await waitFor(() => expect(h.queueParams.at(-1)).toMatchObject({ needs_attention: true, page: 1 }))
     expect(screen.getByText('No projects match.')).toBeInTheDocument()
@@ -399,14 +400,14 @@ describe('Operations queue page', () => {
 
   it('shows error with Retry', async () => {
     h.queue = { error: new ApiError(500, 'x', 'boom') }
-    render(withI18n(<OperationsPage />))
+    render(withI18n(asRoles(['operations'], <OperationsPage />)))
     await userEvent.setup().click(screen.getByRole('button', { name: 'Retry' }))
     expect(h.refetch).toHaveBeenCalled()
   })
 
   it('page contains no monetary text', () => {
     h.queue = { data: { items: [item()], page: 1, page_size: 25, total: 1 } }
-    const { container } = render(withI18n(<OperationsPage />))
+    const { container } = render(withI18n(asRoles(['operations'], <OperationsPage />)))
     expect(container.textContent).not.toMatch(/₹|payment|invoice|receipt|balance/i)
   })
 })

@@ -8,9 +8,10 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useClearReverification } from '@/lib/dashboard/survey-review-api-client'
-import { canClearReverification, fieldList, surveyReviewError } from '@/lib/dashboard/survey-review-ui'
+import { fieldList, surveyReviewError } from '@/lib/dashboard/survey-review-ui'
 import { formatDatetime } from '@/lib/dashboard/utils'
 import type { ReverificationReason } from '@/lib/dashboard/survey-review-types'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 const SOURCE: Record<string, string> = {
   correction: 'an applied survey correction',
@@ -20,10 +21,11 @@ const SOURCE: Record<string, string> = {
 
 /**
  * Shown on a proposal flagged by a survey change. It explains what changed and
- * why sending is blocked; admin, management and engineers can clear the flag
+ * why sending is blocked; holders of proposals.clear_reverification can clear the flag
  * with a note (the server refuses the person who applied the correction).
  */
-export function ReverificationBanner({ proposalId, reason, role }: { proposalId: number; reason: ReverificationReason | null | undefined; role: string | undefined }) {
+export function ReverificationBanner({ proposalId, reason }: { proposalId: number; reason: ReverificationReason | null | undefined }) {
+  const { can } = usePermissions()
   const clear = useClearReverification()
   const [open, setOpen] = useState(false)
   const [note, setNote] = useState('')
@@ -57,7 +59,7 @@ export function ReverificationBanner({ proposalId, reason, role }: { proposalId:
             The site survey changed{fields ? <> — <span data-testid="reverification-fields">{fields}</span></> : ''}
             {reason ? <> (from {SOURCE[reason.source] ?? 'a survey change'}{reason.at ? `, ${formatDatetime(reason.at)}` : ''})</> : ''}. Check the size and price still fit, then clear this before it is sent or accepted.
           </p>
-          {canClearReverification(role) && (
+          {can('proposals.clear_reverification') && (
             <Button size="sm" variant="outline" className="mt-1 min-h-[44px] border-amber-400 bg-white" onClick={() => { setOpen(true); setError(null); setNoteError(null) }}>
               Clear re-verification
             </Button>

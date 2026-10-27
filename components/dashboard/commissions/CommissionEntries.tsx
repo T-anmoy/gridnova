@@ -29,10 +29,10 @@ import {
 import { formatRate } from '@/lib/commissions/rates'
 import type { CommissionEntry } from '@/lib/commissions/schemas'
 import { useUrlParams } from '@/lib/dashboard/use-url-params'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { formatDate, formatDatetime } from '@/lib/dashboard/utils'
 import { formatInr, isNegativeAmount } from '@/lib/money'
 import DateField from '@/components/forms/DateField'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 const PAGE_SIZE = 25
 
@@ -139,9 +139,10 @@ function EntryDetail({ entry, onClose, canReverse, onReverse }: { entry: Commiss
 }
 
 export default function CommissionEntries() {
-  const { role } = useStaffRole()
-  const canAct = role === 'admin' || role === 'accounts'
-  const isAdmin = role === 'admin'
+  const { can } = usePermissions()
+  const canAct = can('commissions.process')
+  // Reversing an entry is commissions.rates.manage.
+  const isAdmin = can('commissions.rates.manage')
   const url = useUrlParams()
   const formId = useId()
   const filters = {

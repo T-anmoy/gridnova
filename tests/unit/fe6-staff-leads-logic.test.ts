@@ -9,19 +9,22 @@ import {
 import { visibleNavItems } from '@/lib/dashboard/nav'
 import type { MemoryAskResponse, ReflectResponse } from '@/lib/dashboard/staff-leads-types'
 import type { Role } from '@/lib/dashboard/types'
+import { canFor, permissionsFor } from './helpers/permissions-bridge'
 
-const ROLES: Role[] = ['admin', 'management', 'sales', 'engineer', 'operations', 'accounts']
+const ROLES: Role[] = ['admin', 'management', 'network_manager', 'sales', 'engineer', 'operations', 'accounts']
 const err = (status: number, detail: string) => parseApiError(status, 'x', JSON.stringify({ detail }))
-const who = (pred: (r: Role | undefined) => boolean) => ROLES.filter(pred)
+const who = (pred: (can: ReturnType<typeof canFor>) => boolean) => ROLES.filter((r) => pred(canFor(r)))
+const nobody = canFor()
 
 describe('role gating', () => {
   it('leads: Operations and Accounts see none', () => {
-    expect(who(canSeeLeads)).toEqual(['admin', 'management', 'sales', 'engineer'])
-    expect(canSeeLeads(undefined)).toBe(false)
+    // BE-17: the Network Manager lists every lead (leads.view_all).
+    expect(who(canSeeLeads)).toEqual(['admin', 'management', 'network_manager', 'sales', 'engineer'])
+    expect(canSeeLeads(nobody)).toBe(false)
   })
   it('leads navigation is hidden for Operations and Accounts only', () => {
-    const has = (r: Role) => visibleNavItems(r).some((i) => i.href === '/dashboard/leads')
-    expect(ROLES.filter(has)).toEqual(['admin', 'management', 'sales', 'engineer'])
+    const has = (r: Role) => visibleNavItems(permissionsFor([r])).some((i) => i.href === '/dashboard/leads')
+    expect(ROLES.filter(has)).toEqual(['admin', 'management', 'network_manager', 'sales', 'engineer'])
   })
   it('export: Admin and Management only', () => {
     expect(who(canExportLeads)).toEqual(['admin', 'management'])
@@ -31,7 +34,7 @@ describe('role gating', () => {
   })
   it('memory, ask and reflect: Admin, Management and Sales', () => {
     expect(who(canUseMemory)).toEqual(['admin', 'management', 'sales'])
-    expect(canUseMemory(undefined)).toBe(false)
+    expect(canUseMemory(nobody)).toBe(false)
   })
 })
 

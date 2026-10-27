@@ -30,7 +30,6 @@ import PhotoFlagBadges from '@/components/dashboard/PhotoFlagBadges'
 import ExecutionDetailPanel from '@/components/dashboard/ExecutionDetailPanel'
 import SurveyPanel from '@/components/dashboard/SurveyPanel'
 import StaffPaymentsSection from '@/components/dashboard/StaffPaymentsSection'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { ApiError, wrongAccountOf } from '@/lib/dashboard/api-error'
 import { surveyReviewError } from '@/lib/dashboard/survey-review-ui'
 import { FormalProposalBlockedBanner } from '@/components/dashboard/FormalProposalBlocked'
@@ -38,6 +37,7 @@ import { formatCurrency, formatDatetime } from '@/lib/dashboard/utils'
 import type { SiteLocation } from '@/lib/associate/onboarding-types'
 import DateField from '@/components/forms/DateField'
 import { todayIso } from '@/lib/date-field'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 function errorMessage(err: unknown, fallback: string): string {
   if (err instanceof ApiError) return err.detail || err.message
@@ -304,23 +304,21 @@ export default function StaffOnboardingDetailPage() {
   const { data: onboarding, isLoading, error, refetch } = useStaffOnboarding(onboardingId)
   const { data: progress } = useStaffOnboardingProgress(onboardingId)
   const { data: estimates } = useStaffOnboardingEstimates(onboardingId)
-  const { role } = useStaffRole()
+  const { can } = usePermissions()
   const stageRecorded = (stage: string) => !!progress?.stages.some((st) => st.stage === stage && st.recorded)
 
   // Operations, engineers and Accounts follow email links here but may not read the
-  // sales-side customer record: show them just the part of the project they own.
+  // sales-side customer record: show them just the parts of the project they may see
+  // (each panel checks its own permission — survey, payments, execution).
   if (error) {
     const forbidden = error instanceof ApiError && error.status === 403 && !wrongAccountOf(error)
-    if (forbidden && (role === 'operations' || role === 'engineer' || role === 'accounts')) {
+    if (forbidden && !can('onboardings.view') && (can('execution.view') || can('payments.view'))) {
       return (
         <div className="p-6 md:p-8 space-y-6 max-w-4xl" data-testid="reduced-project-view">
           <h1 className="text-2xl font-bold text-[#091c3c]">Project #{onboardingId}</h1>
-          {role === 'engineer' && <SurveyPanel onboardingId={onboardingId} role={role} />}
-          {role === 'accounts' ? (
-            <StaffPaymentsSection onboardingId={onboardingId} role={role} />
-          ) : (
-            <ExecutionDetailPanel onboardingId={onboardingId} role={role} />
-          )}
+          <SurveyPanel onboardingId={onboardingId} />
+          <StaffPaymentsSection onboardingId={onboardingId} />
+          {can('execution.view') && <ExecutionDetailPanel onboardingId={onboardingId} />}
         </div>
       )
     }
@@ -366,9 +364,9 @@ export default function StaffOnboardingDetailPage() {
 
       <VerificationCallSection onboardingId={onboardingId} verification={onboarding.verification} siteLocation={onboarding.site_location} />
 
-      <SiteLocationCard onboardingId={onboardingId} location={onboarding.site_location} role={role} />
+      <SiteLocationCard onboardingId={onboardingId} location={onboarding.site_location} />
 
-      <SurveyPanel onboardingId={onboardingId} role={role} />
+      <SurveyPanel onboardingId={onboardingId} />
 
       <ScoreSection score={onboarding.score} />
 
@@ -400,9 +398,9 @@ export default function StaffOnboardingDetailPage() {
         </CardContent>
       </Card>
 
-      {stageRecorded('agreement_signed') && role && role !== 'accounts' && <ExecutionDetailPanel onboardingId={onboardingId} role={role} />}
+      {stageRecorded('agreement_signed') && can('execution.view') && <ExecutionDetailPanel onboardingId={onboardingId} />}
 
-      {stageRecorded('accepted') && <StaffPaymentsSection onboardingId={onboardingId} role={role} />}
+      {stageRecorded('accepted') && <StaffPaymentsSection onboardingId={onboardingId} />}
 
       {estimates && estimates.length > 0 && (
         <Card>

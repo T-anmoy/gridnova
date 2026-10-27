@@ -4,15 +4,13 @@ import { useParams } from 'next/navigation'
 import NoAccess from '@/components/dashboard/NoAccess'
 import ServiceRequestDetail from '@/components/dashboard/handover/ServiceRequestDetail'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
-
-const READ_ROLES = ['admin', 'management', 'engineer', 'operations', 'sales']
+import { usePermissions } from '@/lib/access/use-permissions'
 
 export default function ServiceRequestPage() {
   const { id } = useParams<{ id: string }>()
-  const { role, isLoaded } = useStaffRole()
+  const { can, isLoaded } = usePermissions()
   if (!isLoaded) return <div className="p-6 md:p-8"><Skeleton className="h-8 w-48" /></div>
-  if (!role || !READ_ROLES.includes(role)) return <NoAccess what="Service requests" />
+  if (!can('execution.view')) return <NoAccess what="Service requests" />
   return (
     <div className="p-6 md:p-8">
       <ServiceRequestDetail requestId={Number(id)} />

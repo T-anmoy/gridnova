@@ -20,11 +20,11 @@ import NoAccess from '@/components/dashboard/NoAccess'
 import { downloadExport, useMilestoneQueue, usePaymentList, useReleaseHeldReceipts, useResendReceipt, type ExportKind } from '@/lib/dashboard/accounts-api-client'
 import { useWorkQueues } from '@/lib/dashboard/execution-api-client'
 import { ATTENTION_LABEL, STATUS_LABEL, STATUS_VARIANT, isDummyReason, matchesFilter, staffPaymentError } from '@/lib/dashboard/payment-ui'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { formatDate } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
 import { STAFF_PAYMENT_COPY } from '@/lib/dashboard/staff-copy'
 import DateField from '@/components/forms/DateField'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 const MODES = Object.entries(STAFF_PAYMENT_COPY.modes)
 const STATUSES = Object.keys(STATUS_LABEL)
@@ -402,15 +402,15 @@ function AccountsWorkspace({ canAct }: { canAct: boolean }) {
 }
 
 // Operations, engineers and sales get no Accounts workspace (sales reach their own
-// customers' payments from the customer page). Role is checked before any payment request is made.
+// customers' payments from the customer page). The permission is checked before any payment request is made.
 export default function AccountsPage() {
-  const { role, isLoaded } = useStaffRole()
+  const { can, isLoaded } = usePermissions()
   if (!isLoaded) return <div className="p-8"><Skeleton className="h-8 w-48" /></div>
-  if (role !== 'admin' && role !== 'accounts' && role !== 'management') return <NoAccess what="The Accounts workspace" />
+  if (!can('payments.view_all')) return <NoAccess what="The Accounts workspace" />
   return (
     // useSearchParams needs a Suspense boundary.
     <Suspense fallback={<div className="p-8"><Skeleton className="h-8 w-48" /></div>}>
-      <AccountsWorkspace canAct={role === 'admin' || role === 'accounts'} />
+      <AccountsWorkspace canAct={can('payments.process')} />
     </Suspense>
   )
 }

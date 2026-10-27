@@ -17,7 +17,7 @@ import {
 import { QueryProvider } from '@/components/dashboard/QueryProvider'
 import { I18nProvider } from '@/lib/i18n/client'
 import { STAFF_SHARED_MESSAGES } from '@/lib/dashboard/staff-copy'
-import { NAV_ITEMS, canSeeNavItem, overdueServiceRequestCount, overdueSurveyCount, queueBadgeCount } from '@/lib/dashboard/nav'
+import { NAV_ITEMS, DECIDES_APPROVALS, canSeeNavItem, overdueServiceRequestCount, overdueSurveyCount, queueBadgeCount } from '@/lib/dashboard/nav'
 import { useWorkQueues } from '@/lib/dashboard/execution-api-client'
 import { CommandPalette } from '@/components/dashboard/CommandPalette'
 import { NovaPanel } from '@/components/dashboard/nova/NovaPanel'
@@ -32,7 +32,13 @@ import { useProposals, prefetchLeads, prefetchProposals, defaultLeadListParams }
 import { cn } from '@/lib/dashboard/utils'
 import { clearDraftsWithPrefix } from '@/lib/associate/useAutosaveDraft'
 import { STAFF_REGISTER_DRAFT_PREFIX } from '@/lib/associate/serial-draft'
-import type { Role } from '@/lib/dashboard/types'
+import { usePermissions } from '@/lib/access/use-permissions'
+import { ownLeadsOnly } from '@/lib/access/permissions'
+import { rolesLine } from '@/lib/access/roles'
+import { useApprovals } from '@/lib/access/api'
+import { decidableCount } from '@/lib/access/approvals'
+import { AccessGate } from '@/components/dashboard/access/AccessGate'
+import { TwoStepBanner } from '@/components/dashboard/access/TwoStep'
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname()
@@ -41,19 +47,23 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   const router = useRouter()
   const qc = useQueryClient()
   const { getToken } = useAuth()
-  const role = user?.publicMetadata?.role as Role | undefined
+  const { can, roles, employeeId, canAssignRoles } = usePermissions()
 
   const { data: pendingProposals } = useProposals({ status: 'pending_approval', page_size: 1 })
   const pendingCount = pendingProposals?.total ?? 0
 
+  // Second-approval requests this person could decide (not their own).
+  const approvals = useApprovals('pending', { enabled: can(DECIDES_APPROVALS), refetchInterval: 120_000 })
+  const approvalsCount = decidableCount(approvals.data, employeeId, canAssignRoles)
+
   // Warm the destination's list cache on hover so the click feels instant.
   function prefetchFor(href: string) {
-    if (href === '/dashboard/leads') void prefetchLeads(qc, getToken, defaultLeadListParams(role))
+    if (href === '/dashboard/leads') void prefetchLeads(qc, getToken, defaultLeadListParams(ownLeadsOnly(can)))
     else if (href === '/dashboard/proposals') void prefetchProposals(qc, getToken)
   }
 
   const { data: queues } = useWorkQueues()
-  const canSee = (item: (typeof NAV_ITEMS)[number]) => canSeeNavItem(item, role)
+  const canSee = (item: (typeof NAV_ITEMS)[number]) => canSeeNavItem(item, can)
 
   // The most specific entry wins, so /dashboard/archive/import lights up "Archive import" and not also "Project archive".
   const isActive = (href: string) => {
@@ -98,11 +108,11 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
       <Separator className="shrink-0 bg-white/10" />
 
-      {/* Role badge */}
-      {role && (
+      {/* Role badge: the server's roles once known, Clerk's copy before that (display only). */}
+      {roles.length > 0 && (
         <div className="shrink-0 px-6 py-3">
           <span className="font-utility text-[10px] uppercase tracking-wider text-white/55">Signed in as </span>
-          <span className="font-utility text-[10px] uppercase tracking-wider text-[#f7a800]">{role}</span>
+          <span className="font-utility text-[10px] uppercase tracking-wider text-[#f7a800]" data-testid="signed-in-roles">{rolesLine(roles)}</span>
         </div>
       )}
 
@@ -140,6 +150,11 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
               {item.queue === 'service_requests' && overdueServiceRequestCount(queues) > 0 && (
                 <Badge variant="red" className="px-1.5 text-[10px]" data-testid="queue-badge-service-overdue">
                   {overdueServiceRequestCount(queues)} overdue
+                </Badge>
+              )}
+              {item.approvals && approvalsCount > 0 && (
+                <Badge variant={active ? 'default' : 'amber'} className="min-w-[1.25rem] justify-center px-1.5 text-[10px]" data-testid="approvals-badge">
+                  {approvalsCount}
                 </Badge>
               )}
               {item.badge && pendingCount > 0 && (
@@ -242,9 +257,8 @@ function SidebarScroll({ pathname, items, children }: { pathname: string; items:
 function AskNovaButton({ className }: { className?: string }) {
   const { openPanel } = useNovaShell()
   const pathname = usePathname()
-  const { user } = useUser()
-  const role = user?.publicMetadata?.role as Role | undefined
-  if (!canUseNova(role) || pathname.startsWith('/dashboard/nova')) return null
+  const { can } = usePermissions()
+  if (!canUseNova(can) || pathname.startsWith('/dashboard/nova')) return null
   return (
     <Button type="button" variant="outline" className={cn('min-h-[44px]', className)} onClick={() => openPanel()}>
       <Sparkles className="h-4 w-4 text-[#f7a800]" aria-hidden="true" />
@@ -333,6 +347,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 
         {/* Page content */}
         <main id="main-content" tabIndex={-1} className="flex-1 p-4 outline-none md:p-8">
+          {pathname !== '/dashboard/two-step' && <TwoStepBanner />}
           {children}
         </main>
       </div>
@@ -351,8 +366,14 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
  */
 function ShellUnlessSignIn({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  if (pathname?.startsWith('/dashboard/sign-in')) return <>{children}</>
-  return <DashboardShell>{children}</DashboardShell>
+  // The invitation sign-up page is reached signed out too (FE-17), so it gets no shell either.
+  if (pathname?.startsWith('/dashboard/sign-in') || pathname?.startsWith('/dashboard/sign-up')) return <>{children}</>
+  // Not invited, turned off or the sign-in check failing: a full-page explanation, not a broken shell.
+  return (
+    <AccessGate>
+      <DashboardShell>{children}</DashboardShell>
+    </AccessGate>
+  )
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

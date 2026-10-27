@@ -19,7 +19,7 @@ beforeEach(() => {
 
 describe('ReverificationBanner', () => {
   it('lists the changed fields in words and the source', () => {
-    render(<ReverificationBanner proposalId={31} reason={REVERIFICATION_REASON} role="admin" />)
+    render(asRoles(['admin'], <ReverificationBanner proposalId={31} reason={REVERIFICATION_REASON} />))
     const b = screen.getByTestId('reverification-banner')
     expect(within(b).getByTestId('reverification-fields')).toHaveTextContent('roof area')
     expect(b).toHaveTextContent(/applied survey correction/)
@@ -27,13 +27,13 @@ describe('ReverificationBanner', () => {
   })
 
   it.each(['admin', 'management', 'engineer'])('%s can clear it', (role) => {
-    render(<ReverificationBanner proposalId={31} reason={REVERIFICATION_REASON} role={role} />)
+    render(asRoles([role], <ReverificationBanner proposalId={31} reason={REVERIFICATION_REASON} />))
     expect(screen.getByRole('button', { name: 'Clear re-verification' })).toBeInTheDocument()
   })
 
   it('sales and operations cannot', () => {
     for (const role of ['sales', 'operations']) {
-      const { unmount } = render(<ReverificationBanner proposalId={31} reason={REVERIFICATION_REASON} role={role} />)
+      const { unmount } = render(asRoles([role], <ReverificationBanner proposalId={31} reason={REVERIFICATION_REASON} />))
       expect(screen.queryByRole('button', { name: 'Clear re-verification' })).not.toBeInTheDocument()
       unmount()
     }
@@ -41,7 +41,7 @@ describe('ReverificationBanner', () => {
 
   it('needs a note, then sends it', async () => {
     const user = userEvent.setup()
-    render(<ReverificationBanner proposalId={31} reason={REVERIFICATION_REASON} role="engineer" />)
+    render(asRoles(['engineer'], <ReverificationBanner proposalId={31} reason={REVERIFICATION_REASON} />))
     await user.click(screen.getByRole('button', { name: 'Clear re-verification' }))
     const dialog = screen.getByRole('dialog')
     await user.click(within(dialog).getByRole('button', { name: 'Clear' }))
@@ -55,7 +55,7 @@ describe('ReverificationBanner', () => {
   it('shows 403 segregation_of_duties plainly (the one who applied the correction cannot clear it)', async () => {
     clear.mockRejectedValue(new ApiError(403, 'x', 'x', { code: 'segregation_of_duties' }))
     const user = userEvent.setup()
-    render(<ReverificationBanner proposalId={31} reason={REVERIFICATION_REASON} role="admin" />)
+    render(asRoles(['admin'], <ReverificationBanner proposalId={31} reason={REVERIFICATION_REASON} />))
     await user.click(screen.getByRole('button', { name: 'Clear re-verification' }))
     await user.type(screen.getByLabelText('Note (required)'), 'ok')
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Clear' }))
@@ -106,6 +106,7 @@ vi.mock('@/lib/dashboard/api-client', () => ({
 
 import ProposalDetailPage from '@/app/(internal)/dashboard/proposals/[id]/page'
 import { toast } from 'sonner'
+import { asRoles } from './helpers/permissions-bridge'
 
 const PROPOSAL: ProposalDetail = {
   id: 501, lead_id: 19, version: 1, status: 'approved', content: {}, total_value: 250000, requires_manager_signoff: false, revision_reason: null,

@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useUser } from '@clerk/nextjs'
 import { useAuth } from '@clerk/nextjs'
 import { toast } from 'sonner'
 import { Search, Download, Plus } from 'lucide-react'
@@ -23,13 +22,16 @@ import Link from 'next/link'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { formatDate } from '@/lib/dashboard/utils'
-import NoAccess from '@/components/dashboard/NoAccess'
 import { LeadFilterPanel } from '@/components/dashboard/LeadFilterPanel'
 import { fmt, useStaffLeadsCopy } from '@/lib/dashboard/staff-leads-copy'
-import { canExportLeads, canSeeLeads, mapExportError } from '@/lib/dashboard/staff-leads-logic'
+import { canExportLeads, mapExportError } from '@/lib/dashboard/staff-leads-logic'
+import { SEES_LEADS } from '@/lib/dashboard/nav'
 import { filterApiError, filtersFromParams, filtersToParams, hasActiveFilters, sendableFilters } from '@/lib/dashboard/lead-filters'
 import type { LeadFilters } from '@/lib/dashboard/staff-leads-types'
-import type { CreateLeadInput, LeadAssignmentFilter, LeadListParams, LeadSource, LeadSummary, ManualProjectType, PipelineStage, LeadScore, Role } from '@/lib/dashboard/types'
+import type { CreateLeadInput, LeadAssignmentFilter, LeadListParams, LeadSource, LeadSummary, ManualProjectType, PipelineStage, LeadScore } from '@/lib/dashboard/types'
+import { RequirePermission } from '@/components/dashboard/RequirePermission'
+import { usePermissions } from '@/lib/access/use-permissions'
+import { ownLeadsOnly, technicalOnly } from '@/lib/access/permissions'
 
 function stageBadgeVariant(stage: PipelineStage) {
   const map: Record<PipelineStage, string> = {
@@ -239,7 +241,10 @@ export default function LeadsPage() {
   // useSearchParams needs a Suspense boundary.
   return (
     <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-      <LeadsContent />
+      {/* Operations and Accounts see no leads (staff_contracts.md visibility rule). */}
+      <RequirePermission rule={SEES_LEADS} what="Leads">
+        <LeadsContent />
+      </RequirePermission>
     </Suspense>
   )
 }
@@ -248,10 +253,9 @@ function LeadsContent() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const { user } = useUser()
   const { getToken } = useAuth()
   const copy = useStaffLeadsCopy()
-  const role = user?.publicMetadata?.role as Role | undefined
+  const { can } = usePermissions()
 
   // Filters and the page live in the URL so a reload, a back-navigation or a
   // shared link restores the exact view. The stage / score / date filters are
@@ -291,17 +295,14 @@ function LeadsContent() {
   }, [debouncedSearch])
 
   const [exporting, setExporting] = useState(false)
-  const isSales = role === 'sales'
-  const isAdmin = role === 'admin'
-  const isManagement = role === 'management'
-  // Admin and management assign new website/chat leads too, so the filter
-  // isn't Sales-only — but only Sales gets a default scope (own + unassigned)
-  // applied automatically; admin/management see everything until they
-  // explicitly filter, matching their existing "see all" default.
-  const canFilterByAssignment = isAdmin || isManagement || isSales
+  // Sales see their own and unassigned leads; that scope is applied automatically.
+  const isSales = ownLeadsOnly(can)
+  // People who assign leads (Admin, Management) filter by assignment too, but
+  // see everything until they explicitly filter, matching their "see all" default.
+  const canFilterByAssignment = can('leads.assign') || isSales
   const effectiveAssignedFilter = assignedFilter || (isSales ? 'any' : '')
 
-  const defaults = defaultLeadListParams(role)
+  const defaults = defaultLeadListParams(isSales)
   const listParams: LeadListParams = {
     ...defaults,
     page,
@@ -323,9 +324,10 @@ function LeadsContent() {
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const serverFilterError = filterApiError(error)
 
-  const canExport = canExportLeads(role)
-  const canAddLead = role === 'admin' || role === 'sales' || role === 'management'
-  const isEngineer = role === 'engineer'
+  const canExport = canExportLeads(can)
+  const canAddLead = can('leads.create')
+  // The technical-only view (Engineer): no contact details, scores or actions.
+  const isEngineer = technicalOnly(can)
 
   const anyFilter = hasActiveFilters(filters) || !!(sourceFilter || urlQuery || assignedFilter)
   // The export has no search or assignment parameter, so say so when those are set.
@@ -352,8 +354,6 @@ function LeadsContent() {
       setExporting(false)
     }
   }
-
-  if (role && !canSeeLeads(role)) return <NoAccess what="Leads" />
 
   return (
     <div>

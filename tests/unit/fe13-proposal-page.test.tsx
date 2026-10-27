@@ -6,6 +6,7 @@ import { NAV_ITEMS, canSeeNavItem } from '@/lib/dashboard/nav'
 import type { ProposalDetail } from '@/lib/dashboard/types'
 import type { DocumentView } from '@/lib/proposals/document-types'
 import { NO_DOCUMENT_VIEW, docError, documentView, technicalView } from './fixtures/proposal-document-contract'
+import { canFor } from './helpers/permissions-bridge'
 
 const toastError = vi.fn()
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: (...a: unknown[]) => toastError(...a) } }))
@@ -181,9 +182,9 @@ describe('roles', () => {
 
   it('Accounts and Operations have no proposals in the navigation', () => {
     const item = NAV_ITEMS.find((i) => i.href === '/dashboard/proposals')!
-    expect(canSeeNavItem(item, 'accounts')).toBe(false)
-    expect(canSeeNavItem(item, 'operations')).toBe(false)
-    for (const r of ['admin', 'sales', 'management', 'engineer'] as const) expect(canSeeNavItem(item, r)).toBe(true)
+    expect(canSeeNavItem(item, canFor('accounts'))).toBe(false)
+    expect(canSeeNavItem(item, canFor('operations'))).toBe(false)
+    for (const r of ['admin', 'sales', 'management', 'engineer'] as const) expect(canSeeNavItem(item, canFor(r))).toBe(true)
   })
 })
 

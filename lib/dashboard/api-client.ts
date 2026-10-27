@@ -32,7 +32,6 @@ import type {
   DealSizeByTier,
   DraftProposalResponse,
   Employee,
-  EmployeeMe,
   Equipment,
   EquipmentCreateInput,
   EquipmentListParams,
@@ -114,9 +113,13 @@ export { apiFetch as dashboardFetch, buildQS } from '@/lib/api/http'
 
 export const LEADS_PAGE_SIZE = 25
 
-/** The list query a role lands on with no filters set — shared by the page and the sidebar prefetch so the cache keys match. */
-export function defaultLeadListParams(role: Role | undefined): LeadListParams {
-  return { page: 1, page_size: LEADS_PAGE_SIZE, ...(role === 'sales' ? { assigned: 'any' as const } : {}) }
+/**
+ * The list query a person lands on with no filters set — shared by the page and the sidebar
+ * prefetch so the cache keys match. `ownLeadsOnly`: they see their own and unassigned leads
+ * (`leads.view_assigned` without `leads.view_all`), so the list opens on "any assignee".
+ */
+export function defaultLeadListParams(ownLeadsOnly: boolean): LeadListParams {
+  return { page: 1, page_size: LEADS_PAGE_SIZE, ...(ownLeadsOnly ? { assigned: 'any' as const } : {}) }
 }
 
 export function useLeads(params?: LeadListParams) {
@@ -426,19 +429,9 @@ export function useAssignableEmployees(options?: { enabled?: boolean }) {
   })
 }
 
-// The signed-in employee's own record — role comes from the login token
-// (the source of truth for permission checks), plus calendar-connect status.
-export function useEmployeeMe() {
-  const { getToken } = useAuth()
-  return useQuery({
-    queryKey: ['employee-me'],
-    queryFn: async () => {
-      const token = await getToken()
-      if (!token) throw notAuthenticatedError()
-      return dashboardFetch<EmployeeMe>('/api/v1/dashboard/employees/me', token)
-    },
-  })
-}
+// The signed-in employee's own record (roles, permissions, two-step status,
+// calendar-connect status) lives with the access hooks — the one permissions source.
+export { useEmployeeMe } from '@/lib/access/api'
 
 export function useConnectCalendar() {
   const { getToken } = useAuth()

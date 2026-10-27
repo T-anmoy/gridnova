@@ -13,11 +13,11 @@ import NoAccess from '@/components/dashboard/NoAccess'
 import { associateRows, fillPercent, overdueItems, stageRows } from '@/lib/commissions/network'
 import { useNetworkSummary } from '@/lib/commissions/staff-api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { useUrlParams } from '@/lib/dashboard/use-url-params'
 import { formatDate, formatDatetime } from '@/lib/dashboard/utils'
 import { formatInr, isNegativeAmount } from '@/lib/money'
 import DateField from '@/components/forms/DateField'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 // Recharts is loaded lazily so it is not in this page's first JS.
 const ChartSkeleton = ({ title }: { title: string }) => (
@@ -60,8 +60,9 @@ function Meter({ label, held, max }: { label: string; held: number; max: number 
   )
 }
 
-// Mounted only for Admin and Management, so no other role ever makes the request.
-function Summary({ role }: { role: string }) {
+// Mounted only for holders of associates.network_summary.view, so nobody else ever makes the request.
+function Summary() {
+  const { can } = usePermissions()
   const url = useUrlParams()
   const id = useId()
   const from = url.get('from')
@@ -118,7 +119,7 @@ function Summary({ role }: { role: string }) {
           <section aria-labelledby={`${id}-overdue`}>
             <h2 id={`${id}-overdue`} className="mb-3 text-lg font-semibold text-[#091c3c]">Needs attention</h2>
             <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-testid="overdue-list">
-              {overdueItems(data.overdue, role).map((item) => {
+              {overdueItems(data.overdue, can).map((item) => {
                 const inner = (
                   <>
                     <span className={`text-3xl font-bold ${item.count > 0 ? 'text-red-700' : 'text-[#091c3c]'}`}>{item.count}</span>
@@ -227,10 +228,10 @@ function Summary({ role }: { role: string }) {
 }
 
 function Gate() {
-  const { role, isLoaded } = useStaffRole()
+  const { can, isLoaded } = usePermissions()
   if (!isLoaded) return <div className="p-6 md:p-8"><Skeleton className="h-8 w-56" /></div>
-  if (role !== 'admin' && role !== 'management') return <NoAccess what="The Network Command Centre" />
-  return <Summary role={role} />
+  if (!can('associates.network_summary.view')) return <NoAccess what="The Network Command Centre" />
+  return <Summary />
 }
 
 export default function NetworkCommandCentre() {

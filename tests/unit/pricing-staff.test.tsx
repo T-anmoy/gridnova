@@ -9,9 +9,14 @@ import { en } from './helpers/i18n'
 import hi from '@/messages/hi.json'
 import bn from '@/messages/bn.json'
 import { LIST_ESTIMATE } from './fixtures/pricing'
+import { canFor } from './helpers/permissions-bridge'
 
 const role = vi.hoisted(() => ({ value: 'admin' as string | undefined, loaded: true }))
-vi.mock('@/lib/dashboard/use-staff-role', () => ({ useStaffRole: () => ({ role: role.value, isLoaded: role.loaded }) }))
+vi.mock('@/lib/access/use-permissions', async () => {
+  const { permissionsValue } = await import('./helpers/permissions-bridge')
+  // The signed-in role (({ role: role.value, isLoaded: role.loaded })) as the BE-17 permissions it holds.
+  return { usePermissions: () => { const r = ({ role: role.value, isLoaded: role.loaded }) as { role?: string; isLoaded?: boolean }; return permissionsValue(r.role ? [r.role as never] : [], { isLoaded: r.isLoaded ?? true }) } }
+})
 
 beforeEach(() => {
   role.value = 'admin'
@@ -88,8 +93,8 @@ describe('staff price list page', () => {
 
   it('is in the nav for admin, management and sales only', () => {
     const item = NAV_ITEMS.find((i) => i.href === '/dashboard/price-list')!
-    for (const r of ['admin', 'management', 'sales'] as const) expect(canSeeNavItem(item, r)).toBe(true)
-    for (const r of ['accounts', 'engineer', 'operations'] as const) expect(canSeeNavItem(item, r)).toBe(false)
+    for (const r of ['admin', 'management', 'sales'] as const) expect(canSeeNavItem(item, canFor(r))).toBe(true)
+    for (const r of ['accounts', 'engineer', 'operations'] as const) expect(canSeeNavItem(item, canFor(r))).toBe(false)
   })
 
   it.each(['admin', 'management', 'sales'])('the page loads the list for %s', async (r) => {

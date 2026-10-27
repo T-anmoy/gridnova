@@ -3,15 +3,16 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useUser } from '@clerk/nextjs'
-import { AlertCircle, TrendingUp } from 'lucide-react'
+import { TrendingUp } from 'lucide-react'
 import { useAnalytics } from '@/lib/dashboard/api-client'
 import { istDateKey } from '@/lib/dashboard/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DashboardError } from '@/components/dashboard/DashboardError'
-import type { Role } from '@/lib/dashboard/types'
 import DateField from '@/components/forms/DateField'
+import { RequirePermission } from '@/components/dashboard/RequirePermission'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 // Recharts (~400KB) is loaded lazily so it's not in the Analytics page's
 // initial JS — it streams in behind a skeleton after the page shell renders.
@@ -75,12 +76,22 @@ function hrs(v: number | null | undefined): string {
   return `${v.toFixed(1)}h`
 }
 
+// Company-wide analytics (analytics.view_full), or your own pipeline's figures (Sales).
 export default function AnalyticsPage() {
-  const { user } = useUser()
-  const role = user?.publicMetadata?.role as Role | undefined
+  return (
+    <RequirePermission rule={['analytics.view_full', 'leads.view_assigned']} what="Analytics">
+      <Analytics />
+    </RequirePermission>
+  )
+}
 
-  const isSales = role === 'sales'
-  const canSeeReports = role === 'admin' || role === 'management'
+function Analytics() {
+  const { user } = useUser()
+  const { can } = usePermissions()
+
+  const canSeeReports = can('analytics.view_full')
+  // Without company-wide analytics you see your own figures.
+  const isSales = !canSeeReports
   const employeeId = isSales ? (user?.id ?? undefined) : undefined
 
   const [dateFrom, setDateFrom] = useState(() => {
@@ -96,18 +107,6 @@ export default function AnalyticsPage() {
     employee_id: employeeId,
   })
 
-  // Block engineers via conditional render (not router.push)
-  if (role === 'engineer') {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
-          <p className="font-display text-lg font-semibold text-[#091c3c]">Access Restricted</p>
-          <p className="font-utility text-sm text-[#111827]/65 mt-1">Analytics is not available for your role.</p>
-        </div>
-      </div>
-    )
-  }
 
   const funnelData = data?.funnel
     ? [

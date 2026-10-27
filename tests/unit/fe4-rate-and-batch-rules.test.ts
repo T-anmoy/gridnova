@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { effectiveFromProblem, formatRate, isValidRate, rateKeyLabel } from '@/lib/commissions/rates'
 import { approvalMode, canDownloadBankFile, payableLines } from '@/lib/commissions/batch-rules'
+import { canFor } from './helpers/permissions-bridge'
 import { commissionErrorMessage, isApprovable, isReversible } from '@/lib/commissions/labels'
 import { formatInr, isNegativeAmount, isPositiveAmount } from '@/lib/money'
 import { ApiError } from '@/lib/dashboard/api-error'
@@ -51,31 +52,35 @@ describe('notice rule (contract: today IST + 15 days for a real schedule, not in
 describe('approver ≠ preparer', () => {
   const draft = { status: 'draft', preparedBy: 'EMP-1' }
   it('Accounts who prepared the batch cannot approve it', () => {
-    expect(approvalMode({ ...draft, role: 'accounts', employeeId: 'EMP-1' })).toBe('preparer-blocked')
+    expect(approvalMode({ ...draft, can: canFor('accounts'), employeeId: 'EMP-1' })).toBe('preparer-blocked')
   })
   it('a different Accounts user can approve', () => {
-    expect(approvalMode({ ...draft, role: 'accounts', employeeId: 'EMP-2' })).toBe('approve')
+    expect(approvalMode({ ...draft, can: canFor('accounts'), employeeId: 'EMP-2' })).toBe('approve')
   })
   it('an Admin who prepared it may only approve with a reason (override)', () => {
-    expect(approvalMode({ ...draft, role: 'admin', employeeId: 'EMP-1' })).toBe('override')
-    expect(approvalMode({ ...draft, role: 'admin', employeeId: 'EMP-9' })).toBe('approve')
+    expect(approvalMode({ ...draft, can: canFor('admin'), employeeId: 'EMP-1' })).toBe('override')
+    expect(approvalMode({ ...draft, can: canFor('admin'), employeeId: 'EMP-9' })).toBe('approve')
   })
   it('Management never approves; nothing to approve once it is not a draft', () => {
-    expect(approvalMode({ ...draft, role: 'management', employeeId: 'EMP-2' })).toBe('none')
-    expect(approvalMode({ status: 'approved', preparedBy: 'EMP-1', role: 'accounts', employeeId: 'EMP-2' })).toBe('none')
+    expect(approvalMode({ ...draft, can: canFor('management'), employeeId: 'EMP-2' })).toBe('none')
+    expect(approvalMode({ status: 'approved', preparedBy: 'EMP-1', can: canFor('accounts'), employeeId: 'EMP-2' })).toBe('none')
   })
   it('does not guess until it knows who is signed in', () => {
-    expect(approvalMode({ ...draft, role: 'accounts', employeeId: undefined })).toBe('loading')
+    expect(approvalMode({ ...draft, can: canFor('accounts'), employeeId: undefined })).toBe('loading')
   })
 })
 
 describe('bank file', () => {
   it('Accounts only — an Admin is refused by the server, so the control is not shown', () => {
-    expect(canDownloadBankFile('accounts', 'approved')).toBe(true)
-    expect(canDownloadBankFile('accounts', 'paid')).toBe(true)
-    expect(canDownloadBankFile('admin', 'approved')).toBe(false)
-    expect(canDownloadBankFile('management', 'approved')).toBe(false)
-    expect(canDownloadBankFile('accounts', 'draft')).toBe(false)
+    expect(canDownloadBankFile(canFor('accounts'), 'approved')).toBe(true)
+    expect(canDownloadBankFile(canFor('accounts'), 'paid')).toBe(true)
+    expect(canDownloadBankFile(canFor('admin'), 'approved')).toBe(false)
+    expect(canDownloadBankFile(canFor('management'), 'approved')).toBe(false)
+    expect(canDownloadBankFile(canFor('accounts'), 'draft')).toBe(false)
+  })
+  it('an Admin who also holds Accounts sees it; an Admin alone does not (BE-17)', () => {
+    expect(canDownloadBankFile(canFor('admin', 'accounts'), 'approved')).toBe(true)
+    expect(canDownloadBankFile(canFor('admin'), 'paid')).toBe(false)
   })
 })
 

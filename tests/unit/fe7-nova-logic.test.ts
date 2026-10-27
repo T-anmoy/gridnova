@@ -5,6 +5,7 @@ import {
   canUseNova, csvFilename, csvSafe, describeAskError, describeContext, formatCell, isEmptyContext, safeDashboardPath, splitAnswer, starterQuestions, tableToCsv,
 } from '@/lib/nova/logic'
 import { ARCHIVE_ANSWER } from './fixtures/nova-contract'
+import { permissionsValue } from './helpers/permissions-bridge'
 import type { Role } from '@/lib/dashboard/types'
 
 describe('splitAnswer — plain text with citation refs', () => {
@@ -114,11 +115,11 @@ describe('page context', () => {
 })
 
 describe('roles and starter questions', () => {
-  const roles: Role[] = ['admin', 'management', 'accounts', 'operations', 'engineer', 'sales']
-  it('all six staff roles may ask; nobody else', () => {
-    for (const r of roles) expect(canUseNova(r)).toBe(true)
-    expect(canUseNova(undefined)).toBe(false)
-    expect(canUseNova('associate' as Role)).toBe(false)
+  const roles: Role[] = ['admin', 'management', 'network_manager', 'accounts', 'operations', 'engineer', 'sales']
+  it('every staff member may ask once their permissions are known; nobody else', () => {
+    for (const r of [...roles, 'network_manager'] as Role[]) expect(canUseNova(permissionsValue([r]).can)).toBe(true)
+    expect(canUseNova(permissionsValue([]).can)).toBe(false)
+    expect(canUseNova(permissionsValue(['admin'], { isLoaded: false }).can)).toBe(false)
   })
   it('every role gets starters, all of them questions', () => {
     for (const r of roles) {

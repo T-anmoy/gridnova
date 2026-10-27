@@ -90,7 +90,7 @@ describe('MeetingsPage', () => {
     })
     render(<MeetingsPage />)
 
-    expect(screen.getByText('Access Denied')).toBeInTheDocument()
+    expect(screen.getByTestId('no-access')).toBeInTheDocument()
     expect(screen.queryByText('Asha Roy')).not.toBeInTheDocument()
   })
 

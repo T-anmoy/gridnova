@@ -3,8 +3,8 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { Sparkles, X } from 'lucide-react'
 import { NovaChat } from '@/components/dashboard/nova/NovaChat'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { useNovaShell } from '@/lib/nova/page-context'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 /**
  * The Ask Nova slide-over, openable from every dashboard page. It is only mounted while open,
@@ -12,7 +12,8 @@ import { useNovaShell } from '@/lib/nova/page-context'
  */
 export function NovaPanel() {
   const { panelOpen, closePanel, context, draft } = useNovaShell()
-  const { role } = useStaffRole()
+  // The primary role only picks the starter questions' wording.
+  const { primaryRole } = usePermissions()
   return (
     <DialogPrimitive.Root open={panelOpen} onOpenChange={(o) => (o ? undefined : closePanel())}>
       <DialogPrimitive.Portal>
@@ -36,7 +37,7 @@ export function NovaPanel() {
             </DialogPrimitive.Close>
           </div>
           <div className="min-h-0 flex-1">
-            <NovaChat variant="panel" role={role} context={context} draft={draft} />
+            <NovaChat variant="panel" role={primaryRole} context={context} draft={draft} />
           </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>

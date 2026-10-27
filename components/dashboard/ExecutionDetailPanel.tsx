@@ -34,7 +34,7 @@ import { ApiError } from '@/lib/dashboard/api-error'
 import { formatDate, formatDatetime } from '@/lib/dashboard/utils'
 import type { ExecutionFile, ExecutionStageStatus, StageSubmission } from '@/lib/associate/execution-types'
 import type { StaffExecutionDetail } from '@/lib/dashboard/execution-types'
-import type { Role } from '@/lib/dashboard/types'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 const copy = STAFF_EXECUTION_COPY
 const stageName = (s: { stage: string; label?: string; stage_label?: string }) =>
@@ -128,12 +128,12 @@ function EvidenceViewer({ onboardingId, detail, submission }: { onboardingId: nu
 function StageRow({
   stage,
   detail,
-  isAdmin,
+  canOverrideDcr,
   onDcrOverride,
 }: {
   stage: ExecutionStageStatus
   detail: StaffExecutionDetail
-  isAdmin: boolean
+  canOverrideDcr: boolean
   onDcrOverride: () => void
 }) {
   const isCurrent = stage.stage === detail.current_stage && !stage.recorded
@@ -168,7 +168,7 @@ function StageRow({
           <p key={b.code} className="mt-1 flex flex-wrap items-center gap-2 text-xs text-amber-700" data-testid={`blocker-${b.code}`}>
             <AlertTriangle className="h-3 w-3" />
             {b.code === 'payment_gate' ? 'On hold: earlier customer payments are not fully verified.' : b.message}
-            {b.code === 'dcr_mismatch' && isAdmin && (
+            {b.code === 'dcr_mismatch' && canOverrideDcr && (
               <Button size="sm" variant="outline" onClick={onDcrOverride}>
                 Record DCR override
               </Button>
@@ -200,7 +200,8 @@ function HandoverGateNotice({ pack }: { pack: Pack }) {
   )
 }
 
-export default function ExecutionDetailPanel({ onboardingId, role }: { onboardingId: number; role: Role | undefined }) {
+export default function ExecutionDetailPanel({ onboardingId }: { onboardingId: number }) {
+  const { can } = usePermissions()
   const { data: d, isLoading, error, refetch } = useStaffExecution(onboardingId)
   const verify = useVerifySubmission(onboardingId)
   const reject = useRejectSubmission(onboardingId)
@@ -210,7 +211,6 @@ export default function ExecutionDetailPanel({ onboardingId, role }: { onboardin
   const upload = useUploadStaffExecutionFile(onboardingId)
   const [dialog, setDialog] = useState<'verify' | 'reject' | 'mode' | 'dcr' | null>(null)
   const [overrideReason, setOverrideReason] = useState('')
-  const isAdmin = role === 'admin'
   // "This project" in Ask Nova means this onboarding's project, once the backend has given its reference.
   useNovaPageContext(d?.customer.project_reference_id ? { project_ref: d.customer.project_reference_id } : null)
 
@@ -245,7 +245,7 @@ export default function ExecutionDetailPanel({ onboardingId, role }: { onboardin
   const nextStage = d.next_stage_is_execution ? d.stages.find((s) => s.stage === d.next_stage) : undefined
   const stuck = d.aging?.is_stuck
   const attentionFlags = [...d.flags]
-  const overrideMode = d.execution_mode === 'associate' && d.can_record && isAdmin
+  const overrideMode = d.execution_mode === 'associate' && d.can_record && can('execution.admin_override')
   const directMode = d.execution_mode === 'grid_nova' && d.can_record
   const reviewStage = pending ? d.stages.find((s) => s.stage === pending.stage) : undefined
 
@@ -336,7 +336,7 @@ export default function ExecutionDetailPanel({ onboardingId, role }: { onboardin
                 {f === 'dcr_mismatch' ? 'DCR mismatch' : f === 'capacity_mismatch' ? 'Capacity mismatch' : f === 'catalogue_unmatched' ? 'Model not matched' : f.replace(/_/g, ' ')}
               </Badge>
             ))}
-            {d.execution_mode === 'associate' && isAdmin && (
+            {d.execution_mode === 'associate' && can('execution.mode.switch') && (
               <Button size="sm" variant="outline" className="ml-auto" onClick={() => setDialog('mode')}>
                 Switch to Grid Nova mode
               </Button>
@@ -351,8 +351,8 @@ export default function ExecutionDetailPanel({ onboardingId, role }: { onboardin
               {d.customer.site.territory ? ` · ${d.customer.site.territory}` : ''}
             </p>
           )}
-          {(role === 'operations' || role === 'engineer') && d.customer.site.latitude != null && d.customer.site.longitude != null && (
-            // Site-work roles only. A link, never the numbers as text.
+          {!can('onboardings.view') && d.customer.site.latitude != null && d.customer.site.longitude != null && (
+            // Site-work roles, who can't open the customer page with its full site-location card. A link, never the numbers as text.
             <p data-testid="house-location">
               <span className="text-gray-500">House location (as confirmed by the associate): </span>
               <a
@@ -404,14 +404,14 @@ export default function ExecutionDetailPanel({ onboardingId, role }: { onboardin
         <CardContent>
           <ol className="space-y-4">
             {d.stages.map((s) => (
-              <StageRow key={s.stage} stage={s} detail={d} isAdmin={isAdmin} onDcrOverride={() => setDialog('dcr')} />
+              <StageRow key={s.stage} stage={s} detail={d} canOverrideDcr={can('execution.dcr_override')} onDcrOverride={() => setDialog('dcr')} />
             ))}
           </ol>
         </CardContent>
       </Card>
 
       {d.register && (
-        <RegisterPanel onboardingId={onboardingId} register={d.register} canWrite={role === 'admin' || role === 'operations'} isAdmin={isAdmin} />
+        <RegisterPanel onboardingId={onboardingId} register={d.register} canWrite={can('execution.record')} isAdmin={can('execution.admin_override')} />
       )}
 
       {!pending && nextStage && (directMode || overrideMode) && (

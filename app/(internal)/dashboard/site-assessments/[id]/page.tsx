@@ -3,9 +3,9 @@
 import { notAuthenticatedError } from '@/lib/api/http'
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { useUser, useAuth } from '@clerk/nextjs'
+import { useAuth } from '@clerk/nextjs'
 import { toast } from 'sonner'
-import { AlertCircle, ArrowLeft, CheckCircle2, Download, FileText, ShieldOff, XCircle } from 'lucide-react'
+import { AlertCircle, ArrowLeft, CheckCircle2, Download, FileText, XCircle } from 'lucide-react'
 import { useProposalInput, useReviewProposalInput, fetchProposalInputFileUrl } from '@/lib/dashboard/api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,7 +15,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import type { ProposalDraftOutcome, ProposalInputDetail, ProposalInputStatus, Role } from '@/lib/dashboard/types'
+import type { ProposalDraftOutcome, ProposalInputDetail, ProposalInputStatus } from '@/lib/dashboard/types'
+import { RequirePermission } from '@/components/dashboard/RequirePermission'
 
 function statusVariant(status: ProposalInputStatus) {
   const map: Record<ProposalInputStatus, string> = {
@@ -86,10 +87,16 @@ function FileRow({ inputId, file }: { inputId: number; file: ProposalInputDetail
 }
 
 export default function SiteAssessmentDetailPage() {
+  return (
+    <RequirePermission rule="proposal_inputs.manage" what="Site assessments">
+      <SiteAssessmentDetail />
+    </RequirePermission>
+  )
+}
+
+function SiteAssessmentDetail() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const { user } = useUser()
-  const role = user?.publicMetadata?.role as Role | undefined
   const inputId = parseInt(id, 10)
 
   const { data: item, isLoading, error, refetch } = useProposalInput(inputId)
@@ -100,19 +107,7 @@ export default function SiteAssessmentDetailPage() {
   const [markingUnderReview, setMarkingUnderReview] = useState(false)
   const [approveOutcome, setApproveOutcome] = useState<ProposalDraftOutcome | null>(null)
 
-  const canReview = role === 'admin' || role === 'sales'
 
-  if (role && !canReview) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center">
-          <ShieldOff className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
-          <p className="font-display text-lg font-semibold text-[#091c3c]">Access Denied</p>
-          <p className="font-utility text-sm text-[#111827]/65 mt-1">Site assessments aren&rsquo;t available to your role.</p>
-        </div>
-      </div>
-    )
-  }
 
   async function handleApprove() {
     try {

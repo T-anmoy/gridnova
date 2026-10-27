@@ -20,7 +20,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { formatTimeAgo, formatLongDate, getISTHour } from '@/lib/dashboard/utils'
-import type { ActivityItem, StatTrend, Role } from '@/lib/dashboard/types'
+import type { ActivityItem, StatTrend } from '@/lib/dashboard/types'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
 
@@ -196,11 +197,12 @@ function ActivityFeedSection() {
 
 export default function DashboardOverview() {
   const { user } = useUser()
-  const role = user?.publicMetadata?.role as Role | undefined
+  const { can } = usePermissions()
 
   const { data: stats, isLoading, error, refetch } = useOverviewStats()
 
-  const showManagerCard = role === 'admin' || role === 'management'
+  // The manager sign-off card is for the people who give that sign-off.
+  const showManagerCard = can('proposals.manager_signoff')
 
   const allZero =
     stats &&

@@ -20,15 +20,20 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { formatCurrency, formatDatetime } from '@/lib/dashboard/utils'
-import type { PipelineStage, Role } from '@/lib/dashboard/types'
+import type { PipelineStage } from '@/lib/dashboard/types'
 import { AskMemoryPanel } from '@/components/dashboard/AskMemoryPanel'
 import { CustomerMemoryPanel } from '@/components/dashboard/CustomerMemoryPanel'
 import { ReflectButton } from '@/components/dashboard/ReflectButton'
 import { ScheduleMeetingDialog } from '@/components/dashboard/ScheduleMeetingDialog'
 import { useStaffLeadsCopy } from '@/lib/dashboard/staff-leads-copy'
 import { useNovaPageContext } from '@/lib/nova/page-context'
+import { roleLabel } from '@/lib/access/roles'
 import { canScheduleMeeting, canUseMemory, isEngineerLeadDetail, isLeadNotAssigned } from '@/lib/dashboard/staff-leads-logic'
 import { ApiError as LeadApiError } from '@/lib/dashboard/api-error'
+import { usePermissions } from '@/lib/access/use-permissions'
+import { ownLeadsOnly } from '@/lib/access/permissions'
+import { RequirePermission } from '@/components/dashboard/RequirePermission'
+import { SEES_LEADS } from '@/lib/dashboard/nav'
 
 const REQUIRED_FIELDS = ['name', 'email', 'project_type', 'location', 'capacity_kw']
 
@@ -140,19 +145,18 @@ function StageChangeDialog({
 function ReassignDialog({
   leadId,
   currentAssignee,
-  role,
   open,
   onOpenChange,
 }: {
   leadId: number
   currentAssignee: string | null | undefined
-  role: Role | undefined
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  // GET /employees/assignable (admin + management — Prompt 02c) is the real
-  // data source for this picker, unlike GET /employees (admin-only).
-  const canPickFromDirectory = role === 'admin' || role === 'management'
+  // GET /employees/assignable (leads.assign — Prompt 02c) is the real
+  // data source for this picker, unlike GET /employees (staff.manage).
+  const { can } = usePermissions()
+  const canPickFromDirectory = can('leads.assign')
   const { data: employees } = useAssignableEmployees({ enabled: canPickFromDirectory && open })
   const [employeeId, setEmployeeId] = useState('')
   const mutation = useReassignLead()
@@ -184,7 +188,7 @@ function ReassignDialog({
             <SelectTrigger><SelectValue placeholder="Select employee…" /></SelectTrigger>
             <SelectContent>
               {(employees ?? []).map((e) => (
-                <SelectItem key={e.id} value={e.id}>{e.name} ({e.role})</SelectItem>
+                <SelectItem key={e.id} value={e.id}>{e.name} ({roleLabel(e.role)})</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -295,10 +299,18 @@ function EditFieldsDialog({
 }
 
 export default function LeadDetailPage() {
+  return (
+    <RequirePermission rule={SEES_LEADS} what="Leads">
+      <LeadDetailPageContent />
+    </RequirePermission>
+  )
+}
+
+function LeadDetailPageContent() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const { user } = useUser()
-  const role = user?.publicMetadata?.role as Role | undefined
+  const { can } = usePermissions()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [stageDialogOpen, setStageDialogOpen] = useState(false)
   const [reassignOpen, setReassignOpen] = useState(false)
@@ -316,15 +328,14 @@ export default function LeadDetailPage() {
   // Ask Nova opened from this page knows which lead (and customer) "this" is.
   useNovaPageContext(Number.isFinite(leadId) ? { lead_id: leadId, ...(full?.customer?.id ? { customer_id: full.customer.id } : {}) } : null)
 
-  const isAdmin = role === 'admin'
-  const isSales = role === 'sales'
-  const isManagement = role === 'management'
-  const canGenerateDraft = isAdmin || isSales
-  const canReassign = isAdmin || isManagement
+  const canGenerateDraft = can('proposals.draft')
+  const canReassign = can('leads.assign')
   const ownsOrUnassigned = !full?.assigned_employee_id || full.assigned_employee_id === user?.id
-  const canChangeStage = isAdmin || isManagement || (isSales && ownsOrUnassigned)
-  const canEditFields = canGenerateDraft || isManagement
-  const canStartAssessment = isAdmin || isSales
+  // Sales move only their own and unassigned leads.
+  const canChangeStage = can('leads.change_stage') && (!ownLeadsOnly(can) || ownsOrUnassigned)
+  // PATCH /leads/{id}/fields is leads.edit (Admin, Sales) — Management used to see the button and get a 403.
+  const canEditFields = can('leads.edit')
+  const canStartAssessment = can('proposal_inputs.manage')
 
   const collectedFields = (lead?.collected_fields ?? {}) as Record<string, unknown>
   const heuristicMissing = REQUIRED_FIELDS.filter((f) => !collectedFields[f])
@@ -463,8 +474,8 @@ export default function LeadDetailPage() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2 items-start">
-          {canScheduleMeeting(role) && <ScheduleMeetingDialog leadId={lead.lead_id} copy={copy} />}
-          {canUseMemory(role) && <ReflectButton leadId={lead.lead_id} copy={copy} />}
+          {canScheduleMeeting(can) && <ScheduleMeetingDialog leadId={lead.lead_id} copy={copy} />}
+          {canUseMemory(can) && <ReflectButton leadId={lead.lead_id} copy={copy} />}
           {canChangeStage && (
             <Button variant="outline" size="sm" onClick={() => setStageDialogOpen(true)}>
               <Repeat className="mr-1.5 h-4 w-4" /> Change Stage
@@ -630,7 +641,7 @@ export default function LeadDetailPage() {
 
         {/* Right column */}
         <div className="space-y-4">
-          {canUseMemory(role) && lead.customer && (
+          {canUseMemory(can) && lead.customer && (
             <>
               <AskMemoryPanel customerId={lead.customer.id} copy={copy} />
               <CustomerMemoryPanel customerId={lead.customer.id} copy={copy} />
@@ -728,7 +739,6 @@ export default function LeadDetailPage() {
       <ReassignDialog
         leadId={lead.lead_id}
         currentAssignee={lead.assigned_employee_id}
-        role={role}
         open={reassignOpen}
         onOpenChange={setReassignOpen}
       />

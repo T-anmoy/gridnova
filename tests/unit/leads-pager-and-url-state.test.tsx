@@ -136,9 +136,9 @@ describe('prefetchLeads key', () => {
   it('uses the same key the page builds, for Sales and for everyone else', () => {
     const qc = new QueryClient()
     const spy = vi.spyOn(qc, 'prefetchQuery').mockResolvedValue(undefined)
-    void prefetchLeads(qc, async () => 'token', defaultLeadListParams('sales'))
+    void prefetchLeads(qc, async () => 'token', defaultLeadListParams(true))
     expect(spy.mock.calls[0][0].queryKey).toEqual(['leads', { page: 1, page_size: 25, assigned: 'any' }])
-    void prefetchLeads(qc, async () => 'token', defaultLeadListParams('admin'))
+    void prefetchLeads(qc, async () => 'token', defaultLeadListParams(false))
     expect(spy.mock.calls[1][0].queryKey).toEqual(['leads', { page: 1, page_size: 25 }])
   })
 })

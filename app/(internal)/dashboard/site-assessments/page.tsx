@@ -2,8 +2,6 @@
 
 import { Suspense } from 'react'
 import { useUrlParams } from '@/lib/dashboard/use-url-params'
-import { useUser } from '@clerk/nextjs'
-import { ShieldOff } from 'lucide-react'
 import { useProposalInputs } from '@/lib/dashboard/api-client'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { Card } from '@/components/ui/card'
@@ -14,7 +12,8 @@ import { ClickableRow } from '@/components/dashboard/ClickableRow'
 import Link from 'next/link'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDate } from '@/lib/dashboard/utils'
-import type { ProposalInputStatus, Role } from '@/lib/dashboard/types'
+import type { ProposalInputStatus } from '@/lib/dashboard/types'
+import { RequirePermission } from '@/components/dashboard/RequirePermission'
 
 const STATUS_OPTIONS: ProposalInputStatus[] = ['submitted', 'under_review', 'approved_for_proposal', 'rejected']
 
@@ -32,38 +31,24 @@ export default function SiteAssessmentsPage() {
   // useSearchParams needs a Suspense boundary.
   return (
     <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-      <SiteAssessments />
+      {/* Hiding the nav item is UX only — this direct-link guard is the honest no-access state
+          the backend's own 403 would otherwise surface as a raw error. */}
+      <RequirePermission rule="proposal_inputs.manage" what="Site assessments">
+        <SiteAssessments />
+      </RequirePermission>
     </Suspense>
   )
 }
 
 function SiteAssessments() {
-  const { user } = useUser()
-  const role = user?.publicMetadata?.role as Role | undefined
   // The status filter lives in the URL; with no ?status= the queue opens on
   // 'submitted', and ?status=all shows every status.
   const url = useUrlParams()
   const rawStatus = url.has('status') ? url.get('status') : 'submitted'
   const statusFilter = (rawStatus === 'all' ? '' : rawStatus) as ProposalInputStatus | ''
 
-  // Hiding the nav item is UX only — this direct-link guard is the honest
-  // "no access for your role" state the backend's own 403 would otherwise
-  // surface as a raw error toast.
-  const canAccess = role === 'admin' || role === 'sales'
-
   const { data, isLoading, error, refetch } = useProposalInputs({ status: statusFilter || undefined, page_size: 50 })
 
-  if (role && !canAccess) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center">
-          <ShieldOff className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
-          <p className="font-display text-lg font-semibold text-[#091c3c]">Access Denied</p>
-          <p className="font-utility text-sm text-[#111827]/65 mt-1">Site assessments aren&rsquo;t available to your role.</p>
-        </div>
-      </div>
-    )
-  }
 
   // Newest first — the backend has no documented sort param for this list, so
   // sort defensively on the client rather than trust an unspecified order.

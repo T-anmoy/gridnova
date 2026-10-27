@@ -29,8 +29,8 @@ import {
   useSubmitSurveyReview,
 } from '@/lib/dashboard/survey-review-api-client'
 import { REVIEW_OUTCOMES, type SubmitSurveyReviewInput } from '@/lib/dashboard/survey-review-types'
-import { OUTCOME_LABEL, OUTCOME_VARIANT, REVISIT_FIELDS, humanize, isSurveyReader, isSurveyReviewer, surveyReviewError } from '@/lib/dashboard/survey-review-ui'
-import type { Role } from '@/lib/dashboard/types'
+import { OUTCOME_LABEL, OUTCOME_VARIANT, REVISIT_FIELDS, humanize, surveyReviewError } from '@/lib/dashboard/survey-review-ui'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 const sectionName = (key: string) => (STAFF_SURVEY_COPY.sections as Record<string, string>)[key] ?? humanize(key)
 const fieldName = (key: string) => (STAFF_SURVEY_COPY.fields as Record<string, string>)[key] ?? humanize(key)
@@ -407,9 +407,10 @@ function ResultsBlock({ results }: { results: SurveyResults }) {
 
 // ── Panel ─────────────────────────────────────────────────────────────────
 
-export default function SurveyPanel({ onboardingId, role }: { onboardingId: number; role: Role | undefined }) {
-  const reader = isSurveyReader(role)
-  const reviewer = isSurveyReviewer(role)
+export default function SurveyPanel({ onboardingId }: { onboardingId: number }) {
+  const { can } = usePermissions()
+  const reader = can('surveys.view')
+  const reviewer = can('surveys.review')
   const status = useStaffSurvey(onboardingId, reader)
   const results = useStaffSurveyResults(onboardingId, reader && !!status.data)
 

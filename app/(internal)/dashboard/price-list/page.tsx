@@ -4,16 +4,14 @@ import { Skeleton } from '@/components/ui/skeleton'
 import NoAccess from '@/components/dashboard/NoAccess'
 import PriceListView from '@/components/dashboard/PriceListView'
 import { usePackageCatalogue } from '@/lib/pricing/usePackageCatalogue'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
-import type { Role } from '@/lib/dashboard/types'
-
-const ALLOWED: Role[] = ['admin', 'management', 'sales']
+import { usePermissions } from '@/lib/access/use-permissions'
 
 export default function PriceListPage() {
-  const { role, isLoaded } = useStaffRole()
+  const { can, isLoaded } = usePermissions()
   const { catalogue, status } = usePackageCatalogue()
   if (!isLoaded) return <div className="p-6 md:p-8"><Skeleton className="h-40 w-full" /></div>
-  if (!role || !ALLOWED.includes(role)) return <NoAccess what="The price list" />
+  // Everyone who quotes or adjusts customer prices.
+  if (!can('leads.view_commercial')) return <NoAccess what="The price list" />
   return (
     <div className="max-w-5xl space-y-4 p-6 md:p-8">
       <div>

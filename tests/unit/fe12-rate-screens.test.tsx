@@ -27,7 +27,11 @@ const h = vi.hoisted(() => ({
   mine: {} as { data?: unknown; error?: unknown; isLoading?: boolean },
   commissions: {} as { data?: unknown },
 }))
-vi.mock('@/lib/dashboard/use-staff-role', () => ({ useStaffRole: () => h.role }))
+vi.mock('@/lib/access/use-permissions', async () => {
+  const { permissionsValue } = await import('./helpers/permissions-bridge')
+  // The signed-in role (h.role) as the BE-17 permissions it holds.
+  return { usePermissions: () => { const r = h.role as { role?: string; isLoaded?: boolean }; return permissionsValue(r.role ? [r.role as never] : [], { isLoaded: r.isLoaded ?? true }) } }
+})
 vi.mock('@/lib/commissions/staff-api-client', () => ({
   useAssociateRate: () => ({ refetch: vi.fn(), ...h.rate }),
   useSetAssociateRate: () => ({ mutateAsync: h.save, isPending: false }),

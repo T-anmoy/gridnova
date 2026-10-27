@@ -8,6 +8,7 @@ import { NovaPanel } from '@/components/dashboard/nova/NovaPanel'
 import { NovaShellProvider } from '@/lib/nova/page-context'
 import { navState } from './helpers/mock-navigation'
 import type { Role } from '@/lib/dashboard/types'
+import { canFor, permissionsFor } from './helpers/permissions-bridge'
 
 const h = vi.hoisted(() => ({ role: 'admin' as string | undefined }))
 vi.mock('@clerk/nextjs', () => ({
@@ -25,12 +26,14 @@ vi.mock('@/lib/dashboard/api-client', () => ({
   useLeadSearch: () => ({ data: [], isFetching: false }),
   useProposalSearch: () => ({ data: { items: [] }, isFetching: false }),
 }))
+// The shell's second-approval badge (GET /approvals).
+vi.mock('@/lib/access/api', () => ({ useApprovals: () => ({ data: [] }) }))
 vi.mock('@/lib/dashboard/execution-api-client', () => ({ useWorkQueues: () => ({ data: undefined }) }))
 vi.mock('@/components/ui/sonner', () => ({ Toaster: () => null }))
 vi.mock('@/lib/config', () => ({ API_BASE_URL: 'https://api.test' }))
 
 const ROLES: Role[] = ['admin', 'management', 'accounts', 'operations', 'engineer', 'sales']
-const labels = (role: Role | undefined) => visibleNavItems(role).map((i) => i.label)
+const labels = (role: Role | undefined) => visibleNavItems(permissionsFor(role ? [role] : [])).map((i) => i.label)
 
 describe('nav entries by role', () => {
   it.each(ROLES)('%s sees Ask Nova and Project archive', (role) => {
@@ -48,7 +51,7 @@ describe('nav entries by role', () => {
     expect(byLabel('Ask Nova').href).toBe('/dashboard/nova')
     expect(byLabel('Project archive').href).toBe('/dashboard/archive')
     expect(byLabel('Archive import').href).toBe('/dashboard/archive/import')
-    expect(canSeeNavItem(byLabel('Archive import'), 'admin')).toBe(true)
+    expect(canSeeNavItem(byLabel('Archive import'), canFor('admin'))).toBe(true)
     const hrefs = NAV_ITEMS.map((i) => i.href)
     expect(new Set(hrefs).size).toBe(hrefs.length)
   })

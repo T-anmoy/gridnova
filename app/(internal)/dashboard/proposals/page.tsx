@@ -1,9 +1,10 @@
 'use client'
 
+import { SEES_LEADS } from '@/lib/dashboard/nav'
+import { RequirePermission } from '@/components/dashboard/RequirePermission'
 import { Suspense, useState } from 'react'
 import { useUrlParams } from '@/lib/dashboard/use-url-params'
 import Link from 'next/link'
-import { useUser } from '@clerk/nextjs'
 import { useAuth } from '@clerk/nextjs'
 import { Filter, ChevronLeft, ChevronRight, ShieldCheck, Download, CheckCircle, Clock } from 'lucide-react'
 import { useProposals, downloadProposalsCsv } from '@/lib/dashboard/api-client'
@@ -16,8 +17,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ClickableRow } from '@/components/dashboard/ClickableRow'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatCurrency, formatDate } from '@/lib/dashboard/utils'
-import type { ProposalStatus, Role } from '@/lib/dashboard/types'
+import type { ProposalStatus } from '@/lib/dashboard/types'
 import DateField from '@/components/forms/DateField'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 const STATUS_OPTIONS: ProposalStatus[] = [
   'draft', 'pending_pricing_validation', 'pending_approval', 'revision_requested', 'approved', 'sent',
@@ -41,15 +43,16 @@ export default function ProposalsPage() {
   // useSearchParams needs a Suspense boundary.
   return (
     <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-      <Proposals />
+      <RequirePermission rule={SEES_LEADS} what="Proposals">
+        <Proposals />
+      </RequirePermission>
     </Suspense>
   )
 }
 
 function Proposals() {
-  const { user } = useUser()
   const { getToken } = useAuth()
-  const role = user?.publicMetadata?.role as Role | undefined
+  const { can } = usePermissions()
 
   // Filters and page live in the URL (?status=…&from=…&to=…&page=2).
   const url = useUrlParams()
@@ -59,7 +62,8 @@ function Proposals() {
   const page = url.page
   const [exporting, setExporting] = useState(false)
 
-  const canExport = role === 'admin' || role === 'management'
+  // The CSV export is company-wide figures (analytics.view_full in the backend).
+  const canExport = can('analytics.view_full')
 
   const { data, isLoading, error, refetch } = useProposals({
     status: statusFilter || undefined,

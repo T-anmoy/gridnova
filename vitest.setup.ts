@@ -115,3 +115,17 @@ vi.mock("next/navigation", () => ({
   }),
   useSearchParams: () => new URLSearchParams(),
 }));
+
+// FE-17: the dashboard decides from GET /employees/me `permissions` (usePermissions).
+// Hundreds of existing tests set the signed-in person with a mocked Clerk `useUser()`
+// (`publicMetadata.role` / `roles`). This bridge turns those roles into the permissions
+// the real BE-17 matrix gives them (tests/unit/fixtures/access-matrix.ts), so each test
+// still means "as a Sales person …" — and now also proves the permission mapping keeps
+// every role's screens. Tests of the hook itself call vi.unmock("@/lib/access/use-permissions").
+afterEach(async () => {
+  (await import("./tests/unit/helpers/permissions-bridge")).clearRoleOverride();
+});
+vi.mock("@/lib/access/use-permissions", async () => {
+  const { permissionsForRolesHook } = await import("./tests/unit/helpers/permissions-bridge");
+  return { usePermissions: permissionsForRolesHook };
+});

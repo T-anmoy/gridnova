@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ApiError } from '@/lib/dashboard/api-error'
+import { permissionsFor } from './helpers/permissions-bridge'
 import { NAV_ITEMS, overdueSurveyCount, queueBadgeCount, visibleNavItems } from '@/lib/dashboard/nav'
 import { REVIEW_QUEUE, STAFF_CORRECTION } from './fixtures/survey-review-contract'
 import type { Role } from '@/lib/dashboard/types'
@@ -17,7 +18,11 @@ vi.mock('next/link', () => ({ default: ({ href, children, ...r }: { href: string
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 let role: Role | undefined = 'engineer'
-vi.mock('@/lib/dashboard/use-staff-role', () => ({ useStaffRole: () => ({ role, isLoaded: true }) }))
+vi.mock('@/lib/access/use-permissions', async () => {
+  const { permissionsValue } = await import('./helpers/permissions-bridge')
+  // The signed-in role (({ role, isLoaded: true })) as the BE-17 permissions it holds.
+  return { usePermissions: () => { const r = ({ role, isLoaded: true }) as { role?: string; isLoaded?: boolean }; return permissionsValue(r.role ? [r.role as never] : [], { isLoaded: r.isLoaded ?? true }) } }
+})
 vi.mock('@/lib/dashboard/api-client', () => ({ useEmployeeMe: () => ({ data: { id: 'emp-eng-1' } }) }))
 vi.mock('@/lib/dashboard/onboarding-api-client', () => ({
   useStaffOnboarding: () => ({ data: { site_assessment: { roof_area_sqft: 800 } }, isLoading: false }),
@@ -67,7 +72,7 @@ describe('nav badges and role gating', () => {
   it.each([
     ['admin', true], ['management', true], ['sales', true], ['engineer', true], ['operations', false], ['accounts', false],
   ] as const)('%s sees the survey queues: %s', (r, expected) => {
-    const labels = visibleNavItems(r as Role).map((i) => i.label)
+    const labels = visibleNavItems(permissionsFor([r as Role])).map((i) => i.label)
     expect(labels.includes('Survey reviews')).toBe(expected)
     expect(labels.includes('Survey corrections')).toBe(expected)
   })

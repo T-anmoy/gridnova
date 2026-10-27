@@ -5,6 +5,7 @@ import { ConfirmLocationPrompt, SiteLocationCard, checkReasons } from '@/compone
 import { ApiError } from '@/lib/dashboard/api-error'
 import { withI18n } from './helpers/i18n'
 import type { SiteLocation } from '@/lib/associate/onboarding-types'
+import { asRoles } from './helpers/permissions-bridge'
 
 const mutateAsync = vi.fn()
 vi.mock('@/lib/dashboard/onboarding-api-client', () => ({
@@ -33,7 +34,7 @@ beforeEach(() => {
 
 describe('staff Site location card', () => {
   it('shows coordinates, source, verified/confirmed, flags, photo distance and Open in Google Maps', () => {
-    render(withI18n(<SiteLocationCard onboardingId={9} location={LOC} role="admin" />))
+    render(withI18n(asRoles(['admin'], <SiteLocationCard onboardingId={9} location={LOC} />)))
     const card = screen.getByTestId('staff-site-location')
     expect(card).toHaveTextContent('22.5726, 88.3639')
     expect(card).toHaveTextContent('Google Maps link')
@@ -47,17 +48,17 @@ describe('staff Site location card', () => {
   })
 
   it('says plainly when there is no location', () => {
-    render(withI18n(<SiteLocationCard onboardingId={9} location={{ present: false, confirmed: false, flags: ['location_missing'] }} role="sales" />))
+    render(withI18n(asRoles(['sales'], <SiteLocationCard onboardingId={9} location={{ present: false, confirmed: false, flags: ['location_missing'] }} />)))
     expect(screen.getByTestId('staff-site-location')).toHaveTextContent('No site location on file')
   })
 
   it.each(['admin', 'sales'] as const)('%s can correct the location', (role) => {
-    render(withI18n(<SiteLocationCard onboardingId={9} location={LOC} role={role} />))
+    render(withI18n(asRoles([role], <SiteLocationCard onboardingId={9} location={LOC} />)))
     expect(screen.getByRole('button', { name: 'Correct location' })).toBeInTheDocument()
   })
 
   it.each(['management', 'engineer', 'operations', 'accounts', undefined] as const)('%s gets no correct control (it would always 403)', (role) => {
-    render(withI18n(<SiteLocationCard onboardingId={9} location={LOC} role={role} />))
+    render(withI18n(asRoles([role], <SiteLocationCard onboardingId={9} location={LOC} />)))
     expect(screen.queryByRole('button', { name: 'Correct location' })).not.toBeInTheDocument()
   })
 })
@@ -65,7 +66,7 @@ describe('staff Site location card', () => {
 describe('correct-location dialog', () => {
   async function open() {
     const user = userEvent.setup()
-    render(withI18n(<SiteLocationCard onboardingId={9} location={LOC} role="admin" />))
+    render(withI18n(asRoles(['admin'], <SiteLocationCard onboardingId={9} location={LOC} />)))
     await user.click(screen.getByRole('button', { name: 'Correct location' }))
     return user
   }

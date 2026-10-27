@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { useAuth, useUser } from '@clerk/nextjs'
+import { useAuth } from '@clerk/nextjs'
 import { toast } from 'sonner'
-import { ShieldOff, FileText, Loader2 } from 'lucide-react'
+import { FileText, Loader2 } from 'lucide-react'
 import {
   useAdminAssociate,
   useSetAssociateStatus,
@@ -26,7 +26,8 @@ import { formatDate } from '@/lib/dashboard/utils'
 import ShareSignInCard from '@/components/dashboard/ShareSignInCard'
 import AssociateRateCard from '@/components/dashboard/associate-network/AssociateRateCard'
 import AssociatePerformancePanel from '@/components/dashboard/associate-network/AssociatePerformancePanel'
-import type { Role } from '@/lib/dashboard/types'
+import { RequirePermission } from '@/components/dashboard/RequirePermission'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 function errorMessage(err: unknown, fallback: string): string {
   if (err instanceof ApiError) return err.detail || err.message
@@ -44,11 +45,18 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 export default function AssociateDetailPage() {
+  return (
+    <RequirePermission rule="associates.applications.review" what="Associates">
+      <AssociateDetail />
+    </RequirePermission>
+  )
+}
+
+function AssociateDetail() {
   const params = useParams<{ id: string }>()
   const router = useRouter()
-  const { user } = useUser()
   const { getToken } = useAuth()
-  const role = user?.publicMetadata?.role as Role | undefined
+  const { can } = usePermissions()
   const associateId = params.id
 
   // Approval is asynchronous: keep re-reading for about a minute after the page opens.
@@ -63,16 +71,6 @@ export default function AssociateDetailPage() {
   const [reason, setReason] = useState('')
   const [docLoading, setDocLoading] = useState<string | null>(null)
 
-  if (role && role !== 'admin') {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center">
-          <ShieldOff className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
-          <p className="font-display text-lg font-semibold text-[#091c3c]">Access Denied</p>
-        </div>
-      </div>
-    )
-  }
 
   if (error) return <DashboardError error={error} onRetry={() => void refetch()} />
   if (isLoading || !associate) {
@@ -195,7 +193,7 @@ export default function AssociateDetailPage() {
         )}
       </Card>
 
-      {role === 'admin' && associate.status === 'active' && (
+      {can('associates.applications.review') && associate.status === 'active' && (
         <ShareSignInCard
           fullName={associate.full_name}
           associateId={associate.associate_id}
@@ -206,10 +204,13 @@ export default function AssociateDetailPage() {
       )}
 
       {/* Personal-sale rate only: territory commission always follows the standard schedule. */}
-      <div className="mb-4 grid gap-4 lg:grid-cols-2">
-        <AssociateRateCard associateId={associateId} canEdit={role === 'admin'} />
-        <AssociatePerformancePanel associateId={associateId} />
-      </div>
+      {/* Both read commissions.individual_rates.view; setting a rate is commissions.rates.manage. */}
+      {can('commissions.individual_rates.view') && (
+        <div className="mb-4 grid gap-4 lg:grid-cols-2">
+          <AssociateRateCard associateId={associateId} canEdit={can('commissions.rates.manage')} />
+          <AssociatePerformancePanel associateId={associateId} />
+        </div>
+      )}
 
       <Card className="p-6 mb-4">
         <h2 className="font-display text-sm font-semibold text-[#091c3c] mb-4">Documents</h2>

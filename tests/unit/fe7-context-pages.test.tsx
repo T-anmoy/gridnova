@@ -10,6 +10,7 @@ import { leadItem, leadPage } from './fixtures/leads-contract'
 import { staffLeadsCopy } from '@/lib/dashboard/staff-leads-copy'
 import type { LeadDetail } from '@/lib/dashboard/types'
 import type { StaffExecutionDetail } from '@/lib/dashboard/execution-types'
+import { asRoles } from './helpers/permissions-bridge'
 
 const h = vi.hoisted(() => ({ lead: {} as { data?: unknown }, exec: {} as { data?: unknown } }))
 vi.mock('@clerk/nextjs', () => ({
@@ -93,13 +94,13 @@ describe('pages hand their record to Ask Nova', () => {
 
   it('a project (operations) page sends project_ref once the backend has given it', () => {
     h.exec = { data: execDetail('GNE-WB-RES-2026-00125') }
-    render(withI18n(<NovaShellProvider><Probe /><ExecutionDetailPanel onboardingId={5} role="operations" /></NovaShellProvider>))
+    render(withI18n(<NovaShellProvider><Probe />{asRoles(['operations'], <ExecutionDetailPanel onboardingId={5} />)}</NovaShellProvider>))
     expect(probe()).toEqual({ project_ref: 'GNE-WB-RES-2026-00125' })
   })
 
   it('a project with no reference yet sends no context (nothing guessed)', () => {
     h.exec = { data: execDetail(null) }
-    render(withI18n(<NovaShellProvider><Probe /><ExecutionDetailPanel onboardingId={5} role="operations" /></NovaShellProvider>))
+    render(withI18n(<NovaShellProvider><Probe />{asRoles(['operations'], <ExecutionDetailPanel onboardingId={5} />)}</NovaShellProvider>))
     expect(probe()).toBeNull()
   })
 

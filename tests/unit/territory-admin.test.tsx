@@ -63,7 +63,7 @@ describe('Territory admin (P7)', () => {
     h.role = 'sales'
     const qc = new QueryClient()
     const { unmount } = render(<QueryClientProvider client={qc}><TerritoriesPage /></QueryClientProvider>)
-    expect(screen.getByText('Access Denied')).toBeInTheDocument()
+    expect(screen.getByTestId('no-access')).toBeInTheDocument()
     expect(screen.queryByText('Manage territories')).not.toBeInTheDocument()
     unmount()
     h.role = 'admin'

@@ -1,5 +1,7 @@
 'use client'
 
+import { SEES_EXECUTION } from '@/lib/dashboard/nav'
+import { RequirePermission } from '@/components/dashboard/RequirePermission'
 import { Suspense } from 'react'
 import { useUrlParams } from '@/lib/dashboard/use-url-params'
 import { Card, CardContent } from '@/components/ui/card'
@@ -33,7 +35,9 @@ export default function OperationsPage() {
   // useSearchParams needs a Suspense boundary.
   return (
     <Suspense fallback={<Skeleton className="m-6 h-64" />}>
-      <Operations />
+      <RequirePermission rule={SEES_EXECUTION} what="The Operations workspace">
+        <Operations />
+      </RequirePermission>
     </Suspense>
   )
 }

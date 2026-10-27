@@ -14,14 +14,14 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { QueuePager } from '@/components/dashboard/QueuePager'
 import NoAccess from '@/components/dashboard/NoAccess'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { useEmployeeMe } from '@/lib/dashboard/api-client'
 import { useStaffOnboarding } from '@/lib/dashboard/onboarding-api-client'
 import { useDecideSurveyCorrection, useSurveyCorrectionQueue } from '@/lib/dashboard/survey-review-api-client'
-import { formatChangeValue, humanize, isSurveyReader, isSurveyReviewer, surveyReviewError } from '@/lib/dashboard/survey-review-ui'
+import { formatChangeValue, humanize, surveyReviewError } from '@/lib/dashboard/survey-review-ui'
 import { STAFF_SURVEY_COPY } from '@/lib/dashboard/staff-copy'
 import { formatDatetime } from '@/lib/dashboard/utils'
 import type { StaffSurveyCorrection } from '@/lib/associate/survey-types'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 const PAGE_SIZE = 25
 const STATUSES = ['pending', 'applied', 'rejected'] as const
@@ -161,7 +161,7 @@ function SurveyCorrections() {
   const router = useRouter()
   const pathname = usePathname()
   const sp = useSearchParams()
-  const { role, isLoaded } = useStaffRole()
+  const { can, isLoaded } = usePermissions()
   const me = useEmployeeMe()
   const raw = sp.get('status')
   const status: Status = (STATUSES as readonly string[]).includes(raw ?? '') ? (raw as Status) : 'pending'
@@ -177,9 +177,9 @@ function SurveyCorrections() {
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
   }
 
-  if (isLoaded && !isSurveyReader(role)) return <NoAccess what="The survey corrections queue" />
-  // The engineer role cannot read the customer record, so there is no "current value" for them.
-  const canReadCurrent = role === 'admin' || role === 'management' || role === 'sales'
+  if (isLoaded && !can('surveys.view')) return <NoAccess what="The survey corrections queue" />
+  // The technical-only view (Engineer) cannot read the customer record, so there is no "current value" for them.
+  const canReadCurrent = can('leads.view_commercial')
 
   return (
     <div className="space-y-4">
@@ -210,7 +210,7 @@ function SurveyCorrections() {
       ) : (
         <div className="space-y-3">
           {data.items.map((c) => (
-            <CorrectionCard key={c.correction_id} c={c} canDecide={isSurveyReviewer(role)} myId={me.data?.id} canReadCurrent={canReadCurrent} />
+            <CorrectionCard key={c.correction_id} c={c} canDecide={can('surveys.review')} myId={me.data?.id} canReadCurrent={canReadCurrent} />
           ))}
         </div>
       )}

@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { test, expect } from "@playwright/test";
-import { OUT_DIR, PAGES, VIEWPORTS, measure, prepare, slug } from "./matrix";
+import { OUT_DIR, PAGES, VIEWPORTS, caseName, measure, prepare, slug } from "./matrix";
 
 // Every page in scope × every viewport: a full-page screenshot into
 // test-results/visual-matrix/, then the two layout assertions — nothing wider
@@ -11,7 +11,7 @@ import { OUT_DIR, PAGES, VIEWPORTS, measure, prepare, slug } from "./matrix";
 mkdirSync(`${OUT_DIR}/report`, { recursive: true });
 
 for (const pageCase of PAGES) {
-  test.describe(pageCase.path, () => {
+  test.describe(caseName(pageCase), () => {
     for (const v of VIEWPORTS) {
       test(v.name, async ({ browser }) => {
         const context = await browser.newContext({
@@ -66,7 +66,7 @@ for (const pageCase of PAGES) {
             ],
           };
           writeFileSync(
-            `${OUT_DIR}/report/${slug(pageCase.path)}__${v.name}.json`,
+            `${OUT_DIR}/report/${slug(caseName(pageCase))}__${v.name}.json`,
             JSON.stringify({ path: pageCase.path, viewport: v.name, finalUrl: page.url(), ...result }, null, 1),
           );
           // Chromium cannot capture more than 16,384 device pixels in one image (it repeats the
@@ -75,7 +75,7 @@ for (const pageCase of PAGES) {
           const part = Math.floor(16_000 / v.dpr);
           for (let y = 0, n = 1; y < fullHeight; y += part, n++) {
             await page.screenshot({
-              path: `${OUT_DIR}/${slug(pageCase.path)}/${v.name}${fullHeight > part ? `-part${n}` : ""}.jpg`,
+              path: `${OUT_DIR}/${slug(caseName(pageCase))}/${v.name}${fullHeight > part ? `-part${n}` : ""}.jpg`,
               fullPage: true,
               clip: { x: 0, y, width: v.width, height: Math.min(part, fullHeight - y) },
               type: "jpeg",

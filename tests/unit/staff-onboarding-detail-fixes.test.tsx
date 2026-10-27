@@ -7,7 +7,11 @@ import type { AgreementResponse } from '@/lib/dashboard/onboarding-types'
 import { typeDateField } from './helpers/date-field'
 
 vi.mock('next/navigation', () => ({ useParams: () => ({ id: '77' }) }))
-vi.mock('@/lib/dashboard/use-staff-role', () => ({ useStaffRole: () => ({ role: 'admin', isLoaded: true }) }))
+vi.mock('@/lib/access/use-permissions', async () => {
+  const { permissionsValue } = await import('./helpers/permissions-bridge')
+  // The signed-in role (({ role: 'admin', isLoaded: true })) as the BE-17 permissions it holds.
+  return { usePermissions: () => { const r = ({ role: 'admin', isLoaded: true }) as { role?: string; isLoaded?: boolean }; return permissionsValue(r.role ? [r.role as never] : [], { isLoaded: r.isLoaded ?? true }) } }
+})
 vi.mock('@/components/dashboard/SurveyPanel', () => ({ default: () => null }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 

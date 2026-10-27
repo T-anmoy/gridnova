@@ -26,9 +26,9 @@ import {
 import { useUploadStaffPaymentProof } from '@/lib/dashboard/payments-api-client'
 import { ATTENTION_LABEL, STATUS_LABEL, STATUS_VARIANT, isDummyReason, isSelfVerification, staffPaymentError } from '@/lib/dashboard/payment-ui'
 import { STAFF_PAYMENT_COPY } from '@/lib/dashboard/staff-copy'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { formatDatetime } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 const INSTRUMENT_MODES = ['cheque', 'demand_draft']
 
@@ -248,13 +248,13 @@ function PaymentDetailLoader({ id, canAct, isAdmin }: { id: number; canAct: bool
 
 export default function PaymentDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const { role, isLoaded } = useStaffRole()
+  const { can, isLoaded } = usePermissions()
   if (!isLoaded) return <div className="p-8"><Skeleton className="h-8 w-48" /></div>
-  if (role !== 'admin' && role !== 'accounts' && role !== 'management') return <NoAccess what="Payments" />
+  if (!can('payments.view_all')) return <NoAccess what="Payments" />
   return (
     <div className="space-y-4 p-6 md:p-8">
       <Link href="/dashboard/accounts" className="inline-flex items-center gap-1.5 text-sm font-medium text-[#0e2a63]"><ArrowLeft className="h-4 w-4" /> Accounts</Link>
-      <PaymentDetailLoader id={Number(id)} canAct={role === 'admin' || role === 'accounts'} isAdmin={role === 'admin'} />
+      <PaymentDetailLoader id={Number(id)} canAct={can('payments.process')} isAdmin={can('payments.segregation_override')} />
     </div>
   )
 }

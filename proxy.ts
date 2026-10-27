@@ -2,6 +2,11 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import type { NextFetchEvent, NextRequest } from 'next/server'
 import { localeRouting } from '@/lib/i18n/routing'
 
+const DASHBOARD_AUTH_PAGES = ['/dashboard/sign-in', '/dashboard/sign-up']
+function isDashboardAuthPage(path: string): boolean {
+  return DASHBOARD_AUTH_PAGES.some((p) => path === p || path.startsWith(`${p}/`))
+}
+
 // The sign-in route itself must stay excluded from protection — it's the
 // page unauthenticated users are sent to, and the matcher previously
 // included it, which sent every visitor to Clerk's generic hosted portal
@@ -14,10 +19,15 @@ import { localeRouting } from '@/lib/i18n/routing'
 // protection as the dashboard (same unauthenticated redirect), unlike
 // `/proposal/accept/[token]`, which stays public — that's the customer-facing
 // accept page and must never require staff sign-in.
+//
+// `/dashboard/sign-up` (FE-17) is where a staff invitation link lands
+// (STAFF_INVITE_REDIRECT_URL): the invited person has no session yet, so it
+// stays reachable signed out too. Without an invitation ticket it only
+// redirects to sign-in, so it never offers an open sign-up form.
 const isProtectedRoute = createRouteMatcher((req) => {
   const path = req.nextUrl.pathname
   if (path === '/dashboard' || path.startsWith('/dashboard/')) {
-    return !path.startsWith('/dashboard/sign-in')
+    return !isDashboardAuthPage(path)
   }
   return path === '/proposal/new'
 })

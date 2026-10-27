@@ -12,8 +12,8 @@ import ReasonDialog from '@/components/dashboard/ReasonDialog'
 import { AREA_LABEL, BLOCKING_LABEL, BLOCKING_ORDER, buildGridNovaMessage, isManual } from '@/lib/dashboard/placeholders'
 import { usePlaceholders, useResolvePlaceholder, type PlaceholderItem } from '@/lib/dashboard/placeholders-api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { formatDatetime } from '@/lib/dashboard/utils'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 const BLOCKING_VARIANT = { blocks_launch: 'red', blocks_feature: 'amber', tunable: 'blue' } as const
 
@@ -138,8 +138,8 @@ function Checklist({ isAdmin }: { isAdmin: boolean }) {
 }
 
 export default function DataChecklistPage() {
-  const { role, isLoaded } = useStaffRole()
+  const { can, isLoaded } = usePermissions()
   if (!isLoaded) return <div className="p-8"><Skeleton className="h-8 w-48" /></div>
-  if (role !== 'admin' && role !== 'management') return <NoAccess what="The data checklist" />
-  return <Checklist isAdmin={role === 'admin'} />
+  if (!can('placeholders.view')) return <NoAccess what="The data checklist" />
+  return <Checklist isAdmin={can('placeholders.resolve')} />
 }

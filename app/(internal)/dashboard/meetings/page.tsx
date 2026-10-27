@@ -2,9 +2,8 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useUser } from '@clerk/nextjs'
 import { toast } from 'sonner'
-import { CalendarCheck2, ChevronLeft, ChevronRight, ShieldOff } from 'lucide-react'
+import { CalendarCheck2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useMeetings, useEmployeeMe, useConnectCalendar } from '@/lib/dashboard/api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { DashboardError } from '@/components/dashboard/DashboardError'
@@ -16,7 +15,8 @@ import { ClickableRow } from '@/components/dashboard/ClickableRow'
 import Link from 'next/link'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDatetime } from '@/lib/dashboard/utils'
-import type { CalendarErrorReason, MeetingSummary, Role } from '@/lib/dashboard/types'
+import type { CalendarErrorReason, MeetingSummary } from '@/lib/dashboard/types'
+import { RequirePermission } from '@/components/dashboard/RequirePermission'
 
 const PAGE_SIZE = 50
 
@@ -102,29 +102,23 @@ function CalendarRedirectHandler() {
   return null
 }
 
+// meetings.view — the backend refuses everyone else (an Engineer gets a 403), so a
+// direct link shows the calm no-access state instead.
 export default function MeetingsPage() {
+  return (
+    <RequirePermission rule="meetings.view" what="Meetings">
+      <Meetings />
+    </RequirePermission>
+  )
+}
+
+function Meetings() {
   const router = useRouter()
-  const { user } = useUser()
-  const role = user?.publicMetadata?.role as Role | undefined
 
   const [page, setPage] = useState(1)
 
   const { data, isLoading, error, refetch } = useMeetings({ page, page_size: PAGE_SIZE })
 
-  // Same restriction the backend itself enforces (engineer gets a 403 on this
-  // endpoint) — matching Audit Log's conditional-render pattern rather than a
-  // router.push, so a direct link still shows an honest, explicit message.
-  if (role === 'engineer') {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center">
-          <ShieldOff className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
-          <p className="font-display text-lg font-semibold text-[#091c3c]">Access Denied</p>
-          <p className="font-utility text-sm text-[#111827]/65 mt-1">Meetings aren&rsquo;t available to your role.</p>
-        </div>
-      </div>
-    )
-  }
 
   const items = data?.items ?? []
   const total = data?.total ?? 0

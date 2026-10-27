@@ -13,6 +13,7 @@ import { NAV_ITEMS, overdueServiceRequestCount, queueBadgeCount, visibleNavItems
 import type { Role } from '@/lib/dashboard/types'
 import { navState } from './helpers/mock-navigation'
 import { COMPLETE_PACK, GATE_422_BODY, HANDED_OVER_PACK, makePack, makeRequest } from './fixtures/handover-contract'
+import { asRoles, permissionsFor } from './helpers/permissions-bridge'
 
 const h = vi.hoisted(() => ({
   role: { role: 'operations' as string | undefined, isLoaded: true },
@@ -40,8 +41,16 @@ const h = vi.hoisted(() => ({
   record: vi.fn(),
 }))
 vi.mock('@clerk/nextjs', () => ({ useAuth: () => ({ getToken: async () => 'tok' }), useClerk: () => ({ signOut: vi.fn() }) }))
-vi.mock('@/lib/dashboard/use-staff-role', () => ({ useStaffRole: () => h.role }))
+vi.mock('@/lib/access/use-permissions', async () => {
+  const { permissionsValue } = await import('./helpers/permissions-bridge')
+  // The signed-in role (h.role) as the BE-17 permissions it holds.
+  return { usePermissions: () => { const r = h.role as { role?: string; isLoaded?: boolean }; return permissionsValue(r.role ? [r.role as never] : [], { isLoaded: r.isLoaded ?? true }) } }
+})
 vi.mock('@/lib/dashboard/api-client', () => ({ useEmployeeMe: () => h.me, useEmployees: () => h.employees }))
+vi.mock('@/lib/access/api', async () => {
+  const { ACCESS_MATRIX } = await import('./fixtures/access-matrix')
+  return { useAccessMatrix: () => ({ data: ACCESS_MATRIX }) }
+})
 vi.mock('@/lib/dashboard/execution-api-client', () => ({
   useWorkQueues: () => h.queues,
   useStaffExecution: () => ({ ...h.exec, refetch: vi.fn() }),
@@ -520,7 +529,7 @@ describe('Record handover complete is gated by the pack (W1)', () => {
   })
 
   it('disables “Record handover complete” and lists the missing items while the pack is incomplete', () => {
-    render(<ExecutionDetailPanel onboardingId={12} role="operations" />)
+    render(asRoles(['operations'], <ExecutionDetailPanel onboardingId={12} />))
     const gate = screen.getByTestId('handover-gate')
     expect(gate).toHaveTextContent('Customer orientation')
     expect(gate).toHaveTextContent('O&M contact given')
@@ -529,14 +538,14 @@ describe('Record handover complete is gated by the pack (W1)', () => {
 
   it('enables it once the pack is complete', () => {
     h.pack = { data: COMPLETE_PACK }
-    render(<ExecutionDetailPanel onboardingId={12} role="operations" />)
+    render(asRoles(['operations'], <ExecutionDetailPanel onboardingId={12} />))
     expect(screen.queryByTestId('handover-gate')).toBeNull()
     expect(screen.getByRole('button', { name: 'Record handover complete' })).toBeEnabled()
   })
 
   it('is not gated when the project does not require a pack', () => {
     h.pack = { data: makePack({ pack_required: false }) }
-    render(<ExecutionDetailPanel onboardingId={12} role="operations" />)
+    render(asRoles(['operations'], <ExecutionDetailPanel onboardingId={12} />))
     expect(screen.queryByTestId('handover-gate')).toBeNull()
     expect(screen.getByRole('button', { name: 'Record handover complete' })).toBeEnabled()
   })
@@ -544,7 +553,7 @@ describe('Record handover complete is gated by the pack (W1)', () => {
   it('renders the server’s 422 as the same list', async () => {
     h.pack = { data: COMPLETE_PACK } // the client thinks it is complete; the server disagrees
     h.record.mockRejectedValue(new ApiError(422, 'x', 'x', GATE_422_BODY))
-    render(<ExecutionDetailPanel onboardingId={12} role="operations" />)
+    render(asRoles(['operations'], <ExecutionDetailPanel onboardingId={12} />))
     await userEvent.click(screen.getByRole('button', { name: 'Record handover complete' }))
     const list = await screen.findByTestId('gate-422-list')
     expect(within(list).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['Customer orientation', 'Customer acknowledgement'])
@@ -553,7 +562,7 @@ describe('Record handover complete is gated by the pack (W1)', () => {
 })
 
 describe('nav and work-queue badges (W6)', () => {
-  const labels = (role: Role) => visibleNavItems(role).map((i) => i.label)
+  const labels = (role: Role) => visibleNavItems(permissionsFor([role])).map((i) => i.label)
   it('Service requests is shown to the roles the backend lets read it, never to Accounts', () => {
     for (const role of ['admin', 'management', 'engineer', 'operations', 'sales'] as Role[]) expect(labels(role), role).toContain('Service requests')
     expect(labels('accounts')).not.toContain('Service requests')

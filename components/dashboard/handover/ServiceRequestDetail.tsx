@@ -14,7 +14,8 @@ import ReasonDialog from '@/components/dashboard/ReasonDialog'
 import { RequestBadges, SlaText } from '@/components/dashboard/handover/ServiceRequestRow'
 import { notAuthenticatedError } from '@/lib/api/http'
 import { useEmployeeMe, useEmployees } from '@/lib/dashboard/api-client'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
+import { useAccessMatrix } from '@/lib/access/api'
+import { rolesHolding } from '@/lib/access/roles'
 import { formatDate, formatDatetime } from '@/lib/dashboard/utils'
 import { HISTORY_LABEL, RAISED_VIA_LABEL, STATUS_LABEL, categoryLabel, handoverErrorMessage } from '@/lib/handover/labels'
 import type { ServiceRequest } from '@/lib/handover/schemas'
@@ -25,6 +26,7 @@ import {
   useServiceRequest,
   useSetRequestStatus,
 } from '@/lib/handover/staff-api-client'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 const CLOSED = ['resolved', 'rejected']
 
@@ -63,10 +65,13 @@ function Photos({ request }: { request: ServiceRequest }) {
 }
 
 export default function ServiceRequestDetail({ requestId }: { requestId: number }) {
-  const { role } = useStaffRole()
+  const { can } = usePermissions()
   const { data: r, isLoading, error, refetch } = useServiceRequest(requestId)
   const me = useEmployeeMe()
-  const employees = useEmployees({ enabled: role === 'admin' })
+  // The staff list (GET /employees) is staff.manage; with it, any handler can be picked.
+  const canPickAnyone = can('staff.manage') && can('service_requests.handle')
+  const employees = useEmployees({ enabled: canPickAnyone })
+  const matrix = useAccessMatrix({ enabled: canPickAnyone })
   const assign = useAssignRequest()
   const setStatus = useSetRequestStatus()
   const addNote = useAddRequestNote()
@@ -86,9 +91,10 @@ export default function ServiceRequestDetail({ requestId }: { requestId: number 
   const closed = CLOSED.includes(r.status)
   const names = new Map((employees.data ?? []).map((e) => [e.id, e.name]))
   const who = (id: string | null | undefined) => (!id ? null : id === me.data?.id ? 'You' : (names.get(id) ?? id))
-  // Admin can pick any active Admin / Operations / Engineer; the others have no staff list endpoint
-  // for these roles, so they can assign to themselves or clear the assignment.
-  const pickable = (employees.data ?? []).filter((e) => e.is_active && ['admin', 'operations', 'engineer'].includes(e.role))
+  // With the staff list, pick any active person whose roles handle service requests (from the
+  // matrix); without it, assign to yourself or clear the assignment.
+  const handlerRoles = rolesHolding(matrix.data, 'service_requests.handle')
+  const pickable = (employees.data ?? []).filter((e) => e.is_active && (e.roles ?? [e.role]).some((x) => handlerRoles.includes(x)))
 
   return (
     <div className="space-y-4" data-testid="service-request-detail">
@@ -125,7 +131,7 @@ export default function ServiceRequestDetail({ requestId }: { requestId: number 
               {!closed && <Button variant="outline" className="h-11 md:h-9" onClick={() => setDialog('resolve')}>Resolve…</Button>}
               {!closed && <Button variant="outline" className="h-11 md:h-9" onClick={() => setDialog('reject')}>Reject…</Button>}
               <Button variant="outline" className="h-11 md:h-9" onClick={() => setDialog('note')}>Add internal note…</Button>
-              {role === 'admin' ? (
+              {canPickAnyone ? (
                 <Button variant="outline" className="h-11 md:h-9" onClick={() => { setAssignee(r.assignee_id ?? ''); setDialog('assign') }}>Assign…</Button>
               ) : (
                 <>

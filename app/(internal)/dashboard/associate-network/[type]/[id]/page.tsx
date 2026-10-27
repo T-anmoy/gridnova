@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
-import { useAuth, useUser } from '@clerk/nextjs'
+import { useAuth } from '@clerk/nextjs'
 import { toast } from 'sonner'
-import { ShieldOff, FileText, Loader2 } from 'lucide-react'
+import { FileText, Loader2 } from 'lucide-react'
 import {
   useAssociateApplication,
   useSetApplicationStatus,
@@ -31,7 +31,8 @@ import {
 import { formatDate } from '@/lib/dashboard/utils'
 import ShareSignInCard from '@/components/dashboard/ShareSignInCard'
 import type { ApplicationType } from '@/lib/associate/types'
-import type { Role } from '@/lib/dashboard/types'
+import { RequirePermission } from '@/components/dashboard/RequirePermission'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 function errorMessage(err: unknown, fallback: string): string {
   if (err instanceof ApiError) return err.detail || err.message
@@ -80,10 +81,17 @@ function DocumentLink({ applicationType, id, document, filename }: { application
 }
 
 export default function ApplicationDetailPage() {
+  return (
+    <RequirePermission rule="associates.applications.review" what="Associate applications">
+      <ApplicationDetail />
+    </RequirePermission>
+  )
+}
+
+function ApplicationDetail() {
   const params = useParams<{ type: string; id: string }>()
   const router = useRouter()
-  const { user } = useUser()
-  const role = user?.publicMetadata?.role as Role | undefined
+  const { can } = usePermissions()
   const applicationType = params.type as ApplicationType
   const id = Number(params.id)
 
@@ -99,16 +107,6 @@ export default function ApplicationDetailPage() {
   const [infoOpen, setInfoOpen] = useState(false)
   const [infoNote, setInfoNote] = useState('')
 
-  if (role && role !== 'admin') {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center">
-          <ShieldOff className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
-          <p className="font-display text-lg font-semibold text-[#091c3c]">Access Denied</p>
-        </div>
-      </div>
-    )
-  }
 
   if (error) return <DashboardError error={error} onRetry={() => void refetch()} />
   if (isLoading || !app) {
@@ -185,7 +183,7 @@ export default function ApplicationDetailPage() {
         </div>
       )}
 
-      {role === 'admin' && (app.status === 'approved' || approvedId) && (app.associate_id ?? approvedId) && (
+      {can('associates.applications.review') && (app.status === 'approved' || approvedId) && (app.associate_id ?? approvedId) && (
         <ShareSignInCard
           fullName={app.full_name}
           associateId={(app.associate_id ?? approvedId)!}

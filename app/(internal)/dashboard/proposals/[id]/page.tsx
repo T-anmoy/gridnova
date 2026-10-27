@@ -3,7 +3,6 @@
 import { notAuthenticatedError } from '@/lib/api/http'
 import { useCallback, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { useUser } from '@clerk/nextjs'
 import { useAuth } from '@clerk/nextjs'
 import { toast } from 'sonner'
 import {
@@ -37,7 +36,11 @@ import {
   DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog'
 import { formatCurrency, formatDate, formatDatetime } from '@/lib/dashboard/utils'
-import type { CustomerEmailSkippedReason, PlaceholderContentDetail, ProposalStatus, Role } from '@/lib/dashboard/types'
+import type { CustomerEmailSkippedReason, PlaceholderContentDetail, ProposalStatus } from '@/lib/dashboard/types'
+import { usePermissions } from '@/lib/access/use-permissions'
+import { technicalOnly } from '@/lib/access/permissions'
+import { RequirePermission } from '@/components/dashboard/RequirePermission'
+import { SEES_LEADS } from '@/lib/dashboard/nav'
 
 function statusVariant(status: ProposalStatus) {
   const map: Record<ProposalStatus, string> = {
@@ -142,11 +145,18 @@ interface SendResult {
 }
 
 export default function ProposalDetailPage() {
+  return (
+    <RequirePermission rule={SEES_LEADS} what="Proposals">
+      <ProposalDetailPageContent />
+    </RequirePermission>
+  )
+}
+
+function ProposalDetailPageContent() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const { user } = useUser()
   const { getToken } = useAuth()
-  const role = user?.publicMetadata?.role as Role | undefined
+  const { can } = usePermissions()
 
   const proposalId = parseInt(id, 10)
   const { data: proposal, isLoading, error, refetch } = useProposal(proposalId)
@@ -181,17 +191,18 @@ export default function ProposalDetailPage() {
     { status: 'idle' } | { status: 'loading' } | { status: 'ready'; url: string } | { status: 'pending' } | { status: 'error'; message: string }
   >({ status: 'idle' })
 
-  const isSales = role === 'sales'
-  const isAdmin = role === 'admin'
-  const isManagement = role === 'management'
-  const isEngineer = role === 'engineer'
-  const canAct = isAdmin || isSales || isManagement
-  // request-revision is Admin / Sales in the backend (can_approve_standard) — never Management.
-  const canRequestRevision = isAdmin || isSales
-  // can_adjust_pricing (verified from backend source, Prompt 03b): admin and
-  // sales only — never management. Sales is further scoped by the Sales
-  // rule (own/unassigned), enforced server-side.
-  const canAdjustPricing = isAdmin || isSales
+  // The technical-only view (Engineer): no prices, actions or document.
+  const isEngineer = technicalOnly(can)
+  const canApprove = can('proposals.approve_standard')
+  const canSignOff = can('proposals.manager_signoff')
+  const canDraft = can('proposals.draft')
+  const canSend = can('proposals.send')
+  // request-revision is can_approve_standard in the backend — never Management.
+  const canRequestRevision = canApprove
+  // pricing.adjust: Admin, Sales and (BE-17) the Network Manager — never Management. Sales is
+  // further scoped by the Sales rule (own/unassigned), enforced server-side.
+  const canAdjustPricing = can('pricing.adjust')
+  const canAct = canApprove || canSignOff || canDraft || canSend || canAdjustPricing
 
   // 409 missing_required (BE-13) → the list, as links on the editor. True when handled.
   function handleMissingRequired(err: unknown): boolean {
@@ -454,7 +465,7 @@ export default function ProposalDetailPage() {
             )}
 
             {/* BE-13 documents: approve / sign off through the checklist, while still editable */}
-            {hasDocument && docView && editableStatus && !proposal.requires_manager_signoff && (isAdmin || isSales) && (
+            {hasDocument && docView && editableStatus && !proposal.requires_manager_signoff && canApprove && (
               <>
                 <ApproveChecklistDialog view={docView} managerSignoff={false} onConfirm={() => void handleApprove()} loading={approveMutation.isPending}>
                   <Button size="sm" disabled={approveBlocked} data-testid="approve-button">
@@ -464,7 +475,7 @@ export default function ProposalDetailPage() {
                 {approveBlocked && blockedHint}
               </>
             )}
-            {hasDocument && docView && editableStatus && proposal.requires_manager_signoff && (isAdmin || isManagement) && (
+            {hasDocument && docView && editableStatus && proposal.requires_manager_signoff && canSignOff && (
               <>
                 <ApproveChecklistDialog view={docView} managerSignoff onConfirm={() => void handleManagerSignOff()} loading={signOffMutation.isPending}>
                   <Button size="sm" variant="secondary" disabled={approveBlocked} data-testid="signoff-button">
@@ -476,7 +487,7 @@ export default function ProposalDetailPage() {
             )}
 
             {/* Draft: send for pricing check */}
-            {!hasDocument && proposal.status === 'draft' && (isAdmin || isSales) && (
+            {!hasDocument && proposal.status === 'draft' && canApprove && (
               <ConfirmDialog
                 title="Send for Pricing Check"
                 description="This will submit the proposal for pricing validation. Continue?"
@@ -488,7 +499,7 @@ export default function ProposalDetailPage() {
             )}
 
             {/* Pending approval — standard (no manager signoff required) */}
-            {!hasDocument && proposal.status === 'pending_approval' && !proposal.requires_manager_signoff && (isAdmin || isSales) && (
+            {!hasDocument && proposal.status === 'pending_approval' && !proposal.requires_manager_signoff && canApprove && (
               <ConfirmDialog
                 title="Approve Proposal"
                 description={`Approve proposal #${proposal.id} for ${formatCurrency(proposal.total_value)}?`}
@@ -502,7 +513,7 @@ export default function ProposalDetailPage() {
             )}
 
             {/* Pending approval — manager signoff required, Management/Admin only */}
-            {!hasDocument && proposal.status === 'pending_approval' && proposal.requires_manager_signoff && (isAdmin || isManagement) && (
+            {!hasDocument && proposal.status === 'pending_approval' && proposal.requires_manager_signoff && canSignOff && (
               <ConfirmDialog
                 title="Manager Sign-Off"
                 description={`Provide manager sign-off for proposal #${proposal.id} (${formatCurrency(proposal.total_value)})?`}
@@ -516,7 +527,7 @@ export default function ProposalDetailPage() {
             )}
 
             {/* Revision requested */}
-            {proposal.status === 'revision_requested' && (isAdmin || isSales) && (
+            {proposal.status === 'revision_requested' && canDraft && (
               <ConfirmDialog
                 title="Generate New Draft"
                 description="Create a new version of this proposal?"
@@ -530,7 +541,7 @@ export default function ProposalDetailPage() {
             )}
 
             {/* Approved: send to customer — disabled while placeholder content remains */}
-            {proposal.status === 'approved' && (isAdmin || isSales) && (
+            {proposal.status === 'approved' && canSend && (
               needsReverification ? (
                 <TooltipProvider>
                   <Tooltip>
@@ -604,7 +615,7 @@ export default function ProposalDetailPage() {
 
       {needsReverification && !proposal.accepted_at && (
         <div className="mb-4">
-          <ReverificationBanner proposalId={proposal.id} reason={proposal.reverification_reason} role={role} />
+          <ReverificationBanner proposalId={proposal.id} reason={proposal.reverification_reason} />
         </div>
       )}
 

@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ARCHIVE_PAGE_SIZE, activeArchiveFilterCount, archiveFilterApiError, archiveFiltersFromParams, archiveFiltersToParams, archiveFiltersToQuery, formatFieldValue, type ArchiveFilters } from '@/lib/archive/logic'
 import { useArchiveProjects, useArchiveStats } from '@/lib/archive/api-client'
 import type { ProjectCard } from '@/lib/archive/schemas'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 const COLUMNS: { key: string; label: string }[] = [
   { key: 'scheme_or_segment', label: 'Scheme' },
@@ -59,7 +59,7 @@ function ArchiveContent() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const { role } = useStaffRole()
+  const { can } = usePermissions()
   const filters = archiveFiltersFromParams(searchParams)
   const page = Math.max(1, Number.parseInt(searchParams.get('page') ?? '1', 10) || 1)
   const query = archiveFiltersToQuery(filters)
@@ -93,7 +93,7 @@ function ArchiveContent() {
           <h1 className="font-display text-xl font-semibold text-[#091c3c] md:text-2xl">Project archive</h1>
           <p className="mt-1 text-sm text-gray-600">Grid Nova’s completed projects from before this system. Fields you don’t see are not part of your role’s access.</p>
         </div>
-        {role === 'admin' && (
+        {can('archive.manage') && (
           <Button asChild variant="outline" className="min-h-[44px]">
             <Link href="/dashboard/archive/import"><FileUp className="h-4 w-4" aria-hidden="true" />Import</Link>
           </Button>

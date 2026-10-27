@@ -4,13 +4,13 @@ import { Sparkles } from 'lucide-react'
 import NoAccess from '@/components/dashboard/NoAccess'
 import { NovaChat } from '@/components/dashboard/nova/NovaChat'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { canUseNova } from '@/lib/nova/logic'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 export default function NovaRecordsPage() {
-  const { role, isLoaded } = useStaffRole()
+  const { can, isLoaded, primaryRole } = usePermissions()
   if (!isLoaded) return <div className="p-6 md:p-8"><Skeleton className="h-8 w-48" /></div>
-  if (!canUseNova(role)) return <NoAccess what="Nova Records" />
+  if (!canUseNova(can)) return <NoAccess what="Nova Records" />
   return (
     <div className="space-y-4">
       <div>
@@ -22,7 +22,7 @@ export default function NovaRecordsPage() {
           Ask about any project, lead, payment, warranty or service request. Answers come only from records your role can see, and each one shows where it came from. Nova only reads — it never changes anything.
         </p>
       </div>
-      <NovaChat variant="page" role={role} context={null} />
+      <NovaChat variant="page" role={primaryRole} context={null} />
     </div>
   )
 }

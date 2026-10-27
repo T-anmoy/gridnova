@@ -14,11 +14,11 @@ import ConfirmDialog from '@/components/dashboard/ConfirmDialog'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { BATCH_STATUS_LABEL, BATCH_STATUS_VARIANT, commissionErrorMessage, formatPeriod } from '@/lib/commissions/labels'
 import { ApiError } from '@/lib/dashboard/api-error'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { formatDate } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
 import { useCommissionExport, useCreatePayoutBatch, usePayoutBatches } from '@/lib/commissions/staff-api-client'
 import DateField from '@/components/forms/DateField'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 const FY = /^\d{4}-\d{2}$/
 
@@ -158,8 +158,8 @@ function Exports() {
 }
 
 export default function PayoutBatches() {
-  const { role } = useStaffRole()
-  const canAct = role === 'admin' || role === 'accounts'
+  const { can } = usePermissions()
+  const canAct = can('commissions.process')
   const { data, isLoading, error, refetch } = usePayoutBatches()
 
   return (

@@ -22,7 +22,7 @@ import {
 import { dateGroup, dayInput } from './helpers/date-field'
 
 const h = vi.hoisted(() => ({
-  role: { role: 'accounts' as string | undefined, isLoaded: true },
+  role: { role: 'accounts' as string | undefined, isLoaded: true } as { role?: string; roles?: string[]; isLoaded: boolean },
   me: { data: { id: 'EMP-2' } as { id: string } | undefined },
   entries: {} as { data?: unknown; error?: unknown; isLoading?: boolean },
   entryParams: vi.fn(),
@@ -42,7 +42,11 @@ const h = vi.hoisted(() => ({
   download: vi.fn(),
   push: vi.fn(),
 }))
-vi.mock('@/lib/dashboard/use-staff-role', () => ({ useStaffRole: () => h.role }))
+vi.mock('@/lib/access/use-permissions', async () => {
+  const { permissionsValue } = await import('./helpers/permissions-bridge')
+  // The signed-in role (h.role) as the BE-17 permissions it holds.
+  return { usePermissions: () => { const r = h.role as { role?: string; roles?: string[]; isLoaded?: boolean }; return permissionsValue((r.roles ?? (r.role ? [r.role] : [])) as never[], { isLoaded: r.isLoaded ?? true }) } }
+})
 vi.mock('@/lib/dashboard/api-client', () => ({ useEmployeeMe: () => h.me }))
 vi.mock('@/lib/commissions/staff-api-client', () => ({
   useStaffCommissions: (p: unknown) => (h.entryParams(p), { refetch: vi.fn(), isFetching: false, ...h.entries }),
@@ -440,6 +444,12 @@ describe('Payout batch detail (E9)', () => {
       h.role = { role: 'admin', isLoaded: true }
       render(<PayoutBatchDetail batchId={3} />)
       expect(screen.queryByRole('button', { name: /Bank file/ })).toBeNull()
+    })
+
+    it('an Admin who also holds Accounts is offered the bank file (BE-17: the permission, not the role)', () => {
+      h.role = { roles: ['admin', 'accounts'], isLoaded: true }
+      render(<PayoutBatchDetail batchId={3} />)
+      expect(screen.getByRole('button', { name: /Bank file/ })).toBeInTheDocument()
     })
   })
 })

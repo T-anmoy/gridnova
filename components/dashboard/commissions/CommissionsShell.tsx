@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Skeleton } from '@/components/ui/skeleton'
 import NoAccess from '@/components/dashboard/NoAccess'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 const TABS = [
   { href: '/dashboard/commissions', label: 'Commissions' },
@@ -13,21 +13,20 @@ const TABS = [
   { href: '/dashboard/commissions/queries', label: 'Queries' },
 ]
 
-/** Who may open the commission screens at all. Management reads; Accounts and Admin act. */
-export const COMMISSION_READ_ROLES = ['admin', 'management', 'accounts'] as const
-
+/** commissions.view opens the screens (Management reads); commissions.process and commissions.rates.manage act. */
 export default function CommissionsShell({ children }: { children: React.ReactNode }) {
-  const { role, isLoaded } = useStaffRole()
+  const { can, isLoaded } = usePermissions()
   const pathname = usePathname()
   if (!isLoaded) return <div className="p-6 md:p-8"><Skeleton className="h-8 w-48" /></div>
-  if (!role || !COMMISSION_READ_ROLES.includes(role as (typeof COMMISSION_READ_ROLES)[number])) return <NoAccess what="Commissions and payouts" />
+  if (!can('commissions.view')) return <NoAccess what="Commissions and payouts" />
+  const readOnly = !can('commissions.process') && !can('commissions.rates.manage')
 
   const current = [...TABS].reverse().find((t) => pathname === t.href || pathname.startsWith(`${t.href}/`))?.href ?? TABS[0].href
   return (
     <div className="space-y-5 p-6 md:p-8">
       <div>
         <h1 className="text-2xl font-bold text-[#091c3c]">Commissions &amp; payouts</h1>
-        {role === 'management' && <p className="mt-1 text-sm text-gray-500">Read-only view.</p>}
+        {readOnly && <p className="mt-1 text-sm text-gray-500">Read-only view.</p>}
       </div>
       <nav aria-label="Commission sections" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
         {TABS.map((t) => (

@@ -40,11 +40,15 @@ export const VIEWPORTS: Viewport[] = [
   vp(360, 800, "360x800-font125", { rootFontPct: 125 }),
 ];
 
-export type Principal = "staff:admin" | `associate:${string}` | null;
+// `staff:uninvited` is a signed-in person the backend does not know: GET /employees/me
+// answers 403 not_invited (faked here, the backend's dev headers create no such person).
+export type Principal = "staff:admin" | "staff:network_manager" | "staff:uninvited" | `associate:${string}` | null;
 
 export interface PageCase {
   path: string;
   principal: Principal;
+  /** Names the case (test title, screenshot folder) when the same path is checked as someone else too. */
+  label?: string;
 }
 
 const PUBLIC = [
@@ -64,6 +68,17 @@ const DASHBOARD = [
   "/employees", "/equipment", "/leads", "/leads/1", "/meetings", "/network", "/nova", "/onboardings",
   "/operations", "/price-list", "/proposals", "/service-requests", "/site-assessments",
   "/survey-corrections", "/survey-reviews",
+  // FE-17
+  "/approvals", "/access", "/access/alerts", "/two-step",
+];
+
+// FE-17: the invitation sign-up pages, reached signed out from the email link (an expired
+// ticket shows the page's own message), and the menus of the two-step and Network Manager roles.
+const FE17: PageCase[] = [
+  { path: "/dashboard/sign-up?__clerk_ticket=tok-expired", principal: null },
+  ...["", "/hi", "/bn"].map((l) => ({ path: `${l}/associates/sign-up?__clerk_ticket=tok-expired`, principal: null })),
+  { path: "/dashboard/employees", principal: "staff:network_manager", label: "/dashboard/employees as network manager" },
+  { path: "/dashboard", principal: "staff:uninvited", label: "/dashboard not invited" },
 ];
 
 /** Associate ids in the seeded backend (tests/visual/README.md); override when yours differ. */
@@ -79,8 +94,10 @@ export const PAGES: PageCase[] = [
   { path: "/proposal/accept/tok-ready", principal: null },
   { path: "/proposal/accept/tok-expired", principal: null },
   ...DASHBOARD.map((p) => ({ path: `/dashboard${p}`, principal: "staff:admin" as const })),
+  ...FE17,
 ];
 
+export const caseName = (c: PageCase) => c.label ?? c.path;
 export const slug = (path: string) => path.replace(/^\//, "").replace(/[^a-z0-9]+/gi, "_") || "root";
 
 /**
@@ -93,6 +110,15 @@ export async function prepare(page: Page, principal: Principal): Promise<void> {
   }
   await page.route(`${VISUAL_API}/**`, async (route) => {
     const req = route.request();
+    if (principal === "staff:uninvited") {
+      await route.fulfill({
+        status: 403,
+        contentType: "application/json",
+        headers: { "access-control-allow-origin": VISUAL_ORIGIN, "access-control-allow-headers": "*" },
+        body: JSON.stringify({ detail: { code: "not_invited", message: "You have not been invited to the Grid Nova dashboard." } }),
+      });
+      return;
+    }
     const headers = { ...req.headers() };
     delete headers.authorization;
     if (principal?.startsWith("staff:")) {

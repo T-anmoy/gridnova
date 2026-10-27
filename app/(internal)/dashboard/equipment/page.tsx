@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useUser } from '@clerk/nextjs'
 import { toast } from 'sonner'
 import { Filter, Package, Plus } from 'lucide-react'
 import { useEquipment, useCreateEquipment, useSetEquipmentActive } from '@/lib/dashboard/api-client'
@@ -19,7 +18,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { formatDate } from '@/lib/dashboard/utils'
-import type { Equipment, EquipmentCategory, Role } from '@/lib/dashboard/types'
+import type { Equipment, EquipmentCategory } from '@/lib/dashboard/types'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 const CATEGORIES: EquipmentCategory[] = ['module', 'inverter', 'structure', 'bos_component']
 
@@ -210,9 +210,11 @@ function EmptyEquipmentState({ isAdmin, onAdd }: { isAdmin: boolean; onAdd: () =
 }
 
 export default function EquipmentPage() {
-  const { user } = useUser()
-  const role = user?.publicMetadata?.role as Role | undefined
-  const isAdmin = role === 'admin'
+  const { can } = usePermissions()
+  // Adding and editing is equipment.manage; the internal procurement price is equipment.procurement_price.view.
+  const isAdmin = can('equipment.manage')
+  const seesPrice = can('equipment.procurement_price.view')
+  const extraCols = (isAdmin ? 1 : 0) + (seesPrice ? 1 : 0)
 
   const [categoryFilter, setCategoryFilter] = useState<EquipmentCategory | ''>('')
   const [statusFilter, setStatusFilter] = useState<'active' | 'inactive' | ''>('')
@@ -306,7 +308,7 @@ export default function EquipmentPage() {
                 <TableHead>Category</TableHead>
                 <TableHead>Specification</TableHead>
                 <TableHead>DCR</TableHead>
-                {isAdmin && (
+                {seesPrice && (
                   <TableHead>
                     Procurement Price
                     <span className="ml-1 normal-case font-normal text-[#111827]/65">(internal)</span>
@@ -321,7 +323,7 @@ export default function EquipmentPage() {
               {isLoading
                 ? Array.from({ length: 4 }).map((_, i) => (
                     <TableRow key={i}>
-                      {Array.from({ length: isAdmin ? 9 : 7 }).map((_, j) => (
+                      {Array.from({ length: 7 + extraCols }).map((_, j) => (
                         <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
                       ))}
                     </TableRow>
@@ -329,7 +331,7 @@ export default function EquipmentPage() {
                 : items.length === 0
                 ? (
                     <TableRow>
-                      <TableCell colSpan={isAdmin ? 9 : 7} className="text-center py-12 font-utility text-[#111827]/65">
+                      <TableCell colSpan={7 + extraCols} className="text-center py-12 font-utility text-[#111827]/65">
                         No equipment matches these filters
                       </TableCell>
                     </TableRow>
@@ -356,7 +358,7 @@ export default function EquipmentPage() {
                           <span className="font-utility text-sm text-[#111827]/65">—</span>
                         )}
                       </TableCell>
-                      {isAdmin && (
+                      {seesPrice && (
                         <TableCell className="font-utility text-sm text-[#111827]/60">
                           {item.procurement_price_inr != null ? `₹${item.procurement_price_inr.toLocaleString('en-IN')}` : '—'}
                         </TableCell>

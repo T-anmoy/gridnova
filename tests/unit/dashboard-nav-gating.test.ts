@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { NAV_ITEMS, canSeeNavItem, queueBadgeCount, visibleNavItems } from '@/lib/dashboard/nav'
+import { canFor, permissionsFor } from './helpers/permissions-bridge'
 import { canRecordPayments, canSeePayments } from '@/lib/dashboard/payments-api-client'
 import type { Role } from '@/lib/dashboard/types'
 
-const labels = (role: Role | undefined) => visibleNavItems(role).map((i) => i.label)
+const labels = (role: Role | undefined) => visibleNavItems(permissionsFor(role ? [role] : [])).map((i) => i.label)
 
 describe('role gating of the new nav items', () => {
   it.each([
@@ -33,19 +34,23 @@ describe('role gating of the new nav items', () => {
   })
 
   it('canSeeNavItem honours an "all" item for any role', () => {
-    expect(canSeeNavItem(NAV_ITEMS.find((i) => i.label === 'Overview')!, undefined)).toBe(true)
+    expect(canSeeNavItem(NAV_ITEMS.find((i) => i.label === 'Overview')!, canFor('operations'))).toBe(true)
+    // …even before GET /employees/me has answered (nothing narrower shows on a guess).
+    expect(canSeeNavItem(NAV_ITEMS.find((i) => i.label === 'Overview')!, canFor())).toBe(true)
+    expect(canSeeNavItem(NAV_ITEMS.find((i) => i.label === 'Employees')!, canFor())).toBe(false)
   })
 })
 
 describe('payment role helpers', () => {
   it('Operations and engineers see and record nothing; sales record but are not Accounts; management reads', () => {
-    expect(canSeePayments('operations')).toBe(false)
-    expect(canSeePayments('engineer')).toBe(false)
-    expect(canSeePayments(undefined)).toBe(false)
-    expect(canRecordPayments('sales')).toBe(true)
-    expect(canRecordPayments('management')).toBe(false)
-    expect(canSeePayments('management')).toBe(true)
-    expect(canRecordPayments('accounts')).toBe(true)
+    expect(canSeePayments(canFor('operations'))).toBe(false)
+    expect(canSeePayments(canFor('engineer'))).toBe(false)
+    expect(canSeePayments(canFor())).toBe(false)
+    expect(canRecordPayments(canFor('sales'))).toBe(true)
+    expect(canRecordPayments(canFor('management'))).toBe(false)
+    expect(canSeePayments(canFor('management'))).toBe(true)
+    expect(canRecordPayments(canFor('accounts'))).toBe(true)
+    expect(canSeePayments(canFor('network_manager'))).toBe(false)
   })
 })
 

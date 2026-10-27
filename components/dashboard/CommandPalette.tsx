@@ -23,10 +23,10 @@ import {
 } from 'lucide-react'
 import { useLeadSearch, useProposalSearch } from '@/lib/dashboard/api-client'
 import { useDebouncedValue } from '@/lib/dashboard/use-debounced-value'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { canSeeLeads } from '@/lib/dashboard/staff-leads-logic'
 import { useNovaShell } from '@/lib/nova/page-context'
 import { NOVA_QUESTION_MAX, canUseNova } from '@/lib/nova/logic'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false)
@@ -35,10 +35,10 @@ export function CommandPalette() {
   const [proposalIdSearch, setProposalIdSearch] = useState('')
   const router = useRouter()
   // Operations and Accounts see no leads, so the palette offers them none.
-  const { role } = useStaffRole()
-  const leadsAllowed = !role || canSeeLeads(role)
+  const { can } = usePermissions()
+  const leadsAllowed = canSeeLeads(can)
   const { openPanel } = useNovaShell()
-  const novaAllowed = canUseNova(role)
+  const novaAllowed = canUseNova(can)
 
   const debouncedQuery = useDebouncedValue(query, 300)
 

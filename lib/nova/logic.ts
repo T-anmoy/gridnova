@@ -5,6 +5,7 @@ import { ApiError, ApiShapeError } from '@/lib/dashboard/api-error'
 import { formatInr } from '@/lib/money'
 import { formatDate } from '@/lib/dashboard/utils'
 import type { Role } from '@/lib/dashboard/types'
+import type { PermissionRule } from '@/lib/access/permissions'
 import type { Citation, NovaContext, NovaTable, TableColumnType } from '@/lib/nova/schemas'
 
 export const NOVA_QUESTION_MAX = 1000
@@ -129,14 +130,16 @@ export function describeContext(ctx: NovaContext | null | undefined): string | n
 
 // ── Roles and starter questions ──────────────────────────────────────────────
 
-export const NOVA_ROLES: readonly Role[] = ['admin', 'management', 'accounts', 'operations', 'engineer', 'sales']
-
-/** All six staff roles may ask; an unknown role (not signed in yet) gets no entry point. */
-export function canUseNova(role: Role | undefined): boolean {
-  return !!role && NOVA_ROLES.includes(role)
+/**
+ * Every staff member may ask (the backend scopes each answer); before GET /employees/me
+ * has answered — or for someone who is not staff — there is no entry point.
+ */
+export function canUseNova(can: (rule: PermissionRule) => boolean): boolean {
+  return can('any_staff')
 }
 
-// Questions only — never facts. Each is one the role can actually be answered
+// Questions only — never facts. Keyed by the primary role: wording, not access (the
+// backend answers within the person's permissions). Each is one the role can actually be answered
 // (no money for Operations / Engineer / Sales, no leads for Operations / Accounts).
 const STARTERS: Record<Role, string[]> = {
   admin: [
@@ -167,6 +170,11 @@ const STARTERS: Record<Role, string[]> = {
     'Show 5 kW and larger projects commissioned in 2025 and the inverters used',
     'Which module makes have we installed most?',
     'Show open service requests',
+    'Which warranties end in the next 90 days?',
+  ],
+  network_manager: [
+    'How many projects did we commission in each district?',
+    'Show residential projects commissioned in 2025, by district',
     'Which warranties end in the next 90 days?',
   ],
   sales: [

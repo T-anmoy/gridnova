@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { Suspense } from 'react'
 import { navState } from './helpers/mock-navigation'
 import { useUrlParams } from '@/lib/dashboard/use-url-params'
+import { asRoles } from './helpers/permissions-bridge'
 
 vi.mock('next/navigation', async () => (await import('./helpers/mock-navigation')).navigationMock)
 
@@ -44,7 +45,7 @@ describe('list pages keep their filters in the URL', () => {
     const { default: Page } = await import('@/app/(internal)/dashboard/onboardings/page')
     render(
       <Suspense fallback={null}>
-        <Page />
+        {asRoles(['admin'], <Page />)}
       </Suspense>,
     )
     return userEvent.setup()

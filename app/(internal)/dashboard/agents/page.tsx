@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useUser } from '@clerk/nextjs'
 import { toast } from 'sonner'
-import { ShieldOff, Bot } from 'lucide-react'
+import { Bot } from 'lucide-react'
 import { useGovernanceAgents, useToggleAgent, useAgentAudit } from '@/lib/dashboard/api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { DashboardError } from '@/components/dashboard/DashboardError'
@@ -15,7 +14,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { formatTimeAgo } from '@/lib/dashboard/utils'
-import type { AgentId, GovernedAgent, Role } from '@/lib/dashboard/types'
+import type { AgentId, GovernedAgent } from '@/lib/dashboard/types'
+import { RequirePermission } from '@/components/dashboard/RequirePermission'
 
 // ApiError.message is a generic "API error 4xx" string — the backend's real
 // detail lives in `.detail` and should be shown instead.
@@ -114,26 +114,18 @@ function AgentCard({
 }
 
 export default function AgentsPage() {
-  const { user } = useUser()
-  const role = user?.publicMetadata?.role as Role | undefined
+  return (
+    <RequirePermission rule="governance.manage" what="Agent control">
+      <AgentControl />
+    </RequirePermission>
+  )
+}
 
+function AgentControl() {
   const [pendingDisable, setPendingDisable] = useState<GovernedAgent | null>(null)
 
   const { data, isLoading, error, refetch } = useGovernanceAgents()
   const toggleAgent = useToggleAgent()
-
-  // Admin-only, same conditional-render pattern used on the Employees page.
-  if (role && role !== 'admin') {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center">
-          <ShieldOff className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
-          <p className="font-display text-lg font-semibold text-[#091c3c]">Access Denied</p>
-          <p className="font-utility text-sm text-[#111827]/65 mt-1">Only administrators can manage AI agents.</p>
-        </div>
-      </div>
-    )
-  }
 
   function handleToggle(agent: GovernedAgent, enabled: boolean) {
     if (!enabled) {

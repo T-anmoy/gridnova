@@ -12,25 +12,26 @@ import { ATTENTION_LABEL, STATUS_LABEL, STATUS_VARIANT } from '@/lib/dashboard/p
 import { STAFF_PAYMENT_COPY } from '@/lib/dashboard/staff-copy'
 import { formatDate } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
-import type { Role } from '@/lib/dashboard/types'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 /**
  * Payments on the customer page: totals, instalments (as the server returns
  * them), payments with status / attention chips, the schedule editor and the
- * record form. Rendered only for roles that may see payments — Operations and
+ * record form. Rendered only for people who may see payments — Operations and
  * engineers never reach this component, so no payment request is ever made for them.
  */
-function PaymentsBody({ onboardingId, role }: { onboardingId: number; role: Role }) {
+function PaymentsBody({ onboardingId }: { onboardingId: number }) {
+  const { can } = usePermissions()
   const { data, isLoading, error, refetch } = useStaffOnboardingPayments(onboardingId)
-  const canEditSchedule = role === 'admin' || role === 'accounts'
+  const canEditSchedule = can('payments.process')
 
   if (isLoading) return <Card><CardContent className="space-y-3 p-6"><Skeleton className="h-6 w-1/3" /><Skeleton className="h-24 w-full" /></CardContent></Card>
   if (error) return <DashboardError error={error} onRetry={() => void refetch()} />
   if (!data) return null
 
   const locked = data.payments.some((p) => p.status !== 'cancelled')
-  // The accounts payment page is for admin / accounts / management; sales see rows without that link.
-  const linkToPayment = role === 'admin' || role === 'accounts' || role === 'management'
+  // The accounts payment page is for people who see every customer's payments; sales see rows without that link.
+  const linkToPayment = can('payments.view_all')
 
   return (
     <div className="space-y-4" data-testid="staff-payments-section">
@@ -80,7 +81,7 @@ function PaymentsBody({ onboardingId, role }: { onboardingId: number; role: Role
         </CardContent>
       </Card>
 
-      {canRecordPayments(role) && (
+      {canRecordPayments(can) && (
         <Card>
           <CardContent className="p-6">
             <StaffRecordPayment onboardingId={onboardingId} modes={data.enabled_modes} milestones={data.milestones} defaultPayerName={data.project.customer_name} />
@@ -91,7 +92,8 @@ function PaymentsBody({ onboardingId, role }: { onboardingId: number; role: Role
   )
 }
 
-export default function StaffPaymentsSection({ onboardingId, role }: { onboardingId: number; role: Role | undefined }) {
-  if (!role || !canSeePayments(role)) return null
-  return <PaymentsBody onboardingId={onboardingId} role={role} />
+export default function StaffPaymentsSection({ onboardingId }: { onboardingId: number }) {
+  const { can } = usePermissions()
+  if (!canSeePayments(can)) return null
+  return <PaymentsBody onboardingId={onboardingId} />
 }

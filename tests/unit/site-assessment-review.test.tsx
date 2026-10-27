@@ -68,7 +68,7 @@ describe('SiteAssessmentsPage — role visibility', () => {
     mockUseUser.mockReturnValue({ user: { publicMetadata: { role: 'engineer' } } })
     mockUseProposalInputs.mockReturnValue({ data: { items: [SUMMARY], total: 1 }, isLoading: false, error: null, refetch: vi.fn() })
     render(<SiteAssessmentsPage />)
-    expect(screen.getByText('Access Denied')).toBeInTheDocument()
+    expect(screen.getByTestId('no-access')).toBeInTheDocument()
     expect(screen.queryByText('#7')).not.toBeInTheDocument()
   })
 

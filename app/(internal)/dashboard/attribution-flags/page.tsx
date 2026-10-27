@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { formatDatetime } from '@/lib/dashboard/utils'
 import type { AttributionFlag, AttributionFlagOnboardingRef, AttributionFlagStatus } from '@/lib/dashboard/onboarding-types'
+import { RequirePermission } from '@/components/dashboard/RequirePermission'
 
 function OnboardingSummary({ onboarding: onb, isLoser }: { onboarding: AttributionFlagOnboardingRef; isLoser: boolean }) {
   return (
@@ -84,6 +85,14 @@ function FlagCard({ flag }: { flag: AttributionFlag }) {
 }
 
 export default function AttributionFlagsPage() {
+  return (
+    <RequirePermission rule="associates.attribution.resolve" what="Attribution flags">
+      <AttributionFlags />
+    </RequirePermission>
+  )
+}
+
+function AttributionFlags() {
   const [status, setStatus] = useState<AttributionFlagStatus>('open')
   const { data: flags, isLoading, error, refetch } = useAttributionFlags({ status })
 

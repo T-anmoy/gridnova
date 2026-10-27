@@ -22,6 +22,7 @@ import type {
   ProposalDetail,
   ProposalSummary,
 } from '@/lib/dashboard/types'
+import { asRoles } from './helpers/permissions-bridge'
 
 // Systematic sweep of every remaining dashboard page component — the same
 // technique that actually caught a real hydration bug on /dashboard/agents
@@ -94,6 +95,10 @@ vi.mock('@/lib/proposals/document-api-client', () => ({
   useEditDocumentSection: () => ({ mutateAsync: () => Promise.resolve(), isPending: false }),
   fetchPreviewPdf: () => Promise.reject(new Error('not used')),
 }))
+vi.mock('@/lib/access/api', async () => {
+  const { ACCESS_MATRIX } = await import('./fixtures/access-matrix')
+  return { useAccessMatrix: () => ({ data: ACCESS_MATRIX }) }
+})
 vi.mock('@/lib/dashboard/api-client', () => ({
   useEmployeeMe: () => ({ data: { id: 'EMP-OPS-1' } }),
   useEmployees: () => ({ data: [] }),
@@ -403,7 +408,7 @@ describe('Analytics — DOM validity', () => {
     mockUseAnalytics.mockReturnValue({ data: undefined, isLoading: false, error: null, refetch: vi.fn() })
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
         render(<AnalyticsPage />)
-    expect(screen.getByText('Access Restricted')).toBeInTheDocument()
+    expect(screen.getByTestId('no-access')).toBeInTheDocument()
     expectNoNestingWarnings(spy)
     spy.mockRestore()
   })
@@ -482,7 +487,7 @@ describe('Execution detail — DOM validity (StageRow badges)', () => {
   ])('%s', (_name, stage, badgeText) => {
     sweep.exec = { data: executionDetail([stage]) }
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    render(withI18n(<ExecutionDetailPanel onboardingId={5} role="admin" />))
+    render(withI18n(asRoles(['admin'], <ExecutionDetailPanel onboardingId={5} />)))
     expect(screen.getByTestId('stage-inspection_net_meter')).toBeInTheDocument()
     // React logs a nesting warning once per process, so also assert the structure itself: no <p> around the badge.
     if (badgeText) for (const badge of screen.getAllByText(badgeText)) expect(badge.closest('p')).toBeNull()

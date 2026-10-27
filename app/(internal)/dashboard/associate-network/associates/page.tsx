@@ -3,8 +3,6 @@
 import { Suspense } from 'react'
 import { useUrlParams } from '@/lib/dashboard/use-url-params'
 import Link from 'next/link'
-import { useUser } from '@clerk/nextjs'
-import { ShieldOff } from 'lucide-react'
 import { useAdminAssociates } from '@/lib/associate/api-client'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { Card } from '@/components/ui/card'
@@ -14,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ClickableRow } from '@/components/dashboard/ClickableRow'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { AssociateStatus } from '@/lib/associate/types'
-import type { Role } from '@/lib/dashboard/types'
+import { RequirePermission } from '@/components/dashboard/RequirePermission'
 
 const STATUSES: AssociateStatus[] = ['active', 'suspended', 'deactivated']
 
@@ -27,30 +25,20 @@ export default function AssociatesListPage() {
   // useSearchParams needs a Suspense boundary.
   return (
     <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-      <AssociatesList />
+      <RequirePermission rule="associates.applications.review" what="The associates list">
+        <AssociatesList />
+      </RequirePermission>
     </Suspense>
   )
 }
 
 function AssociatesList() {
-  const { user } = useUser()
-  const role = user?.publicMetadata?.role as Role | undefined
   // The status filter lives in the URL (?status=…).
   const url = useUrlParams()
   const statusFilter = url.get('status') as AssociateStatus | ''
 
   const { data, isLoading, error, refetch } = useAdminAssociates({ status: statusFilter || undefined, page_size: 50 })
 
-  if (role && role !== 'admin') {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center">
-          <ShieldOff className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
-          <p className="font-display text-lg font-semibold text-[#091c3c]">Access Denied</p>
-        </div>
-      </div>
-    )
-  }
 
   const items = data?.items ?? []
 

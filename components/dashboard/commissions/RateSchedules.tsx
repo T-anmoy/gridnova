@@ -13,11 +13,11 @@ import { commissionErrorMessage } from '@/lib/commissions/labels'
 import { effectiveFromProblem, formatRate, isValidRate, rateKeyLabel } from '@/lib/commissions/rates'
 import type { RateSchedule, RateSchedules as RateSchedulesData } from '@/lib/commissions/schemas'
 import { ApiError } from '@/lib/dashboard/api-error'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { formatDate, formatDatetime, istDateKey } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
 import { usePublishRateSchedule, useRateSchedules, useReRate } from '@/lib/commissions/staff-api-client'
 import DateField from '@/components/forms/DateField'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 function ScheduleCard({ schedule, rateKeys, inForce, today, isAdmin, onReRate }: { schedule: RateSchedule; rateKeys: string[]; inForce: boolean; today: string; isAdmin: boolean; onReRate: (s: RateSchedule) => void }) {
   const upcoming = schedule.effective_from > today
@@ -259,8 +259,9 @@ function PublishForm({ data, today }: { data: RateSchedulesData; today: string }
 }
 
 export default function RateSchedules() {
-  const { role } = useStaffRole()
-  const isAdmin = role === 'admin'
+  const { can } = usePermissions()
+  // Publishing and re-rating are commissions.rates.manage.
+  const isAdmin = can('commissions.rates.manage')
   const { data, isLoading, error, refetch } = useRateSchedules()
   const reRate = useReRate()
   const [target, setTarget] = useState<RateSchedule | null>(null)
@@ -286,7 +287,7 @@ export default function RateSchedules() {
           <ScheduleCard key={s.schedule_id} schedule={s} rateKeys={data.rate_keys} inForce={s.schedule_id === data.in_force_schedule_id} today={today} isAdmin={isAdmin} onReRate={setTarget} />
         ))}
       </div>
-      {isAdmin ? <PublishForm data={data} today={today} /> : <p className="text-sm text-gray-500">Only an Admin can publish a rate schedule.</p>}
+      {isAdmin ? <PublishForm data={data} today={today} /> : <p className="text-sm text-gray-500">Only someone who manages commission rates (an Admin) can publish a rate schedule.</p>}
       <ReasonDialog
         open={!!target}
         onOpenChange={(o) => !o && setTarget(null)}

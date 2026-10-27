@@ -1583,6 +1583,14 @@
       "title": "Associate sign-in",
       "subtitle": "Sign in to your Grid Nova Associate portal"
     },
+    "signUp": {
+      "title": "Join the Grid Nova Associate portal",
+      "subtitle": "Set up your sign-in to accept your invitation",
+      "checking": "Checking your invitation…",
+      "expiredTitle": "This invitation has expired — ask Grid Nova to send a new one",
+      "expiredBody": "The link may have been used already, withdrawn, or be past its date. Contact your Grid Nova coordinator or call the helpline and ask for a fresh invitation.",
+      "signInInstead": "Already have an account? Sign in"
+    },
     "preferredSignIn": {
       "title": "Preferred Associate sign-in",
       "subtitle": "Sign in to your Grid Nova Preferred Associate portal"

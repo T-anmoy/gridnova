@@ -3,8 +3,6 @@
 import { Suspense } from 'react'
 import { useUrlParams } from '@/lib/dashboard/use-url-params'
 import Link from 'next/link'
-import { useUser } from '@clerk/nextjs'
-import { ShieldOff } from 'lucide-react'
 import { useAssociateApplications } from '@/lib/associate/api-client'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { Card } from '@/components/ui/card'
@@ -15,7 +13,7 @@ import { ClickableRow } from '@/components/dashboard/ClickableRow'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDate } from '@/lib/dashboard/utils'
 import type { ApplicationStatus, ApplicationType } from '@/lib/associate/types'
-import type { Role } from '@/lib/dashboard/types'
+import { RequirePermission } from '@/components/dashboard/RequirePermission'
 
 const STATUSES: ApplicationStatus[] = ['submitted', 'under_review', 'needs_info', 'rejected', 'approved']
 
@@ -38,14 +36,14 @@ export default function AssociateNetworkPage() {
   // useSearchParams needs a Suspense boundary.
   return (
     <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-      <AssociateNetwork />
+      <RequirePermission rule="associates.applications.review" what="The Associate Network">
+        <AssociateNetwork />
+      </RequirePermission>
     </Suspense>
   )
 }
 
 function AssociateNetwork() {
-  const { user } = useUser()
-  const role = user?.publicMetadata?.role as Role | undefined
 
   // Filters and page live in the URL (?type=…&status=…&page=2).
   const url = useUrlParams()
@@ -60,17 +58,6 @@ function AssociateNetwork() {
     page_size: 25,
   })
 
-  if (role && role !== 'admin') {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center">
-          <ShieldOff className="h-12 w-12 text-[#111827]/65 mx-auto mb-4" />
-          <p className="font-display text-lg font-semibold text-[#091c3c]">Access Denied</p>
-          <p className="font-utility text-sm text-[#111827]/65 mt-1">Only administrators can manage the Associate Network.</p>
-        </div>
-      </div>
-    )
-  }
 
   const items = data?.items ?? []
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.page_size)) : 1

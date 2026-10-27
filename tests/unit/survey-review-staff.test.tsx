@@ -22,6 +22,7 @@ vi.mock('@/lib/dashboard/survey-review-api-client', () => ({
 }))
 
 import SurveyPanel from '@/components/dashboard/SurveyPanel'
+import { asRoles } from './helpers/permissions-bridge'
 
 const ok = (data: unknown) => ({ data, isLoading: false, error: null, refetch: vi.fn() })
 const { estimate: _estimate, ...RESULTS_NO_ESTIMATE } = SURVEY_RESULTS
@@ -37,26 +38,26 @@ beforeEach(() => {
 describe('SurveyPanel — who sees what', () => {
   it('renders nothing for operations and accounts (the survey routes would 403)', () => {
     for (const role of ['operations', 'accounts'] as const) {
-      const { container, unmount } = render(<SurveyPanel onboardingId={12} role={role} />)
+      const { container, unmount } = render(asRoles([role], <SurveyPanel onboardingId={12} />))
       expect(container).toBeEmptyDOMElement()
       unmount()
     }
   })
 
   it.each(['sales', 'management'] as const)('%s reads the survey but gets no review form and cannot generate a report', (role) => {
-    render(<SurveyPanel onboardingId={12} role={role} />)
+    render(asRoles([role], <SurveyPanel onboardingId={12} />))
     expect(screen.getByTestId('survey-panel')).toBeInTheDocument()
     expect(screen.queryByTestId('review-form')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /generate report/i })).not.toBeInTheDocument()
   })
 
   it.each(['admin', 'engineer'] as const)('%s gets the review form', (role) => {
-    render(<SurveyPanel onboardingId={12} role={role} />)
+    render(asRoles([role], <SurveyPanel onboardingId={12} />))
     expect(screen.getByTestId('review-form')).toBeInTheDocument()
   })
 
   it("an engineer's results carry no estimate: no price block, never an empty one", () => {
-    render(<SurveyPanel onboardingId={12} role="engineer" />)
+    render(asRoles(['engineer'], <SurveyPanel onboardingId={12} />))
     expect(screen.getByTestId('staff-survey-results')).toBeInTheDocument()
     expect(screen.queryByTestId('staff-survey-estimate')).not.toBeInTheDocument()
     expect(screen.queryByText(/₹/)).not.toBeInTheDocument()
@@ -64,7 +65,7 @@ describe('SurveyPanel — who sees what', () => {
 
   it('shows signatures with times and the typed declaration name', () => {
     status.mockReturnValue(ok(STATUS_REVISIT))
-    render(<SurveyPanel onboardingId={12} role="admin" />)
+    render(asRoles(['admin'], <SurveyPanel onboardingId={12} />))
     expect(screen.getByTestId('panel-signature-customer')).toHaveTextContent(/Signed/)
     expect(screen.getByText(/Asha Roy/)).toBeInTheDocument()
     expect(screen.getByTestId('review-outcome')).toHaveTextContent('Revisit needed')
@@ -75,7 +76,7 @@ describe('SurveyPanel — who sees what', () => {
 describe('SurveyPanel — review form conditional requirements', () => {
   it('feasible_with_conditions needs at least one condition (aria-invalid, focused, nothing sent)', async () => {
     const user = userEvent.setup()
-    render(<SurveyPanel onboardingId={12} role="engineer" />)
+    render(asRoles(['engineer'], <SurveyPanel onboardingId={12} />))
     await user.click(screen.getByRole('radio', { name: 'Feasible with conditions' }))
     await user.click(screen.getByRole('button', { name: 'Record review' }))
     expect(await screen.findByText('Add at least one condition.')).toBeInTheDocument()
@@ -85,7 +86,7 @@ describe('SurveyPanel — review form conditional requirements', () => {
 
   it('not_feasible needs notes', async () => {
     const user = userEvent.setup()
-    render(<SurveyPanel onboardingId={12} role="engineer" />)
+    render(asRoles(['engineer'], <SurveyPanel onboardingId={12} />))
     await user.click(screen.getByRole('radio', { name: 'Not feasible' }))
     await user.click(screen.getByRole('button', { name: 'Record review' }))
     expect(await screen.findByText('Notes are required for this outcome.')).toBeInTheDocument()
@@ -95,7 +96,7 @@ describe('SurveyPanel — review form conditional requirements', () => {
 
   it('revisit_needed needs an item with a section (from the survey, not free text) and a note', async () => {
     const user = userEvent.setup()
-    render(<SurveyPanel onboardingId={12} role="engineer" />)
+    render(asRoles(['engineer'], <SurveyPanel onboardingId={12} />))
     await user.click(screen.getByRole('radio', { name: 'Revisit needed' }))
     await user.type(screen.getByLabelText(/Notes/), 'Check the roof')
     await user.click(screen.getByRole('button', { name: 'Record review' }))
@@ -108,7 +109,7 @@ describe('SurveyPanel — review form conditional requirements', () => {
 
   it('sends the right body after a confirm dialog', async () => {
     const user = userEvent.setup()
-    render(<SurveyPanel onboardingId={12} role="engineer" />)
+    render(asRoles(['engineer'], <SurveyPanel onboardingId={12} />))
     await user.click(screen.getByRole('radio', { name: 'Revisit needed' }))
     await user.type(screen.getByLabelText(/Notes/), 'Check the roof')
     await user.selectOptions(screen.getByLabelText('Section'), 'roof_area')
@@ -123,7 +124,7 @@ describe('SurveyPanel — review form conditional requirements', () => {
   it('shows the 409 precondition as a plain sentence', async () => {
     submit.mockRejectedValue(new ApiError(409, 'API error 409', 'survey_incomplete', { code: 'survey_incomplete', missing_survey_sections: ['bills'], survey_unsigned: ['associate'] }))
     const user = userEvent.setup()
-    render(<SurveyPanel onboardingId={12} role="admin" />)
+    render(asRoles(['admin'], <SurveyPanel onboardingId={12} />))
     await user.click(screen.getByRole('radio', { name: 'Feasible' }))
     await user.click(screen.getByRole('button', { name: 'Record review' }))
     await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Confirm' }))
@@ -137,7 +138,7 @@ describe('SurveyPanel — review form conditional requirements', () => {
 
 describe('SurveyPanel — report', () => {
   it('cannot generate before a review exists', () => {
-    render(<SurveyPanel onboardingId={12} role="engineer" />)
+    render(asRoles(['engineer'], <SurveyPanel onboardingId={12} />))
     expect(screen.getByRole('button', { name: 'Generate report' })).toBeDisabled()
     expect(screen.queryByRole('button', { name: /download/i })).not.toBeInTheDocument()
   })
@@ -147,7 +148,7 @@ describe('SurveyPanel — report', () => {
     reportLink.mockResolvedValue({ url: 'https://files.example/r.pdf', expires_at: 'x', filename: 'r.pdf', generated_at: 'x' })
     const open = vi.spyOn(window, 'open').mockReturnValue(null)
     const user = userEvent.setup()
-    render(<SurveyPanel onboardingId={12} role="sales" />)
+    render(asRoles(['sales'], <SurveyPanel onboardingId={12} />))
     expect(screen.queryByRole('button', { name: /generate|regenerate/i })).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Download report' }))
     await user.click(screen.getByRole('button', { name: 'Download report' }))
@@ -159,7 +160,7 @@ describe('SurveyPanel — report', () => {
     status.mockReturnValue(ok(STATUS_FEASIBLE))
     vi.spyOn(window, 'open').mockReturnValue(null)
     const user = userEvent.setup()
-    render(<SurveyPanel onboardingId={12} role="admin" />)
+    render(asRoles(['admin'], <SurveyPanel onboardingId={12} />))
     reportLink.mockRejectedValueOnce(new ApiError(503, 'x', 'x', { code: 'storage_not_configured' }))
     await user.click(screen.getByRole('button', { name: 'Download report' }))
     expect(await screen.findByTestId('report-error')).toHaveTextContent(/storage is not configured/i)
@@ -170,7 +171,7 @@ describe('SurveyPanel — report', () => {
 
   it('regenerate is offered once a report exists', () => {
     status.mockReturnValue(ok(STATUS_FEASIBLE))
-    render(<SurveyPanel onboardingId={12} role="engineer" />)
+    render(asRoles(['engineer'], <SurveyPanel onboardingId={12} />))
     expect(screen.getByRole('button', { name: 'Regenerate report' })).toBeEnabled()
   })
 })

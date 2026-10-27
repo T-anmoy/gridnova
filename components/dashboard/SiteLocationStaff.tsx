@@ -12,9 +12,9 @@ import { Label } from '@/components/ui/label'
 import { useCorrectSiteLocation } from '@/lib/dashboard/onboarding-api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { buildLocationInput, describeSiteLocationError } from '@/lib/associate/site-location'
-import type { Role } from '@/lib/dashboard/types'
 import type { SiteLocation, SiteLocationFlag } from '@/lib/associate/onboarding-types'
 import { STAFF_SITE_LOCATION_COPY } from '@/lib/dashboard/staff-copy'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 // The dashboard is English-only: these sentences are for Grid Nova staff.
 const SOURCE: Record<string, string> = {
@@ -35,8 +35,7 @@ const FLAG: Record<SiteLocationFlag, string> = {
   location_missing: 'No location on file',
 }
 
-// Staff roles the contract allows to correct a location (others get a 403).
-export const CAN_CORRECT_LOCATION: Role[] = ['admin', 'sales']
+// Correcting a location is part of the verification call (the backend gates it on onboardings.verify; others get a 403).
 
 /** Reasons the location should be checked with the customer, in plain words. */
 export function checkReasons(l: SiteLocation | undefined): string[] {
@@ -122,10 +121,11 @@ function CorrectLocationDialog({ onboardingId, open, onOpenChange }: { onboardin
 }
 
 /** The site-location card on the staff onboarding detail page. */
-export function SiteLocationCard({ onboardingId, location, role }: { onboardingId: number; location: SiteLocation | undefined; role: Role | undefined }) {
+export function SiteLocationCard({ onboardingId, location }: { onboardingId: number; location: SiteLocation | undefined }) {
   const [open, setOpen] = useState(false)
+  const { can } = usePermissions()
   if (!location) return null
-  const canCorrect = !!role && CAN_CORRECT_LOCATION.includes(role)
+  const canCorrect = can('onboardings.verify')
   const flags = (location.flags ?? []).filter((f) => f !== 'location_missing')
   return (
     <Card data-testid="staff-site-location">

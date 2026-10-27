@@ -36,7 +36,8 @@ function useWhenIdle(): boolean {
 // marketing nav, footer and the fixed Ask Nova launcher would cover their own
 // tab bar and pinned action. While the portal switch is closed those routes
 // show the "opening soon" page, which keeps the site chrome.
-const PORTAL_PREFIXES = ["/associates/portal", "/preferred/portal", "/associates/sign-in", "/preferred/sign-in"];
+// The associate invitation sign-up (FE-17) is the same kind of screen as its sign-in.
+const PORTAL_PREFIXES = ["/associates/portal", "/preferred/portal", "/associates/sign-in", "/associates/sign-up", "/preferred/sign-in"];
 
 /** `pathname` is already stripped of its locale prefix (useBarePathname). */
 export function isBareRoute(pathname: string, portalOpen: boolean = ASSOCIATE_PORTAL_OPEN): boolean {

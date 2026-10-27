@@ -40,6 +40,7 @@ import EstimateSection from '@/components/associate/EstimateSection'
 import { SurveyResultsPanel } from '@/components/associate/survey/SurveyStep'
 import SurveyPanel from '@/components/dashboard/SurveyPanel'
 import { STATUS_FEASIBLE } from './fixtures/survey-review-contract'
+import { asRoles } from './helpers/permissions-bridge'
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -152,7 +153,7 @@ describe('Survey results', () => {
     staffResults.mockReturnValue({ data: BE14_SURVEY, isLoading: false, error: null, refetch: vi.fn() })
     render(
       <I18nProvider locale="en" messages={STAFF_SHARED_MESSAGES}>
-        <SurveyPanel onboardingId={12} role="sales" />
+        {asRoles(['sales'], <SurveyPanel onboardingId={12} />)}
       </I18nProvider>
     )
     const block = screen.getByTestId('staff-survey-estimate')

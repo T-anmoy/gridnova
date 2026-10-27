@@ -17,7 +17,6 @@ import { BATCH_STATUS_LABEL, BATCH_STATUS_VARIANT, commissionErrorMessage, forma
 import { formatRate } from '@/lib/commissions/rates'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { useEmployeeMe } from '@/lib/dashboard/api-client'
-import { useStaffRole } from '@/lib/dashboard/use-staff-role'
 import { formatDate, formatDatetime } from '@/lib/dashboard/utils'
 import { formatInr, isNegativeAmount } from '@/lib/money'
 import {
@@ -27,6 +26,7 @@ import {
   useMarkPayoutPaid,
   usePayoutBatch,
 } from '@/lib/commissions/staff-api-client'
+import { usePermissions } from '@/lib/access/use-permissions'
 
 function MarkPaid({ batchId, lines, canAct }: { batchId: number; lines: ReturnType<typeof payableLines>; canAct: boolean }) {
   const mark = useMarkPayoutPaid()
@@ -111,8 +111,8 @@ function MarkPaid({ batchId, lines, canAct }: { batchId: number; lines: ReturnTy
 }
 
 export default function PayoutBatchDetail({ batchId }: { batchId: number }) {
-  const { role } = useStaffRole()
-  const canAct = role === 'admin' || role === 'accounts'
+  const { can } = usePermissions()
+  const canAct = can('commissions.process')
   const { data: batch, isLoading, error, refetch } = usePayoutBatch(batchId)
   const me = useEmployeeMe()
   const approve = useApprovePayoutBatch()
@@ -129,10 +129,10 @@ export default function PayoutBatchDetail({ batchId }: { batchId: number }) {
   if (error) return <div className="space-y-3">{back}<DashboardError error={error} onRetry={() => void refetch()} /></div>
   if (isLoading || !batch) return <div className="space-y-3">{back}<Skeleton className="h-40 w-full" /></div>
 
-  const mode = approvalMode({ status: batch.status, role, employeeId: me.data?.id, preparedBy: batch.prepared_by })
+  const mode = approvalMode({ status: batch.status, can, employeeId: me.data?.id, preparedBy: batch.prepared_by })
   const lines = batch.lines ?? []
   const payable = payableLines(lines)
-  const showBank = canDownloadBankFile(role, batch.status)
+  const showBank = canDownloadBankFile(can, batch.status)
 
   return (
     <div className="space-y-4">
