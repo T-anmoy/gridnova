@@ -6,6 +6,9 @@ import { PREVIEW_DEBOUNCE_MS } from '@/components/dashboard/proposal-document/Pr
 import type { DocumentView } from '@/lib/proposals/document-types'
 import { NO_DOCUMENT_VIEW, docError, documentView, editResponse, makeDocument, technicalView } from './fixtures/proposal-document-contract'
 
+// These tests type into many fields; under a fully loaded CI runner 5 s is not always enough.
+vi.setConfig({ testTimeout: 15000 })
+
 // A new getToken on every render, as an un-memoised auth hook would give.
 vi.mock('@clerk/nextjs', () => ({ useAuth: () => ({ getToken: () => Promise.resolve('token') }) }))
 

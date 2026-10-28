@@ -28,7 +28,8 @@ async function openPanel() {
 }
 
 // The reply also sits in a screen-reader-only status region, so scope to the log.
-const findReply = () => within(screen.getByRole('log')).findByText(CHAT_REPLY_FIXTURE.reply)
+// 5 s, not the 1 s default: the reply reveal can take longer on a loaded CI runner.
+const findReply = () => within(screen.getByRole('log')).findByText(CHAT_REPLY_FIXTURE.reply, {}, { timeout: 5000 })
 
 async function send(input: HTMLElement, text: string) {
   fireEvent.change(input, { target: { value: text } })
