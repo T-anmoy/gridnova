@@ -8,6 +8,7 @@ import {
   type TerritoryDepth,
   type TerritoryValue,
 } from '@/lib/associate/territory'
+import { placeName } from '@/lib/associate/place-names'
 import type { Messages } from '@/lib/i18n/types'
 
 export type TerritoryCopy = Messages['associates']['territory']
@@ -135,7 +136,7 @@ export default function TerritorySelect({
         <select id={id} className={base} value={current} aria-invalid={hasError || undefined} onChange={(e) => pick(e.target.value)}>
           <option value="">{copy.selectPlaceholder}</option>
           {(lookup.data ?? []).map((o) => (
-            <option key={o.lgd_code} value={o.lgd_code}>{o.name}</option>
+            <option key={o.lgd_code} value={o.lgd_code}>{placeName(o.name)}</option>
           ))}
         </select>
       )

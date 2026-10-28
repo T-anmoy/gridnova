@@ -110,3 +110,8 @@ export function getISTHour(date: Date = new Date()): number {
   // en-US hour12:false can render midnight as "24" instead of "0".
   return Number(hourStr) % 24
 }
+
+/** How many pages a server-paginated list has — `total` there is a row count, never money. */
+export function pageCount(total: number, pageSize: number): number {
+  return Math.max(1, Math.ceil(total / pageSize))
+}

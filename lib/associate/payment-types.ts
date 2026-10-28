@@ -16,6 +16,8 @@ export interface Receipt {
   pdf_available: boolean
   receipt_pending_email: boolean
   held: boolean
+  // Void once its payment is dishonoured.
+  voided?: boolean
   url: string | null
 }
 
@@ -34,6 +36,8 @@ export interface Milestone {
   // Staff list/queue items only. May be null — use project_id for routes and links.
   onboarding_id?: number | null
   project_id?: number | null
+  // BE-20: set on a direct customer's milestone (no associate, onboarding_id null).
+  lead_id?: number | null
   needs_attention?: boolean
 }
 
@@ -55,6 +59,8 @@ export interface Payment {
   // May be null (a payment not tied to an onboarding): never assume it in routes.
   onboarding_id: number | null
   project_id?: number | null
+  // BE-20: set on a direct customer's payment (then onboarding_id is null); null for an associate customer's.
+  lead_id?: number | null
   milestone_id: number | null
   amount: string
   mode: PaymentMode
@@ -90,7 +96,7 @@ export interface StaffPayment extends Payment {
   customer_name?: string | null
   project_reference_id?: string | null
   receipt:
-    | (Receipt & { email_skipped_reason?: string | null; held_reason?: string | null; render_error?: string | null })
+    | (Receipt & { email_skipped_reason?: string | null; held_reason?: string | null; render_error?: string | null; voided_at?: string | null; void_reason?: string | null })
     | null
 }
 

@@ -252,6 +252,23 @@ export interface ReassignCustomersInput {
   onboarding_ids?: number[]
 }
 
+// GET /dashboard/associates/{id}/customers (associate_journeys.md §10), oldest first.
+export interface AssociateCustomer {
+  onboarding_id: number
+  client_code: string | null
+  customer_name: string | null
+  status: string
+  project_stage: string | null
+  // "Not closed" — the same test the move uses.
+  open: boolean
+}
+
+export interface AssociateCustomers {
+  associate_id: string
+  open_customers: number
+  items: AssociateCustomer[]
+}
+
 export interface ReassignCustomersResult {
   from_associate_id: string
   to_associate_id: string

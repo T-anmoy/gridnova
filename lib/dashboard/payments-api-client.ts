@@ -21,6 +21,8 @@ export const canRecordPayments = (can: Can): boolean => can('payments.record')
 export interface PaymentProject {
   onboarding_id: number | null
   project_id?: number | null
+  // BE-20: a direct customer's project names its lead.
+  lead_id?: number | null
   customer_name: string
   customer_email: string | null
   project_reference_id: string | null
@@ -78,6 +80,8 @@ export function useUploadStaffPaymentProof(onboardingId?: number) {
     onSuccess: () => {
       if (onboardingId) void qc.invalidateQueries({ queryKey: ['staff-payments', onboardingId] })
       void qc.invalidateQueries({ queryKey: ['staff-payments-list'] })
+      // A direct customer's payment (BE-20) shows on its lead's Payments tab.
+      void qc.invalidateQueries({ queryKey: ['lead-payments'] })
     },
   })
 }

@@ -52,6 +52,7 @@ import {
   SITE_TYPES,
   SITE_LOCATION_WARNING_CODES,
   photoSlotsOf,
+  documentLabel,
   type CreateOnboardingInput,
   type Onboarding,
   type OnboardingOptions,
@@ -62,7 +63,35 @@ import {
 import type { SurveyStatus } from '@/lib/associate/survey-types'
 import { useLocale, useMessages, useOptionalMessages } from '@/lib/i18n/client'
 import { localizeHref } from '@/lib/i18n/config'
+import Link from 'next/link'
 import { fmt, type Messages } from '@/lib/i18n/types'
+
+/** A read-only look at what will be submitted (FE-20): nothing here can be edited — Back changes it. */
+function ReviewSummary({ copy, rows }: { copy: Messages['associates']['portal']['wizard']; rows: [string, string][] }) {
+  return (
+    <section aria-labelledby="review-summary-title" className="rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] p-4" data-testid="review-summary">
+      <p id="review-summary-title" className="font-display text-base font-semibold text-[#0e2a63]">{copy.review.summary.title}</p>
+      <p className="mt-0.5 text-xs text-[#111827]/65">{copy.review.summary.note}</p>
+      <dl className="mt-3 grid gap-x-4 gap-y-2 text-sm sm:grid-cols-[max-content_1fr]">
+        {rows.map(([label, value]) => (
+          <div key={label} className="contents">
+            <dt className="text-[#111827]/60">{label}</dt>
+            <dd className="font-medium text-[#111827] [overflow-wrap:anywhere]">{value || <span className="font-normal text-[#111827]/50">{copy.review.summary.notGiven}</span>}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  )
+}
+
+/** 409 `duplicate_onboarding` names the associate's existing record (`existing_onboarding_id`, `client_code`). */
+function duplicateOnboardingOf(err: unknown): { id: number; code: string | null } | null {
+  if (!(err instanceof ApiError) || err.status !== 409 || err.structuredDetail?.code !== 'duplicate_onboarding') return null
+  const id = err.structuredDetail.existing_onboarding_id
+  if (typeof id !== 'number') return null
+  const code = err.structuredDetail.client_code
+  return { id, code: typeof code === 'string' ? code : null }
+}
 
 type WizardCopy = Messages['associates']['portal']['wizard']
 type StepKey = keyof WizardCopy['steps']
@@ -297,6 +326,8 @@ function WizardInner({
   const [onboardingId, setOnboardingId] = useState<number | undefined>(existing?.onboarding_id ?? draft.onboarding_id)
   const [fieldErrors, setFieldErrors] = useState<StepErrors>({})
   const [stepError, setStepError] = useState<string | null>(null)
+  // 409 duplicate_onboarding (associate_journeys.md §11): this associate already has an open record for the customer.
+  const [duplicate, setDuplicate] = useState<{ id: number; code: string | null } | null>(null)
   const [busy, setBusy] = useState(false)
   const busyRef = useRef(false)
   const [resignNotice, setResignNotice] = useState(false)
@@ -530,12 +561,17 @@ function WizardInner({
     }
     busyRef.current = true
     setBusy(true)
+    setDuplicate(null)
     try {
       if (!onboardingId && stepKey === 'requirement') await createOnboarding()
       else await saveStep(stepKey)
       setStepIndex((i) => Math.min(i + 1, steps.length - 1))
     } catch (err) {
-      if (!applySaveError(err)) setStepError(errorText(err, copy.saveFailed))
+      const dup = duplicateOnboardingOf(err)
+      if (dup) {
+        setStepError(null)
+        setDuplicate(dup)
+      } else if (!applySaveError(err)) setStepError(errorText(err, copy.saveFailed))
     } finally {
       busyRef.current = false
       setBusy(false)
@@ -658,7 +694,7 @@ function WizardInner({
     ...uploadedSlots,
     ...serverPhotoCandidates(server?.photos ?? []).filter((p) => !handledSlots.has(p.slot)),
   ])
-  const photoSlots = photoSlotsOf(options.photo_slots, copy.photos.slotLabels, copy.photos.otherSlot)
+  const photoSlots = photoSlotsOf(options.photo_slot_items ?? options.photo_slots, copy.photos.slotLabels, copy.photos.otherSlot)
   const houseSlot = photoSlots.find((slot) => slot.key === HOUSE_PHOTO_SLOT)
   const houseStepIndex = steps.indexOf('house')
   const photosStepIndex = steps.indexOf('photos')
@@ -684,7 +720,7 @@ function WizardInner({
 
   // The submit-time `missing_documents` list is a list of document type keys —
   // look each one up against the options so review never shows a raw key.
-  const documentLabelByKey = new Map(options.documents.map((d) => [d.key, d.label]))
+  const docLabel = (code: string) => documentLabel(code, copy.documents.typeLabels, options.documents)
   // What the server already holds per document type (a resumed or edited draft).
   const serverDocs = new Map((server?.documents ?? []).filter((d) => d.document_type).map((d) => [d.document_type!, d.filename]))
 
@@ -771,11 +807,10 @@ function WizardInner({
       )}
 
       <div ref={stepBodyRef} className="mt-5 rounded-2xl border border-[#e4e8ee] bg-white p-4 sm:p-6 space-y-5">
-        {/* The house step's own card repeats this title, so there it is for screen readers only. */}
         <h2
           ref={headingRef}
           tabIndex={-1}
-          className={`font-display text-lg font-semibold text-[#0e2a63] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5daa] ${stepKey === 'house' ? 'sr-only' : ''}`}
+          className={`font-display text-lg font-semibold text-[#0e2a63] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5daa]`}
         >
           {copy.steps[stepKey]}
         </h2>
@@ -1010,7 +1045,7 @@ function WizardInner({
             {options.documents.map((doc) => (
               <FileUploadSlot
                 key={doc.key}
-                label={doc.label}
+                label={docLabel(doc.code ?? doc.key)}
                 // `required_when` is a rule code (always, scheme_linked…) with no wording in the contract:
                 // never shown to the associate (FE-19); the server's incomplete answer names what is missing.
                 why=""
@@ -1052,6 +1087,21 @@ function WizardInner({
 
         {stepKey === 'review' && (
           <div className="space-y-4">
+            <ReviewSummary
+              copy={copy}
+              rows={[
+                [copy.customer.nameLabel, draft.customer_name.trim()],
+                [copy.customer.mobileLabel, draft.customer_mobile.trim()],
+                [copy.review.summary.address, [draft.full_address.trim(), draft.pin_code.trim()].filter(Boolean).join(', ')],
+                [copy.connection.siteTypeLabel, draft.site_type ? copy.connection.siteTypes[draft.site_type as keyof typeof copy.connection.siteTypes] ?? draft.site_type : ''],
+                [copy.review.summary.systemSize, draft.desired_output_kw?.trim() ? fmt(copy.review.summary.systemSizeValue, { kw: draft.desired_output_kw.trim() }) : ''],
+                [
+                  copy.review.summary.documents,
+                  server?.checklist ? fmt(copy.review.summary.documentsCount, { uploaded: server.checklist.present.length, needed: server.checklist.required.length }) : '',
+                ],
+                [copy.review.summary.photos, fmt(copy.review.summary.photosCount, { count: (server?.photos ?? []).filter((ph) => ph.photo_slot).length })],
+              ]}
+            />
             {pendingPhotos.length > 0 && (
               <p role="status" className="rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-sm text-amber-900" data-testid="photos-pending">
                 {fmt(waitingPhotos > 0 ? copy.review.photosOffline : copy.review.photosPending, { count: pendingPhotos.length })}
@@ -1077,7 +1127,7 @@ function WizardInner({
                     <p className="mt-2 text-sm font-semibold text-red-800">{copy.review.missingDocumentsLabel}</p>
                     <ul className="mt-1 list-disc pl-5 text-sm text-red-700">
                       {submitError.missing.map((m) => (
-                        <li key={m}>{documentLabelByKey.get(m) ?? m}</li>
+                        <li key={m}>{docLabel(m)}</li>
                       ))}
                     </ul>
                   </>
@@ -1138,6 +1188,16 @@ function WizardInner({
                 copy.review.submitButton
               )}
             </button>
+          </div>
+        )}
+
+        {duplicate && (
+          <div role="alert" className="rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm text-amber-900" data-testid="duplicate-onboarding">
+            <p className="font-semibold">{copy.duplicate.title}</p>
+            <p className="mt-1">{copy.duplicate.body}</p>
+            <Link className="mt-2 inline-flex min-h-[44px] items-center font-semibold text-[#0e2a63] underline" href={localizeHref(`${portalBase}/customers/${duplicate.id}`, locale)}>
+              {duplicate.code ? fmt(copy.duplicate.open, { code: duplicate.code }) : copy.duplicate.openNoCode}
+            </Link>
           </div>
         )}
 

@@ -1,6 +1,7 @@
 import { ApiError } from '@/lib/dashboard/api-error'
 import { paymentErrorMessage } from '@/components/payments/payment-errors'
 import { STAFF_PAYMENT_COPY } from '@/lib/dashboard/staff-copy'
+import { formatInr } from '@/lib/money'
 
 export const STATUS_LABEL: Record<string, string> = {
   recorded: 'Recorded',
@@ -43,25 +44,42 @@ export function staffModeLabel(mode: string): string {
 // Held-receipt reasons that come from DUMMY/placeholder company details.
 export const isDummyReason = (reason: string | null | undefined): boolean => !!reason && /dummy|placeholder/i.test(reason)
 
+// The second-pair-of-eyes rule, said the same way wherever it applies.
+export const SELF_VERIFICATION_TEXT = 'You recorded this payment, so another Accounts person must verify it.'
+
 const STAFF_PAYMENT_ERRORS: Record<string, string> = {
   invalid_transition: 'This payment can’t be changed in its current state.',
   not_an_instrument: 'Only cheques are deposited — other methods go straight to verification.',
   proof_required:
     'This payment was recorded by an associate and has no proof of payment yet. Attach proof (or ask the associate to) before verifying.',
   reason_required: 'A reason is required.',
-  self_verification: 'You recorded this payment yourself, so you can’t verify it. Another person in Accounts has to.',
+  self_verification: SELF_VERIFICATION_TEXT,
   no_receipt: 'This payment has no receipt yet — receipts are issued when a payment is verified.',
   resend_too_soon: 'A receipt was sent a moment ago. Please wait a few minutes before sending it again.',
   schedule_locked: 'The schedule is locked because payments have already been recorded.',
   invalid_schedule: 'The schedule is not valid: it needs the same number of instalments, with percentages that total 100.',
-  no_accepted_total: 'The accepted proposal has no total yet, so there is nothing to schedule.',
+  no_accepted_total: 'The accepted proposal has no priced total yet, so there is nothing to schedule or record.',
   not_found: 'That could not be found.',
+  // BE-20 (direct customers, docs/api/direct_payments.md).
+  date_in_future: 'The cheque date can’t be later than today.',
+  not_accepted: 'Payments start when the customer accepts the proposal. This customer hasn’t accepted yet.',
+  associate_customer: 'This customer was brought by an associate, so their payments are on the customer record.',
+}
+
+/**
+ * `exceeds_outstanding` (direct customers) carries `outstanding`, `accepted_total` and
+ * `already_recorded` — decimal strings from the server, shown as returned.
+ */
+function exceedsOutstanding(d: Record<string, unknown>): string {
+  const str = (v: unknown) => (typeof v === 'string' ? v : null)
+  return `That is more than is still to be paid. Outstanding: ${formatInr(str(d.outstanding))} (accepted total ${formatInr(str(d.accepted_total))}, already recorded ${formatInr(str(d.already_recorded))}).`
 }
 
 /** Plain-English message for a staff payment action failure. */
 export function staffPaymentError(err: unknown): string {
   if (err instanceof ApiError) {
     const code = err.structuredDetail?.code
+    if (code === 'exceeds_outstanding') return exceedsOutstanding(err.structuredDetail ?? {})
     if (typeof code === 'string' && code in STAFF_PAYMENT_ERRORS) return STAFF_PAYMENT_ERRORS[code]
     if (err.status === 429) return STAFF_PAYMENT_ERRORS.resend_too_soon
     if (typeof code === 'string') return paymentErrorMessage(err, STAFF_PAYMENT_COPY)

@@ -4,7 +4,7 @@ import { useState, type ReactNode } from 'react'
 import { AlertCircle, Check, Clock, Loader2, ShieldAlert } from 'lucide-react'
 import FileUploadSlot from '@/components/associate/FileUploadSlot'
 import PhotoCaptureSlot from '@/components/associate/PhotoCaptureSlot'
-import { describeMissing, labelFor } from '@/lib/associate/execution-labels'
+import { describeMissing, labelFor, serverLabelsOf } from '@/lib/associate/execution-labels'
 import { usePhotoUploads } from '@/lib/associate/usePhotoUploads'
 import { clearAutosaveDraft, useAutosaveDraft } from '@/lib/associate/useAutosaveDraft'
 import { ApiError } from '@/lib/dashboard/api-error'
@@ -83,6 +83,8 @@ export default function ExecutionEvidenceForm({
 }) {
   const ev = stage.evidence_required
   const rejected = stage.submission?.status === 'rejected' ? stage.submission : null
+  const docLabels = serverLabelsOf(status.document_type_items)
+  const photoLabels = serverLabelsOf(status.photo_slot_items)
   const toMessage = mapError ?? ((err: unknown) => executionErrorMessage(err, copy))
   // Typed references and the note survive a refresh or a back-press (this device only).
   const draftKey = `gna-exec-${scope}-${stage.stage}`
@@ -238,7 +240,7 @@ export default function ExecutionEvidenceForm({
                     {req ? copy.required : copy.optional} · {onFile ? `${copy.onFile}: ${onFile.filename}` : copy.notYet}
                   </p>
                   <FileUploadSlot
-                    label={labelFor(copy.documents, k)}
+                    label={labelFor(copy.documents, k, docLabels)}
                     why={copy.documentWhy}
                     whyLabel={copy.whyLabel}
                     accept={ACCEPT_DOCS}
@@ -273,7 +275,7 @@ export default function ExecutionEvidenceForm({
                   </p>
                   <PhotoCaptureSlot
                     slotKey={k}
-                    label={labelFor(copy.photoSlots, k)}
+                    label={labelFor(copy.photoSlots, k, photoLabels)}
                     captureLabel={photosCopy.captureButton}
                     locationRequiredLabel={photosCopy.locationRequired}
                     retryLabel={photosCopy.retryButton}

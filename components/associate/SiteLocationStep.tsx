@@ -280,10 +280,8 @@ export default function SiteLocationStep({
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="font-display text-base font-semibold text-[#0e2a63]">{m.title}</h2>
-        <p className="mt-1 font-utility text-sm text-[#111827]/60">{m.intro}</p>
-      </div>
+      {/* The wizard's step heading ("At the house") titles this step; it is not repeated here. */}
+      <p className="font-utility text-sm text-[#111827]/60">{m.intro}</p>
 
       <PhotosFirstCard />
 

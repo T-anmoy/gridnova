@@ -85,6 +85,9 @@ export interface ExecutionStatus {
   // Entries may be plain keys or {key, label} objects — see slotKey().
   photo_slots: (string | { key: string; label?: string })[]
   document_types: (string | { key: string; label?: string })[]
+  // BE-20: the same, as {code, label} — translate by code, label is the English fallback.
+  photo_slot_items?: import('./execution-labels').CodeLabel[]
+  document_type_items?: import('./execution-labels').CodeLabel[]
   files: { photos: Record<string, ExecutionFile>; documents: Record<string, ExecutionFile> }
   flags: string[]
   // Associate view only.

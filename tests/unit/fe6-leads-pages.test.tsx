@@ -19,6 +19,8 @@ vi.mock('next/navigation', async () => ({
   useParams: () => ({ id: '19' }),
 }))
 const toastError = vi.fn()
+// FE-20: Accounts reach a lead's Payments alone (no lead permission); the tab's data is stubbed here.
+vi.mock('@/lib/dashboard/lead-payments-api-client', async (orig) => ({ ...(await orig<object>()), useLeadPayments: () => ({ isLoading: true, refetch: vi.fn() }) }))
 vi.mock('sonner', () => ({ toast: { error: (...a: unknown[]) => toastError(...a), success: vi.fn() } }))
 
 const mockUseLeads = vi.fn()
@@ -277,6 +279,7 @@ describe('Lead detail — role gating of the new actions', () => {
     expect(!!screen.queryByText(en.ask.title)).toBe(memory)
     if (memory) expect(mockUseCustomerMemory).toHaveBeenCalledWith(7, { kind: undefined, limit: 100 })
     else expect(mockUseCustomerMemory).not.toHaveBeenCalled()
+    expect(!!screen.queryByTestId('lead-payments-only')).toBe(role === 'accounts')
   })
 
   it('the existing customer, proposals, timeline and conversation still show for a full shape', () => {

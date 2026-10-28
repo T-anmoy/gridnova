@@ -15,11 +15,13 @@ const h = vi.hoisted(() => ({
   move: vi.fn(),
   setAppStatus: vi.fn(),
   candidates: { items: [] as unknown[], total: 0 },
+  customers: { associate_id: 'GNA-WB-26-00001', open_customers: 0, items: [] as unknown[] },
   params: { id: 'GNA-WB-26-00001', type: 'associate' } as Record<string, string>,
 }))
 vi.mock('@/lib/associate/api-client', async (orig) => ({
   ...(await orig<object>()),
   useAdminAssociate: () => ({ data: h.associate, isLoading: false, error: null, refetch: vi.fn() }),
+  useAssociateCustomers: () => ({ data: h.customers, isLoading: false, error: null, refetch: vi.fn() }),
   useAdminAssociates: () => ({ data: { ...h.candidates, page: 1, page_size: 100 }, isLoading: false, error: null, refetch: vi.fn() }),
   useSetAssociateStatus: () => ({ mutateAsync: h.setStatus, isPending: false }),
   useRetryClerkInvite: () => ({ mutate: (id: string, o: { onSuccess?: () => void; onError?: (e: unknown) => void }) => h.invite(id, o), isPending: false }),
@@ -151,6 +153,50 @@ describe('Move customers', () => {
       items: [associate(), associate({ associate_id: 'GNA-WB-26-00002', full_name: 'Rina Sen', status: 'active', territory: 'Howrah' }), associate({ associate_id: 'GNA-WB-26-00003', full_name: 'Amit Paul', associate_type: 'preferred_associate', capability: null, level: 'district_head' })],
       total: 3,
     }
+    h.customers = {
+      associate_id: 'GNA-WB-26-00001',
+      open_customers: 2,
+      items: [
+        { onboarding_id: 4, client_code: 'GNE-WB-RES-2026-00004', customer_name: 'Mita Roy', status: 'verified', project_stage: 'accepted', open: true },
+        { onboarding_id: 9, client_code: 'GNE-WB-RES-2026-00009', customer_name: 'Sujit Das', status: 'submitted', project_stage: null, open: true },
+      ],
+    }
+  })
+
+  it('lists the open customers (client code, name, status, stage), all ticked to start', () => {
+    render(<MoveCustomersPage />)
+    const list = screen.getByTestId('move-customer-list')
+    expect(within(list).getByText(/Mita Roy/)).toHaveTextContent('GNE-WB-RES-2026-00004')
+    expect(within(list).getByText('Verified · stage: Accepted')).toBeInTheDocument()
+    expect(within(list).getByText('Submitted')).toBeInTheDocument()
+    expect(within(list).getAllByRole('checkbox').every((c) => (c as HTMLInputElement).checked)).toBe(true)
+    expect(within(list).getByRole('checkbox', { name: /Select all/ })).toHaveAccessibleName(/2 of 2 ticked/)
+  })
+
+  it('moves only the ticked customers (onboarding_ids sent)', async () => {
+    h.move.mockResolvedValue({ from_associate_id: 'GNA-WB-26-00001', to_associate_id: 'GNA-WB-26-00002', onboarding_ids: [9], moved: 1 })
+    const user = userEvent.setup()
+    render(<MoveCustomersPage />)
+    await user.click(screen.getByRole('checkbox', { name: /Mita Roy/ }))
+    await user.click(screen.getByRole('radio', { name: /Rina Sen/ }))
+    await user.type(screen.getByLabelText('Reason (required)'), 'Bikash is suspended')
+    await user.click(screen.getByRole('button', { name: 'Move 1 customer to Rina Sen' }))
+    expect(h.move).toHaveBeenCalledWith({ associateId: 'GNA-WB-26-00001', input: { to_associate_id: 'GNA-WB-26-00002', reason: 'Bikash is suspended', onboarding_ids: [9] } })
+  })
+
+  it('"Select all" clears and restores every tick; none ticked cannot be sent', async () => {
+    const user = userEvent.setup()
+    render(<MoveCustomersPage />)
+    const all = screen.getByRole('checkbox', { name: /Select all/ })
+    await user.click(all)
+    expect(screen.getAllByRole('checkbox').some((c) => (c as HTMLInputElement).checked)).toBe(false)
+    await user.click(screen.getByRole('radio', { name: /Rina Sen/ }))
+    await user.type(screen.getByLabelText('Reason (required)'), 'x')
+    await user.click(screen.getByRole('button', { name: /Move 0 customers/ }))
+    expect(screen.getByTestId('move-error')).toHaveTextContent('Tick at least one customer')
+    expect(h.move).not.toHaveBeenCalled()
+    await user.click(all)
+    expect(screen.getAllByRole('checkbox').every((c) => (c as HTMLInputElement).checked)).toBe(true)
   })
 
   it('offers the active associates in the viewer’s regions, never the associate themselves', () => {

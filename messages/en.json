@@ -2159,7 +2159,15 @@
           "uploadFailed": "This document couldn't be uploaded. Please try again.",
           "retryButton": "Retry",
           "alreadyUploaded": "Already uploaded: {name}",
-          "acceptedTypes": "JPG, PNG or PDF"
+          "acceptedTypes": "JPG, PNG or PDF",
+          "typeLabels": {
+            "electricity_bill": "Latest electricity bill",
+            "id_proof": "Customer ID proof",
+            "ownership_proof": "Property ownership proof",
+            "subsidy_bank_details": "Bank details for subsidy credit",
+            "photo": "Customer / site photo",
+            "noc": "No-objection certificate (connection or property not in the customer's name)"
+          }
         },
         "photos": {
           "title": "Take site photos",
@@ -2187,7 +2195,19 @@
           "incompleteTitle": "A few things are still missing",
           "missingDocumentsLabel": "Missing documents",
           "photosPending": "{count} photo(s) are still uploading. Submit once they finish.",
-          "photosOffline": "{count} photo(s) are saved on this phone and will upload when you're back online. Submit once they finish."
+          "photosOffline": "{count} photo(s) are saved on this phone and will upload when you're back online. Submit once they finish.",
+          "summary": {
+            "title": "Check before you submit",
+            "note": "Use “Back” to change anything.",
+            "address": "Site address",
+            "systemSize": "System size",
+            "systemSizeValue": "{kw} kW",
+            "documents": "Documents",
+            "documentsCount": "{uploaded} uploaded ({needed} needed)",
+            "photos": "Site photos",
+            "photosCount": "{count} taken",
+            "notGiven": "Not given"
+          }
         },
         "editing": {
           "returnedToDraftNotice": "This customer was submitted before — saving your edit returns it to draft until you resubmit.",
@@ -2212,6 +2232,12 @@
           "email": "Enter a valid email address.",
           "pinCode": "Enter a 6-digit PIN code.",
           "fixErrors": "Please fix the highlighted fields."
+        },
+        "duplicate": {
+          "title": "You have already added this customer",
+          "body": "Your existing record has the same mobile or consumer number. Update that record instead of adding a new one.",
+          "open": "Open {code}",
+          "openNoCode": "Open the existing record"
         }
       },
       "estimate": {
@@ -2226,6 +2252,13 @@
             "easy": "Easy",
             "moderate": "Moderate",
             "difficult": "Difficult"
+          },
+          "segments": {
+            "auto": "Set from the site type",
+            "residential": "Residential",
+            "commercial": "Commercial",
+            "industrial": "Industrial",
+            "government": "Government"
           }
         },
         "errors": {
@@ -2312,7 +2345,8 @@
       "checklist": {
         "title": "Documents & photos",
         "requiredLabel": "Required",
-        "missingLabel": "Still missing"
+        "missingLabel": "Still missing",
+        "counts": "{uploaded} uploaded ({needed} needed)"
       },
       "execution": {
         "title": "Installation",
@@ -3523,7 +3557,7 @@
       "rowHeading": "Bill {n}",
       "addMonth": "Add a month",
       "removeMonth": "Remove bill {n}",
-      "recorded": "{count} of {min} months entered",
+      "recorded": "{count} months entered ({min} needed)",
       "fewerThanMin": "Add at least {min} months before submitting.",
       "averagesTitle": "Averages from the saved bills",
       "avgUnits": "Average units per month",
@@ -3649,7 +3683,7 @@
         "layout": "Equipment layout"
       },
       "missingFields": "Still needed: {fields}",
-      "monthsRecorded": "{recorded} of {required} months",
+      "monthsRecorded": "{recorded} months entered ({required} needed)",
       "goTo": "Go to {section}",
       "allComplete": "Every section is complete.",
       "notRequired": "The site survey isn't required for this customer.",

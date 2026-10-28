@@ -24,6 +24,8 @@ export interface PaymentListParams {
   mode?: string
   needs_attention?: boolean
   onboarding_id?: number
+  // BE-20: a direct customer's payments.
+  lead_id?: number
   date_from?: string
   date_to?: string
   // Customer name, payment reference, project reference or receipt number
@@ -85,7 +87,7 @@ function useAction<TInput, TOut>(run: (token: string, input: TInput) => Promise<
       return run(token, input)
     },
     onSuccess: () => {
-      for (const key of ['staff-payments-list', 'staff-payment', 'staff-payments', 'staff-milestones', 'staff-payment-schedule', 'work-queues'])
+      for (const key of ['staff-payments-list', 'staff-payment', 'staff-payments', 'lead-payments', 'staff-milestones', 'staff-payment-schedule', 'work-queues'])
         void qc.invalidateQueries({ queryKey: [key] })
     },
   })

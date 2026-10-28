@@ -35,6 +35,7 @@ export default function RecordPaymentForm({
   defaultPayerName,
   onRecord,
   onUploadProof,
+  describeError,
 }: {
   copy: PaymentCopy
   idPrefix: string
@@ -43,6 +44,8 @@ export default function RecordPaymentForm({
   defaultPayerName?: string
   onRecord: (input: RecordPaymentInput) => Promise<Payment>
   onUploadProof: (paymentId: number, file: File, onProgress: (percent: number) => void) => Promise<unknown>
+  // Staff screens map the dashboard's own codes (e.g. exceeds_outstanding); the portal uses its copy.
+  describeError?: (err: unknown) => string
 }) {
   const milestoneLabel = useMilestoneLabel()
   // A half-filled form survives a refresh or a back-press (this device only).
@@ -86,7 +89,7 @@ export default function RecordPaymentForm({
       clearAutosaveDraft(draftKey)
       setRecorded(payment)
     } catch (err) {
-      setFormError(paymentErrorMessage(err, copy))
+      setFormError(describeError ? describeError(err) : paymentErrorMessage(err, copy))
     } finally {
       setSaving(false)
     }

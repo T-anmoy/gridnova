@@ -2159,7 +2159,15 @@
           "uploadFailed": "এই ডকুমেন্টটি আপলোড করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
           "retryButton": "আবার চেষ্টা করুন",
           "alreadyUploaded": "আগেই আপলোড হয়েছে: {name}",
-          "acceptedTypes": "JPG, PNG বা PDF"
+          "acceptedTypes": "JPG, PNG বা PDF",
+          "typeLabels": {
+            "electricity_bill": "সর্বশেষ বিদ্যুৎ বিল",
+            "id_proof": "গ্রাহকের পরিচয়পত্র",
+            "ownership_proof": "সম্পত্তির মালিকানার প্রমাণ",
+            "subsidy_bank_details": "ভর্তুকি জমার জন্য ব্যাংকের বিবরণ",
+            "photo": "গ্রাহক / সাইটের ছবি",
+            "noc": "অনাপত্তি সনদ (সংযোগ বা সম্পত্তি গ্রাহকের নামে নয়)"
+          }
         },
         "photos": {
           "title": "সাইটের ছবি নিন",
@@ -2187,7 +2195,19 @@
           "incompleteTitle": "কিছু তথ্য এখনও অনুপস্থিত",
           "missingDocumentsLabel": "অনুপস্থিত ডকুমেন্ট",
           "photosPending": "{count}টি ছবি এখনও আপলোড হচ্ছে। শেষ হলে জমা দিন।",
-          "photosOffline": "{count}টি ছবি এই ফোনে রাখা আছে, অনলাইন হলে আপলোড হবে। শেষ হলে জমা দিন।"
+          "photosOffline": "{count}টি ছবি এই ফোনে রাখা আছে, অনলাইন হলে আপলোড হবে। শেষ হলে জমা দিন।",
+          "summary": {
+            "title": "জমা দেওয়ার আগে দেখে নিন",
+            "note": "কিছু বদলাতে 'পেছনে' চাপুন।",
+            "address": "সাইটের ঠিকানা",
+            "systemSize": "সিস্টেমের মাপ",
+            "systemSizeValue": "{kw} kW",
+            "documents": "ডকুমেন্ট",
+            "documentsCount": "{uploaded}টি আপলোড হয়েছে ({needed}টি দরকার)",
+            "photos": "সাইটের ছবি",
+            "photosCount": "{count}টি তোলা হয়েছে",
+            "notGiven": "দেওয়া হয়নি"
+          }
         },
         "editing": {
           "returnedToDraftNotice": "এই গ্রাহক আগে জমা দেওয়া হয়েছিল — আপনার সম্পাদনা সংরক্ষণ করলে এটি পুনরায় জমা না দেওয়া পর্যন্ত ড্রাফটে ফিরে যায়।",
@@ -2212,6 +2232,12 @@
           "email": "সঠিক ইমেল ঠিকানা লিখুন।",
           "pinCode": "৬ অঙ্কের পিন কোড লিখুন।",
           "fixErrors": "চিহ্নিত ঘরগুলি ঠিক করুন।"
+        },
+        "duplicate": {
+          "title": "আপনি এই গ্রাহককে আগেই যোগ করেছেন",
+          "body": "আপনার আগের রেকর্ডে একই মোবাইল বা কনজিউমার নম্বর আছে। নতুন যোগ না করে সেই রেকর্ডটি আপডেট করুন।",
+          "open": "{code} খুলুন",
+          "openNoCode": "আগের রেকর্ডটি খুলুন"
         }
       },
       "estimate": {
@@ -2226,6 +2252,13 @@
             "easy": "সহজ",
             "moderate": "মধ্যম",
             "difficult": "কঠিন"
+          },
+          "segments": {
+            "auto": "সাইটের ধরন থেকে ঠিক হবে",
+            "residential": "আবাসিক",
+            "commercial": "বাণিজ্যিক",
+            "industrial": "শিল্প",
+            "government": "সরকারি"
           }
         },
         "errors": {
@@ -2312,7 +2345,8 @@
       "checklist": {
         "title": "ডকুমেন্ট এবং ছবি",
         "requiredLabel": "প্রয়োজনীয়",
-        "missingLabel": "এখনও অনুপস্থিত"
+        "missingLabel": "এখনও অনুপস্থিত",
+        "counts": "{uploaded}টি আপলোড হয়েছে ({needed}টি দরকার)"
       },
       "execution": {
         "title": "ইনস্টলেশন",
@@ -3523,7 +3557,7 @@
       "rowHeading": "বিল {n}",
       "addMonth": "একটি মাস যোগ করুন",
       "removeMonth": "বিল {n} সরান",
-      "recorded": "{min}-এর মধ্যে {count} মাস লেখা হয়েছে",
+      "recorded": "{count} মাস লেখা হয়েছে ({min} দরকার)",
       "fewerThanMin": "জমা দেওয়ার আগে অন্তত {min} মাস যোগ করুন।",
       "averagesTitle": "সংরক্ষিত বিলের গড়",
       "avgUnits": "মাসে গড় ইউনিট",
@@ -3649,7 +3683,7 @@
         "layout": "সরঞ্জামের বিন্যাস"
       },
       "missingFields": "এখনও লাগবে: {fields}",
-      "monthsRecorded": "{required}-এর মধ্যে {recorded} মাস",
+      "monthsRecorded": "{recorded} মাস লেখা হয়েছে ({required} দরকার)",
       "goTo": "{section}-এ যান",
       "allComplete": "সব অংশ সম্পূর্ণ।",
       "notRequired": "এই গ্রাহকের জন্য সাইট সমীক্ষা প্রয়োজন নেই।",

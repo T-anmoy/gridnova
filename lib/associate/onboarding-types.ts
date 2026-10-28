@@ -275,8 +275,15 @@ export interface EquipmentPackageOption {
 
 export interface DocumentOption {
   key: string
+  // BE-20: the same as `key`. Translate by code; `label` is the English fallback.
+  code?: string
   label: string
   required_when: string | null
+}
+
+/** A site-assessment document's name in the reader's language: by code, else the server's English label, else the code. */
+export function documentLabel(code: string, labels: Record<string, string>, documents: DocumentOption[] = []): string {
+  return labels[code] ?? documents.find((d) => (d.code ?? d.key) === code)?.label ?? code
 }
 
 export interface PhotoSlotOption {
@@ -290,12 +297,17 @@ export interface PhotoSlotOption {
  * (`labels`), or a readable fallback, so a slot is never dropped (FE-19: with plain keys the
  * Photos step used to show none).
  */
-export function photoSlotsOf(raw: (string | PhotoSlotOption)[], labels: Record<string, string>, other: string): PhotoSlotOption[] {
+export function photoSlotsOf(raw: (string | PhotoSlotOption | { code: string; label?: string })[], labels: Record<string, string>, other: string): PhotoSlotOption[] {
   return raw.flatMap((s) => {
     if (typeof s === 'string') return s ? [{ key: s, label: labels[s] ?? other }] : []
+    // BE-20 `photo_slot_items: [{code, label}]` — translated by code, the English label as fallback.
+    if (s && 'code' in s) return s.code ? [{ key: s.code, label: labels[s.code] ?? s.label ?? other }] : []
     return s?.key ? [{ ...s, label: labels[s.key] ?? s.label ?? other }] : []
   })
 }
+
+// associate_journeys.md §9: the estimate's `segment` values (also served as `estimate_segments`).
+export const ESTIMATE_SEGMENTS = ['residential', 'commercial', 'industrial', 'government'] as const
 
 export interface OnboardingOptions {
   notice: { version: string; text: string }
@@ -306,6 +318,10 @@ export interface OnboardingOptions {
    * with a label are accepted too. The wizard reads them through `photoSlotsOf`.
    */
   photo_slots: (string | PhotoSlotOption)[]
+  // BE-20: the slots as {code, label}; preferred over photo_slots when present.
+  photo_slot_items?: { code: string; label: string }[]
+  // BE-20: residential | commercial | industrial | government.
+  estimate_segments?: string[]
   customer_timelines: string[]
   site_location: SiteLocationOptions
   // S1 site survey (site_survey.md §2).

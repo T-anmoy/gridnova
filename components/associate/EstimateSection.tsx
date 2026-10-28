@@ -14,6 +14,9 @@ import { usePackageCatalogue } from '@/lib/pricing/usePackageCatalogue'
 import { useMessages } from '@/lib/i18n/client'
 import type { PackageCatalogue, PriceListFields } from '@/lib/pricing/price-list'
 import type { AccessDifficulty, Estimate } from '@/lib/associate/onboarding-types'
+import { useOnboardingOptions } from '@/lib/associate/onboarding-api-client'
+import { ESTIMATE_SEGMENTS } from '@/lib/associate/onboarding-types'
+import { humanize } from '@/lib/associate/execution-labels'
 import type { Messages } from '@/lib/i18n/types'
 
 type EstimateCopy = Messages['associates']['portal']['estimate']
@@ -127,6 +130,8 @@ export default function EstimateSection({ onboardingId, copy }: { onboardingId: 
   const pricing = useMessages('pricing')
   const feedback = useMessages('portalFeedback')
   const createMutation = useCreateEstimate()
+  const { data: options } = useOnboardingOptions()
+  const segments = options?.estimate_segments?.length ? options.estimate_segments : ESTIMATE_SEGMENTS
 
   async function handleCreate() {
     setError(null)
@@ -172,11 +177,17 @@ export default function EstimateSection({ onboardingId, copy }: { onboardingId: 
           {/* Visible labels, not placeholders only (FE-19 phone pass). */}
           <label className="block text-xs font-utility text-[#111827]/70">
             {copy.fields.segmentLabel}
-            <input
-              className="mt-1 w-full min-h-[44px] rounded-lg border border-[#e4e8ee] px-3 py-2 text-sm font-utility"
+            {/* The four codes of associate_journeys.md §9, translated by code; empty lets a rooftop home or shop set it from the site type. */}
+            <select
+              className="mt-1 w-full min-h-[44px] rounded-lg border border-[#e4e8ee] bg-white px-3 py-2 text-sm font-utility"
               value={segment}
               onChange={(e) => setSegment(e.target.value)}
-            />
+            >
+              <option value="">{copy.fields.segments.auto}</option>
+              {segments.map((code) => (
+                <option key={code} value={code}>{(copy.fields.segments as Record<string, string>)[code] ?? humanize(code)}</option>
+              ))}
+            </select>
           </label>
           <label className="block text-xs font-utility text-[#111827]/70">
             {copy.fields.roofTypeLabel}

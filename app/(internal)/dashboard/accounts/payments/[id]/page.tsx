@@ -11,26 +11,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import NoAccess from '@/components/dashboard/NoAccess'
-import ReasonDialog from '@/components/dashboard/ReasonDialog'
+import PaymentActions from '@/components/dashboard/PaymentActions'
 import ProofUpload from '@/components/payments/ProofUpload'
-import {
-  fetchStaffPaymentProofLink,
-  useCancelStaffPayment,
-  useDepositPayment,
-  useDishonourPayment,
-  usePaymentDetail,
-  useResendReceipt,
-  useVerifyPayment,
-  type PaymentDetail,
-} from '@/lib/dashboard/accounts-api-client'
+import { fetchStaffPaymentProofLink, usePaymentDetail, useResendReceipt, type PaymentDetail } from '@/lib/dashboard/accounts-api-client'
 import { useUploadStaffPaymentProof } from '@/lib/dashboard/payments-api-client'
-import { ATTENTION_LABEL, STATUS_LABEL, STATUS_VARIANT, isDummyReason, isSelfVerification, staffModeLabel, staffPaymentError } from '@/lib/dashboard/payment-ui'
+import { ATTENTION_LABEL, STATUS_LABEL, STATUS_VARIANT, isDummyReason, staffModeLabel, staffPaymentError } from '@/lib/dashboard/payment-ui'
 import { STAFF_PAYMENT_COPY } from '@/lib/dashboard/staff-copy'
 import { formatDatetime } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
 import { usePermissions } from '@/lib/access/use-permissions'
-
-const INSTRUMENT_MODES = ['cheque', 'demand_draft']
+import { DirectTag, directLeadId, leadPaymentsHref } from '@/components/dashboard/DirectCustomer'
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -43,21 +33,11 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 function PaymentDetailView({ p, canAct, isAdmin }: { p: PaymentDetail; canAct: boolean; isAdmin: boolean }) {
   const { getToken } = useAuth()
-  const deposit = useDepositPayment()
-  const verify = useVerifyPayment()
-  const dishonour = useDishonourPayment()
-  const cancel = useCancelStaffPayment()
   const resend = useResendReceipt()
   const uploadProof = useUploadStaffPaymentProof(p.project.onboarding_id ?? undefined)
-  const [dialog, setDialog] = useState<'verify' | 'dishonour' | 'cancel' | null>(null)
-  const [selfConflict, setSelfConflict] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
 
   const open = p.status === 'recorded' || p.status === 'deposited'
-  const canDeposit = canAct && p.status === 'recorded' && INSTRUMENT_MODES.includes(p.mode)
-  const canVerify = canAct && open
-  const canDishonour = canAct && (open || p.status === 'verified')
-  const canCancel = canAct && open
   const receipt = p.receipt
   const proofMissing = !p.has_proof && open
 
@@ -130,9 +110,16 @@ function PaymentDetailView({ p, canAct, isAdmin }: { p: PaymentDetail; canAct: b
         <CardContent>
           <dl data-testid="project-block">
             <Row label="Customer">
-              {p.project.onboarding_id != null
-                ? <Link className="text-[#0e2a63] underline" href={`/dashboard/onboardings/${p.project.onboarding_id}`}>{p.project.customer_name}</Link>
-                : p.project.customer_name}
+              {p.project.onboarding_id != null ? (
+                <Link className="text-[#0e2a63] underline" href={`/dashboard/onboardings/${p.project.onboarding_id}`}>{p.project.customer_name}</Link>
+              ) : directLeadId(p) != null ? (
+                <span className="inline-flex flex-wrap items-center gap-2">
+                  <Link className="text-[#0e2a63] underline" href={leadPaymentsHref(directLeadId(p)!)}>{p.project.customer_name}</Link>
+                  <DirectTag />
+                </span>
+              ) : (
+                p.project.customer_name
+              )}
             </Row>
             {p.project.project_reference_id && <Row label="Reference">{p.project.project_reference_id}</Row>}
             <Row label="Accepted total">{formatInr(p.project.accepted_total)}</Row>
@@ -168,72 +155,8 @@ function PaymentDetailView({ p, canAct, isAdmin }: { p: PaymentDetail; canAct: b
         </Card>
       )}
 
-      {canAct && (
-        <div className="flex flex-wrap gap-2" data-testid="payment-actions">
-          {canDeposit && <Button variant="outline" disabled={deposit.isPending} onClick={() => void act(() => deposit.mutateAsync({ paymentId: p.payment_id }), 'Marked as deposited.')}>Mark deposited</Button>}
-          {canVerify && <Button onClick={() => { setSelfConflict(false); setDialog('verify') }}>Verify</Button>}
-          {canDishonour && <Button variant="outline" onClick={() => setDialog('dishonour')}>Dishonour</Button>}
-          {canCancel && <Button variant="outline" onClick={() => setDialog('cancel')}>Cancel payment</Button>}
-        </div>
-      )}
+      {canAct && <PaymentActions p={p} isAdmin={isAdmin} />}
       {notice && <p role="status" className="rounded-lg border border-[#e4e8ee] bg-white px-4 py-2 text-sm text-gray-700">{notice}</p>}
-
-      <ReasonDialog
-        open={dialog === 'verify'}
-        onOpenChange={(o) => !o && setDialog(null)}
-        title="Verify payment"
-        description={
-          selfConflict && !isAdmin
-            ? 'You recorded this payment yourself, so you can’t verify it. Another person in Accounts has to.'
-            : selfConflict
-              ? 'You recorded this payment yourself. As an Admin you can still verify it, but you must give a reason.'
-              : 'Verifying confirms the money has reached Grid Nova’s bank account. It writes the ledger entry and issues the receipt.'
-        }
-        label={selfConflict && isAdmin ? 'Reason (required)' : 'Note (optional)'}
-        required={selfConflict && isAdmin}
-        confirmDisabled={selfConflict && !isAdmin}
-        confirmLabel={selfConflict && isAdmin ? 'Verify as admin' : 'Verify'}
-        describeError={staffPaymentError}
-        onConfirm={async (reason) => {
-          try {
-            await verify.mutateAsync({ paymentId: p.payment_id, reason: reason || undefined })
-          } catch (err) {
-            if (isSelfVerification(err)) setSelfConflict(true)
-            throw err
-          }
-          setNotice('Payment verified.')
-        }}
-      />
-      <ReasonDialog
-        open={dialog === 'dishonour'}
-        onOpenChange={(o) => !o && setDialog(null)}
-        title="Dishonour payment"
-        description={p.status === 'verified' ? 'This payment is already verified: dishonouring it writes a reversal in the ledger.' : 'Mark this payment as bounced / not received.'}
-        label="Reason"
-        required
-        destructive
-        confirmLabel="Dishonour"
-        describeError={staffPaymentError}
-        onConfirm={async (reason) => {
-          await dishonour.mutateAsync({ paymentId: p.payment_id, reason })
-          setNotice('Payment dishonoured.')
-        }}
-      />
-      <ReasonDialog
-        open={dialog === 'cancel'}
-        onOpenChange={(o) => !o && setDialog(null)}
-        title="Cancel payment"
-        description="Only recorded or deposited payments can be cancelled."
-        label="Reason"
-        required
-        destructive
-        confirmLabel="Cancel payment"
-        describeError={staffPaymentError}
-        onConfirm={async (reason) => {
-          await cancel.mutateAsync({ paymentId: p.payment_id, reason })
-          setNotice('Payment cancelled.')
-        }}
-      />
     </div>
   )
 }

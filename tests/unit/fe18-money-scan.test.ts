@@ -14,6 +14,18 @@ const SCANNED = [
   'app/(internal)/proposal/[token]',
   'components/studio-public',
   'app/(site)/[lang]/verify/p',
+  // FE-20: every payment screen — direct customers' Payments tab and the shared payment components.
+  'components/dashboard/LeadPaymentsTab.tsx',
+  'components/dashboard/PaymentActions.tsx',
+  'components/dashboard/DirectCustomer.tsx',
+  'components/dashboard/StaffPaymentsSection.tsx',
+  'components/dashboard/StaffRecordPayment.tsx',
+  'components/dashboard/PaymentScheduleEditor.tsx',
+  'components/payments',
+  'lib/dashboard/lead-payments-api-client.ts',
+  'lib/dashboard/payments-api-client.ts',
+  'lib/dashboard/payment-ui.ts',
+  'app/(internal)/dashboard/accounts',
 ]
 
 function files(rel: string): string[] {
@@ -53,6 +65,8 @@ describe('no Studio screen calculates money', () => {
     expect(sources.length).toBeGreaterThan(20)
     expect(sources).toContain('components/dashboard/studio/FiguresSummary.tsx')
     expect(sources).toContain('app/(internal)/proposal/[token]/OnlineProposal.tsx')
+    expect(sources).toContain('components/dashboard/LeadPaymentsTab.tsx')
+    expect(sources).toContain('components/payments/RecordPaymentForm.tsx')
   })
 
   it('finds no arithmetic on amount fields', () => {

@@ -1,10 +1,11 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { pageCount } from '@/lib/dashboard/utils'
 
 /** Previous / Next for a server-paginated list. The page itself lives in the URL. */
 export function QueuePager({ page, pageSize, total, onPage }: { page: number; pageSize: number; total: number; onPage: (p: number) => void }) {
-  const pages = Math.max(1, Math.ceil(total / pageSize))
+  const pages = pageCount(total, pageSize)
   if (total <= pageSize) return null
   return (
     <nav aria-label="Pagination" className="flex items-center justify-between gap-3 pt-4">

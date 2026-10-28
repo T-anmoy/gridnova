@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
 import { toast } from 'sonner'
@@ -34,6 +34,9 @@ import { usePermissions } from '@/lib/access/use-permissions'
 import { ownLeadsOnly } from '@/lib/access/permissions'
 import { RequirePermission } from '@/components/dashboard/RequirePermission'
 import { SEES_LEADS } from '@/lib/dashboard/nav'
+import LeadPaymentsTab from '@/components/dashboard/LeadPaymentsTab'
+import { canSeePayments } from '@/lib/dashboard/payments-api-client'
+import { useUrlParams } from '@/lib/dashboard/use-url-params'
 
 const REQUIRED_FIELDS = ['name', 'email', 'project_type', 'location', 'capacity_kw']
 
@@ -299,10 +302,37 @@ function EditFieldsDialog({
 }
 
 export default function LeadDetailPage() {
+  const { isLoaded, can } = usePermissions()
+  // Accounts see payments but no leads (BE-17): GET /leads/{id} is 403 for them, yet the payment
+  // alert emails (BE-20) link them here. They get the lead's Payments alone, never the lead detail.
+  if (isLoaded && !can(SEES_LEADS) && canSeePayments(can)) return <LeadPaymentsOnly />
   return (
     <RequirePermission rule={SEES_LEADS} what="Leads">
-      <LeadDetailPageContent />
+      {/* The active tab lives in the URL (?tab=payments — payment alert emails link there). */}
+      <Suspense fallback={<Skeleton className="h-6 w-32" />}>
+        <LeadDetailPageContent />
+      </Suspense>
     </RequirePermission>
+  )
+}
+
+function LeadPaymentsOnly() {
+  const { id } = useParams<{ id: string }>()
+  const router = useRouter()
+  const leadId = parseInt(id, 10)
+  return (
+    <div data-testid="lead-payments-only">
+      <div className="mb-6 flex items-center gap-3">
+        <Button variant="ghost" size="sm" onClick={() => router.back()}>
+          <ArrowLeft className="mr-1 h-4 w-4" /> Back
+        </Button>
+        <div>
+          <h1 className="font-display text-2xl font-bold text-[#091c3c]">Lead #{leadId} — Payments</h1>
+          <p className="mt-1 font-utility text-xs text-[#111827]/65">A direct customer’s payments. The rest of the lead is for Sales.</p>
+        </div>
+      </div>
+      {Number.isFinite(leadId) && <LeadPaymentsTab leadId={leadId} />}
+    </div>
   )
 }
 
@@ -311,6 +341,10 @@ function LeadDetailPageContent() {
   const router = useRouter()
   const { user } = useUser()
   const { can } = usePermissions()
+  const url = useUrlParams()
+  // Payments (BE-20): Accounts, Admin, Management and Sales; Operations, engineers and others get no tab.
+  const showPayments = canSeePayments(can)
+  const tab = showPayments && url.get('tab') === 'payments' ? 'payments' : 'overview'
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [stageDialogOpen, setStageDialogOpen] = useState(false)
   const [reassignOpen, setReassignOpen] = useState(false)
@@ -525,6 +559,27 @@ function LeadDetailPageContent() {
         </div>
       </div>
 
+      {showPayments && (
+        <nav aria-label="Lead sections" className="-mx-1 mb-4 flex gap-2 overflow-x-auto px-1 pb-1" data-testid="lead-tabs">
+          {(['overview', 'payments'] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              aria-pressed={tab === t}
+              onClick={() => url.set({ tab: t === 'overview' ? undefined : t })}
+              className={`min-h-[44px] shrink-0 rounded-lg px-4 text-sm font-medium font-utility focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5daa] ${
+                tab === t ? 'bg-[#0e2a63] text-white' : 'border border-[#e4e8ee] bg-white text-[#0e2a63] hover:bg-[#f7f9fc]'
+              }`}
+            >
+              {t === 'overview' ? 'Overview' : 'Payments'}
+            </button>
+          ))}
+        </nav>
+      )}
+
+      {tab === 'payments' ? (
+        <LeadPaymentsTab leadId={lead.lead_id} />
+      ) : (
       <div className="grid md:grid-cols-2 gap-6">
         {/* Left column */}
         <div className="space-y-4">
@@ -711,6 +766,7 @@ function LeadDetailPageContent() {
           )}
         </div>
       </div>
+      )}
 
       {/* Confirm generate-draft dialog */}
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>

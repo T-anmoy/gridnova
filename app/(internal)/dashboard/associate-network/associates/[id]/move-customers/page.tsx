@@ -4,7 +4,8 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { CheckCircle2 } from 'lucide-react'
-import { useAdminAssociate, useAdminAssociates, useReassignCustomers } from '@/lib/associate/api-client'
+import { useAdminAssociate, useAdminAssociates, useAssociateCustomers, useReassignCustomers } from '@/lib/associate/api-client'
+import { humanize } from '@/lib/associate/execution-labels'
 import { onboardingIdsOf, staffAssociateError } from '@/lib/associate/staff-associates'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { RequirePermission } from '@/components/dashboard/RequirePermission'
@@ -19,8 +20,9 @@ import type { AdminAssociate, ReassignCustomersResult } from '@/lib/associate/ty
 // associate_journeys.md §4: a suspended or deactivated associate's open customers go to an
 // active associate in the reviewer's regions. The list route answers only the reviewer's
 // regions, so every associate offered here is one the move will accept on that count.
-// The contract has no staff route listing one associate's customers, so the move covers
-// every open customer (onboarding_ids omitted); the answer names the customers moved.
+// BE-20 §10 lists the associate's open customers, so the reviewer ticks which ones move. With
+// every one ticked, onboarding_ids is omitted (the server moves every open customer); the
+// answer names the customers moved.
 const PAGE_SIZE = 100
 
 export default function MoveCustomersPage() {
@@ -43,6 +45,18 @@ function MoveCustomers() {
   const [page, setPage] = useState(1)
   const candidates = useAdminAssociates({ status: 'active', page, page_size: PAGE_SIZE })
   const move = useReassignCustomers()
+  const customers = useAssociateCustomers(associateId)
+  const openCustomers = useMemo(() => (customers.data?.items ?? []).filter((c) => c.open), [customers.data])
+  // null = nothing changed yet: every open customer is ticked.
+  const [picked, setPicked] = useState<Set<number> | null>(null)
+  const selected = picked ?? new Set(openCustomers.map((c) => c.onboarding_id))
+  const allSelected = openCustomers.length > 0 && openCustomers.every((c) => selected.has(c.onboarding_id))
+  const toggle = (id: number) => {
+    const next = new Set(selected)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    setPicked(next)
+  }
 
   const [query, setQuery] = useState('')
   const [targetId, setTargetId] = useState('')
@@ -67,9 +81,11 @@ function MoveCustomers() {
   async function submit() {
     setError(null)
     if (!targetId) return setError({ text: 'Choose the associate who will take the customers.', ids: [] })
+    if (selected.size === 0) return setError({ text: 'Tick at least one customer to move.', ids: [] })
     if (!reason.trim()) return setError({ text: 'Please give a reason. It is recorded with each customer.', ids: [] })
+    const ids = openCustomers.filter((c) => selected.has(c.onboarding_id)).map((c) => c.onboarding_id)
     try {
-      setDone(await move.mutateAsync({ associateId, input: { to_associate_id: targetId, reason: reason.trim() } }))
+      setDone(await move.mutateAsync({ associateId, input: { to_associate_id: targetId, reason: reason.trim(), ...(allSelected ? {} : { onboarding_ids: ids }) } }))
     } catch (err) {
       setError({ text: staffAssociateError(err, 'The customers could not be moved.'), ids: onboardingIdsOf(err) })
     }
@@ -105,7 +121,7 @@ function MoveCustomers() {
       <Link href={back} className="font-utility text-sm text-[#0e2a63]">← Back to {source.full_name}</Link>
       <h1 className="mt-4 font-display text-2xl font-bold text-[#091c3c]">Move customers</h1>
       <p className="mt-1 font-utility text-sm text-[#111827]/65">
-        From {source.full_name} ({source.associate_id}, {source.status}) to an active associate. Every open customer moves; closed ones stay.
+        From {source.full_name} ({source.associate_id}, {source.status}) to an active associate. Tick the open customers to move; closed ones stay.
       </p>
 
       {source.status === 'active' ? (
@@ -116,6 +132,48 @@ function MoveCustomers() {
         </Card>
       ) : (
         <div className="mt-6 space-y-5">
+          <Card className="p-5 space-y-3" data-testid="move-customer-list">
+            <p className="font-utility text-sm font-medium text-[#091c3c]">Customers to move</p>
+            {customers.error ? (
+              <DashboardError error={customers.error} onRetry={() => void customers.refetch()} />
+            ) : customers.isLoading ? (
+              <Skeleton className="h-24 w-full" />
+            ) : openCustomers.length === 0 ? (
+              <p className="font-utility text-sm text-[#111827]/65" data-testid="no-open-customers">{source.full_name} has no open customers.</p>
+            ) : (
+              <fieldset>
+                <legend className="sr-only">Choose the customers to move</legend>
+                <label className="flex min-h-[44px] cursor-pointer items-center gap-3 px-3 font-utility text-sm font-medium text-[#091c3c]">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 accent-[#0e2a63]"
+                    checked={allSelected}
+                    onChange={() => setPicked(allSelected ? new Set() : new Set(openCustomers.map((c) => c.onboarding_id)))}
+                  />
+                  Select all ({selected.size} of {openCustomers.length} ticked)
+                </label>
+                <ul className="max-h-80 divide-y divide-[#e4e8ee] overflow-y-auto rounded-lg border border-[#e4e8ee]">
+                  {openCustomers.map((c) => (
+                    <li key={c.onboarding_id}>
+                      <label className="flex min-h-[48px] cursor-pointer items-center gap-3 px-3 py-2">
+                        <input type="checkbox" className="h-4 w-4 accent-[#0e2a63]" checked={selected.has(c.onboarding_id)} onChange={() => toggle(c.onboarding_id)} />
+                        <span className="min-w-0">
+                          <span className="block font-utility text-sm font-medium text-[#091c3c]">
+                            {c.customer_name ?? `Customer #${c.onboarding_id}`}
+                            {c.client_code && <span className="text-[#111827]/60"> · {c.client_code}</span>}
+                          </span>
+                          <span className="block font-utility text-xs text-[#111827]/65">
+                            {humanize(c.status)}{c.project_stage ? ` · stage: ${humanize(c.project_stage)}` : ''}
+                          </span>
+                        </span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              </fieldset>
+            )}
+          </Card>
+
           <Card className="p-5 space-y-3">
             <Label htmlFor="target-search">New associate</Label>
             <Input id="target-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name, ID or territory" />
@@ -180,7 +238,9 @@ function MoveCustomers() {
 
           <div className="flex flex-wrap gap-2">
             <Button onClick={() => void submit()} disabled={move.isPending} className="min-h-[44px] md:min-h-0">
-              {move.isPending ? 'Moving…' : target ? `Move every open customer to ${target.full_name}` : 'Move every open customer'}
+              {move.isPending
+                ? 'Moving…'
+                : `${allSelected ? 'Move every open customer' : `Move ${selected.size} customer${selected.size === 1 ? '' : 's'}`}${target ? ` to ${target.full_name}` : ''}`}
             </Button>
             <Link href={back}>
               <Button variant="outline" className="min-h-[44px] md:min-h-0">Cancel</Button>

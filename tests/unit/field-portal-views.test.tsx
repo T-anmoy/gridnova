@@ -20,6 +20,7 @@ const me = vi.fn()
 const agreementQuery = vi.fn()
 const onboardingQuery = vi.fn()
 vi.mock('@/lib/associate/onboarding-api-client', () => ({
+  useOnboardingOptions: () => ({ data: undefined }),
   useOnboarding: () => onboardingQuery(),
   useOnboardingProgress: () => ({ data: undefined }),
   useRequestFormalProposal: () => ({ mutateAsync: vi.fn(), isPending: false }),
@@ -106,6 +107,7 @@ describe('Phase 3 — customer detail survey card', () => {
           proposalCopy={m.proposal}
           agreementCopy={m.agreement}
           checklistCopy={m.checklist}
+          documentLabels={m.wizard.documents.typeLabels}
           estimateCopy={m.estimate}
           executionCopy={m.execution}
           paymentsCopy={m.payments}
@@ -117,6 +119,18 @@ describe('Phase 3 — customer detail survey card', () => {
   beforeEach(() => {
     surveyMocks.status.mockReturnValue({ data: { ...SURVEY_STATUS_EMPTY, signatures: { ...SURVEY_STATUS_EMPTY.signatures, customer: { signed: true, signed_at: '2026-10-12T05:00:00Z' } } }, isLoading: false, error: null, refetch: vi.fn() })
     surveyMocks.results.mockReturnValue({ data: SURVEY_RESULTS, isLoading: false, error: null, refetch: vi.fn() })
+  })
+
+  // FE-20: "6/4 required" read like an error. Now "6 uploaded (4 needed)", and missing items by name, not code.
+  it('the documents counter never reads as an error, and missing documents are named', () => {
+    renderDetail(
+      makeOnboarding({ onboarding_id: 42, checklist: { required: ['electricity_bill', 'id_proof', 'ownership_proof', 'noc'], present: ['electricity_bill', 'id_proof', 'ownership_proof', 'photo', 'subsidy_bank_details', 'x'], missing: ['noc'] } } as Partial<Onboarding>),
+      'GNA-1',
+    )
+    expect(screen.getByText('6 uploaded (4 needed)')).toBeInTheDocument()
+    expect(screen.queryByText(/6\/4/)).toBeNull()
+    expect(screen.getByText(en.associates.portal.wizard.documents.typeLabels.noc)).toBeInTheDocument()
+    expect(screen.queryByText('noc')).toBeNull()
   })
 
   it('owner: status, signatures, suggested kW, and a link back into the survey — no price', () => {

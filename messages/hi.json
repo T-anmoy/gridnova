@@ -2159,7 +2159,15 @@
           "uploadFailed": "यह दस्तावेज़ अपलोड नहीं हो सका। कृपया दोबारा प्रयास करें।",
           "retryButton": "पुनः प्रयास करें",
           "alreadyUploaded": "पहले से अपलोड: {name}",
-          "acceptedTypes": "JPG, PNG या PDF"
+          "acceptedTypes": "JPG, PNG या PDF",
+          "typeLabels": {
+            "electricity_bill": "नवीनतम बिजली बिल",
+            "id_proof": "ग्राहक का पहचान प्रमाण",
+            "ownership_proof": "संपत्ति के स्वामित्व का प्रमाण",
+            "subsidy_bank_details": "सब्सिडी जमा के लिए बैंक विवरण",
+            "photo": "ग्राहक / साइट की फ़ोटो",
+            "noc": "अनापत्ति प्रमाणपत्र (कनेक्शन या संपत्ति ग्राहक के नाम पर नहीं है)"
+          }
         },
         "photos": {
           "title": "साइट की तस्वीरें लें",
@@ -2187,7 +2195,19 @@
           "incompleteTitle": "अभी कुछ चीज़ें अनुपलब्ध हैं",
           "missingDocumentsLabel": "अनुपलब्ध दस्तावेज़",
           "photosPending": "{count} फ़ोटो अभी अपलोड हो रही हैं। पूरी होने के बाद सबमिट करें।",
-          "photosOffline": "{count} फ़ोटो इस फ़ोन पर सेव हैं और ऑनलाइन होने पर अपलोड होंगी। पूरी होने के बाद सबमिट करें।"
+          "photosOffline": "{count} फ़ोटो इस फ़ोन पर सेव हैं और ऑनलाइन होने पर अपलोड होंगी। पूरी होने के बाद सबमिट करें।",
+          "summary": {
+            "title": "जमा करने से पहले जाँच लें",
+            "note": "कुछ बदलना हो तो 'पीछे' दबाएँ।",
+            "address": "साइट का पता",
+            "systemSize": "सिस्टम का आकार",
+            "systemSizeValue": "{kw} kW",
+            "documents": "दस्तावेज़",
+            "documentsCount": "{uploaded} अपलोड हुए ({needed} ज़रूरी)",
+            "photos": "साइट की फ़ोटो",
+            "photosCount": "{count} ली गईं",
+            "notGiven": "नहीं दिया गया"
+          }
         },
         "editing": {
           "returnedToDraftNotice": "यह ग्राहक पहले सबमिट किया गया था — आपके संपादन को सहेजने से यह फिर से ड्राफ्ट में चला जाता है, जब तक आप इसे फिर से सबमिट न करें।",
@@ -2212,6 +2232,12 @@
           "email": "सही ईमेल पता दर्ज करें।",
           "pinCode": "6 अंकों का पिन कोड दर्ज करें।",
           "fixErrors": "कृपया चिह्नित फ़ील्ड ठीक करें।"
+        },
+        "duplicate": {
+          "title": "आप इस ग्राहक को पहले ही जोड़ चुके हैं",
+          "body": "आपके मौजूदा रिकॉर्ड में यही मोबाइल या कंज़्यूमर नंबर है। नया जोड़ने के बजाय उसी रिकॉर्ड को अपडेट करें।",
+          "open": "{code} खोलें",
+          "openNoCode": "मौजूदा रिकॉर्ड खोलें"
         }
       },
       "estimate": {
@@ -2226,6 +2252,13 @@
             "easy": "आसान",
             "moderate": "मध्यम",
             "difficult": "कठिन"
+          },
+          "segments": {
+            "auto": "साइट के प्रकार से तय होगा",
+            "residential": "आवासीय",
+            "commercial": "व्यावसायिक",
+            "industrial": "औद्योगिक",
+            "government": "सरकारी"
           }
         },
         "errors": {
@@ -2312,7 +2345,8 @@
       "checklist": {
         "title": "दस्तावेज़ और तस्वीरें",
         "requiredLabel": "आवश्यक",
-        "missingLabel": "अभी अनुपलब्ध"
+        "missingLabel": "अभी अनुपलब्ध",
+        "counts": "{uploaded} अपलोड हुए ({needed} ज़रूरी)"
       },
       "execution": {
         "title": "इंस्टॉलेशन",
@@ -3523,7 +3557,7 @@
       "rowHeading": "बिल {n}",
       "addMonth": "एक महीना जोड़ें",
       "removeMonth": "बिल {n} हटाएँ",
-      "recorded": "{min} में से {count} महीने दर्ज",
+      "recorded": "{count} महीने दर्ज ({min} ज़रूरी)",
       "fewerThanMin": "सबमिट करने से पहले कम से कम {min} महीने जोड़ें।",
       "averagesTitle": "सहेजे गए बिलों का औसत",
       "avgUnits": "प्रति माह औसत यूनिट",
@@ -3649,7 +3683,7 @@
         "layout": "उपकरण की जगह"
       },
       "missingFields": "अभी चाहिए: {fields}",
-      "monthsRecorded": "{required} में से {recorded} महीने",
+      "monthsRecorded": "{recorded} महीने दर्ज ({required} ज़रूरी)",
       "goTo": "{section} पर जाएँ",
       "allComplete": "सभी हिस्से पूरे हैं।",
       "notRequired": "इस ग्राहक के लिए साइट सर्वे ज़रूरी नहीं है।",

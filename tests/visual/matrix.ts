@@ -117,6 +117,17 @@ const FE19: PageCase[] = [
   { path: `/dashboard/associate-network/associates/${ASSOCIATE}/move-customers`, principal: "staff:admin", label: "/dashboard/associate-network/associates/[id]/move-customers" },
 ];
 
+// FE-20: a direct customer's Payments tab (a fully paid lead after the BE-20 journey) as each
+// role that sees it — Accounts get the payments-only lead page — and Accounts with the lead filter.
+const DIRECT_LEAD = process.env.VISUAL_DIRECT_LEAD_ID ?? "1";
+const FE20: PageCase[] = [
+  ...(["admin", "accounts", "management", "sales"] as const).map((r) => ({
+    path: `/dashboard/leads/${DIRECT_LEAD}?tab=payments`, principal: `staff:${r}` as const, label: `/dashboard/leads/[id]?tab=payments as ${r}`,
+  })),
+  { path: `/dashboard/accounts?lead_id=${DIRECT_LEAD}`, principal: "staff:accounts", label: "/dashboard/accounts?lead_id as accounts" },
+  { path: "/dashboard/accounts?tab=milestones", principal: "staff:accounts", label: "/dashboard/accounts instalments as accounts" },
+];
+
 export const PAGES: PageCase[] = [
   // English is canonical without a prefix (/en/… redirects there).
   ...PUBLIC.map((p) => ({ path: p || "/", principal: null })),
@@ -129,6 +140,7 @@ export const PAGES: PageCase[] = [
   ...FE17,
   ...FE18,
   ...FE19,
+  ...FE20,
 ];
 
 export const caseName = (c: PageCase) => c.label ?? c.path;

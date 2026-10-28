@@ -18,6 +18,7 @@ export default async function AssociatePortalCustomerDetailPage({
         proposalCopy={m.portal.proposal}
         agreementCopy={m.portal.agreement}
         checklistCopy={m.portal.checklist}
+        documentLabels={m.portal.wizard.documents.typeLabels}
         estimateCopy={m.portal.estimate}
         executionCopy={m.portal.execution}
         paymentsCopy={m.portal.payments}

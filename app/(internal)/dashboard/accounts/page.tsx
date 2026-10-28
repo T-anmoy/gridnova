@@ -20,11 +20,12 @@ import NoAccess from '@/components/dashboard/NoAccess'
 import { downloadExport, useMilestoneQueue, usePaymentList, useReleaseHeldReceipts, useResendReceipt, type ExportKind } from '@/lib/dashboard/accounts-api-client'
 import { useWorkQueues } from '@/lib/dashboard/execution-api-client'
 import { ATTENTION_LABEL, STATUS_LABEL, STATUS_VARIANT, isDummyReason, matchesFilter, staffModeLabel, staffPaymentError } from '@/lib/dashboard/payment-ui'
-import { formatDate } from '@/lib/dashboard/utils'
+import { formatDate, pageCount } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
 import { STAFF_PAYMENT_COPY } from '@/lib/dashboard/staff-copy'
 import DateField from '@/components/forms/DateField'
 import { usePermissions } from '@/lib/access/use-permissions'
+import { DirectTag, directLeadId, leadPaymentsHref } from '@/components/dashboard/DirectCustomer'
 
 // The filter keeps retired methods so older rows can still be found.
 const MODES = Object.keys(STAFF_PAYMENT_COPY.modes).map((k) => [k, staffModeLabel(k)] as const)
@@ -33,7 +34,7 @@ type Tab = 'payments' | 'milestones' | 'receipts'
 
 function Pager({ data, page, setPage }: { data?: { total: number; page_size: number; page: number }; page: number; setPage: (n: number) => void }) {
   if (!data || data.total <= data.page_size) return null
-  const pages = Math.ceil(data.total / data.page_size)
+  const pages = pageCount(data.total, data.page_size)
   return (
     <div className="flex items-center justify-between text-sm text-gray-500">
       <span>Page {data.page} of {pages}</span>
@@ -105,7 +106,27 @@ function AttentionBadges({ reasons }: { reasons: string[] }) {
   )
 }
 
-function PaymentsTab() {
+// `?lead_id=12` narrows the payment lists to one direct customer (BE-20 `lead_id` filter).
+function LeadFilterChip({ leadId, onClear }: { leadId: number; onClear: () => void }) {
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-900" data-testid="lead-filter">
+      Lead #{leadId} only
+      <button type="button" className="font-semibold underline" onClick={onClear}>Show all</button>
+    </span>
+  )
+}
+
+// A direct customer's row links to its lead's Payments tab, marked "Direct".
+function DirectLink({ leadId }: { leadId: number }) {
+  return (
+    <span className="mt-1 inline-flex items-center gap-2">
+      <DirectTag />
+      <Link className="text-xs text-[#0e2a63] underline" href={leadPaymentsHref(leadId)} onClick={(e) => e.stopPropagation()}>Open lead</Link>
+    </span>
+  )
+}
+
+function PaymentsTab({ leadId, clearLead }: { leadId?: number; clearLead: () => void }) {
   const [status, setStatus] = useState('')
   const [mode, setMode] = useState('')
   const [needsAttention, setNeedsAttention] = useState(false)
@@ -113,6 +134,7 @@ function PaymentsTab() {
   const [to, setTo] = useState('')
   const { text, setText, q, page, setPage } = useSearchedPage()
   const { data, isLoading, error, refetch } = usePaymentList({
+    lead_id: leadId,
     status: status || undefined,
     mode: mode || undefined,
     needs_attention: needsAttention || undefined,
@@ -146,6 +168,7 @@ function PaymentsTab() {
         <div className="flex items-center gap-1.5 text-xs text-gray-500">From <DateField variant="dashboard" label="From" max={to || undefined}  value={from} onChange={(v) => { setFrom(v); reset() }} /></div>
         <div className="flex items-center gap-1.5 text-xs text-gray-500">To <DateField variant="dashboard" label="To" min={from || undefined}  value={to} onChange={(v) => { setTo(v); reset() }} /></div>
         <SearchBox value={text} onChange={setText} />
+        {leadId != null && <LeadFilterChip leadId={leadId} onClear={clearLead} />}
       </div>
       {error && <DashboardError error={error} onRetry={() => void refetch()} />}
       <Card>
@@ -166,6 +189,7 @@ function PaymentsTab() {
                         <WhoCell name={p.customer_name} code={p.project_reference_id} fallback={null} />
                         <p className="text-xs text-gray-500">Payment #{p.payment_id}</p>
                       </Link>
+                      {directLeadId(p) != null && <DirectLink leadId={directLeadId(p)!} />}
                     </TableCell>
                     <TableCell className="font-medium">{formatInr(p.amount)}</TableCell>
                     <TableCell className="text-sm">{staffModeLabel(p.mode)}</TableCell>
@@ -209,7 +233,7 @@ function MilestonesTab() {
               </TableHeader>
               <TableBody>
                 {data?.items.filter((m) => matchesFilter(filter, m.customer_name, m.project_reference_id)).map((m) => (
-                  <TableRow key={m.milestone_id} data-testid="milestone-row">
+                  <TableRow key={`${m.lead_id ?? 'o'}-${m.milestone_id}`} data-testid="milestone-row">
                     <TableCell className="text-sm">
                       <WhoCell
                         name={m.customer_name}
@@ -219,6 +243,7 @@ function MilestonesTab() {
                       {(m.customer_name || m.project_reference_id) && m.onboarding_id != null && (
                         <Link className="text-xs text-[#0e2a63] underline" href={`/dashboard/onboardings/${m.onboarding_id}`}>Open project</Link>
                       )}
+                      {directLeadId(m) != null && <DirectLink leadId={directLeadId(m)!} />}
                     </TableCell>
                     <TableCell className="text-sm">{m.label} <span className="text-gray-500">({String(m.percent)}%)</span></TableCell>
                     <TableCell>{formatInr(m.amount_due)}</TableCell>
@@ -244,11 +269,11 @@ function MilestonesTab() {
 }
 
 // Receipts are derived from verified payments (there is no separate list endpoint).
-function ReceiptsTab({ canAct }: { canAct: boolean }) {
+function ReceiptsTab({ canAct, leadId, clearLead }: { canAct: boolean; leadId?: number; clearLead: () => void }) {
   const [needsAttention, setNeedsAttention] = useState(false)
   const { text, setText, q, page, setPage } = useSearchedPage()
   const [notice, setNotice] = useState<string | null>(null)
-  const { data, isLoading, error, refetch } = usePaymentList({ status: 'verified', needs_attention: needsAttention || undefined, q: q || undefined, page, page_size: 25 })
+  const { data, isLoading, error, refetch } = usePaymentList({ lead_id: leadId, status: 'verified', needs_attention: needsAttention || undefined, q: q || undefined, page, page_size: 25 })
   const resend = useResendReceipt()
   const release = useReleaseHeldReceipts()
 
@@ -279,6 +304,7 @@ function ReceiptsTab({ canAct }: { canAct: boolean }) {
         </Button>
         {canAct && <Button variant="outline" size="sm" disabled={release.isPending} onClick={() => void handleRelease()}>Release held receipts</Button>}
         <SearchBox value={text} onChange={setText} />
+        {leadId != null && <LeadFilterChip leadId={leadId} onClear={clearLead} />}
       </div>
       {notice && <p role="status" className="rounded-lg border border-[#e4e8ee] bg-white px-4 py-2 text-sm text-gray-700">{notice}</p>}
       {error && <DashboardError error={error} onRetry={() => void refetch()} />}
@@ -296,7 +322,7 @@ function ReceiptsTab({ canAct }: { canAct: boolean }) {
                   return (
                     <TableRow key={p.payment_id} data-testid="receipt-row">
                       <TableCell className="text-sm">{r?.receipt_number ?? '—'}</TableCell>
-                      <TableCell className="text-sm"><WhoCell name={p.customer_name} code={p.project_reference_id} fallback="—" /></TableCell>
+                      <TableCell className="text-sm"><WhoCell name={p.customer_name} code={p.project_reference_id} fallback="—" />{directLeadId(p) != null && <DirectLink leadId={directLeadId(p)!} />}</TableCell>
                       <TableCell className="text-sm"><Link className="text-[#0e2a63] underline" href={`/dashboard/accounts/payments/${p.payment_id}`}>#{p.payment_id}</Link></TableCell>
                       <TableCell>{formatInr(p.amount)}</TableCell>
                       <TableCell className="text-sm">{r ? (r.email_skipped_reason ? `Not sent: ${r.email_skipped_reason}` : r.email_status ?? '—') : '—'}</TableCell>
@@ -365,6 +391,8 @@ function AccountsWorkspace({ canAct }: { canAct: boolean }) {
   const rawTab = url.get('tab')
   const tab: Tab = rawTab === 'milestones' || rawTab === 'receipts' ? rawTab : 'payments'
   const setTab = (t: Tab) => url.set({ tab: t === 'payments' ? undefined : t })
+  const leadId = Number(url.get('lead_id')) || undefined
+  const clearLead = () => url.set({ lead_id: undefined })
   const { data: queues } = useWorkQueues()
   const q = queues?.payments
   const tiles: [string, number | undefined][] = [
@@ -394,9 +422,9 @@ function AccountsWorkspace({ canAct }: { canAct: boolean }) {
           </Button>
         ))}
       </div>
-      {tab === 'payments' && <PaymentsTab />}
+      {tab === 'payments' && <PaymentsTab leadId={leadId} clearLead={clearLead} />}
       {tab === 'milestones' && <MilestonesTab />}
-      {tab === 'receipts' && <ReceiptsTab canAct={canAct} />}
+      {tab === 'receipts' && <ReceiptsTab canAct={canAct} leadId={leadId} clearLead={clearLead} />}
       {canAct && <ExportPanel />}
     </div>
   )

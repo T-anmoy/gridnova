@@ -5,6 +5,7 @@ import { ApiError, backoffDelay } from '@/lib/dashboard/api-error'
 import { dashboardFetch } from '@/lib/dashboard/api-client'
 import { publicFetch } from '@/lib/api/http'
 import type {
+  AssociateCustomers,
   AdminAssociate,
   AdminTerritoryItem,
   ApplicationDetail,
@@ -378,6 +379,19 @@ export function useRetryClerkInvite() {
 }
 
 // Moves a suspended or deactivated associate's open customers to an active associate.
+export function useAssociateCustomers(associateId: string) {
+  const { getToken } = useAuth()
+  return useQuery({
+    queryKey: ['associate', associateId, 'customers'],
+    queryFn: async () => {
+      const token = await getToken()
+      if (!token) throw notAuthenticatedError()
+      return dashboardFetch<AssociateCustomers>(`/api/v1/dashboard/associates/${encodeURIComponent(associateId)}/customers`, token)
+    },
+    enabled: !!associateId,
+  })
+}
+
 export function useReassignCustomers() {
   const { getToken } = useAuth()
   const qc = useQueryClient()

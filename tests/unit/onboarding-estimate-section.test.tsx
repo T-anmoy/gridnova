@@ -9,6 +9,7 @@ import type { Estimate } from '@/lib/associate/onboarding-types'
 const mockUseOnboardingEstimates = vi.fn()
 const mockUseCreateEstimate = vi.fn()
 vi.mock('@/lib/associate/onboarding-api-client', () => ({
+  useOnboardingOptions: () => ({ data: undefined }),
   useOnboardingEstimates: (id: number) => mockUseOnboardingEstimates(id),
   useCreateEstimate: () => mockUseCreateEstimate(),
 }))
@@ -141,5 +142,43 @@ describe('EstimateSection — price-list results', () => {
     await user.click(screen.getAllByRole('button', { name: copy.getEstimateButton })[0])
     await user.click(within(document.body).getAllByRole('button', { name: copy.getEstimateButton })[1])
     expect(await screen.findByText(text)).toBeInTheDocument()
+  })
+})
+
+// FE-20 (associate_journeys.md §9): the segment is one of four codes, chosen from a list and
+// translated by code — no free text (a typo was a 422 invalid_segment).
+describe('EstimateSection — segment by code', () => {
+  async function show(estimates: Estimate[]) {
+    mockUseOnboardingEstimates.mockReturnValue({ data: estimates, isLoading: false })
+    const { default: EstimateSection } = await import('@/components/associate/EstimateSection')
+    return render(withI18n(<EstimateSection onboardingId={1} copy={copy} />))
+  }
+
+  it('offers the four segments in the reader’s words, plus “set from the site type”, and sends the code', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({})
+    mockUseCreateEstimate.mockReturnValue({ mutateAsync, isPending: false })
+    await show([])
+    const user = userEvent.setup()
+    await user.click(screen.getAllByRole('button', { name: copy.getEstimateButton })[0])
+    const select = screen.getByLabelText(copy.fields.segmentLabel) as HTMLSelectElement
+    expect([...select.options].map((o) => [o.value, o.textContent])).toEqual([
+      ['', copy.fields.segments.auto],
+      ['residential', copy.fields.segments.residential],
+      ['commercial', copy.fields.segments.commercial],
+      ['industrial', copy.fields.segments.industrial],
+      ['government', copy.fields.segments.government],
+    ])
+    await user.selectOptions(select, 'government')
+    await user.click(within(document.body).getAllByRole('button', { name: copy.getEstimateButton })[1])
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledWith({ id: 1, input: expect.objectContaining({ segment: 'government' }) }))
+  })
+
+  it('segment_required is said in plain words', async () => {
+    mockUseCreateEstimate.mockReturnValue({ mutateAsync: vi.fn().mockRejectedValue(new ApiError(422, 'x', 'English', { code: 'segment_required' })), isPending: false })
+    await show([])
+    const user = userEvent.setup()
+    await user.click(screen.getAllByRole('button', { name: copy.getEstimateButton })[0])
+    await user.click(within(document.body).getAllByRole('button', { name: copy.getEstimateButton })[1])
+    expect(await screen.findByText(copy.errors.segment_required)).toBeInTheDocument()
   })
 })

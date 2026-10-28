@@ -22,6 +22,7 @@ vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 const mockUseOnboardingEstimates = vi.fn()
 vi.mock('@/lib/associate/onboarding-api-client', () => ({
+  useOnboardingOptions: () => ({ data: undefined }),
   useOnboardingEstimates: (id: number) => mockUseOnboardingEstimates(id),
   useCreateEstimate: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }))

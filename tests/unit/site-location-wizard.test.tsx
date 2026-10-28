@@ -229,7 +229,7 @@ describe('wizard — submit gate', () => {
     await user.click(screen.getByRole('button', { name: copy.review.submitButton }))
     const block = await screen.findByTestId('incomplete-location')
     expect(block).toHaveTextContent(text)
-    expect(screen.getByText('Electricity bill')).toBeInTheDocument() // the documents list is still shown alongside
+    expect(screen.getByText(en.associates.portal.wizard.documents.typeLabels.electricity_bill)).toBeInTheDocument() // the documents list is still shown alongside
     await user.click(screen.getByRole('button', { name: m.review.goToStep }))
     expect(screen.getAllByRole('heading', { name: m.title }).length).toBeGreaterThan(0)
   })
@@ -242,7 +242,7 @@ describe('wizard — submit gate', () => {
     renderWizard(onboarding({ site_location: CONFIRMED }))
     await toReview(user)
     await user.click(screen.getByRole('button', { name: copy.review.submitButton }))
-    await screen.findByText('Electricity bill')
+    await screen.findByText(en.associates.portal.wizard.documents.typeLabels.electricity_bill)
     expect(screen.queryByTestId('incomplete-location')).not.toBeInTheDocument()
   })
 })

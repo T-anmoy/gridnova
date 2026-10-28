@@ -14,7 +14,7 @@ import PhotoFlagBadges from '@/components/dashboard/PhotoFlagBadges'
 import RegisterPanel from '@/components/dashboard/RegisterPanel'
 import ReasonDialog from '@/components/dashboard/ReasonDialog'
 import ExecutionEvidenceForm from '@/components/execution/ExecutionEvidenceForm'
-import { labelFor } from '@/lib/associate/execution-labels'
+import { labelFor, serverLabelsOf } from '@/lib/associate/execution-labels'
 import {
   fetchStaffExecutionFileLink,
   useDcrOverride,
@@ -97,7 +97,7 @@ function EvidenceViewer({ onboardingId, detail, submission }: { onboardingId: nu
         <ul className="space-y-1" aria-label="Documents">
           {docs.map(([k, f]) => (
             <li key={k} className="flex flex-wrap items-center gap-2">
-              <span className="text-gray-700">{labelFor(copy.documents, k)}</span>
+              <span className="text-gray-700">{labelFor(copy.documents, k, serverLabelsOf(detail.document_type_items))}</span>
               {f ? <ViewFile onboardingId={onboardingId} file={f} /> : <span className="text-xs text-gray-500">not on file</span>}
             </li>
           ))}
@@ -107,7 +107,7 @@ function EvidenceViewer({ onboardingId, detail, submission }: { onboardingId: nu
         <ul className="space-y-1" aria-label="Photos">
           {photos.map(([k, f]) => (
             <li key={k} className="flex flex-wrap items-center gap-2">
-              <span className="text-gray-700">{labelFor(copy.photoSlots, k)}</span>
+              <span className="text-gray-700">{labelFor(copy.photoSlots, k, serverLabelsOf(detail.photo_slot_items))}</span>
               {f ? (
                 <>
                   <ViewFile onboardingId={onboardingId} file={f} />

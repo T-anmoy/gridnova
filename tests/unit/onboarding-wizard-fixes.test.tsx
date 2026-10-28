@@ -95,7 +95,7 @@ describe('OnboardingWizard — warnings never block submission', () => {
 })
 
 describe('OnboardingWizard — submit-time missing documents show translated labels', () => {
-  it('maps each raw missing_documents key to its label from GET /options, not the raw key', async () => {
+  it('maps each raw missing_documents key to its translated name by code (BE-20), not the raw key nor the English label', async () => {
     mockUseUploadOnboardingFile.mockReturnValue({ mutateAsync: vi.fn().mockResolvedValue({}) })
     mockUseSubmitOnboarding.mockReturnValue({
       mutateAsync: vi.fn().mockRejectedValue(
@@ -114,8 +114,9 @@ describe('OnboardingWizard — submit-time missing documents show translated lab
     await goToStep(user, 11)
     await user.click(screen.getByRole('button', { name: copy.review.submitButton }))
 
-    expect(await screen.findByText('Electricity bill')).toBeInTheDocument()
-    expect(screen.getByText('ID proof')).toBeInTheDocument()
+    // Translated by code from the portal copy — the options' English label ("Electricity bill") is only a fallback.
+    expect(await screen.findByText(copy.documents.typeLabels.electricity_bill)).toBeInTheDocument()
+    expect(screen.getByText(copy.documents.typeLabels.id_proof)).toBeInTheDocument()
     expect(screen.queryByText('electricity_bill')).not.toBeInTheDocument()
     expect(screen.queryByText('id_proof')).not.toBeInTheDocument()
   })

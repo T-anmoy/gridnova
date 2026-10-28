@@ -13,6 +13,8 @@ vi.mock('@/lib/dashboard/staff-leads-api-client', async () => (await import('./h
 vi.mock('next/navigation', () => ({
   useParams: () => ({ id: '19' }),
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn(), forward: vi.fn(), prefetch: vi.fn() }),
+  usePathname: () => '/dashboard/leads/19',
+  useSearchParams: () => new URLSearchParams(),
 }))
 
 const mockUseLead = vi.fn()

@@ -27,8 +27,9 @@ import { useSurveyStatus } from '@/lib/associate/survey-api-client'
 import { isNeedsReverification, proposalGateCode, proposalGateRefuses } from '@/lib/associate/survey-review'
 import { formatCurrency } from '@/lib/dashboard/utils'
 import { useDates } from '@/lib/i18n/dates'
-import type { Messages } from '@/lib/i18n/types'
+import { fmt, type Messages } from '@/lib/i18n/types'
 import DateField from '@/components/forms/DateField'
+import { documentLabel } from '@/lib/associate/onboarding-types'
 import { todayIso } from '@/lib/date-field'
 
 type SharedCopy = Messages['associates']['portal']['shared']
@@ -296,6 +297,7 @@ export default function OnboardingDetail({
   proposalCopy,
   agreementCopy,
   checklistCopy,
+  documentLabels = {},
   estimateCopy,
   executionCopy,
   paymentsCopy,
@@ -307,6 +309,8 @@ export default function OnboardingDetail({
   proposalCopy: ProposalCopy
   agreementCopy: AgreementCopy
   checklistCopy: ChecklistCopy
+  // Site-assessment document names by code (associate_journeys.md §9).
+  documentLabels?: Record<string, string>
   estimateCopy: Messages['associates']['portal']['estimate']
   executionCopy: ExecutionCopy
   paymentsCopy: PaymentsCopy
@@ -404,12 +408,12 @@ export default function OnboardingDetail({
       <div className="rounded-2xl border border-[#e4e8ee] bg-white p-5">
         <p className="font-display text-base font-semibold text-[#0e2a63]">{checklistCopy.title}</p>
         <p className="mt-2 text-xs text-[#111827]/65 font-utility">
-          {onboarding.checklist.present.length}/{onboarding.checklist.required.length} {checklistCopy.requiredLabel.toLowerCase()}
+          {fmt(checklistCopy.counts, { uploaded: onboarding.checklist.present.length, needed: onboarding.checklist.required.length })}
         </p>
         {onboarding.checklist.missing.length > 0 && (
           <ul className="mt-2 list-disc list-inside text-xs text-amber-700 font-utility">
             {onboarding.checklist.missing.map((m) => (
-              <li key={m}>{m}</li>
+              <li key={m}>{documentLabel(m, documentLabels)}</li>
             ))}
           </ul>
         )}

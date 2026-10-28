@@ -294,7 +294,7 @@ describe('Payment detail — actions', () => {
     await user.click(screen.getByRole('button', { name: 'Verify' }))
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Verify' }))
     const dialog = screen.getByRole('dialog')
-    expect(await within(dialog).findByRole('alert')).toHaveTextContent('you can’t verify it')
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('You recorded this payment, so another Accounts person must verify it.')
     expect(within(dialog).getByRole('button', { name: 'Verify' })).toBeDisabled()
     expect(within(dialog).queryByRole('button', { name: 'Verify as admin' })).toBeNull()
   })
@@ -457,5 +457,63 @@ describe('Accounts workspace — rows say who the customer is (customer_name, pr
     await user.type(screen.getByRole('searchbox'), 'GNR-1')
     expect(screen.getAllByTestId('receipt-row')).toHaveLength(2)
     await waitFor(() => expect(h.listParams.at(-1)).toMatchObject({ status: 'verified', q: 'GNR-1', page: 1 }))
+  })
+})
+
+// FE-20 (BE-20): a direct customer's rows carry lead_id and a null onboarding_id.
+describe('Accounts workspace — direct customers', () => {
+  const direct = pay({ payment_id: 51, onboarding_id: null, lead_id: 12, customer_name: 'Ramesh Das', project_reference_id: 'GNE-WB-RES-2026-00012' })
+
+  it('payments: the customer, a "Direct" tag and a link to the lead’s Payments tab — no onboarding link, no crash', () => {
+    h.list = page([direct, pay({ payment_id: 52 })])
+    render(withI18n(<AccountsPage />))
+    const [d, assoc] = screen.getAllByTestId('payment-row')
+    expect(d).toHaveTextContent('Ramesh Das')
+    expect(within(d).getByTestId('direct-tag')).toHaveTextContent('Direct')
+    expect(within(d).getByRole('link', { name: 'Open lead' })).toHaveAttribute('href', '/dashboard/leads/12?tab=payments')
+    expect(within(d).queryByRole('link', { name: /onboarding/i })).toBeNull()
+    expect(within(assoc).queryByTestId('direct-tag')).toBeNull()
+  })
+
+  it('?lead_id= narrows the payments and receipts lists to that lead, and can be cleared', async () => {
+    navState.reset('/dashboard/accounts', 'lead_id=12')
+    h.list = page([direct])
+    const user = userEvent.setup()
+    render(withI18n(<AccountsPage />))
+    expect(h.listParams.at(-1)).toMatchObject({ lead_id: 12 })
+    expect(screen.getByTestId('lead-filter')).toHaveTextContent('Lead #12 only')
+    await user.click(screen.getByRole('tab', { name: 'Receipts' }))
+    expect(h.listParams.at(-1)).toMatchObject({ lead_id: 12, status: 'verified' })
+    await user.click(screen.getByRole('button', { name: 'Show all' }))
+    expect(navState.params.get('lead_id')).toBeNull()
+    await waitFor(() => expect(h.listParams.at(-1)).toMatchObject({ lead_id: undefined }))
+  })
+
+  it('instalments: direct milestones after the associate ones, tagged and linked to the lead', async () => {
+    const m = (over: Partial<Milestone>): Milestone => ({ milestone_id: 7, number: 1, label: 'On Order', percent: '20.00', amount_due: '54450.00', paid_toward: '0.00', outstanding: '54450.00', trigger: 'accepted', due_status: 'due', due_since: '2026-10-01T00:00:00Z', overdue: true, project_id: 20, onboarding_id: 5, ...over })
+    // The same milestone_id on both sides must not collide.
+    h.milestones = page([m({}), m({ onboarding_id: null, lead_id: 12, customer_name: 'Ramesh Das' } as Partial<Milestone>)])
+    render(withI18n(<AccountsPage />))
+    await userEvent.setup().click(screen.getByRole('tab', { name: 'Instalments' }))
+    const rows = screen.getAllByTestId('milestone-row')
+    expect(rows).toHaveLength(2)
+    expect(within(rows[0]).queryByTestId('direct-tag')).toBeNull()
+    expect(within(rows[1]).getByTestId('direct-tag')).toBeInTheDocument()
+    expect(within(rows[1]).getByRole('link', { name: 'Open lead' })).toHaveAttribute('href', '/dashboard/leads/12?tab=payments')
+  })
+
+  it('receipts: a direct customer’s receipt row is tagged', async () => {
+    h.list = page([{ ...direct, status: 'verified', receipt: { receipt_number: 'GNR-2026-00007', email_status: 'held', emailed_at: null, pdf_available: false, receipt_pending_email: false, held: true, url: null } }])
+    render(withI18n(<AccountsPage />))
+    await userEvent.setup().click(screen.getByRole('tab', { name: 'Receipts' }))
+    expect(within(screen.getByTestId('receipt-row')).getByTestId('direct-tag')).toBeInTheDocument()
+  })
+
+  it('payment detail: the customer links to the lead’s Payments tab', async () => {
+    h.detail = { data: { ...direct, project: { ...project, onboarding_id: null, lead_id: 12, customer_name: 'Ramesh Das' } } }
+    await showDetail()
+    const block = screen.getByTestId('project-block')
+    expect(within(block).getByRole('link', { name: 'Ramesh Das' })).toHaveAttribute('href', '/dashboard/leads/12?tab=payments')
+    expect(within(block).getByTestId('direct-tag')).toBeInTheDocument()
   })
 })

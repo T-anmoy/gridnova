@@ -7,8 +7,23 @@ export function humanize(key: string): string {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1)
 }
 
-export function labelFor(map: Record<string, string>, key: string): string {
-  return map[key] ?? humanize(key)
+/**
+ * Translate by code: the reader's copy first, then the server's English `label` for a code the
+ * copy doesn't know yet (BE-20 `{code, label}` items), then a readable version of the code.
+ * Never the other way round — nothing is ever looked up by its English text.
+ */
+export function labelFor(map: Record<string, string>, key: string, serverLabels?: Record<string, string>): string {
+  return map[key] ?? serverLabels?.[key] ?? humanize(key)
+}
+
+export interface CodeLabel {
+  code: string
+  label: string
+}
+
+/** `[{code, label}]` → `{code: label}`, for labelFor's fallback. */
+export function serverLabelsOf(items: CodeLabel[] | null | undefined): Record<string, string> {
+  return Object.fromEntries((items ?? []).filter((i) => i?.code).map((i) => [i.code, i.label]))
 }
 
 export function slotKey(def: string | { key: string }): string {

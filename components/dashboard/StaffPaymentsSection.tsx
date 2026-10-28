@@ -33,7 +33,7 @@ function PaymentsBody({ onboardingId }: { onboardingId: number }) {
   const linkToPayment = can('payments.view_all')
 
   return (
-    <div className="space-y-4" data-testid="staff-payments-section">
+    <div id="payments" className="scroll-mt-20 space-y-4" data-testid="staff-payments-section">
       <Card>
         <CardHeader><CardTitle className="text-base">Payments</CardTitle></CardHeader>
         <CardContent className="space-y-4">
