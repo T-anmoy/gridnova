@@ -2,14 +2,14 @@
 
 import { ArrowLeft, Check, Circle, Clock } from 'lucide-react'
 import Link from '@/components/i18n/Link'
-import { DashboardError } from '@/components/dashboard/DashboardError'
+import { PortalError } from '@/components/associate/PortalError'
 import ExecutionEvidenceForm, { Panel } from '@/components/execution/ExecutionEvidenceForm'
 import RegisterReadOnly from '@/components/execution/RegisterReadOnly'
 import RegisterEntry from '@/components/associate/RegisterEntry'
 import RegisterUnitActions from '@/components/associate/RegisterUnitActions'
 import { useExecution, useSubmitExecutionStage, useUploadExecutionFile } from '@/lib/associate/execution-api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
-import { formatDatetime } from '@/lib/dashboard/utils'
+import { useDates } from '@/lib/i18n/dates'
 import type { ExecutionStageStatus, ExecutionStatus } from '@/lib/associate/execution-types'
 import type { Messages } from '@/lib/i18n/types'
 
@@ -70,6 +70,7 @@ export default function ExecutionChecklist({
   copy: Copy
   photosCopy: PhotosCopy
 }) {
+  const { formatDatetime } = useDates()
   const { data: status, isLoading, error, refetch } = useExecution(onboardingId)
 
   const back = (
@@ -99,7 +100,7 @@ export default function ExecutionChecklist({
             <p className="font-utility text-sm text-[#111827]/70">{copy.notStarted}</p>
           </Panel>
         ) : (
-          <DashboardError error={error} onRetry={() => void refetch()} />
+          <PortalError error={error} onRetry={() => void refetch()} />
         )}
       </div>
     )

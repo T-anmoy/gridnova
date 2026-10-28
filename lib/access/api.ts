@@ -6,7 +6,7 @@ import { apiFetch, notAuthenticatedError } from '@/lib/api/http'
 import { shouldRetryQuery } from '@/lib/api/retry-policy'
 import type { Employee, EmployeeMe, Role } from '@/lib/dashboard/types'
 import type {
-  AccessAlerts, AccessMatrix, ApprovalRequest, ApprovalStatus, DeactivateResponse, HandoverResponse, InvitationIn,
+  AccessAdmin, AccessAlerts, AccessMatrix, ApprovalRequest, ApprovalStatus, DeactivateResponse, HandoverResponse, InvitationIn,
   InvitationStatus, PendingApproval, ReactivateResponse, ReassignResponse, RolesUpdated, StaffInvitation,
 } from './types'
 
@@ -16,6 +16,7 @@ const BASE = '/api/v1/dashboard'
 export const ME_KEY = ['employee-me'] as const
 const MATRIX_KEY = ['access-matrix'] as const
 const ALERTS_KEY = ['access-alerts'] as const
+const ADMINS_KEY = ['access-admins'] as const
 const INVITATIONS_KEY = ['staff-invitations'] as const
 const APPROVALS_KEY = ['approvals'] as const
 const EMPLOYEES_KEY = ['employees'] as const
@@ -74,6 +75,17 @@ export function useAccessAlerts() {
   return useQuery({
     queryKey: ALERTS_KEY,
     queryFn: async ({ signal }) => apiFetch<AccessAlerts>(`${BASE}/access/alerts`, await token(), { signal }),
+  })
+}
+
+/** GET /access/admins — any staff: the active Admins, so "ask an Admin" can name them. */
+export function useAccessAdmins() {
+  const token = useTokenGetter()
+  return useQuery({
+    queryKey: ADMINS_KEY,
+    queryFn: async ({ signal }) => (await apiFetch<{ items: AccessAdmin[] }>(`${BASE}/access/admins`, await token(), { signal })).items,
+    staleTime: 10 * 60_000,
+    retry: shouldRetryQuery,
   })
 }
 

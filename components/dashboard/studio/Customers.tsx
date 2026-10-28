@@ -93,9 +93,9 @@ export function CustomerDetail() {
   const options = useStudioOptions()
   const customer = useStudioCustomer(Number.isFinite(id) ? id : null)
   const c = customer.data?.customer
-  // The list has no customer filter: search by the mobile, keep this customer's rows.
-  const proposals = useStudioProposals({ q: c?.mobile, page_size: 100 }, { enabled: !!c })
-  const mine = (proposals.data?.items ?? []).filter((p) => p.customer?.id === id)
+  // BE-19: the list filters by customer.
+  const proposals = useStudioProposals({ customer_id: id, page_size: 100 }, { enabled: !!c })
+  const mine = proposals.data?.items ?? []
   const [editing, setEditing] = useState(false)
 
   if (customer.error) return <DashboardError error={customer.error} onRetry={() => void customer.refetch()} />
@@ -143,6 +143,11 @@ export function CustomerDetail() {
             <ul className="divide-y divide-[#eef1f5]" data-testid="customer-proposals">
               {mine.map((p) => <ProposalLine key={p.id} p={p} />)}
             </ul>
+          )}
+          {(proposals.data?.total ?? 0) > mine.length && (
+            <p className="mt-2 px-3 font-utility text-sm">
+              <Link href={`/dashboard/studio/proposals?customer=${id}`} className="text-[#0e2a63] underline" data-testid="customer-all-proposals">See all {proposals.data!.total}</Link>
+            </p>
           )}
         </Panel>
       </div>

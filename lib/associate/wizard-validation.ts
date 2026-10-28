@@ -23,6 +23,8 @@ export interface WizardDraft {
   property_in_customer_name: '' | 'yes' | 'no'
   customer_timeline: string
   equipment_package: string
+  /** BE contract `desired_output_kw`: the size the customer asked for; the lead's capacity. */
+  desired_output_kw?: string
   notice_acknowledged: boolean
   survey: SurveyForm
   // Remembered so a reload mid-wizard reuses the same onboarding (and finds its pending photos).
@@ -35,6 +37,8 @@ export interface ValidationCopy {
   mobile: string
   email: string
   pinCode: string
+  /** "Enter the size in kW" — optional so older callers keep compiling. */
+  kw?: string
 }
 
 export interface SurveyErrorCopy {
@@ -96,6 +100,11 @@ export function validateWizardStep(
       break
     case 'requirement':
       if (ctx.isNew) need('equipment_package', v.choose)
+      // Without it Grid Nova cannot prepare the formal proposal (formal_proposal_not_ready).
+      // Required for a new customer; an older record may add it later (the customer page says it is missing).
+      if (!d.desired_output_kw?.trim()) {
+        if (ctx.isNew) e.desired_output_kw = v.required
+      } else if (numberProblem(d.desired_output_kw, { exclusiveMin: true, max: 1_000_000 })) e.desired_output_kw = v.kw ?? v.required
       break
     case 'house': {
       num('floors', { integer: true, max: 200 })

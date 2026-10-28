@@ -33,6 +33,8 @@ const EVENT_LABELS: Record<string, string> = {
   studio_expiring: 'Studio proposal expiring soon',
   studio_not_viewed: 'Studio proposal not opened yet',
   studio_approval_requested: 'Studio proposal needs approval',
+  proposal_ready_for_review: 'Drafted proposal waits for approval',
+  studio_converted: 'Studio proposal turned into a lead',
 }
 
 export function alertEventLabel(event: string): string {
@@ -53,4 +55,16 @@ export function recipientsLine(e: AlertRoute, matrix?: AccessMatrix | null): str
   if (e.assigned_employee) parts.push('the assigned person')
   if (e.owner) parts.push('the proposal’s owner')
   return parts.join(' · ') || 'Nobody yet'
+}
+
+/** BE-19 (staff.manage viewers): every address an alert goes to today, grouped by where it comes from. */
+export function addressGroups(e: AlertRoute, matrix?: AccessMatrix | null): { label: string; addresses: string[] }[] {
+  if (!e.addresses) return []
+  const groups: { label: string; addresses: string[] }[] = []
+  for (const r of sortRoles(Object.keys(e.addresses.by_role))) {
+    const list = e.addresses.by_role[r as keyof typeof e.addresses.by_role] ?? []
+    if (list.length) groups.push({ label: roleLabel(r, matrix), addresses: list })
+  }
+  if (e.addresses.fixed.length) groups.push({ label: 'Shared mailboxes', addresses: e.addresses.fixed })
+  return groups
 }

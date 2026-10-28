@@ -617,7 +617,7 @@ describe('Staff leads — referred by (BE-10 §1.4)', () => {
 
 describe('F6 — Photo guides', () => {
   const knownSlots = [
-    ...ONBOARDING_OPTIONS.photo_slots.map((s) => s.key),
+    ...ONBOARDING_OPTIONS.photo_slots.map((s) => (typeof s === "string" ? s : s.key)),
     ...Object.keys(en.associates.portal.execution.photoSlots),
   ]
 

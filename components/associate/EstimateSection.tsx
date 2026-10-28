@@ -4,7 +4,9 @@ import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { useCreateEstimate, useOnboardingEstimates } from '@/lib/associate/onboarding-api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
-import { formatCurrency, formatDatetime } from '@/lib/dashboard/utils'
+import { portalErrorText } from '@/lib/associate/portal-error'
+import { formatCurrency } from '@/lib/dashboard/utils'
+import { useDates } from '@/lib/i18n/dates'
 import { CustomQuoteNotice, PriceListSummary } from '@/components/pricing/PackageCards'
 import SolarEstimateResult from '@/components/pricing/SolarEstimateResult'
 import { parseSolarEstimate } from '@/lib/pricing/solar-estimate'
@@ -17,6 +19,7 @@ import type { Messages } from '@/lib/i18n/types'
 type EstimateCopy = Messages['associates']['portal']['estimate']
 
 function EstimateCard({ estimate, copy, catalogue }: { estimate: Estimate; copy: EstimateCopy; catalogue: PackageCatalogue | null }) {
+  const { formatDatetime } = useDates()
   const r = estimate.result
   const pricing = useMessages('pricing')
   // BE-14: the stored result is the instant estimate itself, so the associate
@@ -122,6 +125,7 @@ export default function EstimateSection({ onboardingId, copy }: { onboardingId: 
   const { data: estimates, isLoading } = useOnboardingEstimates(onboardingId)
   const { catalogue } = usePackageCatalogue()
   const pricing = useMessages('pricing')
+  const feedback = useMessages('portalFeedback')
   const createMutation = useCreateEstimate()
 
   async function handleCreate() {
@@ -143,11 +147,8 @@ export default function EstimateSection({ onboardingId, copy }: { onboardingId: 
         const reason = String(err.structuredDetail.reason ?? '')
         const known = pricing.unsupportedSize as Record<string, string>
         setError(known[reason] ?? known.generic)
-      } else if (err instanceof ApiError && err.structuredDetail?.code) {
-        const code = err.structuredDetail.code as keyof EstimateCopy['errors']
-        setError(copy.errors[code] ?? err.detail ?? err.message)
       } else {
-        setError(err instanceof ApiError ? err.detail || err.message : 'Failed to create estimate')
+        setError(portalErrorText(err, feedback, copy.errors))
       }
     }
   }
@@ -159,7 +160,8 @@ export default function EstimateSection({ onboardingId, copy }: { onboardingId: 
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className="rounded-lg bg-[#0e2a63] px-4 py-2 text-xs font-semibold text-white font-utility"
+          aria-expanded={open}
+          className="min-h-[44px] rounded-lg bg-[#0e2a63] px-4 py-2 text-xs font-semibold text-white font-utility"
         >
           {copy.getEstimateButton}
         </button>
@@ -167,20 +169,27 @@ export default function EstimateSection({ onboardingId, copy }: { onboardingId: 
 
       {open && (
         <div className="mt-4 rounded-xl border border-[#e4e8ee] bg-[#f7f9fc] p-4 space-y-3">
-          <input
-            className="w-full rounded-lg border border-[#e4e8ee] px-3 py-2 text-sm font-utility"
-            placeholder={copy.fields.segmentLabel}
-            value={segment}
-            onChange={(e) => setSegment(e.target.value)}
-          />
-          <input
-            className="w-full rounded-lg border border-[#e4e8ee] px-3 py-2 text-sm font-utility"
-            placeholder={copy.fields.roofTypeLabel}
-            value={roofType}
-            onChange={(e) => setRoofType(e.target.value)}
-          />
+          {/* Visible labels, not placeholders only (FE-19 phone pass). */}
+          <label className="block text-xs font-utility text-[#111827]/70">
+            {copy.fields.segmentLabel}
+            <input
+              className="mt-1 w-full min-h-[44px] rounded-lg border border-[#e4e8ee] px-3 py-2 text-sm font-utility"
+              value={segment}
+              onChange={(e) => setSegment(e.target.value)}
+            />
+          </label>
+          <label className="block text-xs font-utility text-[#111827]/70">
+            {copy.fields.roofTypeLabel}
+            <input
+              className="mt-1 w-full min-h-[44px] rounded-lg border border-[#e4e8ee] px-3 py-2 text-sm font-utility"
+              value={roofType}
+              maxLength={50}
+              onChange={(e) => setRoofType(e.target.value)}
+            />
+          </label>
           <select
-            className="w-full rounded-lg border border-[#e4e8ee] px-3 py-2 text-sm font-utility"
+            aria-label={copy.fields.accessDifficulty.label}
+            className="w-full min-h-[44px] rounded-lg border border-[#e4e8ee] px-3 py-2 text-sm font-utility"
             value={accessDifficulty}
             onChange={(e) => setAccessDifficulty(e.target.value as AccessDifficulty)}
           >
@@ -189,16 +198,16 @@ export default function EstimateSection({ onboardingId, copy }: { onboardingId: 
             <option value="moderate">{copy.fields.accessDifficulty.moderate}</option>
             <option value="difficult">{copy.fields.accessDifficulty.difficult}</option>
           </select>
-          <label className="flex items-center gap-2 text-sm font-utility">
-            <input type="checkbox" checked={isHousingSociety} onChange={(e) => setIsHousingSociety(e.target.checked)} />
+          <label className="flex min-h-[44px] items-center gap-2 text-sm font-utility">
+            <input type="checkbox" className="h-5 w-5" checked={isHousingSociety} onChange={(e) => setIsHousingSociety(e.target.checked)} />
             {copy.fields.housingSocietyLabel}
           </label>
-          {error && <p className="text-xs text-red-600 font-utility">{error}</p>}
+          {error && <p role="alert" className="text-xs text-red-600 font-utility">{error}</p>}
           <button
             type="button"
             onClick={() => void handleCreate()}
             disabled={createMutation.isPending}
-            className="w-full rounded-lg bg-[#0e2a63] px-4 py-2 text-sm font-semibold text-white font-utility disabled:opacity-50"
+            className="w-full min-h-[48px] rounded-lg bg-[#0e2a63] px-4 py-2 text-sm font-semibold text-white font-utility disabled:opacity-50"
           >
             {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : copy.getEstimateButton}
           </button>

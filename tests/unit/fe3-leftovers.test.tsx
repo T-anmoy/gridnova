@@ -50,7 +50,7 @@ describe('N2 — approval is asynchronous', () => {
     expect(screen.getByTestId('approval-preparing')).toHaveTextContent(/invite and documents are being prepared/)
     expect(screen.getByTestId('invite-preparing')).toBeInTheDocument()
     expect(screen.queryByText('Failed')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Retry Clerk invite' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Send invitation/ })).not.toBeInTheDocument()
   })
 
   it('polls: the page passes a deadline about a minute out', () => {
@@ -61,18 +61,18 @@ describe('N2 — approval is asynchronous', () => {
     expect(poll.until - Date.now()).toBeLessThanOrEqual(60_000)
   })
 
-  it('only the string "failed" is a failure, and it offers the retry', () => {
+  it('only the string "failed" is a failure, and it offers to send the invitation', () => {
     useAdminAssociate.mockReturnValue(ok(associate({ clerk_invite_status: 'failed', documents: { id_card: true, welcome_letter: true, generated_at: 'x', error: null } })))
     render(<AssociateDetailPage />)
-    expect(screen.getByText('Failed')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Retry Clerk invite' })).toBeInTheDocument()
+    expect(screen.getByTestId('invite-state')).toHaveTextContent('Failed to send')
+    expect(screen.getByRole('button', { name: 'Send invitation' })).toBeInTheDocument()
   })
 
   it('stops saying "preparing" once the invite is set and the ID card exists', () => {
     useAdminAssociate.mockReturnValue(ok(associate({ clerk_invite_status: 'sent', documents: { id_card: true, welcome_letter: true, generated_at: 'x', error: null } })))
     render(<AssociateDetailPage />)
     expect(screen.queryByTestId('approval-preparing')).not.toBeInTheDocument()
-    expect(screen.getByText('sent')).toBeInTheDocument()
+    expect(screen.getByTestId('invite-state')).toHaveTextContent('Sent — not accepted yet')
   })
 
   it('isPreparing: needs both the invite and the ID card, and ignores old records', () => {

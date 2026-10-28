@@ -141,7 +141,7 @@ describe('PortalHome — the to-do feed', () => {
     unmount()
     h.home = { error: new ApiError(500, 'x', 'boom') }
     showHome()
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Retry' }))
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Try again' }))
     expect(h.refetch).toHaveBeenCalled()
   })
 })

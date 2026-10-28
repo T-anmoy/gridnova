@@ -124,13 +124,14 @@ describe('wizard — "At the house" step', () => {
     const user = userEvent.setup()
     renderWizard(onboarding({ site_location: CONFIRMED }), { initialStep: 'house' })
     const embedded = screen.getByTestId('house-photo-slot')
-    expect(embedded).toHaveTextContent('Panel installation area')
+    // Known slots show the portal's own (translated) label, not the server's English one (FE-19).
+    expect(embedded).toHaveTextContent(copy.photos.slotLabels.panel_installation_area)
     expect(screen.queryByRole('button', { name: m.actions.takePhoto })).not.toBeInTheDocument() // no jump-away button
     await user.click(screen.getByRole('button', { name: copy.continueButton })) // layout
     await user.click(screen.getByRole('button', { name: copy.continueButton })) // documents
     await user.click(screen.getByRole('button', { name: copy.continueButton })) // photos
     expect(screen.getByText('Front of premises')).toBeInTheDocument()
-    expect(screen.queryByText('Panel installation area')).not.toBeInTheDocument()
+    expect(screen.queryByText(copy.photos.slotLabels.panel_installation_area)).not.toBeInTheDocument()
   })
 
   it('photo → "use this photo\'s location" → confirm → Continue, all on the house step', async () => {

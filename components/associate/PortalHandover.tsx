@@ -6,11 +6,11 @@ import { useAuth } from '@clerk/nextjs'
 import { ArrowLeft, Check, Circle, Download } from 'lucide-react'
 import Link from '@/components/i18n/Link'
 import ServiceRequestForm from '@/components/handover/ServiceRequestForm'
-import { DashboardError } from '@/components/dashboard/DashboardError'
+import { PortalError } from '@/components/associate/PortalError'
 import { notAuthenticatedError } from '@/lib/api/http'
 import { humanize } from '@/lib/associate/execution-labels'
 import { ApiError } from '@/lib/dashboard/api-error'
-import { formatDate } from '@/lib/dashboard/utils'
+import { useDates } from '@/lib/i18n/dates'
 import { fetchMyHandoverPdfLink, useMyHandoverPack, useMyServiceRequests, useRaiseMyServiceRequest } from '@/lib/handover/associate-api-client'
 import type { ServiceFormCopy } from '@/lib/handover/form-copy'
 import type { Warranty, ServiceRequest } from '@/lib/handover/schemas'
@@ -27,6 +27,7 @@ const FOCUS = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visi
 const word = (words: Record<string, string>, key: string) => words[key] ?? humanize(key)
 
 function WarrantyCard({ warranty, copy }: { warranty: Warranty; copy: Copy['warranty'] }) {
+  const { formatDate } = useDates()
   const sys = warranty.system
   const om = warranty.om
   const unconfirmed = <span className="rounded-full bg-amber-100 px-2 py-0.5 font-utility text-xs font-semibold text-amber-900" data-testid="unconfirmed">{copy.unconfirmed}</span>
@@ -79,6 +80,7 @@ function WarrantyCard({ warranty, copy }: { warranty: Warranty; copy: Copy['warr
 }
 
 function RequestList({ items, copy, words, focus }: { items: ServiceRequest[]; copy: Copy['requests']; words: ServiceWords; focus: number | null }) {
+  const { formatDate } = useDates()
   const chip = copy.statusChip as Record<string, string>
   const focused = useRef<HTMLLIElement>(null)
   useEffect(() => {
@@ -146,7 +148,7 @@ export default function PortalHandover({ onboardingId, portalBase, copy, words }
             <p className="mt-1 text-sm text-[#111827]/70">{copy.notStartedBody}</p>
           </div>
         ) : (
-          <DashboardError error={error} onRetry={() => void refetch()} />
+          <PortalError error={error} onRetry={() => void refetch()} />
         )}
       </div>
     )
@@ -219,7 +221,7 @@ export default function PortalHandover({ onboardingId, portalBase, copy, words }
       <section className={CARD} aria-labelledby="requests-h" id="service-requests">
         <h2 id="requests-h" className="font-display text-base font-semibold text-[#0e2a63]">{copy.requests.title}</h2>
         {requests.error ? (
-          <div className="mt-3"><DashboardError error={requests.error} onRetry={() => void requests.refetch()} /></div>
+          <div className="mt-3"><PortalError error={requests.error} onRetry={() => void requests.refetch()} /></div>
         ) : requests.isLoading ? (
           <div className="mt-3 h-16 animate-pulse rounded-xl bg-[#eef1f6]" role="status" aria-busy="true"><span className="sr-only">{copy.loading}</span></div>
         ) : (

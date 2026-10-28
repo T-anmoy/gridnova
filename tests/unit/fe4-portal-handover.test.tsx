@@ -166,7 +166,7 @@ describe('Associate: service requests (W7)', () => {
   it('a backend failure on the list is an error card, not an empty list', () => {
     h.requests = { error: new ApiError(0, 'Network request failed') }
     show()
-    expect(screen.getByText(/Can’t reach the server/)).toBeInTheDocument()
+    expect(screen.getByText(/Couldn't reach Grid Nova/)).toBeInTheDocument()
     expect(screen.queryByTestId('no-requests')).toBeNull()
   })
 })

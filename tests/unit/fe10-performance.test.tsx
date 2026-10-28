@@ -312,7 +312,7 @@ describe('Ask Nova — heavy parts load on demand', () => {
   it('the widget itself is fetched only once the browser is idle after hydration', () => {
     const chrome = read('components/SiteChrome.tsx')
     expect(chrome).toContain('requestIdleCallback')
-    expect(chrome).toMatch(/\{!bare && idle && <AskNova \/>\}/)
+    expect(chrome).toMatch(/\{!bare && idle && !hidesAskNova\(pathname\) && <AskNova \/>\}/)
   })
 
   it('the launcher pulse animates only transform and opacity (no per-frame repaint)', () => {

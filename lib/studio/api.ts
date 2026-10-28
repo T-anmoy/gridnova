@@ -205,8 +205,12 @@ export const studioApi = {
     apiFetch<StudioView>(`${P}/${id}/reject`, await token(), { method: 'POST', body: JSON.stringify({ comment }) }),
   issue: async (token: Token, id: number) =>
     apiFetch<StudioView & { public_url: string }>(`${P}/${id}/issue`, await token(), { method: 'POST' }),
-  email: async (token: Token, id: number, to: string | null) =>
-    apiFetch<{ sent: boolean; to: string }>(`${P}/${id}/email`, await token(), { method: 'POST', body: JSON.stringify({ to: to || null }) }),
+  /** BE-19: `subject` replaces the configured one; `message` is staff's own text above the fixed lines. */
+  email: async (token: Token, id: number, body: { to?: string | null; subject?: string | null; message?: string | null }) =>
+    apiFetch<{ sent: boolean; to: string }>(`${P}/${id}/email`, await token(), {
+      method: 'POST',
+      body: JSON.stringify({ to: body.to || null, subject: body.subject || null, message: body.message || null }),
+    }),
   whatsappLink: async (token: Token, id: number) =>
     apiFetch<{ url: string; text: string; link: string }>(`${P}/${id}/whatsapp-link`, await token(), { method: 'POST' }),
   revise: async (token: Token, id: number) => apiFetch<StudioView>(`${P}/${id}/revise`, await token(), { method: 'POST' }),
@@ -237,9 +241,15 @@ export const studioApi = {
   },
   previewPdf: async (token: Token, id: number, version?: number, signal?: AbortSignal) =>
     apiFetchBlob(`${P}/${id}/preview.pdf${buildQS({ version })}`, await token(), { signal }),
-  /** The issued file: the route answers 302 to a signed link, which the browser follows. */
-  downloadPdf: async (token: Token, id: number, version: number | undefined, fallbackName: string) =>
-    apiDownload(`${P}/${id}/pdf${buildQS({ version })}`, await token(), fallbackName),
+  /** BE-19: the issued file as a short-lived signed link in JSON (no bucket CORS needed). */
+  pdfLink: async (token: Token, id: number, version?: number) =>
+    apiFetch<{ url: string; expires_at: string; filename: string }>(`${P}/${id}/pdf-link${buildQS({ version })}`, await token()),
+  /** BE-19: puts a section back to its generated default. */
+  resetSection: async (token: Token, id: number, section: string, baseRevision: number) =>
+    apiFetch<SectionEditResponse>(`${P}/${id}/sections/${encodeURIComponent(section)}/reset`, await token(), {
+      method: 'POST',
+      body: JSON.stringify({ base_revision: baseRevision }),
+    }),
   downloadImportTemplate: async (token: Token) =>
     apiDownload(`${STUDIO}/import-template.xlsx`, await token(), 'GridNova_Proposal_Studio_Import.xlsx'),
 }

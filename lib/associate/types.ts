@@ -229,6 +229,36 @@ export interface AdminAssociate {
   documents: AssociateDocumentsStatus
 }
 
+// POST /dashboard/associates/{id}/status (associate_journeys.md §4): the associate as
+// before, plus what happened to their Clerk access and how many customers they still own.
+export interface AssociateAccessChange {
+  clerk_banned?: boolean
+  invitation_revoked?: boolean
+  clerk_unbanned?: boolean
+  clerk_error: string | null
+}
+
+export interface AssociateStatusChange extends AdminAssociate {
+  /** null when nothing changed for Clerk. */
+  access: AssociateAccessChange | null
+  open_customers: number
+}
+
+// POST /dashboard/associates/{id}/reassign-customers.
+export interface ReassignCustomersInput {
+  to_associate_id: string
+  reason: string
+  /** Omitted: every open customer. */
+  onboarding_ids?: number[]
+}
+
+export interface ReassignCustomersResult {
+  from_associate_id: string
+  to_associate_id: string
+  onboarding_ids: number[]
+  moved: number
+}
+
 export interface AssociateListParams {
   status?: AssociateStatus
   associate_type?: ApplicationType

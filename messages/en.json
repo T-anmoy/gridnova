@@ -1436,7 +1436,7 @@
         "items": [
           {
             "title": "No cash, ever",
-            "body": "Customers pay only into Grid Nova’s own bank account — by cheque, demand draft, NEFT, RTGS, IMPS or UPI. Never take cash or let a customer pay you or any other account."
+            "body": "Customers pay only into Grid Nova’s own bank account — by cheque, NEFT, RTGS or IMPS. Never take cash or let a customer pay you or any other account."
           },
           {
             "title": "No price promises",
@@ -1609,7 +1609,18 @@
       "levelDistrictHead": "District Head",
       "levelBlock": "Block Associate",
       "idLabel": "Associate ID",
-      "statusNote": "This status is checked live against Grid Nova's records."
+      "statusNote": "This status is checked live against Grid Nova's records.",
+      "offlineTitle": "No internet connection",
+      "offlineBody": "We couldn't check this ID because your phone is offline. Connect to the internet and try again. This does not mean the person is not a Grid Nova Associate.",
+      "serverTitle": "We couldn't check this ID right now",
+      "serverBody": "Grid Nova's records could not be reached. Please try again in a few minutes, or call us to confirm who this person is.",
+      "rateLimitedTitle": "Too many checks",
+      "rateLimitedBody": "Please wait a minute, then try again.",
+      "retry": "Try again",
+      "call": "Call Grid Nova",
+      "inactiveBody": "This person is not currently authorised to work for Grid Nova — their account is suspended or closed. Do not hand over money or documents. Call Grid Nova if you have been asked to.",
+      "notFoundAdvice": "If someone showed you a Grid Nova card with this ID, do not hand over money or documents — call Grid Nova first.",
+      "paymentNote": "Grid Nova Associates never collect money. Pay only into Grid Nova's own bank account by cheque, NEFT, RTGS or IMPS."
     },
     "consent": {
       "eyebrow": "Before you continue",
@@ -1652,7 +1663,10 @@
         "blockLabel": "Block",
         "seatCheckingLabel": "Checking seat availability…",
         "seatAvailableLabel": "A seat is available for this territory.",
-        "seatFullLabel": "This seat is already filled. Please choose a different territory."
+        "seatFullLabel": "This seat is already filled. Please choose a different territory.",
+        "errorFields": "Some answers need a correction — they are marked in red below.",
+        "errorFieldsElsewhere": "Please also check: {steps}.",
+        "consentUpdated": "The consent text was updated while you were filling the form. Please read it again and accept."
       },
       "fields": {
         "full_name": {
@@ -1831,6 +1845,50 @@
             "Once approved, you'll get your Associate ID, your appointed territory, and an invitation to sign in to your portal."
           ]
         }
+      },
+      "stepNames": {
+        "personal": "Personal details",
+        "address": "Address",
+        "territory": "Territory",
+        "business": "Business",
+        "references": "References",
+        "identityBank": "Identity and bank",
+        "capability": "What you will do",
+        "documents": "Documents",
+        "consent": "Consent",
+        "review": "Review"
+      },
+      "fieldErrors": {
+        "required": "This is required.",
+        "invalid": "This doesn't look right. Please check it.",
+        "too_long": "This is too long. Please shorten it.",
+        "name_required": "Please enter your full name.",
+        "name_too_long": "This name is too long. Please shorten it.",
+        "date_format": "Please enter the date as DD / MM / YYYY.",
+        "dob_future": "Date of birth can't be in the future.",
+        "underage": "You must be at least 18 years old to apply.",
+        "dob_implausible": "Please check the year of birth.",
+        "aadhaar_format": "The Aadhaar number must be 12 digits.",
+        "aadhaar_checksum": "This Aadhaar number isn't valid. Please check each digit.",
+        "pan_format": "The PAN must look like ABCPE1234F: 5 letters, 4 digits, 1 letter.",
+        "pan_holder_type": "This PAN's 4th letter isn't a known holder type. Please check the PAN.",
+        "pan_not_individual": "Please use your personal PAN — its 4th letter is P.",
+        "bank_account_format": "The bank account number must be 9 to 18 digits, numbers only.",
+        "ifsc_format": "The IFSC must be 11 characters, like HDFC0001234. It is printed on your cheque book.",
+        "mobile_format": "Please enter a 10-digit Indian mobile number.",
+        "pin_format": "The PIN code must be 6 digits.",
+        "email_format": "Please enter a valid email address, like name@example.com.",
+        "gstin_format": "The GSTIN must be 15 characters, like 19ABCDE1234F1Z5.",
+        "not_a_whole_number": "Please enter a whole number.",
+        "below_minimum": "This number is too small.",
+        "above_maximum": "This number is too large.",
+        "not_a_choice": "Please choose one of the options.",
+        "consent_required": "Please read the consent and tick the box to continue.",
+        "consent_version_stale": "The consent text was updated. Please read it again and accept.",
+        "references_same": "Your two references must be two different people.",
+        "reference_is_applicant": "A reference can't use your own mobile number.",
+        "invalid_file": "This file can't be used. Please upload a clear JPEG, PNG or PDF.",
+        "heic_not_supported": "iPhone HEIC photos can't be used. Please choose a JPEG or PNG photo."
       }
     },
     "portal": {
@@ -1861,7 +1919,8 @@
           "body": "Your ID card confirms your Associate status to customers. Anyone can verify it using the QR code or your Associate ID.",
           "download": "Download ID card (PDF)",
           "notReady": "Your ID card hasn't been generated yet. Please check back shortly or contact Grid Nova.",
-          "loading": "Preparing your download link…"
+          "loading": "Preparing your download link…",
+          "downloadWelcome": "Download welcome letter (PDF)"
         },
         "profile": {
           "title": "Profile",
@@ -2079,7 +2138,10 @@
           "title": "Choose an equipment package",
           "subtitle": "Both packages are genuine, well-supported options — the right choice depends on the customer's priorities.",
           "dcrTitle": "About DCR",
-          "dcrExplainer": "DCR (Domestic Content Requirement) panels are made in India and are required for some government subsidy schemes. Non-DCR panels can be imported and may cost less, but aren't eligible for every subsidy."
+          "dcrExplainer": "DCR (Domestic Content Requirement) panels are made in India and are required for some government subsidy schemes. Non-DCR panels can be imported and may cost less, but aren't eligible for every subsidy.",
+          "desiredKwLabel": "System size the customer wants (kW)",
+          "desiredKwHint": "Ask the customer, e.g. 3. Grid Nova needs it to prepare the formal proposal; the survey also suggests a size.",
+          "desiredKwInvalid": "Enter the size in kW, for example 3 or 4.5."
         },
         "warnings": {
           "non_dcr_pm_surya_ghar": "This customer may not be eligible for the PM Surya Ghar subsidy with non-DCR panels.",
@@ -2107,7 +2169,17 @@
           "cameraUnavailable": "Camera access is needed to take this photo.",
           "locationRequired": "Turn on location to take this photo, then try again.",
           "uploadFailed": "This photo couldn't be uploaded. Please try again.",
-          "retryButton": "Retry"
+          "retryButton": "Retry",
+          "slotLabels": {
+            "panel_installation_area": "Where the panels will go",
+            "acdb_dcdb_placement": "Where the ACDB / DCDB boxes will go",
+            "earthing_location": "Earthing location",
+            "inverter_installation_area": "Where the inverter will go",
+            "wiring_path": "Cable route",
+            "panel_to_inverter_distance": "Distance from panels to inverter",
+            "inverter_to_lt_panel_distance": "Distance from inverter to the meter / LT panel"
+          },
+          "otherSlot": "Site photo"
         },
         "review": {
           "title": "Review & submit",
@@ -2207,7 +2279,17 @@
             "missing_required": "Grid Nova still needs a few details on this proposal before it can be accepted. Please ask your Grid Nova contact."
           }
         },
-        "genericError": "Something went wrong. Please try again."
+        "genericError": "Something went wrong. Please try again.",
+        "fieldNames": {
+          "name": "customer's name",
+          "email": "customer's email",
+          "project_type": "kind of project",
+          "location": "location",
+          "capacity_kw": "system size (kW)",
+          "budget": "budget",
+          "timeline": "when they want to go ahead",
+          "monthly_electricity_bill": "monthly electricity bill"
+        }
       },
       "agreement": {
         "title": "Agreement",
@@ -2500,7 +2582,7 @@
         "amountHint": "Digits only, for example 25000 or 25000.50",
         "reference": "UTR / cheque / reference number",
         "bankName": "Customer's bank",
-        "instrumentDate": "Cheque or draft date",
+        "instrumentDate": "Cheque date",
         "payerName": "Payer's name",
         "milestone": "Which instalment is this for? (optional)",
         "milestoneNone": "Not sure",
@@ -2549,7 +2631,7 @@
           "invalid_amount": "Enter a positive amount with at most 2 decimal places.",
           "mode_not_enabled": "That payment method isn't accepted. Please choose one from the list.",
           "reference_required": "Please enter the reference number.",
-          "instrument_details_required": "For a cheque or draft, please enter the bank and the date on it.",
+          "instrument_details_required": "For a cheque, please enter the bank and the date on it.",
           "invalid_date": "That date isn't valid.",
           "unknown_milestone": "That instalment isn't part of this customer's schedule.",
           "duplicate_payment_reference": "This reference number has already been recorded for this payment method and bank.",
@@ -2567,7 +2649,8 @@
         },
         "proofTake": "Take photo",
         "instructionNotReady": "Grid Nova's bank details aren't ready yet. Please don't collect any payment until they appear here.",
-        "instructionPayOnlyHere": "Pay only into this account — never in cash and never to a person."
+        "instructionPayOnlyHere": "Pay only into this account — never in cash and never to a person.",
+        "retiredMode": "no longer accepted — kept for your records"
       },
       "feed": {
         "title": "What to do next",
@@ -3405,7 +3488,7 @@
     },
     "connection": {
       "title": "Connection survey",
-      "variantLabel": "Type of site",
+      "variantLabel": "Kind of building (for the survey)",
       "variants": {
         "individual_house": "Individual house",
         "housing_society": "Housing society",
@@ -4148,5 +4231,89 @@
     "issuer": "Issued by",
     "note": "Checked live against Grid Nova's records.",
     "contact": "Questions? Call {phone}"
+  },
+  "portalFeedback": {
+    "load": {
+      "offline": {
+        "title": "You're offline",
+        "body": "This page needs a connection. Try again when your signal is back."
+      },
+      "network": {
+        "title": "Couldn't reach Grid Nova",
+        "body": "Please check your internet and try again."
+      },
+      "server": {
+        "title": "Something went wrong on our side",
+        "body": "Please try again in a few minutes. If it keeps happening, call Grid Nova."
+      },
+      "rateLimited": {
+        "title": "Too many tries",
+        "body": "Please wait a minute, then try again."
+      },
+      "auth": {
+        "title": "Please sign in again",
+        "body": "Your sign-in has ended. Sign in again to continue."
+      },
+      "forbidden": {
+        "title": "Not available on your account",
+        "body": "This is not part of your Associate account. If you think it should be, call Grid Nova."
+      },
+      "notFound": {
+        "title": "Not found",
+        "body": "We couldn't find this. It may have been moved or closed."
+      },
+      "generic": {
+        "title": "Something went wrong",
+        "body": "Please try again."
+      }
+    },
+    "retry": "Try again",
+    "signIn": "Sign in again",
+    "call": "Call Grid Nova",
+    "account": {
+      "suspended": {
+        "title": "Your account is suspended",
+        "body": "You can't use the portal while your Associate account is suspended. Commission you have already earned is kept and paid after your account is reinstated. Call Grid Nova if you have questions."
+      },
+      "deactivated": {
+        "title": "Your account is closed",
+        "body": "Your Associate account has been deactivated, so the portal is no longer available. Commission you earned is settled as usual. Call Grid Nova if you have questions."
+      }
+    },
+    "action": {
+      "offline": "You're offline. Please try again when your signal is back.",
+      "network": "Couldn't reach Grid Nova. Please check your internet and try again.",
+      "server": "Something went wrong on our side. Please try again in a few minutes.",
+      "rateLimited": "Too many tries. Please wait a minute and try again.",
+      "auth": "Your sign-in has ended. Please sign in again.",
+      "forbidden": "You can't do this from your account.",
+      "notFound": "We couldn't find this. Please refresh the page.",
+      "conflict": "This changed since you opened it. Please refresh the page and try again.",
+      "invalid": "Some details aren't right. Please check them and try again.",
+      "generic": "Something went wrong. Please try again."
+    },
+    "codes": {
+      "not_found": "We couldn't find this. Please refresh the page.",
+      "invalid_transition": "This can't be done at this stage. Please refresh the page to see where it stands.",
+      "not_yours": "This customer is not on your list.",
+      "not_editable": "This can't be changed any more.",
+      "reason_required": "Please give a reason.",
+      "invalid_file": "This file can't be used. Please choose a clear JPEG, PNG or PDF.",
+      "heic_not_supported": "iPhone HEIC photos can't be used. Please choose a JPEG or PNG photo.",
+      "file_too_large": "This file is too large. Please choose a smaller one.",
+      "storage_not_configured": "Files can't be stored right now. Please try again later.",
+      "storage_unavailable": "Files can't be opened right now. Please try again later.",
+      "not_generated": "This document is not ready yet. Please try again in a few minutes.",
+      "rate_limited": "Too many tries. Please wait a minute and try again.",
+      "unsupported_size": "This system size is not on the price list. Grid Nova will price it for you.",
+      "seat_full": "That territory seat is already filled.",
+      "session_token_missing_claims": "Your sign-in is not fully set up — contact Grid Nova."
+    },
+    "documents": {
+      "id_card": "Your ID card couldn't be opened.",
+      "welcome_letter": "Your welcome letter couldn't be opened."
+    },
+    "unsaved": "Some changes are still being saved. Leave this page anyway?",
+    "noticeVersion": "Notice version: {version}"
   }
 }

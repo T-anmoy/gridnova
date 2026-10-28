@@ -59,13 +59,15 @@ const clerk = clerkMiddleware(async (auth, req) => {
     await auth.protect({ unauthenticatedUrl: new URL('/dashboard/sign-in', req.url).toString() })
     return
   }
+  // The portals live under app/(site)/[lang]: once signed in, an English path with no
+  // prefix still needs its /en rewrite (FE-19 — without it /associates/portal was a 404).
   if (isAssociatePortalRoute(req)) {
     await auth.protect({ unauthenticatedUrl: new URL('/associates/sign-in', req.url).toString() })
-    return
+    return localeRouting(req)
   }
   if (isPreferredPortalRoute(req)) {
     await auth.protect({ unauthenticatedUrl: new URL('/preferred/sign-in', req.url).toString() })
-    return
+    return localeRouting(req)
   }
   // Public site only: `/dashboard`, `/proposal` and `/api` are left untouched
   // (English, unprefixed) by localeRouting itself.

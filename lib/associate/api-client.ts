@@ -16,8 +16,11 @@ import type {
   AssociateListParams,
   AssociateMe,
   AssociateStatus,
+  AssociateStatusChange,
   KycConsent,
   PaginatedTerritoryMembers,
+  ReassignCustomersInput,
+  ReassignCustomersResult,
   SeatAvailability,
   SignedDocumentLink,
   TerritoryBlock,
@@ -346,7 +349,7 @@ export function useSetAssociateStatus() {
     }) => {
       const token = await getToken()
       if (!token) throw notAuthenticatedError()
-      return dashboardFetch<AdminAssociate>(`/api/v1/dashboard/associates/${associateId}/status`, token, {
+      return dashboardFetch<AssociateStatusChange>(`/api/v1/dashboard/associates/${associateId}/status`, token, {
         method: 'POST',
         body: JSON.stringify({ status, reason }),
       })
@@ -370,6 +373,26 @@ export function useRetryClerkInvite() {
     },
     onSuccess: (_data, associateId) => {
       void qc.invalidateQueries({ queryKey: ['associate', associateId] })
+    },
+  })
+}
+
+// Moves a suspended or deactivated associate's open customers to an active associate.
+export function useReassignCustomers() {
+  const { getToken } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ associateId, input }: { associateId: string; input: ReassignCustomersInput }) => {
+      const token = await getToken()
+      if (!token) throw notAuthenticatedError()
+      return dashboardFetch<ReassignCustomersResult>(`/api/v1/dashboard/associates/${encodeURIComponent(associateId)}/reassign-customers`, token, {
+        method: 'POST',
+        body: JSON.stringify(input),
+      })
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['associate'] })
+      void qc.invalidateQueries({ queryKey: ['staff-onboardings'] })
     },
   })
 }

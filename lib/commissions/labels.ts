@@ -85,7 +85,11 @@ const MESSAGES: Record<string, string | ((d: Record<string, unknown>) => string)
   period_out_of_order: (d) => `Months must be paid in order${d.latest_period ? ` — the latest batch is ${formatPeriod(String(d.latest_period))}` : ''}.`,
   placeholder_rates: (d) =>
     `Commission rates are not confirmed yet, so ${typeof d.pending_entries === 'number' ? `${d.pending_entries} ` : ''}entries of this month have no amount. Publish a real rate schedule and re-rate them first.`,
-  no_approved_entries: 'There is no approved commission to pay for that month.',
+  // BE-19: a suspended associate's approved commission is frozen — kept out of every batch until reinstatement.
+  no_approved_entries: (d) =>
+    typeof d.frozen_entries === 'number' && d.frozen_entries > 0
+      ? `There is no commission to pay for that month: the ${d.frozen_entries} approved ${d.frozen_entries === 1 ? 'entry belongs' : 'entries belong'} to suspended associates and stay frozen until they are reinstated.`
+      : 'There is no approved commission to pay for that month.',
   self_approval: 'You prepared this batch, so a different person has to approve it.',
   invalid_transition: 'The batch cannot be changed in its current state.',
   unknown_associate: 'A bank reference was given for someone who is not in this batch.',

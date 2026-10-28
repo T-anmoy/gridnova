@@ -8,7 +8,7 @@ import { useMessages } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/types'
 import { notAuthenticatedError } from '@/lib/api/http'
 import { isMissingClaimsError } from '@/lib/dashboard/api-error'
-import { formatDatetime } from '@/lib/dashboard/utils'
+import { useDates } from '@/lib/i18n/dates'
 import { fetchSurveyReportLink, useSurveyCorrections, useSurveyResults, useSurveyStatus } from '@/lib/associate/survey-api-client'
 import { useOnboardingOptions } from '@/lib/associate/onboarding-api-client'
 import { formatKw } from '@/lib/associate/survey'
@@ -56,6 +56,7 @@ function ReviewSection({
   canEdit: boolean
   verified: boolean
 }) {
+  const { formatDatetime } = useDates()
   const t = useMessages('survey')
   const r = t.review
   const sections = t.status.sections as Record<string, string>
@@ -121,6 +122,7 @@ function ReviewSection({
 }
 
 function ReportButton({ onboardingId, generatedAt }: { onboardingId: number; generatedAt: string }) {
+  const { formatDatetime } = useDates()
   const t = useMessages('survey')
   const { getToken } = useAuth()
   const [busy, setBusy] = useState(false)
@@ -157,6 +159,7 @@ function ReportButton({ onboardingId, generatedAt }: { onboardingId: number; gen
 }
 
 export function CorrectionHistory({ items }: { items: SurveyCorrection[] }) {
+  const { formatDatetime } = useDates()
   const t = useMessages('survey')
   const c = t.corrections
   const roof = t.roof

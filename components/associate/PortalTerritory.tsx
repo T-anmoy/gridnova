@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Info, Loader2 } from 'lucide-react'
 import Link from '@/components/i18n/Link'
 import { useTerritoryMembers } from '@/lib/associate/api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
-import { DashboardError } from '@/components/dashboard/DashboardError'
+import { PortalError } from '@/components/associate/PortalError'
 import type { ApplicationType, AssociateStatus, TerritoryMember } from '@/lib/associate/types'
 import { fmt, type Messages } from '@/lib/i18n/types'
 
@@ -148,7 +148,7 @@ export default function PortalTerritory({ copy }: { copy: TerritoryCopy }) {
           {copy.notPreferred}
         </p>
       ) : (
-        error && <DashboardError error={error} onRetry={() => void refetch()} />
+        error && <PortalError error={error} onRetry={() => void refetch()} />
       )}
 
       {isLoading && (

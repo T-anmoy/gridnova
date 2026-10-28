@@ -5,7 +5,7 @@ import { Loader2 } from 'lucide-react'
 import Link from '@/components/i18n/Link'
 import { useMessages, useOptionalMessages } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/types'
-import { DashboardError } from '@/components/dashboard/DashboardError'
+import { PortalError } from '@/components/associate/PortalError'
 import { useOnboarding, useOnboardingOptions } from '@/lib/associate/onboarding-api-client'
 import { useAssociateMe } from '@/lib/associate/api-client'
 import { useRequestSurveyCorrection, useSurveyCorrections } from '@/lib/associate/survey-api-client'
@@ -285,8 +285,8 @@ export default function CorrectionRequest({ onboardingId, portalBase }: { onboar
   const corrections = useSurveyCorrections(onboardingId)
   const back = `${portalBase}/customers/${onboardingId}`
 
-  if (onboarding.error) return <DashboardError error={onboarding.error} onRetry={() => void onboarding.refetch()} />
-  if (options.error) return <DashboardError error={options.error} onRetry={() => void options.refetch()} />
+  if (onboarding.error) return <PortalError error={onboarding.error} onRetry={() => void onboarding.refetch()} />
+  if (options.error) return <PortalError error={options.error} onRetry={() => void options.refetch()} />
   if (onboarding.isLoading || !onboarding.data || options.isLoading || !options.data || me.isLoading) {
     return (
       <div className="flex items-center justify-center py-20" role="status">

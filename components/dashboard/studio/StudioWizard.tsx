@@ -263,7 +263,11 @@ function NextAction({ view, busy, allClear, onSubmit, onIssue }: { view: StudioV
   if (!can?.edit) return null
   const reasons = view.approval_reasons.map((r) => APPROVAL_REASON_LABEL[r] ?? r)
   const needsApproval = view.approval_required && status === 'draft'
-  const blockedWhy = view.errors > 0 ? 'Fix the items in red first.' : !allClear ? 'Tick “I have checked this” on each amber warning first.' : view.content_blockers.length ? 'This kind of proposal cannot be issued yet (wording still to come from Grid Nova).' : null
+  // Errors staff can fix come first; wording Grid Nova has not supplied is not theirs to fix,
+  // so once only that is left the reason names it plainly (FE-19 second pass).
+  // (Each blocker is also one of the proof-check's errors, as the BE-18 views show.)
+  const fixable = view.errors - view.content_blockers.length
+  const blockedWhy = fixable > 0 ? 'Fix the items in red first.' : !allClear ? 'Tick “I have checked this” on each amber warning first.' : null
 
   return (
     <div className="space-y-2 rounded-xl border border-[#e4e8ee] bg-white p-4" data-testid="next-action">
@@ -286,6 +290,15 @@ function NextAction({ view, busy, allClear, onSubmit, onIssue }: { view: StudioV
         </>
       )}
       {blockedWhy && <p className="font-utility text-xs text-amber-800" data-testid="blocked-why">{blockedWhy}</p>}
+      {view.content_blockers.length > 0 && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 font-utility text-sm text-amber-900" role="status" data-testid="not-ready-to-issue">
+          <p className="font-semibold">Not ready to issue yet</p>
+          <p className="mt-1">You can draft and preview this proposal, but it cannot be sent for approval or issued until Grid Nova supplies:</p>
+          <ul className="mt-1 list-disc pl-5">
+            {view.content_blockers.map((b) => <li key={b.registry}>{b.message} ({b.registry})</li>)}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }

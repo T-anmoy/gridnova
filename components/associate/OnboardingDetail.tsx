@@ -12,7 +12,7 @@ import {
   useOnboardingAgreement,
   useUploadSignedAgreement,
 } from '@/lib/associate/onboarding-api-client'
-import { DashboardError } from '@/components/dashboard/DashboardError'
+import { PortalError } from '@/components/associate/PortalError'
 import OnboardingProgressPortal from '@/components/associate/OnboardingProgressPortal'
 import { isExecutionStage } from '@/lib/onboarding/progress'
 import { useAssociateMe } from '@/lib/associate/api-client'
@@ -21,11 +21,12 @@ import SurveyCard from '@/components/associate/survey/SurveyCard'
 import EstimateSection from '@/components/associate/EstimateSection'
 import FileUploadSlot from '@/components/associate/FileUploadSlot'
 import EstimatedCommissionNote from '@/components/associate/EstimatedCommissionNote'
-import { ApiError } from '@/lib/dashboard/api-error'
+import { portalErrorText } from '@/lib/associate/portal-error'
 import { useMessages, useOptionalMessages } from '@/lib/i18n/client'
 import { useSurveyStatus } from '@/lib/associate/survey-api-client'
 import { isNeedsReverification, proposalGateCode, proposalGateRefuses } from '@/lib/associate/survey-review'
-import { formatCurrency, formatDatetime } from '@/lib/dashboard/utils'
+import { formatCurrency } from '@/lib/dashboard/utils'
+import { useDates } from '@/lib/i18n/dates'
 import type { Messages } from '@/lib/i18n/types'
 import DateField from '@/components/forms/DateField'
 import { todayIso } from '@/lib/date-field'
@@ -50,7 +51,9 @@ function ProposalSection({
   // on the backend: a territory Preferred Associate would only ever get a 403.
   isOwner: boolean
 }) {
+  const { formatDatetime } = useDates()
   const survey = useMessages('survey')
+  const feedback = useMessages('portalFeedback')
   const surveyStatus = useSurveyStatus(onboardingId)
   const [gate, setGate] = useState<'review_required' | 'survey_not_feasible' | null>(null)
   const { data: formalProposal, isLoading } = useOnboardingFormalProposal(onboardingId)
@@ -77,11 +80,8 @@ function ProposalSection({
       if (isNeedsReverification(err)) {
         // The associate never sees internal field names — just the plain reason.
         setError(survey.gate.needsReverification)
-      } else if (err instanceof ApiError && err.structuredDetail?.code) {
-        const code = err.structuredDetail.code as keyof ProposalCopy['acceptance']['errors']
-        setError(copy.acceptance.errors[code] ?? err.detail ?? err.message)
       } else {
-        setError(err instanceof ApiError ? err.detail || err.message : copy.genericError)
+        setError(portalErrorText(err, feedback, copy.acceptance.errors))
       }
     }
   }
@@ -99,7 +99,7 @@ function ProposalSection({
     } catch (err) {
       const g = proposalGateCode(err)
       if (g) setGate(g)
-      else setError(err instanceof ApiError ? (typeof err.detail === 'string' && err.detail) || copy.genericError : copy.genericError)
+      else setError(portalErrorText(err, feedback))
     }
   }
 
@@ -109,7 +109,8 @@ function ProposalSection({
         <p className="font-display text-base font-semibold text-[#0e2a63]">{copy.detail.notPreparedTitle}</p>
         {formalProposal.missing_fields.length > 0 && (
           <p className="mt-1 text-xs text-[#111827]/65 font-utility">
-            {copy.readyMissingFields} {formalProposal.missing_fields.join(', ')}
+            {/* Lead field keys → the reader's words; an unknown key is spaced out, never shown raw. */}
+            {copy.readyMissingFields} {formalProposal.missing_fields.map((f) => (copy.fieldNames as Record<string, string>)[f] ?? f.replace(/_/g, ' ')).join(', ')}
           </p>
         )}
         {isOwner && (
@@ -222,6 +223,7 @@ function AgreementSection({ onboardingId, copy }: { onboardingId: number; copy: 
   const [stampPaperNumber, setStampPaperNumber] = useState('')
   const [stampPaperDate, setStampPaperDate] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const feedback = useMessages('portalFeedback')
 
   if (isLoading || !agreement) return <Loader2 className="h-5 w-5 animate-spin text-[#111827]/65" />
 
@@ -232,12 +234,7 @@ function AgreementSection({ onboardingId, copy }: { onboardingId: number; copy: 
       await uploadMutation.mutateAsync({ id: onboardingId, input: { file, stamp_paper_number: stampPaperNumber, stamp_paper_date: stampPaperDate } })
       setFile(null)
     } catch (err) {
-      if (err instanceof ApiError && err.structuredDetail?.code) {
-        const code = err.structuredDetail.code as keyof AgreementCopy['uploadSigned']['errors']
-        setError(copy.uploadSigned.errors[code] ?? err.detail ?? err.message)
-      } else {
-        setError(err instanceof ApiError ? err.detail || err.message : copy.genericError)
-      }
+      setError(portalErrorText(err, feedback, copy.uploadSigned.errors))
     }
   }
 
@@ -324,7 +321,7 @@ export default function OnboardingDetail({
   const acceptedRecorded = !!progress?.stages.some((st) => st.stage === 'accepted' && st.recorded)
   const ease = useOptionalMessages('portalEase')
 
-  if (error) return <DashboardError error={error} onRetry={() => void refetch()} />
+  if (error) return <PortalError error={error} onRetry={() => void refetch()} />
   if (isLoading || !onboarding) {
     return (
       <div className="flex items-center justify-center py-20">

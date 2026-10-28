@@ -30,12 +30,22 @@ export const ATTENTION_LABEL: Record<string, string> = {
   overdue: 'Overdue',
 }
 
+// Payment methods Grid Nova no longer accepts (associate_journeys.md §5: cheque, NEFT, RTGS and
+// IMPS only). Rows recorded before the change keep their mode and are shown as history.
+export const RETIRED_PAYMENT_MODES: readonly string[] = ['demand_draft', 'upi']
+
+/** "Cheque", or "UPI (no longer accepted)" for a row recorded with a retired method. */
+export function staffModeLabel(mode: string): string {
+  const label = STAFF_PAYMENT_COPY.modes[mode as keyof typeof STAFF_PAYMENT_COPY.modes] ?? mode
+  return RETIRED_PAYMENT_MODES.includes(mode) ? `${label} (no longer accepted)` : label
+}
+
 // Held-receipt reasons that come from DUMMY/placeholder company details.
 export const isDummyReason = (reason: string | null | undefined): boolean => !!reason && /dummy|placeholder/i.test(reason)
 
 const STAFF_PAYMENT_ERRORS: Record<string, string> = {
   invalid_transition: 'This payment can’t be changed in its current state.',
-  not_an_instrument: 'Only cheques and demand drafts are deposited — other methods go straight to verification.',
+  not_an_instrument: 'Only cheques are deposited — other methods go straight to verification.',
   proof_required:
     'This payment was recorded by an associate and has no proof of payment yet. Attach proof (or ask the associate to) before verifying.',
   reason_required: 'A reason is required.',

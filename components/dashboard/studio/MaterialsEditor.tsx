@@ -11,7 +11,8 @@ import type { StudioItem, StudioItemFigure, StudioOptions } from '@/lib/studio/t
 import { Money } from './ui'
 
 // The bill of quantities (and, for itemised supply, the line items). Makes are PICKED, never
-// typed: the list is the equipment catalogue's brands, the makes already on this proposal's
+// typed. BE-19's options give the allowed makes per row kind (`boq_makes`); a server without
+// them falls back to the equipment catalogue's brands, the makes already on this proposal's
 // rows (which the server generated from the price list), and "Equivalent".
 
 const SMALL = 'w-full min-h-11 rounded-md border border-[#d5dbe4] bg-white px-2 py-1.5 text-sm font-utility outline-none focus-visible:ring-2 focus-visible:ring-[#f7a800]/60 disabled:bg-[#f7f9fc] aria-[invalid=true]:border-red-500'
@@ -27,6 +28,26 @@ export function makeChoices(catalogue: string[], makesOnRows: string[]): string[
     if (key && key !== NO_MAKE && key !== EQUIVALENT.toLowerCase() && !seen.has(key)) seen.set(key, m.trim())
   }
   return [...[...seen.values()].sort((a, b) => a.localeCompare(b)), EQUIVALENT, NO_MAKE]
+}
+
+type BoqMakes = NonNullable<StudioOptions['boq_makes']>
+
+/**
+ * BE-19: the makes a BOQ row may have — the list for its `kind` (module / inverter / cable /
+ * conduit), or `other` (every make the BOQ accepts) for a row without one. The row's own
+ * makes stay offered, so nothing already chosen disappears. "Equivalent" is offered only where
+ * the server's list has it; "–" (no make) always.
+ */
+export function makeChoicesForKind(boqMakes: BoqMakes, kind: string | null | undefined, makesOnRow: string[]): string[] {
+  const list = (kind && boqMakes[kind as keyof BoqMakes]) || boqMakes.other || []
+  const seen = new Map<string, string>()
+  let equivalent = false
+  for (const m of [...list, ...makesOnRow.flatMap(splitMake)]) {
+    const key = m.trim().toLowerCase()
+    if (key === EQUIVALENT.toLowerCase()) equivalent = true
+    else if (key && key !== NO_MAKE && !seen.has(key)) seen.set(key, m.trim())
+  }
+  return [...[...seen.values()].sort((a, b) => a.localeCompare(b)), ...(equivalent ? [EQUIVALENT] : []), NO_MAKE]
 }
 
 export function MakePicker({ field, value, choices, onChange, disabled, error, label }: { field: string; value: string; choices: string[]; onChange: (v: string) => void; disabled?: boolean; error?: string | null; label: string }) {
@@ -74,15 +95,18 @@ export function BoqRowsEditor({
   onChange,
   editable,
   catalogue,
+  boqMakes,
   errorFor,
 }: {
   rows: BoqRow[]
   onChange: (rows: BoqRow[]) => void
   editable: boolean
   catalogue: string[]
+  boqMakes?: StudioOptions['boq_makes']
   errorFor: (field: string) => string | null
 }) {
-  const choices = useMemo(() => makeChoices(catalogue, rows.map((r) => r.make)), [catalogue, rows])
+  const fallback = useMemo(() => makeChoices(catalogue, rows.map((r) => r.make)), [catalogue, rows])
+  const choicesFor = (r: BoqRow) => (boqMakes ? makeChoicesForKind(boqMakes, r.kind, [r.make]) : fallback)
   const set = (i: number, patch: Partial<BoqRow>) => onChange(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)))
 
   return (
@@ -114,7 +138,7 @@ export function BoqRowsEditor({
             </div>
             <div className="mt-2">
               <span className="mb-0.5 block font-utility text-xs text-[#111827]/65">Make</span>
-              <MakePicker field={`boq[${i}].make`} label={`Make for row ${i + 1}`} value={r.make} choices={choices} disabled={!editable} onChange={(make) => set(i, { make })} error={errorFor(`boq[${i}].make`)} />
+              <MakePicker field={`boq[${i}].make`} label={`Make for row ${i + 1}`} value={r.make} choices={choicesFor(r)} disabled={!editable} onChange={(make) => set(i, { make })} error={errorFor(`boq[${i}].make`)} />
             </div>
           </li>
         ))}
@@ -147,7 +171,8 @@ export function ItemsEditor({
   catalogue: string[]
   errorFor: (field: string) => string | null
 }) {
-  const choices = useMemo(() => makeChoices(catalogue, items.map((r) => r.make)), [catalogue, items])
+  // Line items have no kind: the catalogue plus every make the BOQ accepts (BE-19 `boq_makes.other`).
+  const choices = useMemo(() => makeChoices([...catalogue, ...(options.boq_makes?.other ?? [])], items.map((r) => r.make)), [catalogue, options.boq_makes, items])
   const set = (i: number, patch: Partial<StudioItem>) => onChange(items.map((r, j) => (j === i ? { ...r, ...patch } : r)))
   const defaultCat = options.item_categories[0]?.id ?? ''
   const defaultUnit = options.item_units[0] ?? 'Nos.'

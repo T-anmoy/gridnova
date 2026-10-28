@@ -130,7 +130,7 @@ Times are shown subject to availability. We will confirm your booking by email. 
 A proposal is valid for the period stated in it. Accepting a proposal through our secure link records your intention to proceed on the terms of that proposal. The work itself is governed by the agreement signed between you and Grid Nova, including any agreement required under a government scheme.
 
 ### 2.7 Payments
-Grid Nova never accepts cash. Payments must be made only to Grid Nova's own bank account by cheque, demand draft, NEFT, RTGS, IMPS or UPI, as described in our Customer Payment Policy. No Associate or employee is authorised to accept payment into a personal account.
+Grid Nova never accepts cash. Payments must be made only to Grid Nova's own bank account by cheque, NEFT, RTGS or IMPS, as described in our Customer Payment Policy. No Associate or employee is authorised to accept payment into a personal account.
 
 ### 2.8 Our Associates
 Grid Nova Associates are independent persons authorised to introduce customers and, where approved, to carry out defined project activities. You can confirm an Associate's identity by scanning the QR code on their Grid Nova ID card. Associates cannot change prices, promise subsidies or accept payments on Grid Nova's behalf.
@@ -285,7 +285,7 @@ Grid Nova may recognise outstanding performance through awards, certificates and
 Grid Nova does not accept cash for any product or service, at any stage.
 
 **5.2 How to pay**
-Pay only into Grid Nova's own current account, by cheque, demand draft, NEFT, RTGS, IMPS or UPI. Make cheques and drafts payable to "GRID NOVA ENERGY". **Account name:** GRID NOVA ENERGY, **Bank:** HDFC Bank Ltd, Ruby More Branch, Kolkata – 700107, **IFSC:** HDFC0005385, **Account number:** ending 4495. The full account number is printed on your proposal, invoice and payment receipts from Grid Nova. Before your first transfer, check that your bank shows the payee name as GRID NOVA ENERGY. Grid Nova never changes its bank details by phone, WhatsApp or email — if anyone asks you to pay into a different account, do not pay and call us on +91 98747 74440.
+Pay only into Grid Nova's own current account, by cheque, NEFT, RTGS or IMPS. Make cheques payable to "GRID NOVA ENERGY". **Account name:** GRID NOVA ENERGY, **Bank:** HDFC Bank Ltd, Ruby More Branch, Kolkata – 700107, **IFSC:** HDFC0005385, **Account number:** ending 4495. The full account number is printed on your proposal, invoice and payment receipts from Grid Nova. Before your first transfer, check that your bank shows the payee name as GRID NOVA ENERGY. Grid Nova never changes its bank details by phone, WhatsApp or email — if anyone asks you to pay into a different account, do not pay and call us on +91 98747 74440.
 
 **5.3 Never pay an individual**
 No Associate or employee may accept payment in their own name or account. If anyone asks you to, do not pay — call us on +91 98747 74440.

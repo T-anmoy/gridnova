@@ -44,6 +44,14 @@ export interface StudioOptions {
   validity_days_default: number
   price_modes: string[]
   assistant_enabled: boolean
+  /** BE-19 (config/studio.yaml): payment-term schedules Grid Nova supplied; apply one with the ordinary edit. */
+  payment_term_presets?: { id: string; label: string; terms: { percent: string; label: string; short_label?: string | null }[] }[]
+  /** BE-19: the sections `POST …/sections/{section}/reset` accepts. */
+  resettable_sections?: string[]
+  /** BE-19: allowed makes per BOQ row `kind`; `other` = every make the BOQ accepts. */
+  boq_makes?: Partial<Record<'module' | 'inverter' | 'cable' | 'conduit' | 'other', string[]>>
+  /** BE-19: the email message's character limit. */
+  email_message_max?: number
 }
 
 // ── Customers ───────────────────────────────────────────────────────────────
@@ -308,6 +316,10 @@ export interface StudioProposalSummary {
   status: StudioStatus
   current_version: number
   owner_id: string
+  /** BE-19: display name only (never an email); null when the owner has no employee row. */
+  owner_name?: string | null
+  /** BE-19: the current version's size (decimal string). */
+  capacity_kwp?: string | null
   customer: { id: number; name: string; mobile: string } | null
   lead_id: number | null
   lost_reason: string | null
@@ -378,6 +390,9 @@ export interface StudioView {
   approval_reasons: string[]
   signatory: { name: string; title: string; for_line: string }
   versions: { version: number; status: StudioStatus; document_reference: string | null }[]
+  /** BE-19: the customer's page and the verification page, set once the shown version is issued. */
+  public_url?: string | null
+  verify_url?: string | null
   can?: StudioAbilities
 }
 
@@ -404,6 +419,8 @@ export interface StudioListParams {
   status?: string
   project_type?: string
   owner_id?: string
+  /** BE-19: one Studio customer's proposals. */
+  customer_id?: number
   date_from?: string
   date_to?: string
   q?: string

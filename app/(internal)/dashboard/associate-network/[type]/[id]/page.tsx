@@ -12,13 +12,13 @@ import {
   useApproveApplication,
   fetchApplicationDocumentLink,
 } from '@/lib/associate/api-client'
-import { ApiError } from '@/lib/dashboard/api-error'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { staffAssociateError } from '@/lib/associate/staff-associates'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Dialog,
@@ -34,11 +34,7 @@ import type { ApplicationType } from '@/lib/associate/types'
 import { RequirePermission } from '@/components/dashboard/RequirePermission'
 import { usePermissions } from '@/lib/access/use-permissions'
 
-function errorMessage(err: unknown, fallback: string): string {
-  if (err instanceof ApiError) return err.detail || err.message
-  if (err instanceof Error) return err.message
-  return fallback
-}
+const errorMessage = staffAssociateError
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -77,6 +73,17 @@ function DocumentLink({ applicationType, id, document, filename }: { application
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
       {filename}
     </button>
+  )
+}
+
+/** The applicant's email carries this text verbatim (associate_journeys.md §1): show it as they will read it. */
+function ApplicantPreview({ prefix, text }: { prefix: string; text: string }) {
+  return (
+    <div className="rounded-lg border border-amber-200 bg-amber-50 p-3" data-testid="applicant-preview">
+      <p className="font-utility text-xs font-semibold text-amber-900">The applicant will read this in their email:</p>
+      <p className="mt-1 whitespace-pre-wrap font-utility text-sm text-amber-950">{text.trim() ? `${prefix}${text.trim()}` : '—'}</p>
+      <p className="mt-2 font-utility text-xs text-amber-900">Write it to them, in plain words. Leave out internal notes, names of colleagues and anything you would not say to them directly.</p>
+    </div>
   )
 }
 
@@ -247,8 +254,8 @@ function ApplicationDetail() {
 
       {(app.needs_info_note || app.rejection_reason) && (
         <Card className="p-6 mb-4 border-amber-200 bg-amber-50">
-          {app.needs_info_note && <p className="font-utility text-sm text-amber-800"><strong>Needs info:</strong> {app.needs_info_note}</p>}
-          {app.rejection_reason && <p className="font-utility text-sm text-red-700 mt-1"><strong>Rejected:</strong> {app.rejection_reason}</p>}
+          {app.needs_info_note && <p className="font-utility text-sm text-amber-800"><strong>Needs info (sent to the applicant):</strong> {app.needs_info_note}</p>}
+          {app.rejection_reason && <p className="font-utility text-sm text-red-700 mt-1"><strong>Rejected — reason sent to the applicant:</strong> {app.rejection_reason}</p>}
         </Card>
       )}
 
@@ -295,13 +302,15 @@ function ApplicationDetail() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Reject application</DialogTitle>
-            <DialogDescription>A reason is required and is stored as the rejection reason.</DialogDescription>
+            <DialogDescription>A reason is required. It is emailed to the applicant exactly as you write it.</DialogDescription>
           </DialogHeader>
-          <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows={3} placeholder="Reason for rejection…" />
+          <Label htmlFor="reject-reason">Reason — shown to the applicant</Label>
+          <Textarea id="reject-reason" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows={3} maxLength={2000} placeholder="Write it to the applicant, e.g. “The PAN card photo is not readable.”" />
+          <ApplicantPreview prefix="Reason: " text={rejectReason} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setRejectOpen(false)}>Cancel</Button>
             <Button variant="destructive" onClick={() => void confirmReject()} disabled={!rejectReason.trim() || setStatus.isPending}>
-              {setStatus.isPending ? 'Rejecting…' : 'Confirm reject'}
+              {setStatus.isPending ? 'Rejecting…' : 'Reject and email the applicant'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -311,13 +320,15 @@ function ApplicationDetail() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Request more info</DialogTitle>
-            <DialogDescription>Tell the applicant what&apos;s missing or needs correcting.</DialogDescription>
+            <DialogDescription>Tell the applicant what&apos;s missing or needs correcting. The note is emailed to them exactly as you write it.</DialogDescription>
           </DialogHeader>
-          <Textarea value={infoNote} onChange={(e) => setInfoNote(e.target.value)} rows={3} placeholder="What do you need from them…" />
+          <Label htmlFor="info-note">Note — shown to the applicant</Label>
+          <Textarea id="info-note" value={infoNote} onChange={(e) => setInfoNote(e.target.value)} rows={3} maxLength={2000} placeholder="Write it to the applicant, e.g. “Please send a clearer photo of your cancelled cheque.”" />
+          <ApplicantPreview prefix="" text={infoNote} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setInfoOpen(false)}>Cancel</Button>
             <Button onClick={() => void confirmNeedsInfo()} disabled={!infoNote.trim() || setStatus.isPending}>
-              {setStatus.isPending ? 'Saving…' : 'Send request'}
+              {setStatus.isPending ? 'Saving…' : 'Email the applicant'}
             </Button>
           </DialogFooter>
         </DialogContent>

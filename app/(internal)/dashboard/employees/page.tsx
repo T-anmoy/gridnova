@@ -16,8 +16,9 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { formatDate } from '@/lib/dashboard/utils'
+import { formatDate, formatDatetime } from '@/lib/dashboard/utils'
 import type { Employee } from '@/lib/dashboard/types'
+import type { AccessMatrix } from '@/lib/access/types'
 import { useAccessMatrix, useReactivateStaff, useStaff } from '@/lib/access/api'
 import { accessErrorMessage } from '@/lib/access/errors'
 import { roleLabel } from '@/lib/access/roles'
@@ -45,8 +46,22 @@ function RoleChips({ employee }: { employee: Employee }) {
   )
 }
 
+// BE-19: whether the person has two-step sign-in on in Clerk. Off is flagged when one of
+// their roles requires it — they will be refused until they turn it on.
+function TwoStepCell({ employee, matrix }: { employee: Employee; matrix?: AccessMatrix | null }) {
+  const required = employeeRoles(employee).some((r) => matrix?.roles.find((x) => x.id === r)?.requires_two_factor)
+  if (employee.two_factor_enabled == null) return <span className="font-utility text-xs text-[#111827]/65">Not known</span>
+  if (employee.two_factor_enabled) return <span className="font-utility text-xs text-green-700">On</span>
+  return required ? (
+    <Badge variant="amber" className="text-xs">Off — required for their role</Badge>
+  ) : (
+    <span className="font-utility text-xs text-[#111827]/65">Off</span>
+  )
+}
+
 function Employees() {
   const { data, isLoading, error, refetch } = useStaff()
+  const matrix = useAccessMatrix()
   const { canAssignRoles, employeeId } = usePermissions()
   const reactivate = useReactivateStaff()
   const [changing, setChanging] = useState<Employee | null>(null)
@@ -103,6 +118,8 @@ function Employees() {
                     <TableHead>Email</TableHead>
                     <TableHead>Roles</TableHead>
                     <TableHead>Calendar</TableHead>
+                    <TableHead>Last sign-in</TableHead>
+                    <TableHead>Two-step</TableHead>
                     <TableHead>Added</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -111,7 +128,7 @@ function Employees() {
                   {isLoading
                     ? Array.from({ length: 4 }).map((_, i) => (
                         <TableRow key={i}>
-                          {Array.from({ length: 6 }).map((__, j) => <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>)}
+                          {Array.from({ length: 8 }).map((__, j) => <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>)}
                         </TableRow>
                       ))
                     : active.map((emp) => {
@@ -130,6 +147,12 @@ function Employees() {
                               ) : (
                                 <span className="font-utility text-xs text-[#111827]/65">Not connected</span>
                               )}
+                            </TableCell>
+                            <TableCell className="font-utility text-sm text-[#111827]/60 max-md:p-0" data-testid={`last-sign-in-${emp.id}`}>
+                              <span className="md:hidden">Last sign-in </span>{emp.last_sign_in_at ? formatDatetime(emp.last_sign_in_at) : 'Not known'}
+                            </TableCell>
+                            <TableCell className="max-md:p-0" data-testid={`two-step-${emp.id}`}>
+                              <TwoStepCell employee={emp} matrix={matrix.data} />
                             </TableCell>
                             <TableCell className="font-utility text-sm text-[#111827]/60 max-md:p-0"><span className="md:hidden">Added </span>{formatDate(emp.created_at)}</TableCell>
                             <TableCell className="text-right max-md:p-0 max-md:pt-1 max-md:text-left">

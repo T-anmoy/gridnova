@@ -35,6 +35,18 @@ export interface AlertRoute {
   active_holders: Partial<Record<Role, number>>
   fixed_addresses: number
   reaches_someone: boolean
+  /**
+   * BE-19, only for a viewer holding staff.manage: the addresses emailed today (deactivated
+   * people left out). The lead's assigned person and a Studio owner vary per record and are not listed.
+   */
+  addresses?: { fixed: string[]; by_role: Partial<Record<Role, string[]>> }
+}
+
+// GET /access/admins (§6, BE-19) — any staff. `email` only for a viewer who is an Admin.
+export interface AccessAdmin {
+  id: string
+  name: string
+  email: string | null
 }
 
 export interface AccessAlerts {
@@ -86,6 +98,8 @@ export interface ApprovalRequest {
   payload: Record<string, unknown>
   status: ApprovalStatus
   requested_by: string
+  /** BE-19: display name of the person who asked; null if unknown. */
+  requested_by_name?: string | null
   created_at: string
   expires_at: string
   decided_by: string | null

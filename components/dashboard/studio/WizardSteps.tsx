@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { BookOpen, Copy, Plus, Trash2 } from 'lucide-react'
+import { BookOpen, Copy, Plus, RotateCcw, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
@@ -173,14 +173,55 @@ function BulletList({
   )
 }
 
-function FollowsPlantNote({ view, section }: { view: StudioView; section: string }) {
-  const edited = view.document.edited?.includes(section)
+const RESET_WHAT: Record<string, string> = {
+  boq: 'the bill of quantities',
+  customer_scope: 'what the customer provides',
+  payment_terms: 'the payment terms',
+  system: 'the panel technology, inverter and mounting wording',
+}
+
+/**
+ * Whether a section still follows the plant, and — BE-19 — "Reset to defaults" once staff
+ * have changed it: the section goes back to what the layout, size and package give, and
+ * follows the plant again.
+ */
+function SectionDefaults({ p, section }: { p: StepProps; section: string }) {
+  const [asking, setAsking] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const edited = p.view.document.edited?.includes(section)
+  const resettable = p.editable && edited && (p.options.resettable_sections ?? []).includes(section)
   return (
-    <p className="font-utility text-xs text-[#111827]/60" data-testid={`follows-${section}`}>
-      {edited
-        ? 'You changed these, so they stay as you set them.'
-        : 'Filled in for you from the size and package — they update when the plant changes, until you change them yourself.'}
-    </p>
+    <div className="space-y-1">
+      <p className="font-utility text-xs text-[#111827]/60" data-testid={`follows-${section}`}>
+        {edited
+          ? 'You changed these, so they stay as you set them.'
+          : 'Filled in for you from the size and package — they update when the plant changes, until you change them yourself.'}
+        {resettable && !asking && (
+          <button type="button" className="ml-2 inline-flex min-h-8 items-center gap-1 font-medium text-[#0e2a63] underline" onClick={() => setAsking(true)} data-testid={`reset-${section}`}>
+            <RotateCcw className="h-3 w-3" aria-hidden="true" /> Reset to defaults
+          </button>
+        )}
+      </p>
+      {asking && (
+        <div role="alertdialog" aria-label="Reset to defaults" className="flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2 font-utility text-sm text-amber-900" data-testid={`reset-confirm-${section}`}>
+          <span className="flex-1 min-w-[12rem]">Put {RESET_WHAT[section] ?? 'this section'} back to Grid Nova’s standard? Your changes here are replaced.</span>
+          <Button
+            type="button"
+            size="sm"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true)
+              await p.auto.reset(section)
+              setBusy(false)
+              setAsking(false)
+            }}
+          >
+            {busy ? 'Resetting…' : 'Reset'}
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => setAsking(false)}>Keep my changes</Button>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -296,7 +337,8 @@ export function StepProject(p: StepProps) {
           <Toggle field="plant.dcr" label="DCR panels (made in India)" hint="Needed for the PM Surya Ghar subsidy" checked={plant.dcr} onChange={(v) => setPl({ dcr: v })} disabled={!p.editable} />
         </>
       )}
-      {residential && (
+      {/* A housing society gets the society subsidy (BE-14, BE-18 sample "60 kWp × 24 houses"). */}
+      {(residential || society) && (
         <fieldset className="space-y-3 rounded-xl border border-[#e4e8ee] p-4" data-field="pm_surya_ghar">
           <legend className="px-1 font-utility text-sm font-semibold text-[#091c3c]">PM Surya Ghar subsidy</legend>
           <Toggle field="pm_surya_ghar.subsidy_opted" label="The customer wants the subsidy" hint="The subsidy is printed and taken off the cost the customer bears (DCR panels needed)" checked={pmsg.subsidy_opted} onChange={(v) => setPm({ subsidy_opted: v })} disabled={!p.editable} />
@@ -437,6 +479,7 @@ export function StepSystem(p: StepProps) {
         <TextInput field="system.inverter" label="Inverter wording" value={system.inverter} onChange={(v) => setSy({ inverter: v || null })} disabled={!p.editable} maxLength={160} hint={`Leave blank for the standard wording for ${kwpText(p.view.document.plant.capacity_kwp)}`} error={e('system.inverter')} />
       </div>
       <TextInput field="system.mounting" label="Mounting structure wording" value={system.mounting} onChange={(v) => setSy({ mounting: v || null })} disabled={!p.editable} maxLength={160} hint="Leave blank for the standard wording" error={e('system.mounting')} />
+      {p.view.document.edited?.includes('system') && <SectionDefaults p={p} section="system" />}
 
       <div className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -447,7 +490,7 @@ export function StepSystem(p: StepProps) {
             </Button>
           )}
         </div>
-        <FollowsPlantNote view={p.view} section="boq" />
+        <SectionDefaults p={p} section="boq" />
         {presetOpen && (
           <div className="rounded-lg border border-[#e4e8ee] bg-[#f7f9fc] p-2">
             {(presets.data?.items ?? []).length === 0 ? (
@@ -473,7 +516,7 @@ export function StepSystem(p: StepProps) {
             )}
           </div>
         )}
-        <BoqRowsEditor rows={boq} onChange={(v) => setBoq(v)} editable={p.editable} catalogue={catalogue.data ?? []} errorFor={e} />
+        <BoqRowsEditor rows={boq} onChange={(v) => setBoq(v)} editable={p.editable} catalogue={catalogue.data ?? []} boqMakes={p.options.boq_makes} errorFor={e} />
         {e('boq') && <Notice tone="error">{e('boq')}</Notice>}
       </div>
     </div>
@@ -670,7 +713,26 @@ export function StepTerms(p: StepProps) {
     <div className="space-y-6">
       <fieldset className="space-y-2" data-field="payment_terms">
         <legend className="font-display text-base font-semibold text-[#091c3c]">Payment terms</legend>
-        <FollowsPlantNote view={p.view} section="payment_terms" />
+        <SectionDefaults p={p} section="payment_terms" />
+        {p.editable && (p.options.payment_term_presets ?? []).length > 0 && (
+          <label className="block max-w-md">
+            <span className="mb-0.5 block font-utility text-xs text-[#111827]/65">Use a standard schedule</span>
+            <select
+              className={INPUT}
+              value=""
+              data-testid="payment-presets"
+              onChange={(ev) => {
+                const preset = p.options.payment_term_presets?.find((x) => x.id === ev.target.value)
+                if (preset) setTerms(preset.terms.map((t) => ({ percent: t.percent, label: t.label, short_label: t.short_label ?? null })), { immediate: true })
+              }}
+            >
+              <option value="">Choose a schedule…</option>
+              {p.options.payment_term_presets!.map((x) => (
+                <option key={x.id} value={x.id}>{x.label}</option>
+              ))}
+            </select>
+          </label>
+        )}
         <p className="font-utility text-xs text-[#111827]/60">The percentages must add up to 100. The rupee amount of each milestone is worked out for you.</p>
         <ol className="space-y-2">
           {terms.map((t, i) => {
@@ -726,6 +788,7 @@ export function StepTerms(p: StepProps) {
 
       <BulletList field="notes_free" label="Special notes" hint="Printed under “Special Notes”. Add your own, or pick a ready sentence from the Library." items={notesFree} onChange={(v) => setNotesFree(v)} disabled={!p.editable} libraryKind="note" projectType={type} max={10} error={e('notes_free')} addLabel="Add a note" />
 
+      <SectionDefaults p={p} section="customer_scope" />
       <BulletList field="customer_scope" label="What the customer provides" hint="The customer’s side of the work. Filled in for you; change it if this site needs something else." items={scope} onChange={(v) => setScope(v)} disabled={!p.editable} libraryKind="customer_scope_item" projectType={type} max={20} error={e('customer_scope')} addLabel="Add an item" />
     </div>
   )

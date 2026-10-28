@@ -21,7 +21,9 @@ vi.mock('@clerk/nextjs/server', () => ({
 }))
 
 function makeReq(pathname: string) {
-  return { nextUrl: { pathname }, url: `https://app.example.com${pathname}` } as unknown as Parameters<NonNullable<typeof capturedHandler>>[1]
+  // The portal branch now also runs the locale routing, which reads cookies and clones the URL.
+  const url = new URL(`https://app.example.com${pathname}`)
+  return { nextUrl: Object.assign(url, { clone: () => new URL(url) }), url: url.toString(), cookies: { get: () => undefined } } as unknown as Parameters<NonNullable<typeof capturedHandler>>[1]
 }
 
 beforeEach(async () => {
@@ -107,5 +109,27 @@ describe('proxy.ts — associate/preferred portal matchers', () => {
     const auth = Object.assign(vi.fn(), { protect })
     await capturedHandler!(auth, makeReq('/preferred/portal'))
     expect(protect).toHaveBeenCalledWith({ unauthenticatedUrl: 'https://app.example.com/preferred/sign-in' })
+  })
+})
+
+// FE-19 blocker: a signed-in associate opening the English portal (/associates/portal, no
+// prefix) must reach app/(site)/[lang]/associates/portal — the protection branch has to
+// apply the same locale rewrite as every other public path, or the page is a 404.
+describe('proxy.ts — the portals still get their locale after the sign-in check', () => {
+  function reqWithUrl(pathname: string) {
+    const url = new URL(`https://app.example.com${pathname}`)
+    return { nextUrl: Object.assign(url, { clone: () => new URL(url) }), url: url.toString(), cookies: { get: () => undefined } } as unknown as ReturnType<typeof makeReq>
+  }
+
+  it.each(['/associates/portal', '/associates/portal/customers/new', '/preferred/portal/territory'])('%s is rewritten to /en…', async (p) => {
+    const auth = Object.assign(vi.fn(), { protect: vi.fn() })
+    const res = (await capturedHandler!(auth, reqWithUrl(p))) as Response | undefined
+    expect(res?.headers.get('x-middleware-rewrite')).toBe(`https://app.example.com/en${p}`)
+  })
+
+  it('a Hindi portal path is left as it is', async () => {
+    const auth = Object.assign(vi.fn(), { protect: vi.fn() })
+    const res = (await capturedHandler!(auth, reqWithUrl('/hi/associates/portal'))) as Response | undefined
+    expect(res?.headers.get('x-middleware-rewrite') ?? null).toBeNull()
   })
 })

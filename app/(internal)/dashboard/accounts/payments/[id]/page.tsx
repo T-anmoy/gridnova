@@ -24,7 +24,7 @@ import {
   type PaymentDetail,
 } from '@/lib/dashboard/accounts-api-client'
 import { useUploadStaffPaymentProof } from '@/lib/dashboard/payments-api-client'
-import { ATTENTION_LABEL, STATUS_LABEL, STATUS_VARIANT, isDummyReason, isSelfVerification, staffPaymentError } from '@/lib/dashboard/payment-ui'
+import { ATTENTION_LABEL, STATUS_LABEL, STATUS_VARIANT, isDummyReason, isSelfVerification, staffModeLabel, staffPaymentError } from '@/lib/dashboard/payment-ui'
 import { STAFF_PAYMENT_COPY } from '@/lib/dashboard/staff-copy'
 import { formatDatetime } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
@@ -102,7 +102,7 @@ function PaymentDetailView({ p, canAct, isAdmin }: { p: PaymentDetail; canAct: b
             </p>
           )}
           <dl>
-            <Row label="Method">{STAFF_PAYMENT_COPY.modes[p.mode as keyof typeof STAFF_PAYMENT_COPY.modes] ?? p.mode}</Row>
+            <Row label="Method">{staffModeLabel(p.mode)}</Row>
             <Row label="Reference">{p.reference}</Row>
             {p.bank_name && <Row label="Bank">{p.bank_name}</Row>}
             {p.instrument_date && <Row label="Instrument date">{p.instrument_date}</Row>}

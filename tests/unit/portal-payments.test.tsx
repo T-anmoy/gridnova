@@ -371,7 +371,7 @@ describe('load, error and ownership states', () => {
   it('other failures show an error with Retry', async () => {
     hooks.overview = { error: new ApiError(500, 'x', 'boom') }
     show()
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Retry' }))
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Try again' }))
     expect(hooks.refetch).toHaveBeenCalled()
   })
 
@@ -410,5 +410,42 @@ describe('RecordPaymentForm — shared with staff', () => {
     await user.upload(input, pdf)
     await waitFor(() => expect(onUploadProof).toHaveBeenCalledWith(42, pdf, expect.any(Function)))
     expect(await screen.findByText(copy.proofDone)).toBeInTheDocument()
+  })
+})
+
+// FE-19 / BE-19 associate_journeys.md §5: cheque, NEFT, RTGS and IMPS only.
+describe('payment methods after BE-19', () => {
+  const BE19_MODES = ['cheque', 'neft', 'rtgs', 'imps']
+
+  it('the form offers only the enabled methods', async () => {
+    hooks.overview = { data: overview({ enabled_modes: BE19_MODES }) }
+    hooks.instructions = { data: available }
+    show()
+    const options = within(screen.getByLabelText(copy.mode)).getAllByRole('option').map((o) => o.textContent)
+    expect(options).toEqual([expect.any(String), 'Cheque', 'NEFT', 'RTGS', 'IMPS'])
+    expect(options).not.toContain('UPI')
+    expect(options).not.toContain('Demand draft')
+  })
+
+  it('an older demand draft or UPI row stays as history, labelled no longer accepted', () => {
+    hooks.overview = { data: overview({ enabled_modes: BE19_MODES, payments: [payment({ mode: 'upi' }), payment({ payment_id: 12, mode: 'neft' })] }) }
+    show()
+    const rows = screen.getAllByTestId('payment-row')
+    expect(rows[0]).toHaveTextContent(`UPI (${copy.retiredMode})`)
+    expect(within(rows[1]).queryByTestId('retired-mode')).toBeNull()
+  })
+
+  it('a 422 mode_not_enabled is a plain sentence', async () => {
+    hooks.overview = { data: overview({ enabled_modes: BE19_MODES }) }
+    hooks.instructions = { data: available }
+    hooks.record.mockRejectedValueOnce(new ApiError(422, 'x', 'Demand draft is not accepted.', { code: 'mode_not_enabled' }))
+    const user = userEvent.setup()
+    show()
+    await user.selectOptions(screen.getByLabelText(copy.mode), 'neft')
+    await user.type(screen.getByLabelText(copy.amount), '1000')
+    await user.type(screen.getByLabelText(copy.reference), 'UTR9')
+    await user.click(screen.getByRole('button', { name: copy.save }))
+    expect(await screen.findByText(copy.errors.mode_not_enabled)).toBeInTheDocument()
+    expect(screen.queryByText('Demand draft is not accepted.')).toBeNull()
   })
 })

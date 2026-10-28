@@ -47,6 +47,12 @@ export function isBareRoute(pathname: string, portalOpen: boolean = ASSOCIATE_PO
   return portalOpen && PORTAL_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
+// Verification pages (opened from a QR code at a customer's door) and proposal pages end
+// with the answer the reader came for; on a phone the floating launcher would sit on it.
+export function hidesAskNova(pathname: string): boolean {
+  return /^\/(verify|proposal)(\/|$)/.test(pathname);
+}
+
 export default function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = useBarePathname();
   const locale = useLocale();
@@ -73,7 +79,7 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
       {!bare && <Navigation />}
       {children}
       {!bare && <Footer />}
-      {!bare && idle && <AskNova />}
+      {!bare && idle && !hidesAskNova(pathname) && <AskNova />}
     </>
   );
 }

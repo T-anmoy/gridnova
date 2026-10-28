@@ -129,11 +129,12 @@ describe('project step', () => {
     await waitFor(() => expect(backend.called('PATCH', `${P}/document`)[0]?.body).toMatchObject({ section: 'plant', value: { dcr: true } }), { timeout: 3000 })
   })
 
-  it('housing society asks for houses, no PM Surya Ghar', async () => {
+  // FE-19 second pass: a society gets the PM Surya Ghar society subsidy (BE-18 sample 60 kWp × 24 houses).
+  it('housing society asks for houses and offers the PM Surya Ghar subsidy', async () => {
     const v = makeView({ document: { ...makeView().document, project: { project_type: 'housing_society', houses: null, roof_area_sqft: null } } })
     await open(v, 'project')
     expect(screen.getByLabelText(/Number of houses/)).toBeInTheDocument()
-    expect(screen.queryByText('PM Surya Ghar subsidy')).not.toBeInTheDocument()
+    expect(screen.getByText('PM Surya Ghar subsidy')).toBeInTheDocument()
   })
 })
 

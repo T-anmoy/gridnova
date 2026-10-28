@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   BookmarkPlus,
   CheckCircle2,
@@ -27,12 +27,12 @@ import { Skeleton } from '@/components/ui/skeleton'
 import DateField from '@/components/forms/DateField'
 import { formatDate } from '@/lib/dashboard/utils'
 import { usePermissions } from '@/lib/access/use-permissions'
-import { studioApi, studioKeys, useStudioCustomer, useStudioEvents, useStudioToken, useVersionDiff } from '@/lib/studio/api'
-import { diffValue, eventLabel, eventNote, fieldLabel, isEditableStatus, isWhatsappLink, kwpText, lastIssuedBefore, studioError, timeline, todayIst, validityText } from '@/lib/studio/logic'
+import { studioApi, studioKeys, useStudioCustomer, useStudioEvents, useStudioOptions, useStudioToken, useVersionDiff } from '@/lib/studio/api'
+import { diffValue, eventLabel, eventNote, fieldLabel, isEditableStatus, isWhatsappLink, kwpText, lastIssuedBefore, studioError, timeline, todayIst, validityText, ownerText } from '@/lib/studio/logic'
 import type { StudioView } from '@/lib/studio/types'
 import { FiguresSummary } from './FiguresSummary'
 import { StudioPreview } from './StudioPreview'
-import { INPUT, Notice, Panel, StatusChip, TextInput } from './ui'
+import { INPUT, Notice, Panel, StatusChip, TextArea, TextInput } from './ui'
 
 const dateTime = new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })
 const at = (iso: string | null | undefined) => (iso ? dateTime.format(new Date(iso)) : '—')
@@ -43,13 +43,12 @@ export function ProposalOverview({ view, justIssued }: { view: StudioView; justI
   const router = useRouter()
   const qc = useQueryClient()
   const token = useStudioToken()
-  const { can: perm } = usePermissions()
+  const { can: perm, employeeId } = usePermissions()
   const id = view.proposal.id
   const can = view.can
   const events = useStudioEvents(id)
   const customer = useStudioCustomer(view.proposal.customer?.id ?? null)
-  // The customer's link: returned once by issue; later from the WhatsApp-link route.
-  const cachedLink = useQuery<string | null>({ queryKey: ['studio', 'public-url', id], queryFn: () => null, enabled: false, initialData: null })
+  const options = useStudioOptions()
   const [dialog, setDialog] = useState<DialogName>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -80,16 +79,14 @@ export function ProposalOverview({ view, justIssued }: { view: StudioView; justI
     }
   }
 
-  async function link(): Promise<string | null> {
-    if (cachedLink.data) return cachedLink.data
-    const r = await run('link', () => studioApi.whatsappLink(token, id))
-    qc.setQueryData(['studio', 'public-url', id], r.link)
-    return r.link
-  }
-
+  // BE-19: the View carries the customer's link once the shown version is issued, so copying
+  // it records nothing (the WhatsApp route logs a share).
   async function copyLink() {
-    const l = await link().catch(() => null)
-    if (!l) return
+    const l = view.public_url
+    if (!l) {
+      setError('The customer’s link can’t be read for this version (the stored link could not be opened). Revise and issue again, or ask an Admin.')
+      return
+    }
     try {
       await navigator.clipboard.writeText(l)
       toast.success('Link copied. Paste it into a message to the customer.')
@@ -98,12 +95,24 @@ export function ProposalOverview({ view, justIssued }: { view: StudioView; justI
     }
   }
 
+  // BE-19 GET …/pdf-link: a short-lived signed link as JSON. The tab is opened inside the
+  // click (pop-up blockers), then pointed at the file.
+  async function openPdf(name: string, version: number) {
+    const win = window.open('', '_blank')
+    try {
+      const r = await run(name, () => studioApi.pdfLink(token, id, version))
+      if (win) win.location.href = r.url
+      else window.location.assign(r.url)
+    } catch {
+      win?.close()
+    }
+  }
+
   async function whatsapp() {
     // Open the tab inside the click (pop-up blockers), then point it at wa.me.
     const win = window.open('', '_blank')
     try {
       const r = await run('whatsapp', () => studioApi.whatsappLink(token, id))
-      qc.setQueryData(['studio', 'public-url', id], r.link)
       if (isWhatsappLink(r.url) && win) win.location.href = r.url
       else win?.close()
     } catch {
@@ -126,6 +135,7 @@ export function ProposalOverview({ view, justIssued }: { view: StudioView; justI
             {v.document_reference && <span>{v.document_reference}</span>}
             {v.document_date && <span>· {formatDate(v.document_date)}</span>}
             {v.valid_until && <span>· {validityText(v.valid_until)}</span>}
+            <span data-testid="proposal-owner">· Owner: {ownerText(view.proposal.owner_id, employeeId, view.proposal.owner_name)}</span>
             {!current && <span className="rounded bg-amber-100 px-1.5 text-xs text-amber-800">Version {v.version} — not the current one</span>}
           </div>
         </div>
@@ -160,7 +170,7 @@ export function ProposalOverview({ view, justIssued }: { view: StudioView; justI
       {/* Actions — each shown only when the API says this person may do it now. */}
       <div className="flex flex-wrap gap-2" data-testid="proposal-actions">
         {issued && (
-          <Button type="button" variant="outline" className="min-h-11" disabled={busy === 'pdf'} onClick={() => void run('pdf', () => studioApi.downloadPdf(token, id, v.version, v.pdf_filename ?? `${view.proposal.code}.pdf`)).catch(() => {})} data-testid="action-download">
+          <Button type="button" variant="outline" className="min-h-11" disabled={busy === 'pdf'} onClick={() => void openPdf('pdf', v.version)} data-testid="action-download">
             {busy === 'pdf' ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Download className="mr-1.5 h-4 w-4" />} Download PDF
           </Button>
         )}
@@ -172,8 +182,8 @@ export function ProposalOverview({ view, justIssued }: { view: StudioView; justI
             <Button type="button" variant="outline" className="min-h-11" onClick={() => void whatsapp()} disabled={busy === 'whatsapp'} data-testid="action-whatsapp">
               <MessageCircle className="mr-1.5 h-4 w-4" /> Share on WhatsApp
             </Button>
-            <Button type="button" variant="outline" className="min-h-11" onClick={() => void copyLink()} disabled={busy === 'link'} data-testid="action-copy-link">
-              <Copy className="mr-1.5 h-4 w-4" /> Copy link
+            <Button type="button" variant="outline" className="min-h-11" onClick={() => void copyLink()} data-testid="action-copy-link">
+              <Copy className="mr-1.5 h-4 w-4" /> Copy customer link
             </Button>
           </>
         )}
@@ -293,7 +303,7 @@ export function ProposalOverview({ view, justIssued }: { view: StudioView; justI
                   <span className="ml-auto flex flex-wrap gap-1">
                     <Link href={`/dashboard/studio/proposals/${id}?view=overview&version=${x.version}`} className="inline-flex min-h-11 items-center rounded px-2 font-utility text-xs text-[#0e2a63] hover:underline md:min-h-8">Open</Link>
                     {x.document_reference && (
-                      <Button type="button" variant="ghost" size="sm" onClick={() => void run(`pdf-${x.version}`, () => studioApi.downloadPdf(token, id, x.version, `${view.proposal.code}-v${x.version}.pdf`)).catch(() => {})}>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => void openPdf(`pdf-${x.version}`, x.version)}>
                         <Download className="mr-1 h-3.5 w-3.5" /> PDF
                       </Button>
                     )}
@@ -316,7 +326,7 @@ export function ProposalOverview({ view, justIssued }: { view: StudioView; justI
         {issued || view.figures.total ? <StudioPreview proposalId={id} version={v.version} refreshKey={`${v.version}-${view.revision}`} issued={issued} /> : null}
       </div>
 
-      <EmailDialog open={dialog === 'email'} onClose={() => setDialog(null)} defaultTo={customer.data?.customer.email ?? ''} name={view.document.addressee.name ?? ''} reference={v.document_reference} onSend={(to) => run('email', () => studioApi.email(token, id, to), (r) => toast.success(`Sent to ${r.to}.`), true)} />
+      <EmailDialog open={dialog === 'email'} onClose={() => setDialog(null)} defaultTo={customer.data?.customer.email ?? ''} name={view.document.addressee.name ?? ''} reference={v.document_reference} maxMessage={options.data?.email_message_max ?? 1500} onSend={(body) => run('email', () => studioApi.email(token, id, body), (r) => toast.success(`Sent to ${r.to}.`), true)} />
       <AcceptedDialog open={dialog === 'accepted'} onClose={() => setDialog(null)} onSave={(date, file) => run('accepted', () => studioApi.markAccepted(token, id, date, file), (r) => {
         toast.success('Recorded as accepted.')
         if (r.convert_offered && can?.convert) setDialog('convert')
@@ -325,7 +335,7 @@ export function ProposalOverview({ view, justIssued }: { view: StudioView; justI
       <ReasonPrompt open={dialog === 'template'} onClose={() => setDialog(null)} title="Save as a template" label="Template name" hint="The customer’s details are left out. Start new proposals from it under Library → Templates." confirm="Save template" onConfirm={(name) => run('template', () => studioApi.saveAsTemplate(token, id, name), () => toast.success('Template saved to the Library.'), true)} />
       <Confirm open={dialog === 'revise'} onClose={() => setDialog(null)} title="Start a new version?" body="Everything is copied into a new draft version. When you issue it, it replaces this one (reference …-R1) and the customer’s old link shows that a newer version exists." confirm="Start the new version" onConfirm={() => run('revise', () => studioApi.revise(token, id), () => router.push(`/dashboard/studio/proposals/${id}?step=review`), true)} />
       <Confirm open={dialog === 'duplicate'} onClose={() => setDialog(null)} title="Copy into a new proposal?" body={`A new draft is made from version ${v.version} for the same customer. You can change the customer in it.`} confirm="Make a copy" onConfirm={() => run('duplicate', () => studioApi.duplicate(token, id, { version: v.version }), (r) => router.push(`/dashboard/studio/proposals/${r.proposal.id}`), true)} />
-      <Confirm open={dialog === 'convert'} onClose={() => setDialog(null)} title="Create a lead from this proposal?" body="A lead is made with this proposal (same document, reference and PDF), assigned to the proposal’s owner, so the project can move on to survey and agreement." confirm="Create the lead" onConfirm={() => run('convert', () => studioApi.convert(token, id), (r) => toast.success(r.created ? 'Lead created.' : 'The lead already exists.'), true)} />
+      <Confirm open={dialog === 'convert'} onClose={() => setDialog(null)} title="Create a lead from this proposal?" body="A lead is made with this proposal (same document, reference and PDF), so the project can move on to survey and agreement. It starts unassigned: Sales sees it and is alerted, and you stay the proposal’s owner." confirm="Create the lead" onConfirm={() => run('convert', () => studioApi.convert(token, id), (r) => toast.success(r.created ? 'Lead created.' : 'The lead already exists.'), true)} />
     </div>
   )
 }
@@ -370,36 +380,65 @@ function CompareView({ proposalId, a, b, onClose }: { proposalId: number; a: num
   )
 }
 
-function EmailDialog({ open, onClose, defaultTo, name, reference, onSend }: { open: boolean; onClose: () => void; defaultTo: string; name: string; reference: string | null; onSend: (to: string | null) => Promise<unknown> }) {
+function EmailDialog({ open, onClose, defaultTo, name, reference, maxMessage, onSend }: {
+  open: boolean
+  onClose: () => void
+  defaultTo: string
+  name: string
+  reference: string | null
+  maxMessage: number
+  onSend: (body: { to: string | null; subject: string | null; message: string | null }) => Promise<unknown>
+}) {
+  const defaultSubject = `Your proposal from Grid Nova Energy — ${reference ?? ''}`.trim()
   const [to, setTo] = useState<string | null>(null)
+  const [subject, setSubject] = useState<string | null>(null)
+  const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const value = to ?? defaultTo
+  const subjectValue = subject ?? defaultSubject
+  const reset = () => { setTo(null); setSubject(null); setMessage(''); setError(null) }
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) { onClose(); setTo(null); setError(null) } }}>
+    <Dialog open={open} onOpenChange={(o) => { if (!o) { onClose(); reset() } }}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Email the proposal</DialogTitle>
           <DialogDescription>The PDF is attached, with the link to read and accept it online. Replies come to you.</DialogDescription>
         </DialogHeader>
         <TextInput field="email.to" label="Send to" type="email" inputMode="email" value={value} onChange={setTo} hint="Change it to send to another address this time" />
+        <TextInput field="email.subject" label="Subject" value={subjectValue} onChange={setSubject} maxLength={200} />
+        <TextArea
+          field="email.message"
+          label="Your message (optional)"
+          value={message}
+          onChange={setMessage}
+          rows={4}
+          maxLength={maxMessage}
+          hint={`Plain text, one paragraph per line, up to ${maxMessage.toLocaleString('en-IN')} characters. It goes after the greeting, above Grid Nova’s standard lines and the link.`}
+        />
         <div className="rounded-lg bg-[#f7f9fc] p-3 font-utility text-sm text-[#111827]/80" data-testid="email-preview">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#111827]/50">The message</p>
-          <p className="mt-1">Subject: Your proposal from Grid Nova Energy — {reference}</p>
-          <p className="mt-1">Dear {name}, thank you for considering Grid Nova Energy. Please find our proposal attached. You can also read it, download it and accept it online using the link in the email.</p>
-          <p className="mt-1 text-xs text-[#111827]/55">Grid Nova’s standard wording — the message itself cannot be edited yet.</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#111827]/50">The customer receives</p>
+          <p className="mt-1">Subject: {subjectValue}</p>
+          <p className="mt-1">Dear {name},</p>
+          {message.trim() && message.split('\n').filter((l) => l.trim()).map((l, n) => <p key={n} className="mt-1" data-testid="email-own-line">{l}</p>)}
+          <p className="mt-1">Thank you for considering Grid Nova Energy. Please find our proposal attached. You can also read it, download it and accept it online using the link in the email.</p>
         </div>
         {error && <Notice tone="error">{error}</Notice>}
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
           <Button
             type="button"
-            disabled={busy}
+            disabled={busy || message.length > maxMessage}
             onClick={async () => {
               setBusy(true)
               setError(null)
               try {
-                await onSend(value.trim() && value.trim() !== defaultTo ? value.trim() : null)
+                await onSend({
+                  to: value.trim() && value.trim() !== defaultTo ? value.trim() : null,
+                  subject: subjectValue.trim() && subjectValue.trim() !== defaultSubject ? subjectValue.trim() : null,
+                  message: message.trim() || null,
+                })
+                reset()
                 onClose()
               } catch (e) {
                 setError(studioError(e).message)

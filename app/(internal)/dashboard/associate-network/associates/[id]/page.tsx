@@ -14,8 +14,16 @@ import {
   isPreparing,
   PREPARING_WINDOW_MS,
 } from '@/lib/associate/api-client'
-import { ApiError } from '@/lib/dashboard/api-error'
+import Link from 'next/link'
 import { DashboardError } from '@/components/dashboard/DashboardError'
+import {
+  INVITE_STATE_LABEL,
+  accessChangeLines,
+  canSendInvite,
+  inviteStateOf,
+  staffAssociateError,
+} from '@/lib/associate/staff-associates'
+import type { AssociateStatusChange } from '@/lib/associate/types'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -29,10 +37,41 @@ import AssociatePerformancePanel from '@/components/dashboard/associate-network/
 import { RequirePermission } from '@/components/dashboard/RequirePermission'
 import { usePermissions } from '@/lib/access/use-permissions'
 
-function errorMessage(err: unknown, fallback: string): string {
-  if (err instanceof ApiError) return err.detail || err.message
-  if (err instanceof Error) return err.message
-  return fallback
+const errorMessage = staffAssociateError
+
+/** What a suspend / deactivate / reinstate did, shown until it is read. */
+function StatusResult({ result, onClose }: { result: AssociateStatusChange; onClose: () => void }) {
+  const moving = result.status !== 'active' && result.open_customers > 0
+  return (
+    <Card className="p-4 mb-4 border-blue-100 bg-blue-50" role="status" data-testid="status-result">
+      <p className="font-utility text-sm font-semibold text-blue-900">
+        {result.status === 'active' ? 'Reinstated.' : result.status === 'suspended' ? 'Suspended.' : 'Deactivated.'}
+      </p>
+      <ul className="mt-1 list-disc pl-5 font-utility text-sm text-blue-900" data-testid="access-lines">
+        {accessChangeLines(result.access).map((line) => <li key={line}>{line}</li>)}
+      </ul>
+      {result.status !== 'active' && (
+        <p className="mt-2 font-utility text-sm text-blue-900" data-testid="open-customers">
+          {result.open_customers === 0
+            ? 'They have no open customers.'
+            : `They still own ${result.open_customers} open customer${result.open_customers === 1 ? '' : 's'}. Move them to an active associate so the work continues.`}
+        </p>
+      )}
+      {result.status === 'active' && !result.clerk_user_bound && result.clerk_invite_status == null && (
+        <p className="mt-2 font-utility text-sm font-semibold text-blue-900" data-testid="new-invite-needed">
+          Their earlier invitation was revoked. Send a new invitation so they can sign in.
+        </p>
+      )}
+      <div className="mt-3 flex flex-wrap gap-2">
+        {moving && (
+          <Link href={`/dashboard/associate-network/associates/${encodeURIComponent(result.associate_id)}/move-customers`}>
+            <Button size="sm" className="min-h-[44px] md:min-h-0">Move customers</Button>
+          </Link>
+        )}
+        <Button size="sm" variant="outline" className="min-h-[44px] md:min-h-0" onClick={onClose}>Done</Button>
+      </div>
+    </Card>
+  )
 }
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
@@ -70,6 +109,8 @@ function AssociateDetail() {
   const [deactivateOpen, setDeactivateOpen] = useState(false)
   const [reason, setReason] = useState('')
   const [docLoading, setDocLoading] = useState<string | null>(null)
+  const [statusResult, setStatusResult] = useState<AssociateStatusChange | null>(null)
+  const [inviteOpen, setInviteOpen] = useState(false)
 
 
   if (error) return <DashboardError error={error} onRetry={() => void refetch()} />
@@ -99,8 +140,7 @@ function AssociateDetail() {
   async function confirmSuspend() {
     if (!reason.trim()) return
     try {
-      await setStatus.mutateAsync({ associateId, status: 'suspended', reason: reason.trim() })
-      toast.success('Associate suspended')
+      setStatusResult(await setStatus.mutateAsync({ associateId, status: 'suspended', reason: reason.trim() }))
       setSuspendOpen(false)
       setReason('')
     } catch (err) {
@@ -111,8 +151,7 @@ function AssociateDetail() {
   async function confirmDeactivate() {
     if (!reason.trim()) return
     try {
-      await setStatus.mutateAsync({ associateId, status: 'deactivated', reason: reason.trim() })
-      toast.success('Associate deactivated — seat released')
+      setStatusResult(await setStatus.mutateAsync({ associateId, status: 'deactivated', reason: reason.trim() }))
       setDeactivateOpen(false)
       setReason('')
     } catch (err) {
@@ -122,8 +161,7 @@ function AssociateDetail() {
 
   async function handleReactivate() {
     try {
-      await setStatus.mutateAsync({ associateId, status: 'active' })
-      toast.success('Associate reactivated')
+      setStatusResult(await setStatus.mutateAsync({ associateId, status: 'active' }))
     } catch (err) {
       toast.error(errorMessage(err, 'Failed to reactivate associate'))
     }
@@ -155,6 +193,27 @@ function AssociateDetail() {
         </div>
       )}
 
+      {statusResult && <StatusResult result={statusResult} onClose={() => setStatusResult(null)} />}
+
+      {associate.status === 'suspended' && (
+        <Card className="p-4 mb-4 border-amber-200 bg-amber-50" data-testid="commission-frozen">
+          <p className="font-utility text-sm text-amber-900">
+            <strong>Commission is frozen while suspended.</strong> Their approved entries stay approved but are left out of every payout batch, and are paid in the first batch after they are reinstated.
+          </p>
+        </Card>
+      )}
+
+      {associate.status !== 'active' && (
+        <Card className="p-4 mb-4 flex flex-wrap items-center gap-3" data-testid="move-customers-card">
+          <p className="font-utility text-sm text-[#091c3c] flex-1 min-w-[16rem]">
+            Customers of a {associate.status} associate can be moved to an active associate, so their projects keep moving.
+          </p>
+          <Link href={`/dashboard/associate-network/associates/${encodeURIComponent(associate.associate_id)}/move-customers`}>
+            <Button variant="outline" className="min-h-[44px] md:min-h-0">Move customers</Button>
+          </Link>
+        </Card>
+      )}
+
       {associate.status_reason && (
         <Card className="p-4 mb-4 border-amber-200 bg-amber-50">
           <p className="font-utility text-sm text-amber-800"><strong>Reason:</strong> {associate.status_reason}</p>
@@ -172,23 +231,21 @@ function AssociateDetail() {
           <Field label="Approved" value={formatDate(associate.approved_at)} />
           <Field label="Clerk account" value={associate.clerk_user_bound ? 'Bound' : 'Not yet signed in'} />
           <Field
-            label="Invite status"
+            label="Invitation"
             value={
-              associate.clerk_invite_status === 'failed'
-                ? <span className="text-red-600">Failed</span>
-                : associate.clerk_invite_status ?? (preparing ? <span data-testid="invite-preparing">Preparing…</span> : 'Pending')
+              preparing && associate.clerk_invite_status == null ? (
+                <span data-testid="invite-preparing">Preparing…</span>
+              ) : (
+                <span data-testid="invite-state" className={associate.clerk_invite_status === 'failed' ? 'text-red-600' : undefined}>
+                  {INVITE_STATE_LABEL[inviteStateOf(associate)]}
+                </span>
+              )
             }
           />
         </div>
-        {associate.clerk_invite_status === 'failed' && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-4"
-            onClick={() => retryInvite.mutate(associateId, { onSuccess: () => toast.success('Invite re-sent'), onError: (err) => toast.error(errorMessage(err, 'Failed to retry invite')) })}
-            disabled={retryInvite.isPending}
-          >
-            Retry Clerk invite
+        {canSendInvite(associate) && !preparing && (
+          <Button variant="outline" size="sm" className="mt-4 min-h-[44px] md:min-h-0" onClick={() => setInviteOpen(true)} disabled={retryInvite.isPending}>
+            {associate.clerk_invite_status === 'sent' ? 'Send invitation again' : 'Send invitation'}
           </Button>
         )}
       </Card>
@@ -250,7 +307,7 @@ function AssociateDetail() {
           )}
           {associate.status === 'suspended' && (
             <Button onClick={() => void handleReactivate()} disabled={setStatus.isPending}>
-              {setStatus.isPending ? 'Reactivating…' : 'Reactivate'}
+              {setStatus.isPending ? 'Reinstating…' : 'Reinstate'}
             </Button>
           )}
           {associate.status !== 'deactivated' && (
@@ -259,13 +316,45 @@ function AssociateDetail() {
         </div>
       </Card>
 
+      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{associate.clerk_invite_status === 'sent' ? 'Send the invitation again?' : 'Send the invitation?'}</DialogTitle>
+            <DialogDescription>
+              A new sign-up link goes to {associate.email}.
+              {associate.clerk_invite_status === 'sent' && ' The link sent before stops working.'} Check the email address first — if it is wrong, correct it on the application.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInviteOpen(false)}>Cancel</Button>
+            <Button
+              onClick={() =>
+                retryInvite.mutate(associateId, {
+                  onSuccess: () => {
+                    toast.success('Invitation sent')
+                    setInviteOpen(false)
+                  },
+                  onError: (err) => toast.error(errorMessage(err, 'The invitation could not be sent')),
+                })
+              }
+              disabled={retryInvite.isPending}
+            >
+              {retryInvite.isPending ? 'Sending…' : 'Send invitation'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={suspendOpen} onOpenChange={setSuspendOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Suspend {associate.full_name}?</DialogTitle>
-            <DialogDescription>A reason is required. Suspension can be reversed later.</DialogDescription>
+            <DialogDescription>A reason is required. Suspension can be reversed by reinstating them.</DialogDescription>
           </DialogHeader>
-          <Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="Reason for suspension…" />
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 font-utility text-sm text-amber-900" data-testid="suspend-effects">
+            Their sign-in is blocked at once and every open session ends. Their customers stay theirs until you move them. Commission is frozen: approved entries are paid in the first batch after reinstatement.
+          </div>
+          <Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="Reason for suspension…" aria-label="Reason for suspension" />
           <DialogFooter>
             <Button variant="outline" onClick={() => setSuspendOpen(false)}>Cancel</Button>
             <Button variant="destructive" onClick={() => void confirmSuspend()} disabled={!reason.trim() || setStatus.isPending}>
@@ -281,7 +370,10 @@ function AssociateDetail() {
             <DialogTitle>Deactivate {associate.full_name}?</DialogTitle>
             <DialogDescription>This is final and releases their territory seat immediately. A reason is required.</DialogDescription>
           </DialogHeader>
-          <Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="Reason for deactivation…" />
+          <div className="rounded-lg border border-red-100 bg-red-50 p-3 font-utility text-sm text-red-900" data-testid="deactivate-effects">
+            Their sign-in is blocked for good and every open session ends. Commission they earned is settled as usual. Move their open customers to an active associate afterwards.
+          </div>
+          <Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="Reason for deactivation…" aria-label="Reason for deactivation" />
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeactivateOpen(false)}>Cancel</Button>
             <Button variant="destructive" onClick={() => void confirmDeactivate()} disabled={!reason.trim() || setStatus.isPending}>

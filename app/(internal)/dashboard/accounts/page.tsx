@@ -19,14 +19,15 @@ import { DashboardError } from '@/components/dashboard/DashboardError'
 import NoAccess from '@/components/dashboard/NoAccess'
 import { downloadExport, useMilestoneQueue, usePaymentList, useReleaseHeldReceipts, useResendReceipt, type ExportKind } from '@/lib/dashboard/accounts-api-client'
 import { useWorkQueues } from '@/lib/dashboard/execution-api-client'
-import { ATTENTION_LABEL, STATUS_LABEL, STATUS_VARIANT, isDummyReason, matchesFilter, staffPaymentError } from '@/lib/dashboard/payment-ui'
+import { ATTENTION_LABEL, STATUS_LABEL, STATUS_VARIANT, isDummyReason, matchesFilter, staffModeLabel, staffPaymentError } from '@/lib/dashboard/payment-ui'
 import { formatDate } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
 import { STAFF_PAYMENT_COPY } from '@/lib/dashboard/staff-copy'
 import DateField from '@/components/forms/DateField'
 import { usePermissions } from '@/lib/access/use-permissions'
 
-const MODES = Object.entries(STAFF_PAYMENT_COPY.modes)
+// The filter keeps retired methods so older rows can still be found.
+const MODES = Object.keys(STAFF_PAYMENT_COPY.modes).map((k) => [k, staffModeLabel(k)] as const)
 const STATUSES = Object.keys(STATUS_LABEL)
 type Tab = 'payments' | 'milestones' | 'receipts'
 
@@ -167,7 +168,7 @@ function PaymentsTab() {
                       </Link>
                     </TableCell>
                     <TableCell className="font-medium">{formatInr(p.amount)}</TableCell>
-                    <TableCell className="text-sm">{STAFF_PAYMENT_COPY.modes[p.mode as keyof typeof STAFF_PAYMENT_COPY.modes] ?? p.mode}</TableCell>
+                    <TableCell className="text-sm">{staffModeLabel(p.mode)}</TableCell>
                     <TableCell className="text-sm">{p.reference}</TableCell>
                     <TableCell><Badge variant={STATUS_VARIANT[p.status] ?? 'gray'}>{STATUS_LABEL[p.status] ?? p.status}</Badge></TableCell>
                     <TableCell><AttentionBadges reasons={p.attention_reasons ?? []} /></TableCell>

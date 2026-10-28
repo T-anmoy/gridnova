@@ -4,7 +4,7 @@ import { AlertCircle, ChevronRight, Plus, Share2 } from 'lucide-react'
 import Link from '@/components/i18n/Link'
 import { useAssociateMe } from '@/lib/associate/api-client'
 import { useAssociateHome } from '@/lib/associate/home-api-client'
-import { DashboardError } from '@/components/dashboard/DashboardError'
+import { PortalError } from '@/components/associate/PortalError'
 import PinnedAction from '@/components/associate/PinnedAction'
 import InstallAppCard from '@/components/associate/InstallAppCard'
 import MyRateCard from '@/components/associate/MyRateCard'
@@ -52,7 +52,7 @@ export default function PortalHome({
   const { data: home, isLoading, error, refetch } = useAssociateHome()
   const referral = useOptionalMessages('portalEase')?.referral
 
-  if (meError) return <DashboardError error={meError} onRetry={() => void refetchMe()} />
+  if (meError) return <PortalError error={meError} onRetry={() => void refetchMe()} />
 
   const statusNote = me ? (me.status === 'active' ? copy.statusActive : me.status === 'suspended' ? copy.statusSuspended : copy.statusDeactivated) : null
 
@@ -93,7 +93,7 @@ export default function PortalHome({
 
       {error ? (
         <div className="mt-6">
-          {error && <DashboardError error={error} onRetry={() => void refetch()} />}
+          {error && <PortalError error={error} onRetry={() => void refetch()} />}
         </div>
       ) : isLoading || !home ? (
         <Skeleton />

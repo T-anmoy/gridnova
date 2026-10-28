@@ -2,8 +2,8 @@
 
 import { Loader2 } from 'lucide-react'
 import { useAssociateMe } from '@/lib/associate/api-client'
-import { DashboardError } from '@/components/dashboard/DashboardError'
-import { formatDate } from '@/lib/dashboard/utils'
+import { PortalError } from '@/components/associate/PortalError'
+import { useDates } from '@/lib/i18n/dates'
 import type { Messages } from '@/lib/i18n/types'
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
@@ -16,9 +16,10 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 export default function PortalProfile({ copy }: { copy: Messages['associates']['portal']['associate']['profile'] }) {
+  const { formatDate } = useDates()
   const { data: me, isLoading, error, refetch } = useAssociateMe()
 
-  if (error) return <DashboardError error={error} onRetry={() => void refetch()} />
+  if (error) return <PortalError error={error} onRetry={() => void refetch()} />
   if (isLoading || !me) {
     return (
       <div className="flex items-center justify-center py-20">

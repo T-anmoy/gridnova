@@ -90,6 +90,8 @@ export function isWizardStep(s: string | null | undefined): s is WizardStepId {
 export function stepOfField(field: string | null | undefined): WizardStepId {
   if (!field) return 'review'
   const f = field.replace(/\[\d+\].*$/, '')
+  // `customer_scope` is edited on Terms & notes — test it before the `customer` prefix.
+  if (f.startsWith('customer_scope')) return 'terms'
   if (f.startsWith('addressee') || f.startsWith('customer')) return 'customer'
   if (f === 'connection.phase' || f.startsWith('plant') || f.startsWith('pm_surya_ghar') || f === 'project.houses' || f === 'project.project_type' || f === 'project') return 'project'
   if (f.startsWith('site') || f.startsWith('connection') || f === 'project.roof_area_sqft') return 'site'
@@ -137,6 +139,7 @@ const CODE_MESSAGES: Record<string, string> = {
   not_list_priceable: 'The price master has no price for this package, phase and size. Enter the price yourself.',
   reason_required: 'The price is below the price master. Give the reason.',
   payment_terms_total: 'The payment percentages must add up to 100%.',
+  field_not_resettable: 'This section has no standard version to go back to.',
   make_not_in_catalogue: 'That make is not in the equipment catalogue. Pick one from the list, or “Equivalent”.',
   proposal_expired: 'This proposal has expired. Revise it to send a fresh one.',
   invalid_status: 'This is not possible at the proposal’s current stage. Reload the page.',
@@ -398,8 +401,9 @@ export function kwpText(cap: string | null | undefined): string {
   return `${t} kWp`
 }
 
-/** The owner column: the contract gives an employee id only (no names for non-Admins). */
-export function ownerText(ownerId: string | null | undefined, me: string | undefined): string {
+/** The owner column: BE-19's `owner_name` (a display name, never an email); "You" for oneself. */
+export function ownerText(ownerId: string | null | undefined, me: string | undefined, ownerName?: string | null): string {
   if (!ownerId) return '—'
-  return ownerId === me ? 'You' : 'A colleague'
+  if (ownerId === me) return 'You'
+  return ownerName?.trim() || 'A colleague'
 }

@@ -91,14 +91,12 @@ describe('docs/api/access_control.md', () => {
 
   it('the matrix fixture has the /access/matrix shape and the contract’s sensitive permissions', () => {
     expect(Object.keys(ACCESS_MATRIX).sort()).toEqual(['exclusive_roles', 'permissions', 'roles'])
-    const sensitiveLine = doc.slice(doc.indexOf('Sensitive: '), doc.indexOf('\n\n', doc.indexOf('Sensitive: ')))
-    const listed = sensitiveLine.replace('Sensitive: ', '').replace(/\.$/, '').split(/,\s*/).map((s) => s.trim())
-    // BE-18 marks studio.price and studio.approve sensitive in proposal_studio.md §1; the
-    // "Sensitive:" line in access_control.md was not updated (reported as a contract gap).
-    const studio = readFileSync(path.join(root, 'docs/api/proposal_studio.md'), 'utf8')
-    const studioSensitive = [...studio.matchAll(/`(studio\.[a-z_.]+)` — [^|]*sensitive/g)].map((m) => m[1])
-    expect(studioSensitive.sort()).toEqual(['studio.approve', 'studio.price'])
-    expect(ACCESS_MATRIX.permissions.filter((p) => p.sensitive).map((p) => p.id).sort()).toEqual([...listed, ...studioSensitive].sort())
+    // BE-19: access_control.md's "Sensitive:" list is complete (it now names studio.price and
+    // studio.approve), so it is the only source; the list ends at the first ". ".
+    const listed = /Sensitive: ([\s\S]*?)\.(?:\s|$)/.exec(doc)![1].split(/,\s*/).map((s) => s.trim())
+    expect(listed).toContain('studio.price')
+    expect(listed).toContain('studio.approve')
+    expect(ACCESS_MATRIX.permissions.filter((p) => p.sensitive).map((p) => p.id).sort()).toEqual([...listed].sort())
     expect(ACCESS_MATRIX.exclusive_roles).toEqual(['sales', 'engineer', 'operations'])
     const admin = ACCESS_MATRIX.roles.find((r) => r.id === 'admin')!
     expect(admin.permissions).not.toContain('payouts.bank_file.export')

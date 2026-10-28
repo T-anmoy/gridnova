@@ -166,7 +166,8 @@ describe('Accounts workspace — payments queue', () => {
     render(withI18n(<AccountsPage />))
     await userEvent.setup().click(screen.getByRole('combobox', { name: 'Payment method' }))
     const options = screen.getAllByRole('option').map((o) => o.textContent)
-    expect(options).toEqual(['All methods', 'Cheque', 'Demand draft', 'NEFT', 'RTGS', 'IMPS', 'UPI'])
+    // Retired methods stay in the filter for older rows, labelled (associate_journeys.md §5).
+    expect(options).toEqual(['All methods', 'Cheque', 'Demand draft (no longer accepted)', 'NEFT', 'RTGS', 'IMPS', 'UPI (no longer accepted)'])
   })
 })
 

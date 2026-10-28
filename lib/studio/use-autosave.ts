@@ -151,6 +151,51 @@ export function useStudioAutosave(proposalId: number, view: StudioView | undefin
     if (pending.current.size) await run()
   }, [run])
 
+  /**
+   * BE-19: put a section back to its generated default (POST …/sections/{section}/reset).
+   * Waiting edits are saved first, the section's own draft is dropped, and a stale_version
+   * answer reloads exactly like an edit's.
+   */
+  const reset = useCallback(
+    async (section: string): Promise<boolean> => {
+      const t = timers.current.get(section)
+      if (t) clearTimeout(t)
+      timers.current.delete(section)
+      pending.current.delete(section)
+      drafts.current = Object.fromEntries(Object.entries(drafts.current).filter(([k]) => k !== section))
+      sync()
+      await flush()
+      if (!viewRef.current) return false
+      setState('saving')
+      try {
+        const res = await studioApi.resetSection(() => tokenRef.current(), proposalId, section, viewRef.current.revision)
+        viewRef.current = res
+        qc.setQueryData(studioKeys.proposal(proposalId), res)
+        setErrors((e) => Object.fromEntries(Object.entries(e).filter(([k]) => k !== section && !k.startsWith(`${section}.`) && !k.startsWith(`${section}[`))))
+        setOutcome({ section, regenerated: res.regenerated_sections ?? [], approvalCleared: !!res.approval_cleared })
+        setSavedAt(Date.now())
+        setState('saved')
+        void qc.invalidateQueries({ queryKey: ['studio', 'proposals'] })
+        return true
+      } catch (err) {
+        const info = studioError(err)
+        if (info.code === 'stale_version') {
+          drafts.current = {}
+          sync()
+          await qc.invalidateQueries({ queryKey: studioKeys.proposal(proposalId) })
+          setState('reloaded')
+          setReloadCount((n) => n + 1)
+          toast.warning(info.message)
+          return false
+        }
+        setErrors((e) => ({ ...e, [section]: info.message }))
+        setState('error')
+        return false
+      }
+    },
+    [flush, proposalId, qc],
+  )
+
   const dirty = Object.keys(draftState).some((s) => !same(serverSection(view, s), draftState[s])) || state === 'saving'
 
   // Leaving with a save waiting: the browser asks first.
@@ -173,7 +218,7 @@ export function useStudioAutosave(proposalId: number, view: StudioView | undefin
   /** Errors for one field path, or for its whole section. */
   const errorFor = useCallback((field: string) => errors[field] ?? null, [errors])
 
-  return { edit, value, flush, state, errors, errorFor, outcome, savedAt, dirty, reloadCount, clearOutcome: () => setOutcome(null) }
+  return { edit, value, flush, reset, state, errors, errorFor, outcome, savedAt, dirty, reloadCount, clearOutcome: () => setOutcome(null) }
 }
 
 export type StudioAutosave = ReturnType<typeof useStudioAutosave>

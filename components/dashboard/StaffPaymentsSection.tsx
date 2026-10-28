@@ -8,8 +8,7 @@ import { DashboardError } from '@/components/dashboard/DashboardError'
 import PaymentScheduleEditor from '@/components/dashboard/PaymentScheduleEditor'
 import StaffRecordPayment from '@/components/dashboard/StaffRecordPayment'
 import { canRecordPayments, canSeePayments, useStaffOnboardingPayments } from '@/lib/dashboard/payments-api-client'
-import { ATTENTION_LABEL, STATUS_LABEL, STATUS_VARIANT } from '@/lib/dashboard/payment-ui'
-import { STAFF_PAYMENT_COPY } from '@/lib/dashboard/staff-copy'
+import { ATTENTION_LABEL, STATUS_LABEL, STATUS_VARIANT, staffModeLabel } from '@/lib/dashboard/payment-ui'
 import { formatDate } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
 import { usePermissions } from '@/lib/access/use-permissions'
@@ -53,7 +52,7 @@ function PaymentsBody({ onboardingId }: { onboardingId: number }) {
                 <li key={p.payment_id} className="flex flex-wrap items-center gap-2 border-b border-gray-100 pb-2 text-sm last:border-0" data-testid="section-payment">
                   <span className="font-medium">{formatInr(p.amount)}</span>
                   <Badge variant={STATUS_VARIANT[p.status] ?? 'gray'}>{STATUS_LABEL[p.status] ?? p.status}</Badge>
-                  <span className="text-gray-500">{STAFF_PAYMENT_COPY.modes[p.mode as keyof typeof STAFF_PAYMENT_COPY.modes] ?? p.mode} · {p.reference} · {formatDate(p.recorded_at)}</span>
+                  <span className="text-gray-500">{staffModeLabel(p.mode)} · {p.reference} · {formatDate(p.recorded_at)}</span>
                   {p.previous_payment_id != null && <span className="text-xs text-gray-500">replaces bounced payment #{p.previous_payment_id}</span>}
                   {(p.attention_reasons ?? []).map((r) => <Badge key={r} variant="orange">{ATTENTION_LABEL[r] ?? r.replace(/_/g, ' ')}</Badge>)}
                   {linkToPayment && <Link className="ml-auto text-[#0e2a63] underline" href={`/dashboard/accounts/payments/${p.payment_id}`}>Open</Link>}

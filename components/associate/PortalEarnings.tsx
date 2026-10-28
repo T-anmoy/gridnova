@@ -4,12 +4,12 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { CircleAlert, FileText, Loader2 } from 'lucide-react'
 import Link from '@/components/i18n/Link'
-import { DashboardError } from '@/components/dashboard/DashboardError'
+import { PortalError } from '@/components/associate/PortalError'
 import MyRateCard from '@/components/associate/MyRateCard'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { humanize } from '@/lib/associate/execution-labels'
 import { ApiError } from '@/lib/dashboard/api-error'
-import { formatDate } from '@/lib/dashboard/utils'
+import { useDates } from '@/lib/i18n/dates'
 import { useEntryQueries, useMyCommissions, useMyPayouts, useRaiseCommissionQuery } from '@/lib/commissions/associate-api-client'
 import { formatRate } from '@/lib/commissions/rates'
 import type { CommissionEntry } from '@/lib/commissions/schemas'
@@ -131,9 +131,10 @@ function QueryDialog({ entry, copy, open, onOpenChange, onSent }: { entry: Commi
 }
 
 function QueryHistory({ entryId, copy }: { entryId: number; copy: Copy }) {
+  const { formatDate } = useDates()
   const { data, isLoading, error } = useEntryQueries(entryId, true)
   if (isLoading) return <p role="status" className="font-utility text-xs text-[#111827]/65">{copy.query.loading}</p>
-  if (error) return <DashboardError error={error} />
+  if (error) return <PortalError error={error} />
   if (!data || data.items.length === 0) return <p className="font-utility text-xs text-[#111827]/65">{copy.query.empty}</p>
   return (
     <ul className="space-y-3" aria-label={copy.query.view}>
@@ -160,6 +161,7 @@ function QueryHistory({ entryId, copy }: { entryId: number; copy: Copy }) {
 // ── One earning ─────────────────────────────────────────────────────────────
 
 function EntryCard({ entry, copy, highlighted, now }: { entry: CommissionEntry; copy: Copy; highlighted: boolean; now: number }) {
+  const { formatDate } = useDates()
   const [asking, setAsking] = useState(false)
   const [showQueries, setShowQueries] = useState(highlighted)
   const [sent, setSent] = useState(false)
@@ -315,9 +317,10 @@ function Pager({ page, total, copy, onPage }: { page: number; total: number; cop
 // ── Payouts ─────────────────────────────────────────────────────────────────
 
 function Payouts({ copy }: { copy: Copy }) {
+  const { formatDate } = useDates()
   const { data, isLoading, error, refetch } = useMyPayouts()
   if (isLoading) return <div role="status" aria-busy="true" className="space-y-3"><div className="h-32 animate-pulse rounded-2xl bg-[#eef1f6]" /><span className="sr-only">{copy.loading}</span></div>
-  if (error) return <DashboardError error={error} onRetry={() => void refetch()} />
+  if (error) return <PortalError error={error} onRetry={() => void refetch()} />
   if (!data || data.items.length === 0) {
     return <p className="rounded-2xl border border-dashed border-[#e4e8ee] bg-white p-6 text-center text-sm text-[#111827]/70" data-testid="payouts-empty">{copy.payouts.empty}</p>
   }
@@ -365,6 +368,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 // ── Page ────────────────────────────────────────────────────────────────────
 
 export default function PortalEarnings({ copy, policyHref, territory = false }: { copy: Copy; policyHref: string; territory?: boolean }) {
+  const { formatDate } = useDates()
   const sp = useSearchParams()
   const tab = sp.get('tab') === 'payouts' ? 'payouts' : 'earnings'
   const focusEntry = Number(sp.get('entry')) || null
@@ -376,7 +380,7 @@ export default function PortalEarnings({ copy, policyHref, territory = false }: 
   const [now] = useState(() => Date.now())
   const { data, isLoading, error, refetch, isFetching } = useMyCommissions({ status: filter || undefined, page, page_size: PAGE_SIZE })
 
-  if (error && !data) return <DashboardError error={error} onRetry={() => void refetch()} />
+  if (error && !data) return <PortalError error={error} onRetry={() => void refetch()} />
 
   const s = data?.summary
   const filtersCopy = copy.filters as Record<string, string>
@@ -456,7 +460,7 @@ export default function PortalEarnings({ copy, policyHref, territory = false }: 
             </select>
             {isFetching && !isLoading && <Loader2 className="ml-2 inline h-4 w-4 animate-spin text-[#111827]/50" aria-hidden="true" />}
           </div>
-          {error && <DashboardError error={error} onRetry={() => void refetch()} />}
+          {error && <PortalError error={error} onRetry={() => void refetch()} />}
           {isLoading ? (
             <div className="space-y-3"><div className="h-40 animate-pulse rounded-2xl bg-[#eef1f6]" /></div>
           ) : data && data.items.length === 0 ? (

@@ -34,10 +34,11 @@ export default function ApprovalsPage() {
 function Approvals() {
   const { employeeId, can, canAssignRoles } = usePermissions()
   const { data, isLoading, error, refetch } = useApprovals('pending')
-  // Names for "who asked" when the staff list is open to this person (staff.manage); ids otherwise.
+  // BE-19 names the requester on every item; the staff list (staff.manage) covers an older backend.
   const staff = useStaff({ enabled: can('staff.manage') })
   const names = new Map((staff.data ?? []).map((e) => [e.id, e.name]))
-  const who = (id: string) => (id === employeeId ? 'You' : (names.get(id) ?? id))
+  const who = (r: ApprovalRequest) =>
+    r.requested_by === employeeId ? 'You' : (r.requested_by_name ?? names.get(r.requested_by) ?? 'someone whose name is not known')
   const [deciding, setDeciding] = useState<{ request: ApprovalRequest; decision: 'approve' | 'reject' } | null>(null)
   const inbox = decidable(data, employeeId, canAssignRoles)
 
@@ -72,7 +73,7 @@ function Approvals() {
                     <span className="text-xs text-[#111827]/60">Expires {formatDate(r.expires_at)}</span>
                   </div>
                   <p className="mt-1 font-utility text-sm font-medium text-[#091c3c]">{r.summary}</p>
-                  <p className="text-xs text-[#111827]/60">Asked by {who(r.requested_by)} · {formatDatetime(r.created_at)}</p>
+                  <p className="text-xs text-[#111827]/60">Asked by {who(r)} · {formatDatetime(r.created_at)}</p>
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" className="min-h-[44px] md:min-h-0" onClick={() => setDeciding({ request: r, decision: 'approve' })}>Approve</Button>

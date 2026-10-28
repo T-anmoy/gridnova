@@ -14,7 +14,8 @@ import {
 } from '@/lib/associate/onboarding-api-client'
 import { useRefreshSurvey, useSurveyResults, useSurveyStatus } from '@/lib/associate/survey-api-client'
 import { ApiError, isMissingClaimsError } from '@/lib/dashboard/api-error'
-import { DashboardError } from '@/components/dashboard/DashboardError'
+import { errorCodeOf, inactiveAccountOf, portalErrorText } from '@/lib/associate/portal-error'
+import { PortalError } from '@/components/associate/PortalError'
 import FileUploadSlot from '@/components/associate/FileUploadSlot'
 import PhotoCaptureSlot from '@/components/associate/PhotoCaptureSlot'
 import { OrEquivalentNote, PackageEquipment } from '@/components/pricing/PackageCards'
@@ -25,6 +26,8 @@ import SurveyStep from '@/components/associate/survey/SurveyStep'
 import { BillsStep, ConnectionSurveyFields, LayoutStep, RoofSurveyFields } from '@/components/associate/survey/SurveyFieldSteps'
 import { FormField, SelectField, YesNoField, inputClass } from '@/components/associate/wizard-fields'
 import { usePhotoUploads } from '@/lib/associate/usePhotoUploads'
+import { useUnsavedGuard } from '@/lib/proposals/use-unsaved-guard'
+import { inTurn } from '@/lib/associate/serial-uploads'
 import { purgePendingPhotoScope } from '@/lib/associate/photo-queue'
 import { LAST_TERRITORY_KEY, onboardingDraftKey, useDraftUserId } from '@/lib/associate/portal-session'
 import { bestPhotoCandidate, serverPhotoCandidates } from '@/lib/associate/site-location'
@@ -48,14 +51,17 @@ import {
   CUSTOMER_TYPES,
   SITE_TYPES,
   SITE_LOCATION_WARNING_CODES,
+  photoSlotsOf,
   type CreateOnboardingInput,
   type Onboarding,
   type OnboardingOptions,
   type OnboardingWarning,
+  type PhotoSlotOption,
   type SiteLocation,
 } from '@/lib/associate/onboarding-types'
 import type { SurveyStatus } from '@/lib/associate/survey-types'
-import { useMessages, useOptionalMessages } from '@/lib/i18n/client'
+import { useLocale, useMessages, useOptionalMessages } from '@/lib/i18n/client'
+import { localizeHref } from '@/lib/i18n/config'
 import { fmt, type Messages } from '@/lib/i18n/types'
 
 type WizardCopy = Messages['associates']['portal']['wizard']
@@ -69,7 +75,7 @@ const CORE_STEP_FIELDS: Partial<Record<StepKey, readonly string[]>> = {
   customer: ['customer_name', 'customer_mobile', 'customer_email', 'customer_type', 'pin_code', 'full_address'],
   connection: ['state_lgd_code', 'district_lgd_code', 'block_lgd_code', 'connection_in_customer_name', 'site_type', 'connection_type'],
   property: ['property_in_customer_name', 'customer_timeline'],
-  requirement: ['equipment_package'],
+  requirement: ['equipment_package', 'desired_output_kw'],
 }
 
 function stepOfAnyField(field: string): StepKey | null {
@@ -107,6 +113,7 @@ const EMPTY_DRAFT: WizardDraft = {
   property_in_customer_name: '',
   customer_timeline: '',
   equipment_package: '',
+  desired_output_kw: '',
   notice_acknowledged: false,
   survey: EMPTY_SURVEY_FORM,
 }
@@ -132,6 +139,7 @@ function draftFromOnboarding(o: Onboarding, options: OnboardingOptions): WizardD
     property_in_customer_name: o.property_in_customer_name ? 'yes' : 'no',
     customer_timeline: o.customer_timeline ?? '',
     equipment_package: '',
+    desired_output_kw: sa?.desired_output_kw != null ? String(sa.desired_output_kw) : '',
     notice_acknowledged: true,
     survey: surveyFormFromSiteAssessment(sa, options.survey.discom_options),
     onboarding_id: o.onboarding_id,
@@ -160,6 +168,8 @@ function corePayload(d: WizardDraft): Record<string, unknown> {
     property_in_customer_name: boolOrNull(d.property_in_customer_name),
     customer_timeline: textOrNull(d.customer_timeline),
     equipment_package: textOrNull(d.equipment_package),
+    // A size, not money: sent as the number the backend's float field takes.
+    desired_output_kw: d.desired_output_kw?.trim() ? Number(d.desired_output_kw.trim()) : null,
   }
 }
 
@@ -226,7 +236,7 @@ interface Props {
 export default function OnboardingWizard(props: Props) {
   const { userId, ready } = useDraftUserId()
   const { data: options, isLoading, error, refetch } = useOnboardingOptions()
-  if (error) return <DashboardError error={error} onRetry={() => void refetch()} />
+  if (error) return <PortalError error={error} onRetry={() => void refetch()} />
   if (!ready || isLoading || !options) {
     return (
       <div className="flex items-center justify-center py-20" role="status">
@@ -249,9 +259,11 @@ function WizardInner({
   draftKey,
 }: Props & { options: OnboardingOptions; userId: string | null; draftKey: string }) {
   const router = useRouter()
+  const locale = useLocale()
   const siteCopy = useMessages('siteLocation')
   const surveyCopy = useMessages('survey')
   const missingClaims = useOptionalMessages('portalErrors')?.missingClaims?.body
+  const feedback = useMessages('portalFeedback')
   const online = useOnline()
   // Real makes and technology per package (public endpoint); the cards still work without it.
   const { catalogue } = usePackageCatalogue()
@@ -374,12 +386,13 @@ function WizardInner({
     el?.focus()
   }, [fieldErrors])
 
+  // The server's English text is never shown: a known code or an inactive account gets its
+  // own sentence, anything else the caller's translated fallback.
   function errorText(err: unknown, fallback: string): string {
     if (isMissingClaimsError(err)) return missingClaims ?? fallback
-    if (err instanceof ApiError) {
-      if (err.status === 0) return surveyCopy.saveErrors.offline
-      if (typeof err.detail === 'string' && err.detail && !Array.isArray(err.structuredDetail)) return err.detail
-    }
+    if (err instanceof ApiError && err.status === 0) return surveyCopy.saveErrors.offline
+    const code = errorCodeOf(err)
+    if (inactiveAccountOf(err) || (code && code in feedback.codes)) return portalErrorText(err, feedback)
     return fallback
   }
 
@@ -398,7 +411,8 @@ function WizardInner({
     if (se) {
       const b = surveyCopy.bills.errors
       let key = se.field ?? ''
-      let msg = se.message ?? copy.saveFailed
+      const known = { ...surveyCopy.roof.errors, ...surveyCopy.layout.errors, ...surveyCopy.bills.errors, ...feedback.codes } as Record<string, string>
+      let msg = known[se.code] ?? copy.saveFailed
       if (se.field === 'consumption_history') {
         key = se.code === 'too_many_months' || se.index == null ? 'bills' : `bills.${se.index}`
         msg = se.code === 'too_many_months' ? fmt(b.too_many_months, { max: se.max_months ?? surveyOptions.max_consumption_months }) : ((b as Record<string, string>)[se.code] ?? msg)
@@ -462,6 +476,7 @@ function WizardInner({
       property_in_customer_name: core.property_in_customer_name === true,
       ...(core.customer_timeline ? { customer_timeline: core.customer_timeline as string } : {}),
       ...(core.equipment_package ? { equipment_package: core.equipment_package as string } : {}),
+      ...(core.desired_output_kw != null ? { desired_output_kw: core.desired_output_kw as number } : {}),
       // Survey answers given so far ride along (only what was actually entered).
       ...surveyPatch(draft.survey, EMPTY_SURVEY_FORM, ALL_SURVEY_FIELDS),
     }
@@ -505,7 +520,7 @@ function WizardInner({
     const errs = validateWizardStep(stepKey, draft, {
       isNew,
       survey: surveyOptions,
-      v: copy.validation,
+      v: { ...copy.validation, kw: copy.requirement.desiredKwInvalid },
       s: { bills: surveyCopy.bills.errors, roof: surveyCopy.roof.errors, layout: surveyCopy.layout.errors },
     })
     setFieldErrors(errs)
@@ -571,7 +586,8 @@ function WizardInner({
     setDocumentStatus((s) => ({ ...s, [documentType]: 'uploading' }))
     setDocumentErrors((e) => ({ ...e, [documentType]: undefined }))
     try {
-      adopt(await uploadMutation.mutateAsync({ id: onboardingId, input: { file, kind: 'document', document_type: documentType } }))
+      // One upload at a time per customer (lib/associate/serial-uploads.ts).
+      adopt(await inTurn(`onboarding-${onboardingId}`, () => uploadMutation.mutateAsync({ id: onboardingId, input: { file, kind: 'document', document_type: documentType } })))
       setDocumentStatus((s) => ({ ...s, [documentType]: 'success' }))
     } catch (err) {
       setDocumentStatus((s) => ({ ...s, [documentType]: 'error' }))
@@ -585,6 +601,9 @@ function WizardInner({
   }
 
   const pendingPhotos = Object.entries(photoUploads.status).filter(([, s]) => s === 'uploading' || s === 'waiting')
+  // Answers are kept on this phone as they are typed; only a save or a photo still on its way
+  // to Grid Nova would be cut off by leaving, so ask first while one is running.
+  useUnsavedGuard(busy || Object.values(photoUploads.status).some((st) => st === 'uploading'), feedback.unsaved)
   const waitingPhotos = pendingPhotos.filter(([, s]) => s === 'waiting').length
 
   async function handleSubmit() {
@@ -598,12 +617,13 @@ function WizardInner({
       await submitMutation.mutateAsync(onboardingId)
       clearAutosaveDraft(draftKey)
       void purgePendingPhotoScope(photoUploads.scope)
-      router.push(`${portalBase}/customers/${onboardingId}`)
+      // Stay in the reader's language: /hi/associates/portal/…, not the English page (FE-19).
+      router.push(localizeHref(`${portalBase}/customers/${onboardingId}`, locale))
     } catch (err) {
       if (err instanceof ApiError && err.structuredDetail?.code === 'incomplete') {
         const d = err.structuredDetail
         setSubmitError({
-          message: typeof d.message === 'string' ? d.message : copy.review.incompleteTitle,
+          message: copy.review.incompleteTitle,
           missing: Array.isArray(d.missing_documents) ? (d.missing_documents as string[]) : [],
           locationMissing: d.missing_site_location === true,
           locationUnconfirmed: d.site_location_unconfirmed === true,
@@ -638,11 +658,12 @@ function WizardInner({
     ...uploadedSlots,
     ...serverPhotoCandidates(server?.photos ?? []).filter((p) => !handledSlots.has(p.slot)),
   ])
-  const houseSlot = options.photo_slots.find((slot) => slot.key === HOUSE_PHOTO_SLOT)
+  const photoSlots = photoSlotsOf(options.photo_slots, copy.photos.slotLabels, copy.photos.otherSlot)
+  const houseSlot = photoSlots.find((slot) => slot.key === HOUSE_PHOTO_SLOT)
   const houseStepIndex = steps.indexOf('house')
   const photosStepIndex = steps.indexOf('photos')
 
-  const renderPhotoSlot = (slot: (typeof options.photo_slots)[number]) => (
+  const renderPhotoSlot = (slot: PhotoSlotOption) => (
     <PhotoCaptureSlot
       key={slot.key}
       slotKey={slot.key}
@@ -767,6 +788,7 @@ function WizardInner({
           <div>
             <p className="font-display text-base font-semibold text-[#0e2a63]">{copy.notice.title}</p>
             <p className="mt-3 text-sm text-[#111827]/75 leading-relaxed whitespace-pre-line">{options.notice.text}</p>
+            <p className="mt-2 font-utility text-xs text-[#111827]/65" data-testid="notice-version">{fmt(feedback.noticeVersion, { version: options.notice.version })}</p>
             <label className="mt-5 flex min-h-[44px] items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -936,6 +958,11 @@ function WizardInner({
               </div>
               {fe.equipment_package && <p className="mt-2 text-xs text-red-600 font-utility">{fe.equipment_package}</p>}
             </fieldset>
+            <FormField label={copy.requirement.desiredKwLabel} hint={copy.requirement.desiredKwHint} error={fe.desired_output_kw} required={isNew}>
+              {(p) => (
+                <input {...p} name="desired_output_kw" type="text" inputMode="decimal" autoComplete="off" maxLength={10} className={inputClass(!!fe.desired_output_kw)} value={draft.desired_output_kw ?? ''} onChange={(e) => update('desired_output_kw', e.target.value.replace(/[^\d.]/g, ''))} />
+              )}
+            </FormField>
             {catalogue && <OrEquivalentNote />}
             <div className="rounded-lg bg-[#f7f9fc] p-4">
               <p className="font-utility text-sm font-semibold text-[#0e2a63]">{copy.requirement.dcrTitle}</p>
@@ -984,7 +1011,9 @@ function WizardInner({
               <FileUploadSlot
                 key={doc.key}
                 label={doc.label}
-                why={doc.required_when ?? ''}
+                // `required_when` is a rule code (always, scheme_linked…) with no wording in the contract:
+                // never shown to the associate (FE-19); the server's incomplete answer names what is missing.
+                why=""
                 accept="image/*,application/pdf"
                 acceptedTypesLabel={copy.documents.acceptedTypes}
                 file={documents[doc.key] ?? null}
@@ -1013,7 +1042,7 @@ function WizardInner({
               <p className="font-display text-base font-semibold text-[#0e2a63]">{copy.photos.title}</p>
               <p className="mt-1 text-sm text-[#111827]/60 leading-relaxed">{copy.photos.geotagNote}</p>
             </div>
-            {options.photo_slots.filter((slot) => slot.key !== houseSlot?.key).map((slot) => renderPhotoSlot(slot))}
+            {photoSlots.filter((slot) => slot.key !== houseSlot?.key).map((slot) => renderPhotoSlot(slot))}
           </div>
         )}
 

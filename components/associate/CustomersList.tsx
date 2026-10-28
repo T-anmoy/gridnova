@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Plus, ChevronRight } from 'lucide-react'
 import Link from '@/components/i18n/Link'
 import { useOnboardings } from '@/lib/associate/onboarding-api-client'
-import { DashboardError } from '@/components/dashboard/DashboardError'
+import { PortalError } from '@/components/associate/PortalError'
 import PinnedAction from '@/components/associate/PinnedAction'
 import LocationChip from '@/components/associate/LocationChip'
 import EstimatedCommissionNote from '@/components/associate/EstimatedCommissionNote'
@@ -127,7 +127,7 @@ export default function CustomersList({
         <span className="text-xs font-utility text-[#111827]/60">{copy.filters.mineOnly}</span>
       </label>
 
-      {error && <DashboardError error={error} onRetry={() => void refetch()} />}
+      {error && <PortalError error={error} onRetry={() => void refetch()} />}
 
       {isLoading && (
         <div role="status" aria-busy="true" className="mt-6 space-y-3">

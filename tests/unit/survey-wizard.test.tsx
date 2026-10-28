@@ -98,6 +98,8 @@ describe('new customer: flat create body, validation, one create on a double tap
     await user.selectOptions(screen.getByLabelText(copy.property.propertyInCustomerNameLabel), 'no')
     await clickContinue(user)
     await user.click(screen.getByRole('button', { name: /DCR package/ }))
+    // FE-19: a new customer's requested size (desired_output_kw) is asked here too.
+    await user.type(screen.getByLabelText(/System size the customer wants/), '3')
   }
 
   it('blocks Continue with inline, linked errors and focuses the first invalid field', async () => {
@@ -144,6 +146,7 @@ describe('new customer: flat create body, validation, one create on a double tap
       connection_in_customer_name: true,
       property_in_customer_name: false,
       equipment_package: 'dcr',
+      desired_output_kw: 3,
       discom: 'CESC',
       consumption_history: [{ month: expect.stringMatching(/^\d{4}-\d{2}$/), units_kwh: 400 }],
     })

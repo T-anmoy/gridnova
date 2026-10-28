@@ -97,7 +97,7 @@ vi.mock('@/lib/proposals/document-api-client', () => ({
 }))
 vi.mock('@/lib/access/api', async () => {
   const { ACCESS_MATRIX } = await import('./fixtures/access-matrix')
-  return { useAccessMatrix: () => ({ data: ACCESS_MATRIX }) }
+  return { useAccessMatrix: () => ({ data: ACCESS_MATRIX }), useAccessAdmins: () => ({ data: undefined }) }
 })
 vi.mock('@/lib/dashboard/api-client', () => ({
   useEmployeeMe: () => ({ data: { id: 'EMP-OPS-1' } }),

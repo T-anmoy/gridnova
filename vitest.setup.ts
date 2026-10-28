@@ -90,7 +90,7 @@ vi.mock("next/link", () => ({
 }));
 
 // Components render in isolation here, without the layouts that provide message
-// namespaces. The shared date field (components/forms/DateField.tsx) sits inside
+// namespaces. The portal's error wording and the shared date field (components/forms/DateField.tsx) sits inside
 // many of them, so tests get its English copy when no provider supplied one; the
 // app itself requires the provider.
 vi.mock("@/lib/i18n/client", async (importOriginal) => {
@@ -98,8 +98,11 @@ vi.mock("@/lib/i18n/client", async (importOriginal) => {
   const en = (await import("@/messages/en.json")).default;
   return {
     ...mod,
+    // portalFeedback (FE-19) is the portal's error wording, rendered by every portal card.
     useMessages: ((ns: string) =>
-      ns === "dateField" ? (mod.useOptionalMessages("dateField") ?? en.dateField) : mod.useMessages(ns as never)) as typeof mod.useMessages,
+      ns === "dateField" || ns === "portalFeedback"
+        ? (mod.useOptionalMessages(ns as "dateField") ?? (en as Record<string, unknown>)[ns])
+        : mod.useMessages(ns as never)) as typeof mod.useMessages,
   };
 });
 
@@ -128,4 +131,12 @@ afterEach(async () => {
 vi.mock("@/lib/access/use-permissions", async () => {
   const { permissionsForRolesHook } = await import("./tests/unit/helpers/permissions-bridge");
   return { usePermissions: permissionsForRolesHook };
+});
+
+// FE-19: NoAccess names the Admins from GET /access/admins. Dozens of guard tests render
+// NoAccess without Clerk or a query client (and assert that no request is made), so the
+// hook answers "not loaded" here; tests/unit/fe19-access-gaps.test.tsx uses the real one.
+vi.mock("@/lib/access/api", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("@/lib/access/api")>();
+  return { ...mod, useAccessAdmins: () => ({ data: undefined, isLoading: false, error: null }) };
 });

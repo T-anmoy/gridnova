@@ -1,5 +1,5 @@
 import { AlertTriangle, Check, Clock } from 'lucide-react'
-import { formatDate } from '@/lib/dashboard/utils'
+import { useDates } from '@/lib/i18n/dates'
 import type { Register, RegisterUnit } from '@/lib/associate/register-types'
 import type { Messages } from '@/lib/i18n/types'
 
@@ -23,6 +23,7 @@ export default function RegisterReadOnly({
   /** Edit / remove controls, only passed while the associate may still change the register. */
   renderUnitActions?: (unit: RegisterUnit) => React.ReactNode
 }) {
+  const { formatDate } = useDates()
   const units = register.units.filter((u) => u.status !== 'voided')
   return (
     <div className="space-y-3" data-testid="register-readonly">

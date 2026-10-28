@@ -146,7 +146,7 @@ describe('Entries (E1, E4)', () => {
   it('an unreachable backend is an error card, not an empty list', () => {
     hooks.commissions = { error: new ApiError(0, 'Network request failed') }
     renderPage()
-    expect(screen.getByRole('alert')).toHaveTextContent(/Can’t reach the server/)
+    expect(screen.getByRole('alert')).toHaveTextContent(/Couldn't reach Grid Nova/)
     expect(screen.queryByTestId('earnings-empty')).toBeNull()
   })
 })

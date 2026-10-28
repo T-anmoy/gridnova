@@ -432,6 +432,9 @@ export interface Employee {
   is_active: boolean
   created_at: string | null
   google_calendar_connected?: boolean
+  /** BE-19, from Clerk: null when unknown (no Clerk key, Clerk unreachable, never signed in). */
+  last_sign_in_at?: string | null
+  two_factor_enabled?: boolean | null
 }
 
 // GET /employees/assignable — admin + management, trimmed for the reassign

@@ -8,8 +8,9 @@ export const LEAVE_PROMPT = 'You have unsaved changes on this proposal. Leave wi
  * While `dirty`: the browser asks before a reload / tab close, and an in-app
  * link click (sidebar, breadcrumbs) asks before navigating. Returns a
  * `confirmLeave()` for buttons that navigate in code (Back, version history).
+ * `prompt` is the question asked (the portal passes its own, translated).
  */
-export function useUnsavedGuard(dirty: boolean): () => boolean {
+export function useUnsavedGuard(dirty: boolean, prompt: string = LEAVE_PROMPT): () => boolean {
   useEffect(() => {
     if (!dirty) return
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -21,7 +22,7 @@ export function useUnsavedGuard(dirty: boolean): () => boolean {
       if (!a || a.target === '_blank' || a.hasAttribute('download')) return
       const href = a.getAttribute('href') ?? ''
       if (href.startsWith('#') || href.startsWith('blob:') || href.startsWith('mailto:') || href.startsWith('tel:')) return
-      if (!window.confirm(LEAVE_PROMPT)) {
+      if (!window.confirm(prompt)) {
         e.preventDefault()
         e.stopPropagation()
       }
@@ -32,7 +33,7 @@ export function useUnsavedGuard(dirty: boolean): () => boolean {
       window.removeEventListener('beforeunload', onBeforeUnload)
       document.removeEventListener('click', onClick, true)
     }
-  }, [dirty])
+  }, [dirty, prompt])
 
-  return useCallback(() => !dirty || window.confirm(LEAVE_PROMPT), [dirty])
+  return useCallback(() => !dirty || window.confirm(prompt), [dirty, prompt])
 }

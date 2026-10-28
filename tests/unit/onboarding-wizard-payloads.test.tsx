@@ -127,10 +127,15 @@ describe('OnboardingWizard — a new customer, step by step', () => {
     await next(user)
     expect(createMutateAsync).not.toHaveBeenCalled()
     await user.click(screen.getByRole('button', { name: /DCR package/ }))
+    // FE-19: the size the customer wants is asked too — the formal proposal cannot be prepared without it.
+    await next(user)
+    expect(createMutateAsync).not.toHaveBeenCalled()
+    expect(screen.getByLabelText(new RegExp(copy.requirement.desiredKwLabel.replace(/[()]/g, '\\$&')))).toHaveAttribute('aria-invalid', 'true')
+    await user.type(screen.getByLabelText(new RegExp(copy.requirement.desiredKwLabel.replace(/[()]/g, '\\$&'))), '3')
     await next(user)
 
     expect(createMutateAsync).toHaveBeenCalledTimes(1)
-    expect(createMutateAsync).toHaveBeenCalledWith(ONBOARDING_CREATE_BODY)
+    expect(createMutateAsync).toHaveBeenCalledWith({ ...ONBOARDING_CREATE_BODY, desired_output_kw: 3 })
     // The wizard moved on to the site-location step.
     expect(screen.getByText(`Step 7 of 12`)).toBeInTheDocument()
     expect(screen.getAllByRole('heading', { level: 2, name: copy.steps.house }).length).toBeGreaterThan(0)
@@ -213,7 +218,9 @@ describe('OnboardingWizard — submit', () => {
     render(withI18n(<OnboardingWizard copy={copy} territory={en.associates.territory} portalBase="/associates/portal" existing={makeOnboarding({ onboarding_id: 889, ...CONFIRMED })} />))
     for (let i = 0; i < 11; i++) await next(user)
     await user.click(screen.getByRole('button', { name: copy.review.submitButton }))
-    expect(await screen.findByText('Upload every required document')).toBeInTheDocument()
+    // The server's English message is never shown; the translated heading is.
+    expect(await screen.findByText(copy.review.incompleteTitle)).toBeInTheDocument()
+    expect(screen.queryByText('Upload every required document')).toBeNull()
     expect(push).not.toHaveBeenCalled()
   })
 })
@@ -245,5 +252,67 @@ describe('validateWizardStep — pure rules per step', () => {
     expect(validateWizardStep('property', draft(), ctx)).toHaveProperty('property_in_customer_name')
     expect(validateWizardStep('requirement', draft(), ctx)).toHaveProperty('equipment_package')
     expect(validateWizardStep('requirement', draft(), { ...ctx, isNew: false })).toEqual({})
+  })
+})
+
+// FE-19 phone pass: the documents step printed each document's rule code ("Still needed:
+// scheme_linked"). The code has no wording in the contract, so it is never shown.
+describe('OnboardingWizard — documents step', () => {
+  it('never shows a document’s required_when rule code', async () => {
+    const saved = OPTIONS.documents
+    OPTIONS.documents = [
+      { key: 'electricity_bill', label: 'Latest electricity bill', required_when: 'always' },
+      { key: 'bank_details', label: 'Bank details for subsidy credit', required_when: 'scheme_linked' },
+    ]
+    try {
+      const { default: OnboardingWizard } = await import('@/components/associate/OnboardingWizard')
+      const user = userEvent.setup()
+      render(withI18n(<OnboardingWizard copy={copy} territory={en.associates.territory} portalBase="/associates/portal" existing={makeOnboarding({ onboarding_id: 887, ...CONFIRMED })} />))
+      for (let i = 0; i < 8; i++) await next(user) // notice -> … -> documents
+      expect(await screen.findByText('Bank details for subsidy credit')).toBeInTheDocument()
+      expect(screen.queryByText(/scheme_linked|always/)).toBeNull()
+      expect(screen.queryByText(new RegExp(copy.documents.missingLabel))).toBeNull()
+    } finally {
+      OPTIONS.documents = saved
+    }
+  })
+})
+
+// FE-19 phone pass (blocker): GET /associate/onboardings/options sends `photo_slots` as plain
+// keys. The wizard expected objects and filtered every slot out, so no site photo could be taken.
+describe('OnboardingWizard — photos step with the live options shape', () => {
+  it('shows a camera slot, with its label, for every key the server sends', async () => {
+    const saved = OPTIONS.photo_slots
+    OPTIONS.photo_slots = ['panel_installation_area', 'earthing_location', 'wiring_path', 'brand_new_slot']
+    try {
+      const { default: OnboardingWizard } = await import('@/components/associate/OnboardingWizard')
+      const user = userEvent.setup()
+      const { container } = render(withI18n(<OnboardingWizard copy={copy} territory={en.associates.territory} portalBase="/associates/portal" existing={makeOnboarding({ onboarding_id: 886, ...CONFIRMED })} />))
+      for (let i = 0; i < 9; i++) await next(user) // notice -> … -> photos
+      expect(await screen.findByText(copy.photos.slotLabels.earthing_location)).toBeInTheDocument()
+      expect(screen.getByText(copy.photos.slotLabels.wiring_path)).toBeInTheDocument()
+      expect(screen.getByText(copy.photos.otherSlot)).toBeInTheDocument()
+      // The house slot is taken on "At the house"; the other three are here.
+      expect(container.querySelectorAll('[data-testid="camera-input"]').length).toBe(3)
+    } finally {
+      OPTIONS.photo_slots = saved
+    }
+  })
+})
+
+// FE-19 phone pass: a Hindi associate who submitted a customer landed on the English page.
+describe('OnboardingWizard — after submit the associate stays in their language', () => {
+  it('goes to /hi/associates/portal/customers/<id> on a Hindi page', async () => {
+    const { default: OnboardingWizard } = await import('@/components/associate/OnboardingWizard')
+    const { I18nProvider } = await import('@/lib/i18n/client')
+    const user = userEvent.setup()
+    render(
+      <I18nProvider locale="hi" messages={en as never}>
+        <OnboardingWizard copy={copy} territory={en.associates.territory} portalBase="/associates/portal" existing={makeOnboarding({ onboarding_id: 885, ...CONFIRMED })} />
+      </I18nProvider>,
+    )
+    for (let i = 0; i < 11; i++) await next(user)
+    await user.click(screen.getByRole('button', { name: copy.review.submitButton }))
+    expect(push).toHaveBeenCalledWith('/hi/associates/portal/customers/885')
   })
 })

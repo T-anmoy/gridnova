@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useAuth } from '@clerk/nextjs'
 import { AlertTriangle, ArrowLeft, Landmark } from 'lucide-react'
 import Link from '@/components/i18n/Link'
-import { DashboardError } from '@/components/dashboard/DashboardError'
+import { PortalError } from '@/components/associate/PortalError'
 import { useOnboarding } from '@/lib/associate/onboarding-api-client'
 import ProofUpload from '@/components/payments/ProofUpload'
 import RecordPaymentForm from '@/components/payments/RecordPaymentForm'
@@ -19,7 +19,7 @@ import {
   useUploadPaymentProof,
 } from '@/lib/associate/payment-api-client'
 import { ApiError, wrongAccountOf } from '@/lib/dashboard/api-error'
-import { formatDate } from '@/lib/dashboard/utils'
+import { useDates } from '@/lib/i18n/dates'
 import { formatInr } from '@/lib/money'
 import { useMilestoneLabel } from '@/lib/pricing/useMilestoneLabel'
 import type { Milestone, Payment, PaymentOverview } from '@/lib/associate/payment-types'
@@ -131,6 +131,7 @@ function PaymentRow({
   onboardingId: number
   copy: PaymentCopy
 }) {
+  const { formatDate } = useDates()
   const milestoneLabel = useMilestoneLabel()
   const { getToken } = useAuth()
   const upload = useUploadPaymentProof(onboardingId)
@@ -176,7 +177,9 @@ function PaymentRow({
         </span>
       </div>
       <p className="mt-1 text-xs text-[#111827]/60">
-        {copy.modes[payment.mode as keyof PaymentCopy['modes']] ?? humanize(payment.mode)} · {payment.reference} · {formatDate(payment.recorded_at)}
+        {copy.modes[payment.mode as keyof PaymentCopy['modes']] ?? humanize(payment.mode)}
+        {/* A demand draft or UPI payment recorded before those methods were switched off (associate_journeys.md §5). */}
+        {!overview.enabled_modes.includes(payment.mode) && <span data-testid="retired-mode"> ({copy.retiredMode})</span>} · {payment.reference} · {formatDate(payment.recorded_at)}
       </p>
       {milestone && <p className="mt-1 text-xs text-[#111827]/65">{copy.forMilestone.replace('{label}', milestoneLabel(milestone.label))}</p>}
       {payment.previous_payment_id != null && (
@@ -268,7 +271,7 @@ export default function PortalPayments({
 
   if (error) {
     // 403 from the payments route = not this customer's owner (e.g. a Preferred
-    // Associate on a downline customer). A wrong-account 403 is handled by DashboardError.
+    // Associate on a downline customer). A wrong-account 403 is handled by PortalError.
     const notOwner = error instanceof ApiError && error.status === 403 && !wrongAccountOf(error)
     return (
       <div className="space-y-4">
@@ -276,7 +279,7 @@ export default function PortalPayments({
         {notOwner ? (
           <Card><p className="text-sm text-[#111827]/70" data-testid="not-owner">{copy.notOwner}</p></Card>
         ) : (
-          <DashboardError error={error} onRetry={() => void refetch()} />
+          <PortalError error={error} onRetry={() => void refetch()} />
         )}
       </div>
     )

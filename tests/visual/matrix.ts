@@ -108,6 +108,15 @@ const FE18: PageCase[] = [
 const ASSOCIATE = process.env.VISUAL_ASSOCIATE_ID ?? "GNA-WB-26-90001";
 const PREFERRED = process.env.VISUAL_PREFERRED_ID ?? "GNA-WB-26-90002";
 
+// FE-19: the QR verify page in three languages (a real ID and an unknown one), the portal on a
+// phone in Hindi and Bengali, and the staff "Move customers" screen.
+const FE19: PageCase[] = [
+  ...["", "/hi", "/bn"].map((l) => ({ path: `${l}/verify/${ASSOCIATE}`, principal: null, label: `${l}/verify/[id]` })),
+  { path: "/verify/GNA-XX-00-00000", principal: null, label: "/verify/[id] unknown" },
+  ...["/hi", "/bn"].flatMap((l) => ["", "/customers/new", "/earnings", "/id-card"].map((p) => ({ path: `${l}/associates/portal${p}`, principal: `associate:${ASSOCIATE}` as const }))),
+  { path: `/dashboard/associate-network/associates/${ASSOCIATE}/move-customers`, principal: "staff:admin", label: "/dashboard/associate-network/associates/[id]/move-customers" },
+];
+
 export const PAGES: PageCase[] = [
   // English is canonical without a prefix (/en/… redirects there).
   ...PUBLIC.map((p) => ({ path: p || "/", principal: null })),
@@ -119,6 +128,7 @@ export const PAGES: PageCase[] = [
   ...DASHBOARD.map((p) => ({ path: `/dashboard${p}`, principal: "staff:admin" as const })),
   ...FE17,
   ...FE18,
+  ...FE19,
 ];
 
 export const caseName = (c: PageCase) => c.label ?? c.path;
@@ -163,7 +173,7 @@ export async function prepare(page: Page, principal: Principal): Promise<void> {
 }
 
 export interface Finding {
-  kind: "overflow" | "collapsed" | "unreachable" | "overlap" | "covered-fixed" | "teaser-covers" | "launcher-covers" | "small-target" | "distorted-image" | "upscaled-image";
+  kind: "overflow" | "collapsed" | "unreachable" | "overlap" | "covered-fixed" | "teaser-covers" | "launcher-covers" | "tabbar-covers" | "small-target" | "distorted-image" | "upscaled-image";
   detail: string;
 }
 
@@ -246,7 +256,13 @@ export function measure(): { scrollWidth: number; innerWidth: number; findings: 
         const field = c.matches("input, select, textarea, [contenteditable=true]") || (c.tagName === "BUTTON" && !!c.closest("form"));
         const teaser = top.closest(".nova-teaser");
         const launcher = !teaser && !!top.closest("[data-floating-launcher]");
-        const kind = teaser ? (field ? "overlap" : "teaser-covers") : launcher ? "launcher-covers" : "overlap";
+        // FE-19: a full-width tab bar fixed to the bottom of a phone screen covers whatever
+        // sits behind it on load; that is only a defect when the page cannot scroll the control
+        // clear of the bar (not enough room below it). Reachable ones are reported.
+        const bottomBar = !teaser && !launcher && fr.width >= vw * 0.9 && fr.bottom >= vh - 1;
+        const roomBelow = document.documentElement.scrollHeight - (window.scrollY + cr.bottom);
+        const reachable = bottomBar && roomBelow >= fr.height;
+        const kind = teaser ? (field ? "overlap" : "teaser-covers") : launcher ? "launcher-covers" : reachable ? "tabbar-covers" : "overlap";
         findings.push({ kind, detail: `${name(teaser ?? f)} covers ${name(c)}` });
       }
     }

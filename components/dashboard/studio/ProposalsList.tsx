@@ -11,7 +11,7 @@ import { cn, formatDate } from '@/lib/dashboard/utils'
 import { useDebouncedValue } from '@/lib/dashboard/use-debounced-value'
 import { useUrlParams } from '@/lib/dashboard/use-url-params'
 import { usePermissions } from '@/lib/access/use-permissions'
-import { useStudioOptions, useStudioPendingApprovals, useStudioProposals } from '@/lib/studio/api'
+import { useStudioCustomer, useStudioCustomers, useStudioOptions, useStudioPendingApprovals, useStudioProposals } from '@/lib/studio/api'
 import { STATUS_LABEL, STUDIO_STATUSES_FOR_FILTER, compareDecimalStrings, ownerText, saveText, statusLabel, toCsv } from '@/lib/studio/logic'
 import type { StudioProposalSummary } from '@/lib/studio/types'
 import { ProposalLine } from './StudioHome'
@@ -21,8 +21,13 @@ const PAGE_SIZE = 25
 
 type SortKey = 'reference' | 'customer' | 'capacity' | 'total' | 'status' | 'issued' | 'valid' | 'owner'
 
-/** The capacity at the start of the title ("3 kWp Residential…"), as text. */
+/** BE-19's `capacity_kwp` ("3", "52.50" → "52.5"); before it, the size at the start of the title. */
 export function capacityOf(p: StudioProposalSummary): string {
+  if (p.capacity_kwp != null && p.capacity_kwp !== '') {
+    const c = p.capacity_kwp.trim()
+    return c.includes('.') ? c.replace(/0+$/, '').replace(/\.$/, '') : c
+  }
+  if (p.capacity_kwp === null) return ''
   return /^(\d+(?:\.\d+)?)\s*kWp/i.exec(p.title)?.[1] ?? ''
 }
 
@@ -36,7 +41,7 @@ export function sortRows(rows: StudioProposalSummary[], key: SortKey, dir: 'asc'
     status: (a, b) => text(statusLabel(a.status), statusLabel(b.status)),
     issued: (a, b) => text(a.issued_at, b.issued_at),
     valid: (a, b) => text(a.valid_until, b.valid_until),
-    owner: (a, b) => text(ownerText(a.owner_id, me), ownerText(b.owner_id, me)),
+    owner: (a, b) => text(ownerText(a.owner_id, me, a.owner_name), ownerText(b.owner_id, me, b.owner_name)),
   }
   const out = [...rows].sort(cmp[key])
   return dir === 'desc' ? out.reverse() : out
@@ -57,8 +62,44 @@ export function rowsCsv(rows: StudioProposalSummary[], typeLabel: (id: string) =
       statusLabel(p.status),
       p.issued_at ? p.issued_at.slice(0, 10) : '',
       p.valid_until ?? '',
-      ownerText(p.owner_id, me),
+      ownerText(p.owner_id, me, p.owner_name),
     ]),
+  )
+}
+
+/** BE-19 `customer_id`: pick a Studio customer by name or mobile; the chosen one shows as a chip. */
+function CustomerFilter({ customerId, onChange }: { customerId?: number; onChange: (id: number | null) => void }) {
+  const [q, setQ] = useState('')
+  const debounced = useDebouncedValue(q.trim(), 300)
+  const chosen = useStudioCustomer(customerId ?? null)
+  const found = useStudioCustomers(debounced, { enabled: !customerId && debounced.length >= 2, limit: 8 })
+  if (customerId) {
+    return (
+      <div className="block" data-testid="filter-customer">
+        <span className="mb-0.5 block font-utility text-xs text-[#111827]/65">Customer</span>
+        <span className="inline-flex min-h-11 items-center gap-2 rounded-md border border-[#d5dbe4] bg-[#f7f9fc] px-3 font-utility text-sm">
+          {chosen.data?.customer.name ?? `#${customerId}`}
+          <button type="button" className="text-[#0e2a63] underline" onClick={() => onChange(null)} aria-label="Show every customer">Clear</button>
+        </span>
+      </div>
+    )
+  }
+  return (
+    <div className="relative block" data-testid="filter-customer">
+      <label className="mb-0.5 block font-utility text-xs text-[#111827]/65" htmlFor="filter-customer-q">Customer</label>
+      <input id="filter-customer-q" className={INPUT} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Name or mobile" autoComplete="off" />
+      {debounced.length >= 2 && (found.data?.items.length ?? 0) > 0 && (
+        <ul className="absolute z-10 mt-1 w-full min-w-[14rem] rounded-md border border-[#e4e8ee] bg-white shadow-sm">
+          {found.data!.items.map((c) => (
+            <li key={c.id}>
+              <button type="button" className="block min-h-11 w-full px-3 py-1.5 text-left font-utility text-sm hover:bg-[#f7f9fc]" onClick={() => { setQ(''); onChange(c.id) }}>
+                {c.name} <span className="text-xs text-[#111827]/60">{c.mobile}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }
 
@@ -71,6 +112,7 @@ export default function ProposalsList() {
   const status = url.get('status')
   const type = url.get('type')
   const owner = url.get('owner') // '' everyone, 'me'
+  const customerId = Number(url.get('customer')) || undefined
   const from = url.get('from')
   const to = url.get('to')
   const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' } | null>(null)
@@ -79,6 +121,7 @@ export default function ProposalsList() {
     status: status || undefined,
     project_type: type || undefined,
     owner_id: owner === 'me' ? employeeId : undefined,
+    customer_id: customerId,
     date_from: from || undefined,
     date_to: to || undefined,
     q: debounced || undefined,
@@ -182,6 +225,7 @@ export default function ProposalsList() {
             </select>
           </label>
         )}
+        <CustomerFilter customerId={customerId} onChange={(v) => url.set({ customer: v ? String(v) : undefined })} />
         <DateField variant="dashboard" label="Created from" value={from} onChange={(v) => url.set({ from: v || undefined })} />
         <DateField variant="dashboard" label="Created to" value={to} onChange={(v) => url.set({ to: v || undefined })} />
       </div>
@@ -204,7 +248,11 @@ export default function ProposalsList() {
                     <StatusChip status={p.status} />
                   </div>
                   <p className="mt-0.5 font-utility text-xs text-[#111827]/60">{p.document_reference ?? p.code} · {p.title}</p>
-                  <p className="mt-1 font-utility text-sm"><Money value={p.total} /></p>
+                  <p className="mt-1 flex flex-wrap items-center gap-x-3 font-utility text-sm">
+                    <Money value={p.total} />
+                    {capacityOf(p) && <span className="text-xs text-[#111827]/60">{capacityOf(p)} kWp</span>}
+                    <span className="text-xs text-[#111827]/60">{ownerText(p.owner_id, employeeId, p.owner_name)}</span>
+                  </p>
                 </Link>
               </li>
             ))}
@@ -238,7 +286,7 @@ export default function ProposalsList() {
                     <td className="px-3 py-2"><StatusChip status={p.status} /></td>
                     <td className="px-3 py-2 font-utility text-sm">{p.issued_at ? formatDate(p.issued_at) : '—'}</td>
                     <td className="px-3 py-2 font-utility text-sm">{p.valid_until ? formatDate(p.valid_until) : '—'}</td>
-                    <td className="px-3 py-2 font-utility text-sm">{ownerText(p.owner_id, employeeId)}</td>
+                    <td className="px-3 py-2 font-utility text-sm">{ownerText(p.owner_id, employeeId, p.owner_name)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -2,7 +2,7 @@
 
 import { Loader2 } from 'lucide-react'
 import { useOnboarding } from '@/lib/associate/onboarding-api-client'
-import { DashboardError } from '@/components/dashboard/DashboardError'
+import { PortalError } from '@/components/associate/PortalError'
 import OnboardingWizard from '@/components/associate/OnboardingWizard'
 import type { Messages } from '@/lib/i18n/types'
 
@@ -21,7 +21,7 @@ export default function EditOnboardingWizard({
 }) {
   const { data: onboarding, isLoading, error, refetch } = useOnboarding(onboardingId)
 
-  if (error) return <DashboardError error={error} onRetry={() => void refetch()} />
+  if (error) return <PortalError error={error} onRetry={() => void refetch()} />
   if (isLoading || !onboarding) {
     return (
       <div className="flex items-center justify-center py-20">

@@ -2,7 +2,7 @@
 
 import { useMyRate } from '@/lib/commissions/associate-api-client'
 import { formatRate } from '@/lib/commissions/rates'
-import { formatDate } from '@/lib/dashboard/utils'
+import { useDates } from '@/lib/i18n/dates'
 import { useOptionalMessages } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/types'
 
@@ -14,6 +14,7 @@ import { fmt } from '@/lib/i18n/types'
  * the home feed still work without it.
  */
 export default function MyRateCard({ className = '' }: { className?: string }) {
+  const { formatDate } = useDates()
   const copy = useOptionalMessages('portalEase')?.rate
   const { data, isLoading } = useMyRate()
   if (!copy) return null

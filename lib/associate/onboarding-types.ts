@@ -285,11 +285,27 @@ export interface PhotoSlotOption {
   example_image_url?: string | null
 }
 
+/**
+ * Photo slots as the wizard shows them: a plain key gets its label from the portal's copy
+ * (`labels`), or a readable fallback, so a slot is never dropped (FE-19: with plain keys the
+ * Photos step used to show none).
+ */
+export function photoSlotsOf(raw: (string | PhotoSlotOption)[], labels: Record<string, string>, other: string): PhotoSlotOption[] {
+  return raw.flatMap((s) => {
+    if (typeof s === 'string') return s ? [{ key: s, label: labels[s] ?? other }] : []
+    return s?.key ? [{ ...s, label: labels[s.key] ?? s.label ?? other }] : []
+  })
+}
+
 export interface OnboardingOptions {
   notice: { version: string; text: string }
   equipment_packages: EquipmentPackageOption[]
   documents: DocumentOption[]
-  photo_slots: PhotoSlotOption[]
+  /**
+   * The live API (since Phase 3A) sends plain slot keys ("panel_installation_area"); objects
+   * with a label are accepted too. The wizard reads them through `photoSlotsOf`.
+   */
+  photo_slots: (string | PhotoSlotOption)[]
   customer_timelines: string[]
   site_location: SiteLocationOptions
   // S1 site survey (site_survey.md §2).
@@ -329,6 +345,8 @@ export interface CreateOnboardingInput {
   property_in_customer_name: boolean
   customer_timeline?: string
   equipment_package?: string
+  /** The size the customer asked for (kW) — the lead's capacity for the formal proposal. */
+  desired_output_kw?: number
   // Any site-assessment / survey field (site_survey.md §1) may ride along.
   [key: string]: unknown
 }

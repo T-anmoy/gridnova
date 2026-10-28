@@ -22,12 +22,13 @@ import {
   MIN_APPLICANT_AGE,
 } from '@/lib/associate/validation'
 import { ApiError } from '@/lib/dashboard/api-error'
+import { APPLY_FIELD_STEP, applyFieldErrors, stepsWithErrors } from '@/lib/associate/apply-errors'
 import DateField from '@/components/forms/DateField'
 import FileUploadSlot from '@/components/associate/FileUploadSlot'
 import TerritorySelect from '@/components/associate/TerritorySelect'
 import { useTerritoryCascade } from '@/lib/associate/territory'
 import type { AssociateLevel } from '@/lib/associate/types'
-import type { Messages } from '@/lib/i18n/types'
+import { fmt, type Messages } from '@/lib/i18n/types'
 
 type Kind = 'associate' | 'preferred'
 type Common = Messages['associates']['wizard']['common']
@@ -185,7 +186,7 @@ function ApplyForm({ kind, t, draftKey }: { kind: Kind; t: Messages['associates'
       : null
   const { data: seatAvailability, isFetching: seatChecking } = useSeatAvailability(seatParams)
 
-  const { data: kycConsent, isLoading: kycLoading, error: kycError } = useKycConsent()
+  const { data: kycConsent, isLoading: kycLoading, error: kycError, refetch: refetchConsent } = useKycConsent()
 
   function validateStep(step: string): boolean {
     const next: Record<string, string> = {}
@@ -244,7 +245,11 @@ function ApplyForm({ kind, t, draftKey }: { kind: Kind; t: Messages['associates'
     }
     if (step === 'consent' && !consentAccepted) next.consent = common.required
 
-    setErrors(next)
+    // Errors the server reported for other steps stay until those fields are edited.
+    setErrors((prev) => ({
+      ...Object.fromEntries(Object.entries(prev).filter(([k, v]) => v && APPLY_FIELD_STEP[k] && APPLY_FIELD_STEP[k] !== step)),
+      ...next,
+    }))
     return Object.keys(next).length === 0
   }
 
@@ -306,7 +311,30 @@ function ApplyForm({ kind, t, draftKey }: { kind: Kind; t: Messages['associates'
       clearAutosaveDraft(draftKey)
       setSubmitted({ id: result.application_id })
     } catch (err) {
-      setBannerError(describeError(err, common))
+      const fieldErrors = applyFieldErrors(err, t.wizard.fieldErrors)
+      if (fieldErrors) {
+        if (fieldErrors.consentStale) {
+          setConsentAccepted(false)
+          void refetchConsent()
+        }
+        setErrors(fieldErrors.byField)
+        const hit = stepsWithErrors(fieldErrors.byField, steps)
+        if (hit.length) setStepIndex(steps.indexOf(hit[0]))
+        const names = t.wizard.stepNames as Record<string, string>
+        const elsewhere = hit.slice(1).map((s) => names[s] ?? s)
+        setBannerError(
+          [
+            fieldErrors.consentStale ? common.consentUpdated : common.errorFields,
+            elsewhere.length ? fmt(common.errorFieldsElsewhere, { steps: elsewhere.join(', ') }) : '',
+            ...fieldErrors.general,
+          ]
+            .filter(Boolean)
+            .join(' ')
+        )
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      } else {
+        setBannerError(describeError(err, common, fields))
+      }
     } finally {
       setSubmitting(false)
     }
@@ -356,6 +384,12 @@ function ApplyForm({ kind, t, draftKey }: { kind: Kind; t: Messages['associates'
       {restored && stepIndex === 0 && (
         <p className="mt-4 rounded-xl bg-[#f7a800]/10 border border-[#f7a800]/30 px-4 py-2.5 text-xs font-utility text-[#6b4700]">
           {common.autosaveRestored}
+        </p>
+      )}
+
+      {bannerError && (
+        <p role="alert" data-testid="apply-error" className="mt-6 flex items-start gap-2 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700 font-utility">
+          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" /> {bannerError}
         </p>
       )}
 
@@ -453,7 +487,7 @@ function ApplyForm({ kind, t, draftKey }: { kind: Kind; t: Messages['associates'
               <textarea rows={3} className={inputClass(!!errors.prior_experience)} value={values.prior_experience} onChange={(e) => set('prior_experience', e.target.value)} />
             </Field>
             <Field label={fields.team_size.label} why={fields.team_size.why} whyLabel={common.whyWeAsk} example={fields.team_size.example} exampleLabel={common.example} error={errors.team_size}>
-              <input type="number" min={0} max={100000} className={inputClass(!!errors.team_size)} value={values.team_size} onChange={(e) => set('team_size', e.target.value)} />
+              <input type="number" inputMode="numeric" min={0} max={100000} className={inputClass(!!errors.team_size)} value={values.team_size} onChange={(e) => set('team_size', e.target.value)} />
             </Field>
           </div>
         )}
@@ -575,11 +609,6 @@ function ApplyForm({ kind, t, draftKey }: { kind: Kind; t: Messages['associates'
                 </div>
               ))}
             </dl>
-            {bannerError && (
-              <p className="mt-5 flex items-center gap-2 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700 font-utility">
-                <AlertCircle className="h-4 w-4 shrink-0" /> {bannerError}
-              </p>
-            )}
           </div>
         )}
       </div>
@@ -635,15 +664,15 @@ function reviewRows(kind: Kind, v: FormState, fields: Fields, t: Messages['assoc
   return rows
 }
 
-function describeError(err: unknown, common: Common): string {
-  if (!(err instanceof ApiError)) return common.errorNetwork
+function describeError(err: unknown, common: Common, fields: Fields): string {
+  if (!(err instanceof ApiError) || err.status === 0) return common.errorNetwork
   if (err.status === 429) return common.errorRateLimited
+  if (err.structuredDetail?.code === 'seat_full') return common.errorSeatFull
   if (err.status === 409) {
     const field = err.structuredDetail?.field
-    if (field) return common.errorDuplicate.replace('{field}', String(field))
-    return err.detail || common.errorGeneric
+    // Name the field the way the form does ("PAN"), not by its API name ("pan").
+    const label = typeof field === 'string' ? (fields as Record<string, { label?: string }>)[field]?.label ?? field : null
+    if (label) return common.errorDuplicate.replace('{field}', label)
   }
-  if (err.structuredDetail?.code === 'seat_full') return common.errorSeatFull
-  if (err.detail) return err.detail
   return common.errorGeneric
 }

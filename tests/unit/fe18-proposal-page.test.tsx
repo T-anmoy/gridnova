@@ -116,13 +116,12 @@ describe('the proposal page after issue', () => {
     expect(win.location.href).toBe('')
   })
 
-  it('Copy link uses the link from issue without another call', async () => {
-    const view = issuedView()
+  it('Copy customer link copies the View’s public_url (BE-19) without another call', async () => {
+    const view = { ...issuedView(), public_url: 'https://www.gridnova.in/proposal/tok' }
     const backend = backendFor(view)
-    const { user, qc } = renderWith(<ProposalOverview view={view} justIssued />)
+    const { user } = renderWith(<ProposalOverview view={view} justIssued />)
     // user-event installs its own clipboard on setup; watch that one.
     const writeText = vi.spyOn(navigator.clipboard, 'writeText')
-    qc.setQueryData(['studio', 'public-url', 7], 'https://www.gridnova.in/proposal/tok')
     await user.click(screen.getByTestId('action-copy-link'))
     await waitFor(() => expect(writeText).toHaveBeenCalledWith('https://www.gridnova.in/proposal/tok'))
     expect(backend.called('POST', `${P}/whatsapp-link`)).toHaveLength(0)
@@ -139,7 +138,7 @@ describe('the proposal page after issue', () => {
     await user.clear(to)
     await user.type(to, 'other@example.com')
     await user.click(screen.getByTestId('email-send'))
-    await waitFor(() => expect(backend.called('POST', `${P}/email`)[0]?.body).toEqual({ to: 'other@example.com' }))
+    await waitFor(() => expect(backend.called('POST', `${P}/email`)[0]?.body).toEqual({ to: 'other@example.com', subject: null, message: null }))
   })
 
   it('Email: no address on file → the API’s no_customer_email is explained in the dialog', async () => {

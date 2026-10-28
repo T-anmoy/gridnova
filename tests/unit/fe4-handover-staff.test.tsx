@@ -49,7 +49,7 @@ vi.mock('@/lib/access/use-permissions', async () => {
 vi.mock('@/lib/dashboard/api-client', () => ({ useEmployeeMe: () => h.me, useEmployees: () => h.employees }))
 vi.mock('@/lib/access/api', async () => {
   const { ACCESS_MATRIX } = await import('./fixtures/access-matrix')
-  return { useAccessMatrix: () => ({ data: ACCESS_MATRIX }) }
+  return { useAccessMatrix: () => ({ data: ACCESS_MATRIX }), useAccessAdmins: () => ({ data: undefined }) }
 })
 vi.mock('@/lib/dashboard/execution-api-client', () => ({
   useWorkQueues: () => h.queues,

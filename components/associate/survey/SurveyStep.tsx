@@ -5,7 +5,7 @@ import { AlertTriangle, CheckCircle2, CircleDashed, Loader2, WifiOff } from 'luc
 import { useMessages, useOptionalMessages } from '@/lib/i18n/client'
 import { fmt, type Messages } from '@/lib/i18n/types'
 import { formatInr } from '@/lib/money'
-import { formatDatetime } from '@/lib/dashboard/utils'
+import { useDates } from '@/lib/i18n/dates'
 import { ApiError, isMissingClaimsError } from '@/lib/dashboard/api-error'
 import { useSignSurvey, useSurveyResults, useSurveyStatus } from '@/lib/associate/survey-api-client'
 import { formatKw, stepOfSection, surveyWarningText, type SurveyStepKey } from '@/lib/associate/survey'
@@ -45,7 +45,7 @@ export function signatureErrorText(err: unknown, t: SurveyCopy, maxKb: number, m
     return fmt(e.file_too_large, { max_kb: kb })
   }
   if (code && (SIGNATURE_CODES as readonly string[]).includes(code)) return e[code as SignatureErrorCode] as string
-  return err.detail && typeof err.detail === 'string' ? err.detail : e.generic
+  return e.generic
 }
 
 // ── Checklist (§3) ────────────────────────────────────────────────────────
@@ -240,6 +240,7 @@ export function SignatureBlock({
   maxKb: number
   online: boolean
 }) {
+  const { formatDatetime } = useDates()
   const t = useMessages('survey')
   const sig = t.signatures
   const missingClaims = useOptionalMessages('portalErrors')?.missingClaims?.body

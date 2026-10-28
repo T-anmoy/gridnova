@@ -29,6 +29,7 @@ export const APPROVAL_REQUEST: ApprovalRequest = {
   payload: { employee_id: 'user_raju', roles: ['admin', 'sales'], before: ['sales'], switches: ['role.admin'] },
   status: 'pending',
   requested_by: 'user_2ab',
+  requested_by_name: 'Tanmoy Halder',
   created_at: '2026-10-26T10:00:00Z',
   expires_at: '2026-10-29T10:00:00Z',
   decided_by: null,

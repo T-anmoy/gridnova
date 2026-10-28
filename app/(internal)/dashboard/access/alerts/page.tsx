@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useAccessAlerts, useAccessMatrix } from '@/lib/access/api'
-import { alertEventLabel, recipientsLine } from '@/lib/access/alerts-view'
+import { addressGroups, alertEventLabel, recipientsLine } from '@/lib/access/alerts-view'
 import { roleLabel } from '@/lib/access/roles'
 
 // GET /access/alerts — read-only, any staff (access_control.md §6).
@@ -23,7 +23,7 @@ export default function AlertRoutingPage() {
       <div>
         <h1 className="font-display text-2xl font-bold text-[#091c3c]">Alert routing</h1>
         <p className="mt-1 font-utility text-sm text-[#111827]/65">
-          Who receives each staff email: every active person holding one of the listed roles, the lead’s assigned person where marked, and the shared mailboxes already set up. Nobody gets the same email twice, and a turned-off account is never emailed.
+          Who receives each staff email: every active person holding one of the listed roles, the lead’s assigned person where marked, and the shared mailboxes already set up. Nobody gets the same email twice, and a turned-off account is never emailed. If you manage staff you also see the exact addresses used today; the assigned person and a proposal’s owner change with each record, so they are not listed.
         </p>
       </div>
       <AccessTabs />
@@ -68,6 +68,16 @@ export default function AlertRoutingPage() {
                         <span className="text-[#111827]/75">{recipientsLine(e, matrix.data)}</span>
                       ) : (
                         <span className="font-medium text-amber-800">Nobody yet</span>
+                      )}
+                      {addressGroups(e, matrix.data).length > 0 && (
+                        <dl className="mt-2 space-y-1 text-xs" data-testid={`addresses-${e.event}`}>
+                          {addressGroups(e, matrix.data).map((g) => (
+                            <div key={g.label}>
+                              <dt className="inline font-medium text-[#091c3c]">{g.label}: </dt>
+                              <dd className="inline break-all text-[#111827]/70">{g.addresses.join(', ')}</dd>
+                            </div>
+                          ))}
+                        </dl>
                       )}
                     </TableCell>
                   </TableRow>

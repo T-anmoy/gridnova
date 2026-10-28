@@ -2,13 +2,13 @@
 
 import { useMemo, useState } from 'react'
 import { Copy, Download, MessageCircle, Phone } from 'lucide-react'
-import { DashboardError } from '@/components/dashboard/DashboardError'
+import { PortalError } from '@/components/associate/PortalError'
 import { useLocale, useMessages } from '@/lib/i18n/client'
 import { localizeHref } from '@/lib/i18n/config'
 import { fmt, type Messages } from '@/lib/i18n/types'
 import { SITE_URL } from '@/lib/seo'
 import { indianWhatsappNumber, whatsappShareUrl, whatsappUrl } from '@/lib/contact'
-import { formatDate } from '@/lib/dashboard/utils'
+import { useDates } from '@/lib/i18n/dates'
 import { qrMatrix, qrPath, qrPngBlob } from '@/lib/associate/qr'
 import { useReferralLink, useReferrals, type ReferralItem } from '@/lib/associate/referral-api-client'
 
@@ -47,7 +47,7 @@ function LinkCard({ copy }: { copy: ReferralCopy }) {
   const { data, error, isLoading, refetch } = useReferralLink()
   const [copied, setCopied] = useState<'ok' | 'failed' | null>(null)
 
-  if (error) return <DashboardError error={error} onRetry={() => void refetch()} />
+  if (error) return <PortalError error={error} onRetry={() => void refetch()} />
   if (isLoading || !data) return <div role="status" aria-busy="true" className="mt-6 h-80 animate-pulse rounded-2xl bg-[#eef1f6]" />
 
   const url = absoluteShareUrl(data.share_path, locale)
@@ -96,6 +96,7 @@ function LinkCard({ copy }: { copy: ReferralCopy }) {
 }
 
 function ReferralRow({ item, copy }: { item: ReferralItem; copy: ReferralCopy }) {
+  const { formatDate } = useDates()
   const mobile = item.customer_mobile
   const wa = indianWhatsappNumber(mobile)
   const place = [item.location, item.pin_code ? fmt(copy.pin, { pin: item.pin_code }) : null].filter(Boolean).join(' · ')
@@ -133,7 +134,7 @@ function ReferralRow({ item, copy }: { item: ReferralItem; copy: ReferralCopy })
 
 function ReferralPage({ page, copy, isLast, onMore }: { page: number; copy: ReferralCopy; isLast: boolean; onMore: () => void }) {
   const { data, error, isLoading, refetch } = useReferrals(page, PAGE_SIZE)
-  if (error) return <DashboardError error={error} onRetry={() => void refetch()} />
+  if (error) return <PortalError error={error} onRetry={() => void refetch()} />
   if (isLoading || !data) return <div role="status" aria-busy="true" className="h-24 animate-pulse rounded-2xl bg-[#eef1f6]" />
   if (page === 1 && data.items.length === 0) {
     return <p className="rounded-2xl border border-dashed border-[#e4e8ee] bg-white p-6 text-center text-sm text-[#111827]/65">{copy.listEmpty}</p>

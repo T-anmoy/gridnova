@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError } from '@/lib/dashboard/api-error'
+import { inTurn } from './serial-uploads'
 import type { CapturedPhoto, PhotoUploadStatus } from './photo-types'
 import { listPendingPhotos, photoRetryDelayMs, putPendingPhoto, removePendingPhoto, type PendingPhoto } from './photo-queue'
 
@@ -87,9 +88,12 @@ export function usePhotoUploads({
     setStatus((s) => ({ ...s, [slot]: 'uploading' }))
     setProgress((p) => ({ ...p, [slot]: 0 }))
     try {
-      await uploadRef.current(slot, entry.photo, (percent) => {
-        if (current.current[slot]?.id === id) setProgress((p) => ({ ...p, [slot]: percent }))
-      })
+      // One at a time per scope: the server's photo list is read, changed and written back.
+      await inTurn(scope, () =>
+        uploadRef.current(slot, entry.photo, (percent) => {
+          if (current.current[slot]?.id === id) setProgress((p) => ({ ...p, [slot]: percent }))
+        }),
+      )
       if (current.current[slot]?.id !== id) return
       entry.done = true
       await removePendingPhoto(id)
@@ -109,7 +113,7 @@ export function usePhotoUploads({
         setErrors((e) => ({ ...e, [slot]: describeRef.current(err) }))
       }
     }
-  }, [])
+  }, [scope])
 
   const start = useCallback(
     async (slot: string, photo: CapturedPhoto) => {

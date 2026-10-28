@@ -280,7 +280,7 @@ describe('ExecutionChecklist — load states', () => {
     state.data = undefined
     state.error = new ApiError(500, 'x', 'boom')
     show()
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Retry' }))
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Try again' }))
     expect(refetch).toHaveBeenCalled()
   })
 

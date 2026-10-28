@@ -552,7 +552,7 @@
     "amountHint": "Digits only, for example 25000 or 25000.50",
     "reference": "UTR / cheque / reference number",
     "bankName": "Customer's bank",
-    "instrumentDate": "Cheque or draft date",
+    "instrumentDate": "Cheque date",
     "payerName": "Payer's name",
     "milestone": "Which instalment is this for? (optional)",
     "milestoneNone": "Not sure",
@@ -601,7 +601,7 @@
       "invalid_amount": "Enter a positive amount with at most 2 decimal places.",
       "mode_not_enabled": "That payment method isn't accepted. Please choose one from the list.",
       "reference_required": "Please enter the reference number.",
-      "instrument_details_required": "For a cheque or draft, please enter the bank and the date on it.",
+      "instrument_details_required": "For a cheque, please enter the bank and the date on it.",
       "invalid_date": "That date isn't valid.",
       "unknown_milestone": "That instalment isn't part of this customer's schedule.",
       "duplicate_payment_reference": "This reference number has already been recorded for this payment method and bank.",
@@ -619,7 +619,8 @@
     },
     "proofTake": "Take photo",
     "instructionNotReady": "Grid Nova's bank details aren't ready yet. Please don't collect any payment until they appear here.",
-    "instructionPayOnlyHere": "Pay only into this account — never in cash and never to a person."
+    "instructionPayOnlyHere": "Pay only into this account — never in cash and never to a person.",
+    "retiredMode": "no longer accepted — kept for your records"
   },
   "execution": {
     "title": "Installation",
@@ -856,7 +857,17 @@
     "cameraUnavailable": "Camera access is needed to take this photo.",
     "locationRequired": "Turn on location to take this photo, then try again.",
     "uploadFailed": "This photo couldn't be uploaded. Please try again.",
-    "retryButton": "Retry"
+    "retryButton": "Retry",
+    "slotLabels": {
+      "panel_installation_area": "Where the panels will go",
+      "acdb_dcdb_placement": "Where the ACDB / DCDB boxes will go",
+      "earthing_location": "Earthing location",
+      "inverter_installation_area": "Where the inverter will go",
+      "wiring_path": "Cable route",
+      "panel_to_inverter_distance": "Distance from panels to inverter",
+      "inverter_to_lt_panel_distance": "Distance from inverter to the meter / LT panel"
+    },
+    "otherSlot": "Site photo"
   },
   "survey": {
     "warnings": {

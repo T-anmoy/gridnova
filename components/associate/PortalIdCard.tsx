@@ -5,22 +5,18 @@ import { useAuth } from '@clerk/nextjs'
 import { toast } from 'sonner'
 import { Loader2, Download } from 'lucide-react'
 import { useAssociateMe, fetchAssociateDocumentLink } from '@/lib/associate/api-client'
-import { DashboardError } from '@/components/dashboard/DashboardError'
-import { ApiError } from '@/lib/dashboard/api-error'
+import { PortalError } from '@/components/associate/PortalError'
+import { portalErrorText } from '@/lib/associate/portal-error'
+import { useMessages } from '@/lib/i18n/client'
 import type { Messages } from '@/lib/i18n/types'
-
-function errorMessage(err: unknown, fallback: string): string {
-  if (err instanceof ApiError) return err.detail || err.message
-  if (err instanceof Error) return err.message
-  return fallback
-}
 
 export default function PortalIdCard({ copy }: { copy: Messages['associates']['portal']['associate']['idCard'] }) {
   const { getToken } = useAuth()
   const { data: me, isLoading, error, refetch } = useAssociateMe()
-  const [downloading, setDownloading] = useState(false)
+  const [downloading, setDownloading] = useState<'id_card' | 'welcome_letter' | null>(null)
+  const feedback = useMessages('portalFeedback')
 
-  if (error) return <DashboardError error={error} onRetry={() => void refetch()} />
+  if (error) return <PortalError error={error} onRetry={() => void refetch()} />
   if (isLoading || !me) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -29,17 +25,17 @@ export default function PortalIdCard({ copy }: { copy: Messages['associates']['p
     )
   }
 
-  async function download() {
-    setDownloading(true)
+  async function download(document: 'id_card' | 'welcome_letter') {
+    setDownloading(document)
     try {
       const token = await getToken()
       if (!token) return
-      const link = await fetchAssociateDocumentLink('id_card', token)
+      const link = await fetchAssociateDocumentLink(document, token)
       window.open(link.url, '_blank', 'noopener,noreferrer')
     } catch (err) {
-      toast.error(errorMessage(err, 'Failed to open ID card'))
+      toast.error(`${feedback.documents[document]} ${portalErrorText(err, feedback)}`)
     } finally {
-      setDownloading(false)
+      setDownloading(null)
     }
   }
 
@@ -51,15 +47,26 @@ export default function PortalIdCard({ copy }: { copy: Messages['associates']['p
       <div className="mt-8 rounded-2xl border border-[#e4e8ee] bg-white p-8 text-center">
         {me.documents.id_card ? (
           <button
-            onClick={() => void download()}
-            disabled={downloading}
-            className="btn btn-primary mx-auto disabled:opacity-60"
+            onClick={() => void download('id_card')}
+            disabled={downloading !== null}
+            className="btn btn-primary mx-auto min-h-[48px] disabled:opacity-60"
           >
-            {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            {downloading === 'id_card' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
             {copy.download}
           </button>
         ) : (
           <p className="font-utility text-sm text-[#111827]/65">{copy.notReady}</p>
+        )}
+        {me.documents.welcome_letter && (
+          <button
+            onClick={() => void download('welcome_letter')}
+            disabled={downloading !== null}
+            className="btn btn-secondary mx-auto mt-3 min-h-[48px] disabled:opacity-60"
+            data-testid="welcome-letter"
+          >
+            {downloading === 'welcome_letter' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            {copy.downloadWelcome}
+          </button>
         )}
       </div>
     </div>
