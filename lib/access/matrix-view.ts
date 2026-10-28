@@ -10,6 +10,7 @@ const AREAS: { label: string; prefixes: string[] }[] = [
   { label: 'Associate network and surveys', prefixes: ['associates', 'territories', 'onboardings', 'surveys'] },
   { label: 'Execution and service', prefixes: ['execution', 'service_requests'] },
   { label: 'Money', prefixes: ['payments', 'commissions', 'payouts'] },
+  { label: 'Proposal Studio', prefixes: ['studio'] },
   { label: 'Company setup and oversight', prefixes: ['equipment', 'placeholders', 'archive', 'governance', 'records', 'audit', 'staff'] },
 ]
 

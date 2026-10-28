@@ -269,9 +269,10 @@ export function useUpdateLeadFields() {
   })
 }
 
-export function useProposals(params?: ProposalListParams) {
+export function useProposals(params?: ProposalListParams, options: { enabled?: boolean } = {}) {
   const { getToken } = useAuth()
   return useQuery({
+    enabled: options.enabled ?? true,
     queryKey: ['proposals', params],
     queryFn: async () => {
       const token = await getToken()

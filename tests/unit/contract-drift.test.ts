@@ -113,8 +113,10 @@ describe('every backend path the app calls exists in the snapshot', () => {
           // `/${id}` is a path parameter; a `${qs}` glued to the last segment is a query string.
           p = p.replace(/\/\$\{[^}]*\}/g, '/X').replace(/\$\{[^}]*\}/g, '')
           p = p.replace(/\/+$/, '')
-          // Bare API roots held in constants (`const BASE = '/api/v1/dashboard'`) are prefixes, not endpoints.
+          // Bare API roots held in constants (`const BASE = '/api/v1/dashboard'`, `'/api/v1/dashboard/studio'`)
+          // are prefixes of published paths, not endpoints.
           if (/^\/api\/v1\/[a-z]+$/.test(p) && !spec.paths[p]) continue
+          if (!spec.paths[p] && Object.keys(spec.paths).some((k) => k.startsWith(`${p}/`)) && /^\/api\/v1\/[a-z]+\/[a-z_]+$/.test(p)) continue
           if (!/^\/api\/v1\/[a-z]/.test(p) || p.includes(' ')) continue
           called.add(p)
         }

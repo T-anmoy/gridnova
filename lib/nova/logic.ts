@@ -135,7 +135,8 @@ export function describeContext(ctx: NovaContext | null | undefined): string | n
  * has answered — or for someone who is not staff — there is no entry point.
  */
 export function canUseNova(can: (rule: PermissionRule) => boolean): boolean {
-  return can('any_staff')
+  // A person who holds only the Proposal Desk's Studio permissions has no Nova Records data.
+  return can('beyond_studio')
 }
 
 // Questions only — never facts. Keyed by the primary role: wording, not access (the
@@ -183,6 +184,7 @@ const STARTERS: Record<Role, string[]> = {
     'Show residential projects commissioned in 2025, by district',
     'Which inverter makes have we installed most?',
   ],
+  proposal_desk: [],
 }
 
 export function starterQuestions(role: Role | undefined): string[] {

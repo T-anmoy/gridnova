@@ -1,5 +1,5 @@
-// GET /access/matrix as BE-17 serves it (docs/api/access_control.md §2), written out from the
-// backend's config/access_control.yaml at BE-17 (commit 048ef88) so tests run against the real
+// GET /access/matrix as BE-18 serves it (docs/api/access_control.md §2), written out from the
+// backend's config/access_control.yaml at BE-18 (commit 7e45373) so tests run against the real
 // bundles. Regenerate when the backend's yaml changes; tests/unit/fe17-contract.test.ts checks the
 // shape against the contract.
 import type { AccessMatrix } from '@/lib/access/types'
@@ -100,6 +100,41 @@ export const ACCESS_MATRIX: AccessMatrix = {
       "id": "pricing.adjust",
       "description": "Adjust a proposal's price and read the price breakdown.",
       "sensitive": true
+    },
+    {
+      "id": "studio.view",
+      "description": "Open the Proposal Studio and your own Studio proposals.",
+      "sensitive": false
+    },
+    {
+      "id": "studio.view_all",
+      "description": "See every Studio proposal, not only your own.",
+      "sensitive": false
+    },
+    {
+      "id": "studio.edit",
+      "description": "Create Studio customers and proposals; edit, issue, deliver, revise, duplicate, mark accepted or lost.",
+      "sensitive": false
+    },
+    {
+      "id": "studio.price",
+      "description": "Set and change a Studio proposal's price and discount.",
+      "sensitive": true
+    },
+    {
+      "id": "studio.approve",
+      "description": "Approve or reject a Studio proposal prepared by someone else.",
+      "sensitive": true
+    },
+    {
+      "id": "studio.library.manage",
+      "description": "Add, edit and retire Studio notes, scope items, BOQ presets and templates.",
+      "sensitive": false
+    },
+    {
+      "id": "studio.convert",
+      "description": "Create a lead (and its proposal) from a Studio proposal.",
+      "sensitive": false
     },
     {
       "id": "customers.memory_query",
@@ -355,12 +390,13 @@ export const ACCESS_MATRIX: AccessMatrix = {
       "requires_two_factor": true,
       "can_assign_roles": [
         "admin",
-        "management",
-        "network_manager",
         "sales",
+        "management",
         "engineer",
         "operations",
-        "accounts"
+        "accounts",
+        "network_manager",
+        "proposal_desk"
       ],
       "permissions": [
         "leads.view_all",
@@ -382,6 +418,13 @@ export const ACCESS_MATRIX: AccessMatrix = {
         "proposal_inputs.manage",
         "proposal_inputs.review",
         "pricing.adjust",
+        "studio.view",
+        "studio.view_all",
+        "studio.edit",
+        "studio.price",
+        "studio.approve",
+        "studio.library.manage",
+        "studio.convert",
         "customers.memory_query",
         "meetings.view",
         "meetings.view_all",
@@ -446,6 +489,9 @@ export const ACCESS_MATRIX: AccessMatrix = {
         "leads.assign",
         "proposals.manager_signoff",
         "proposals.clear_reverification",
+        "studio.view",
+        "studio.view_all",
+        "studio.approve",
         "customers.memory_query",
         "meetings.view",
         "meetings.view_all",
@@ -573,6 +619,21 @@ export const ACCESS_MATRIX: AccessMatrix = {
         "payouts.bank_file.export",
         "records.commissions.read"
       ]
+    },
+    {
+      "id": "proposal_desk",
+      "label": "Proposal Desk",
+      "description": "Prepares, prices, issues and tracks proposals in the Proposal Studio. Nothing outside the Studio.",
+      "requires_two_factor": false,
+      "can_assign_roles": [],
+      "permissions": [
+        "studio.view",
+        "studio.view_all",
+        "studio.edit",
+        "studio.price",
+        "studio.library.manage",
+        "studio.convert"
+      ]
     }
   ],
   "exclusive_roles": [
@@ -590,7 +651,8 @@ export const ALERT_EVENTS = [
       "admin",
       "management"
     ],
-    "assigned_employee": true
+    "assigned_employee": true,
+    "owner": false
   },
   {
     "event": "lead_qualified",
@@ -598,14 +660,16 @@ export const ALERT_EVENTS = [
       "admin",
       "management"
     ],
-    "assigned_employee": true
+    "assigned_employee": true,
+    "owner": false
   },
   {
     "event": "meeting_booked",
     "roles": [
       "admin"
     ],
-    "assigned_employee": true
+    "assigned_employee": true,
+    "owner": false
   },
   {
     "event": "stale_lead_digest",
@@ -613,15 +677,17 @@ export const ALERT_EVENTS = [
       "admin",
       "management"
     ],
-    "assigned_employee": false
+    "assigned_employee": false,
+    "owner": false
   },
   {
     "event": "manager_signoff_required",
     "roles": [
-      "management",
-      "admin"
+      "admin",
+      "management"
     ],
-    "assigned_employee": false
+    "assigned_employee": false,
+    "owner": false
   },
   {
     "event": "customer_accepted",
@@ -629,22 +695,25 @@ export const ALERT_EVENTS = [
       "admin",
       "management"
     ],
-    "assigned_employee": true
+    "assigned_employee": true,
+    "owner": false
   },
   {
     "event": "formal_proposal_requested",
     "roles": [
       "admin"
     ],
-    "assigned_employee": true
+    "assigned_employee": true,
+    "owner": false
   },
   {
     "event": "survey_review_overdue",
     "roles": [
-      "engineer",
-      "admin"
+      "admin",
+      "engineer"
     ],
-    "assigned_employee": false
+    "assigned_employee": false,
+    "owner": false
   },
   {
     "event": "onboarding_overdue",
@@ -652,107 +721,161 @@ export const ALERT_EVENTS = [
       "admin",
       "network_manager"
     ],
-    "assigned_employee": false
+    "assigned_employee": false,
+    "owner": false
   },
   {
     "event": "stage_submitted",
     "roles": [
       "operations"
     ],
-    "assigned_employee": false
+    "assigned_employee": false,
+    "owner": false
   },
   {
     "event": "execution_stuck",
     "roles": [
-      "operations",
-      "admin"
+      "admin",
+      "operations"
     ],
-    "assigned_employee": false
+    "assigned_employee": false,
+    "owner": false
   },
   {
     "event": "dcr_mismatch",
     "roles": [
-      "operations",
-      "admin"
+      "admin",
+      "operations"
     ],
-    "assigned_employee": false
+    "assigned_employee": false,
+    "owner": false
   },
   {
     "event": "catalogue_unmatched",
     "roles": [
       "operations"
     ],
-    "assigned_employee": false
+    "assigned_employee": false,
+    "owner": false
   },
   {
     "event": "handover_blocked",
     "roles": [
       "operations"
     ],
-    "assigned_employee": false
+    "assigned_employee": false,
+    "owner": false
   },
   {
     "event": "service_request_raised",
     "roles": [
       "operations"
     ],
-    "assigned_employee": false
+    "assigned_employee": false,
+    "owner": false
   },
   {
     "event": "service_requests_overdue",
     "roles": [
-      "operations",
-      "admin"
+      "admin",
+      "operations"
     ],
-    "assigned_employee": false
+    "assigned_employee": false,
+    "owner": false
   },
   {
     "event": "payment_recorded",
     "roles": [
       "accounts"
     ],
-    "assigned_employee": false
+    "assigned_employee": false,
+    "owner": false
   },
   {
     "event": "payment_dishonoured",
     "roles": [
-      "accounts",
-      "admin"
+      "admin",
+      "accounts"
     ],
-    "assigned_employee": true
+    "assigned_employee": true,
+    "owner": false
   },
   {
     "event": "receipt_blocked",
     "roles": [
       "accounts"
     ],
-    "assigned_employee": false
+    "assigned_employee": false,
+    "owner": false
   },
   {
     "event": "payments_attention",
     "roles": [
       "accounts"
     ],
-    "assigned_employee": false
+    "assigned_employee": false,
+    "owner": false
   },
   {
     "event": "commission_queries_overdue",
     "roles": [
       "accounts"
     ],
-    "assigned_employee": false
+    "assigned_employee": false,
+    "owner": false
   },
   {
     "event": "associate_application_submitted",
     "roles": [
-      "network_manager",
-      "admin"
+      "admin",
+      "network_manager"
     ],
-    "assigned_employee": false
+    "assigned_employee": false,
+    "owner": false
   },
   {
     "event": "approval_requested",
     "roles": [],
-    "assigned_employee": false
+    "assigned_employee": false,
+    "owner": false
+  },
+  {
+    "event": "studio_approval_requested",
+    "roles": [
+      "admin",
+      "management"
+    ],
+    "assigned_employee": false,
+    "owner": false
+  },
+  {
+    "event": "studio_viewed",
+    "roles": [],
+    "assigned_employee": false,
+    "owner": true
+  },
+  {
+    "event": "studio_accepted",
+    "roles": [],
+    "assigned_employee": false,
+    "owner": true
+  },
+  {
+    "event": "studio_declined",
+    "roles": [],
+    "assigned_employee": false,
+    "owner": true
+  },
+  {
+    "event": "studio_expiring",
+    "roles": [],
+    "assigned_employee": false,
+    "owner": true
+  },
+  {
+    "event": "studio_not_viewed",
+    "roles": [],
+    "assigned_employee": false,
+    "owner": true
   }
 ] as const

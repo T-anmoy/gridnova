@@ -17,7 +17,7 @@ import {
 import { QueryProvider } from '@/components/dashboard/QueryProvider'
 import { I18nProvider } from '@/lib/i18n/client'
 import { STAFF_SHARED_MESSAGES } from '@/lib/dashboard/staff-copy'
-import { NAV_ITEMS, DECIDES_APPROVALS, canSeeNavItem, overdueServiceRequestCount, overdueSurveyCount, queueBadgeCount } from '@/lib/dashboard/nav'
+import { NAV_ITEMS, NAV_GROUP_LABELS, DECIDES_APPROVALS, SEES_LEADS, canSeeNavItem, overdueServiceRequestCount, overdueSurveyCount, queueBadgeCount } from '@/lib/dashboard/nav'
 import { useWorkQueues } from '@/lib/dashboard/execution-api-client'
 import { CommandPalette } from '@/components/dashboard/CommandPalette'
 import { NovaPanel } from '@/components/dashboard/nova/NovaPanel'
@@ -39,6 +39,7 @@ import { useApprovals } from '@/lib/access/api'
 import { decidableCount } from '@/lib/access/approvals'
 import { AccessGate } from '@/components/dashboard/access/AccessGate'
 import { TwoStepBanner } from '@/components/dashboard/access/TwoStep'
+import { useStudioPendingApprovals } from '@/lib/studio/api'
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname()
@@ -49,8 +50,12 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   const { getToken } = useAuth()
   const { can, roles, employeeId, canAssignRoles } = usePermissions()
 
-  const { data: pendingProposals } = useProposals({ status: 'pending_approval', page_size: 1 })
+  const { data: pendingProposals } = useProposals({ status: 'pending_approval', page_size: 1 }, { enabled: can(SEES_LEADS) })
   const pendingCount = pendingProposals?.total ?? 0
+
+  // Studio proposals waiting for an approver (BE-18 does not feed them into GET /approvals).
+  const studioPending = useStudioPendingApprovals({ enabled: can('studio.approve') })
+  const studioPendingCount = studioPending.data?.total ?? 0
 
   // Second-approval requests this person could decide (not their own).
   const approvals = useApprovals('pending', { enabled: can(DECIDES_APPROVALS), refetchInterval: 120_000 })
@@ -118,12 +123,18 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
       {/* Nav: the only part that scrolls, so the logo stays on top and sign-out at the bottom. */}
       <SidebarScroll pathname={pathname} items={NAV_ITEMS.filter(canSee).length}>
-        {NAV_ITEMS.filter(canSee).map((item) => {
+        {NAV_ITEMS.filter(canSee).map((item, i, shown) => {
           const Icon = item.icon
           const active = isActive(item.href)
+          const groupStarts = item.group && shown[i - 1]?.group !== item.group
           return (
+            <div key={item.href}>
+            {groupStarts && item.group && (
+              <p className="px-3 pb-1 pt-4 font-utility text-[10px] uppercase tracking-wider text-white/55" data-testid={`nav-group-${item.group}`}>
+                {NAV_GROUP_LABELS[item.group]}
+              </p>
+            )}
             <Link
-              key={item.href}
               href={item.href}
               onClick={onClose}
               onMouseEnter={() => prefetchFor(item.href)}
@@ -162,8 +173,14 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
                   {pendingCount}
                 </Badge>
               )}
+              {item.studioApprovals && studioPendingCount > 0 && (
+                <Badge variant={active ? 'default' : 'amber'} className="min-w-[1.25rem] justify-center px-1.5 text-[10px]" data-testid="studio-approvals-badge" aria-label={`${studioPendingCount} awaiting approval`}>
+                  {studioPendingCount}
+                </Badge>
+              )}
               {active && <ChevronRight className="h-3 w-3 opacity-60" />}
             </Link>
+            </div>
           )
         })}
       </SidebarScroll>

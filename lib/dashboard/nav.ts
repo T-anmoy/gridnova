@@ -26,6 +26,11 @@ import {
   FileUp,
   Stamp,
   KeyRound,
+  Home,
+  Files,
+  Contact,
+  Library,
+  FileSpreadsheet,
 } from 'lucide-react'
 import type { WorkQueues } from '@/lib/dashboard/execution-types'
 import { satisfies, type PermissionRule } from '@/lib/access/permissions'
@@ -46,17 +51,29 @@ export interface NavItem {
   queue?: 'execution' | 'payments' | 'survey_reviews' | 'survey_corrections' | 'service_requests'
   // The second-approval inbox badge (GET /approvals?status=pending).
   approvals?: boolean
+  // Studio proposals awaiting approval (GET /studio/proposals?status=pending_approval), for studio.approve.
+  studioApprovals?: boolean
+  // Items of one group are listed together under the group's heading.
+  group?: 'studio'
+}
+
+export const NAV_GROUP_LABELS: Record<NonNullable<NavItem['group']>, string> = {
+  studio: 'Proposal Studio',
 }
 
 /** Leads and proposals: everyone who sees leads — all of them, or their own and unassigned. */
 export const SEES_LEADS: PermissionRule = ['leads.view_all', 'leads.view_assigned']
 /** The execution workspace: every project (Admin, Management, Engineer) or every one in execution (Operations). */
 export const SEES_EXECUTION: PermissionRule = ['execution.view_all', 'execution.view_in_progress']
+/** A person whose permissions are all the Proposal Studio's (the Proposal Desk alone): their home is Studio Home. */
+export const studioOnly = (can: (rule: PermissionRule) => boolean): boolean => can('studio.view') && !can('beyond_studio')
+
 /** The approvals inbox: holders of any approver permission (access_control.md §5). */
 export const DECIDES_APPROVALS: PermissionRule = ['staff.manage', 'commissions.rates.manage', 'commissions.process']
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: 'Overview', href: '/dashboard', icon: LayoutDashboard, needs: 'any_staff' },
+  // A person who holds only the Proposal Desk's Studio permissions lands on Studio Home instead.
+  { label: 'Overview', href: '/dashboard', icon: LayoutDashboard, needs: 'beyond_studio' },
   // Operations and Accounts see no leads (staff_contracts.md visibility rule).
   { label: 'Leads', href: '/dashboard/leads', icon: Users, needs: SEES_LEADS },
   { label: 'Onboardings', href: '/dashboard/onboardings', icon: ListChecks, needs: 'onboardings.view' },
@@ -76,6 +93,12 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Meetings', href: '/dashboard/meetings', icon: CalendarClock, needs: 'meetings.view' },
   { label: 'Site Assessments', href: '/dashboard/site-assessments', icon: ClipboardCheck, needs: 'proposal_inputs.manage' },
   { label: 'Proposals', href: '/dashboard/proposals', icon: FileText, needs: SEES_LEADS, badge: true },
+  // Proposal Studio (BE-18): Proposal Desk, Admin and Management. Import creates drafts (studio.edit).
+  { label: 'Studio Home', href: '/dashboard/studio', icon: Home, needs: 'studio.view', group: 'studio', studioApprovals: true },
+  { label: 'Studio proposals', href: '/dashboard/studio/proposals', icon: Files, needs: 'studio.view', group: 'studio' },
+  { label: 'Studio customers', href: '/dashboard/studio/customers', icon: Contact, needs: 'studio.view', group: 'studio' },
+  { label: 'Library', href: '/dashboard/studio/library', icon: Library, needs: 'studio.view', group: 'studio' },
+  { label: 'Import', href: '/dashboard/studio/import', icon: FileSpreadsheet, needs: 'studio.edit', group: 'studio' },
   // Company-wide analytics, or your own pipeline's figures.
   { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart2, needs: ['analytics.view_full', 'leads.view_assigned'] },
   { label: 'Employees', href: '/dashboard/employees', icon: UserCog, needs: 'staff.manage' },
@@ -85,11 +108,11 @@ export const NAV_ITEMS: NavItem[] = [
   // Admin and Management read all of it; the Network Manager the associate network's records.
   { label: 'Audit Log', href: '/dashboard/audit-log', icon: ClipboardList, needs: ['audit.view', 'audit.view_associates'] },
   // Nova Records (BE-9): every staff member asks; the backend scopes every answer.
-  { label: 'Ask Nova', href: '/dashboard/nova', icon: Sparkles, needs: 'any_staff' },
+  { label: 'Ask Nova', href: '/dashboard/nova', icon: Sparkles, needs: 'beyond_studio' },
   // Project Archive (BE-8): every staff member reads (fields are redacted by the backend); archive.manage imports.
-  { label: 'Project archive', href: '/dashboard/archive', icon: Archive, needs: 'any_staff' },
+  { label: 'Project archive', href: '/dashboard/archive', icon: Archive, needs: 'beyond_studio' },
   { label: 'Archive import', href: '/dashboard/archive/import', icon: FileUp, needs: 'archive.manage' },
-  { label: 'Equipment', href: '/dashboard/equipment', icon: Package, needs: 'any_staff' },
+  { label: 'Equipment', href: '/dashboard/equipment', icon: Package, needs: 'beyond_studio' },
   // Everyone who quotes or adjusts customer prices.
   { label: 'Price list', href: '/dashboard/price-list', icon: Tags, needs: 'leads.view_commercial' },
   { label: 'Agent Control', href: '/dashboard/agents', icon: Bot, needs: 'governance.manage' },
@@ -103,13 +126,17 @@ export const NAV_ITEMS: NavItem[] = [
  * answers, so the menu is never empty; nothing narrower shows on a guess.
  */
 export function canSeeNavItem(item: NavItem, can: (rule: PermissionRule) => boolean): boolean {
-  return item.needs === 'any_staff' || can(item.needs)
+  if (item.needs === 'any_staff') return true
+  // Everyone's items, except for a person who holds only the Proposal Desk's Studio permissions
+  // (so they also show before the server has answered).
+  if (item.needs === 'beyond_studio') return !studioOnly(can)
+  return can(item.needs)
 }
 
 /** The menu for a set of granted permission ids (pure — used by tests and the command palette). */
 export const visibleNavItems = (granted: readonly string[] | ReadonlySet<string>): NavItem[] => {
   const set = new Set(granted)
-  return NAV_ITEMS.filter((i) => satisfies(set, i.needs))
+  return NAV_ITEMS.filter((i) => canSeeNavItem(i, (rule) => satisfies(set, rule)))
 }
 
 /**

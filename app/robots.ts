@@ -6,7 +6,9 @@ import { LOCALES, DEFAULT_LOCALE } from "@/lib/i18n/config";
 // stay crawlable; only the signed-in areas are listed here.
 // The associate invitation sign-up (FE-17) only works with an invitation link, so it is
 // kept out of search results too.
-const PORTALS = ["/associates/portal", "/preferred/portal", "/associates/sign-up"];
+// The Studio proposal verification pages (BE-18, /verify/p/<code>) show a reference, a total and
+// a masked customer name: never in search results either.
+const PORTALS = ["/associates/portal", "/preferred/portal", "/associates/sign-up", "/verify/p/"];
 const PORTAL_PATHS = LOCALES.flatMap((l) => PORTALS.map((p) => (l === DEFAULT_LOCALE ? p : `/${l}${p}`)));
 
 export default function robots(): MetadataRoute.Robots {
@@ -14,7 +16,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      // Private staff area (including its invitation sign-up), per-customer proposal and
+      // Private staff area (including its invitation sign-up), per-customer proposal (lead
+      // accept pages and the Studio's online proposals, both under /proposal/) and
       // handover links, the signed-in associate / preferred portals and the associate
       // invitation sign-up must not be indexed.
       disallow: ["/dashboard", "/proposal/", "/handover/", "/api/", ...PORTAL_PATHS],

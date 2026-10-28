@@ -37,6 +37,8 @@ describe('role gating of the new nav items', () => {
     expect(canSeeNavItem(NAV_ITEMS.find((i) => i.label === 'Overview')!, canFor('operations'))).toBe(true)
     // …even before GET /employees/me has answered (nothing narrower shows on a guess).
     expect(canSeeNavItem(NAV_ITEMS.find((i) => i.label === 'Overview')!, canFor())).toBe(true)
+    // …and is gone for a person who holds only the Proposal Desk's Studio permissions.
+    expect(canSeeNavItem(NAV_ITEMS.find((i) => i.label === 'Overview')!, canFor('proposal_desk'))).toBe(false)
     expect(canSeeNavItem(NAV_ITEMS.find((i) => i.label === 'Employees')!, canFor())).toBe(false)
   })
 })

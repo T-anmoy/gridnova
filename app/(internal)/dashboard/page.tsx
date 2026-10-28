@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
 import {
   CheckCircle,
@@ -22,6 +24,8 @@ import { DashboardError } from '@/components/dashboard/DashboardError'
 import { formatTimeAgo, formatLongDate, getISTHour } from '@/lib/dashboard/utils'
 import type { ActivityItem, StatTrend } from '@/lib/dashboard/types'
 import { usePermissions } from '@/lib/access/use-permissions'
+import { studioOnly } from '@/lib/dashboard/nav'
+import { PageSkeleton } from '@/components/dashboard/RequirePermission'
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
 
@@ -196,6 +200,18 @@ function ActivityFeedSection() {
 // ── Overview page ─────────────────────────────────────────────────────────────
 
 export default function DashboardOverview() {
+  const { isLoaded, can } = usePermissions()
+  const router = useRouter()
+  // The Proposal Desk alone sees only the Studio: its home is Studio Home (BE-18).
+  const toStudio = isLoaded && studioOnly(can)
+  useEffect(() => {
+    if (toStudio) router.replace('/dashboard/studio')
+  }, [toStudio, router])
+  if (!isLoaded || toStudio) return <PageSkeleton />
+  return <Overview />
+}
+
+function Overview() {
   const { user } = useUser()
   const { can } = usePermissions()
 

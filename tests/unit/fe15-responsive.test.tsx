@@ -39,6 +39,7 @@ vi.mock('@/lib/dashboard/api-client', () => ({
 }))
 // The shell's second-approval badge (GET /approvals).
 vi.mock('@/lib/access/api', () => ({ useApprovals: () => ({ data: [] }) }))
+vi.mock('@/lib/studio/api', () => ({ useStudioPendingApprovals: () => ({ data: undefined }) }))
 vi.mock('@/lib/dashboard/execution-api-client', () => ({ useWorkQueues: () => ({ data: undefined }) }))
 vi.mock('@/components/dashboard/CommandPalette', () => ({ CommandPalette: () => null }))
 vi.mock('@/components/ui/sonner', () => ({ Toaster: () => null }))

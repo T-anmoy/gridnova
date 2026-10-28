@@ -79,16 +79,30 @@ export const PERMISSIONS = [
   'audit.view',
   'audit.view_associates',
   'staff.manage',
+  // Proposal Studio (BE-18, proposal_studio.md §1)
+  'studio.view',
+  'studio.view_all',
+  'studio.edit',
+  'studio.price',
+  'studio.approve',
+  'studio.library.manage',
+  'studio.convert',
 ] as const
 
 export type Permission = (typeof PERMISSIONS)[number]
 
-/** What a page or menu item needs: one permission, or any one of several. */
-export type PermissionRule = Permission | readonly Permission[] | 'any_staff'
+/**
+ * What a page or menu item needs: one permission, or any one of several. `any_staff` = every
+ * signed-in employee; `beyond_studio` = anyone holding a permission outside the Proposal
+ * Studio — everyone but a person who holds only the Proposal Desk's Studio permissions, who
+ * sees the Studio and "Who can do what", nothing else (access_control.md, BE-18).
+ */
+export type PermissionRule = Permission | readonly Permission[] | 'any_staff' | 'beyond_studio'
 
-/** True when `granted` satisfies `rule`. `any_staff` = every signed-in employee. */
+/** True when `granted` satisfies `rule`. */
 export function satisfies(granted: ReadonlySet<string>, rule: PermissionRule): boolean {
   if (rule === 'any_staff') return true
+  if (rule === 'beyond_studio') return [...granted].some((p) => !p.startsWith('studio.'))
   if (typeof rule === 'string') return granted.has(rule)
   return rule.some((p) => granted.has(p))
 }

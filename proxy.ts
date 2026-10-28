@@ -18,7 +18,9 @@ function isDashboardAuthPage(path: string): boolean {
 // previously reachable by anyone with the link. It gets the same Clerk
 // protection as the dashboard (same unauthenticated redirect), unlike
 // `/proposal/accept/[token]`, which stays public — that's the customer-facing
-// accept page and must never require staff sign-in.
+// accept page and must never require staff sign-in. The same holds for the Studio's
+// online proposal `/proposal/<token>` (BE-18) — only the exact path `/proposal/new` is
+// protected — and for `/verify/p/<code>`, a public-site page.
 //
 // `/dashboard/sign-up` (FE-17) is where a staff invitation link lands
 // (STAFF_INVITE_REDIRECT_URL): the invited person has no session yet, so it

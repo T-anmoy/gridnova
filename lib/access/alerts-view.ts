@@ -27,6 +27,12 @@ const EVENT_LABELS: Record<string, string> = {
   commission_queries_overdue: 'Commission queries overdue',
   associate_application_submitted: 'Associate application submitted',
   approval_requested: 'Second approval requested',
+  studio_viewed: 'Studio proposal opened by the customer',
+  studio_accepted: 'Studio proposal accepted',
+  studio_declined: 'Studio proposal declined',
+  studio_expiring: 'Studio proposal expiring soon',
+  studio_not_viewed: 'Studio proposal not opened yet',
+  studio_approval_requested: 'Studio proposal needs approval',
 }
 
 export function alertEventLabel(event: string): string {
@@ -45,5 +51,6 @@ export function recipientsLine(e: AlertRoute, matrix?: AccessMatrix | null): str
   if (holders.length) parts.push(holders.join(', '))
   if (e.fixed_addresses > 0) parts.push(`${e.fixed_addresses} shared ${e.fixed_addresses === 1 ? 'mailbox' : 'mailboxes'}`)
   if (e.assigned_employee) parts.push('the assigned person')
+  if (e.owner) parts.push('the proposal’s owner')
   return parts.join(' · ') || 'Nobody yet'
 }

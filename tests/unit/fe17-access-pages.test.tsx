@@ -121,7 +121,7 @@ describe('Approvals inbox', () => {
 describe('Who can do what', () => {
   it('groups permissions by area and searches descriptions, ids and role names', () => {
     const all = groupMatrix(ACCESS_MATRIX)
-    expect(all.map((g) => g.area)).toEqual(['Leads', 'Proposals and pricing', 'Customers, meetings and analytics', 'Associate network and surveys', 'Execution and service', 'Money', 'Company setup and oversight'])
+    expect(all.map((g) => g.area)).toEqual(['Leads', 'Proposals and pricing', 'Customers, meetings and analytics', 'Associate network and surveys', 'Execution and service', 'Money', 'Proposal Studio', 'Company setup and oversight'])
     expect(all.reduce((n, g) => n + g.permissions.length, 0)).toBe(ACCESS_MATRIX.permissions.length)
     const bank = groupMatrix(ACCESS_MATRIX, 'bank file')
     expect(bank.flatMap((g) => g.permissions.map((p) => p.id))).toEqual(['payouts.bank_file.export'])
@@ -134,7 +134,7 @@ describe('Who can do what', () => {
     const user = userEvent.setup()
     show(<WhoCanDoWhatPage />)
     const table = await screen.findByTestId('access-matrix')
-    expect(within(table.querySelector('thead')!).getAllByRole('columnheader').map((c) => c.textContent)).toEqual(['Permission', 'Admin', 'Management', 'Network Manager', 'Sales', 'Engineer', 'Operations', 'Accounts'])
+    expect(within(table.querySelector('thead')!).getAllByRole('columnheader').map((c) => c.textContent)).toEqual(['Permission', 'Admin', 'Management', 'Network Manager', 'Sales', 'Engineer', 'Operations', 'Accounts', 'Proposal Desk'])
     const bankRow = screen.getByTestId('perm-payouts.bank_file.export')
     expect(within(bankRow).getByLabelText('Accounts: yes')).toBeInTheDocument()
     expect(within(bankRow).getByLabelText('Admin: no')).toBeInTheDocument()

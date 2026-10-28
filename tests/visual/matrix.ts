@@ -42,7 +42,8 @@ export const VIEWPORTS: Viewport[] = [
 
 // `staff:uninvited` is a signed-in person the backend does not know: GET /employees/me
 // answers 403 not_invited (faked here, the backend's dev headers create no such person).
-export type Principal = "staff:admin" | "staff:network_manager" | "staff:uninvited" | `associate:${string}` | null;
+// Several roles join with "+" (`staff:sales+proposal_desk`), sent as X-Employee-Roles.
+export type Principal = `staff:${string}` | `associate:${string}` | null;
 
 export interface PageCase {
   path: string;
@@ -81,6 +82,28 @@ const FE17: PageCase[] = [
   { path: "/dashboard", principal: "staff:uninvited", label: "/dashboard not invited" },
 ];
 
+// FE-18: the Proposal Studio as the Proposal Desk (and the approver's review as Management),
+// the customer's online proposal and the verification page. Ids, the token and the code come
+// from the seeded backend (tests/visual/seed-studio.mjs prints them); override when yours differ.
+const STUDIO_DRAFT = process.env.VISUAL_STUDIO_DRAFT_ID ?? "2";
+const STUDIO_ISSUED = process.env.VISUAL_STUDIO_ISSUED_ID ?? "1";
+const STUDIO_PENDING = process.env.VISUAL_STUDIO_PENDING_ID ?? "3";
+const STUDIO_CUSTOMER = process.env.VISUAL_STUDIO_CUSTOMER_ID ?? "1";
+const STUDIO_TOKEN = process.env.VISUAL_STUDIO_TOKEN ?? "tok-unknown";
+const STUDIO_CODE = process.env.VISUAL_STUDIO_CODE ?? "UNKNOWNCODE1";
+const DESK = "staff:proposal_desk" as const;
+const FE18: PageCase[] = [
+  ...["", "/new", "/proposals", "/customers", `/customers/${STUDIO_CUSTOMER}`, "/library", "/import",
+    `/proposals/${STUDIO_DRAFT}?step=project`, `/proposals/${STUDIO_DRAFT}?step=price`, `/proposals/${STUDIO_DRAFT}?step=review`,
+    `/proposals/${STUDIO_ISSUED}?view=overview`].map((p) => ({ path: `/dashboard/studio${p}`, principal: DESK })),
+  { path: `/dashboard/studio/proposals/${STUDIO_PENDING}/review`, principal: "staff:management", label: "/dashboard/studio/proposals/review as management" },
+  { path: "/dashboard", principal: "staff:sales+proposal_desk", label: "/dashboard as sales + proposal desk" },
+  { path: `/proposal/${STUDIO_TOKEN}`, principal: null, label: "/proposal/[token]" },
+  { path: "/proposal/tok-unknown", principal: null, label: "/proposal/[token] unknown" },
+  ...["", "/hi", "/bn"].map((l) => ({ path: `${l}/verify/p/${STUDIO_CODE}`, principal: null, label: `${l}/verify/p/[code]` })),
+  { path: "/verify/p/UNKNOWNCODE1", principal: null, label: "/verify/p/[code] unknown" },
+];
+
 /** Associate ids in the seeded backend (tests/visual/README.md); override when yours differ. */
 const ASSOCIATE = process.env.VISUAL_ASSOCIATE_ID ?? "GNA-WB-26-90001";
 const PREFERRED = process.env.VISUAL_PREFERRED_ID ?? "GNA-WB-26-90002";
@@ -95,6 +118,7 @@ export const PAGES: PageCase[] = [
   { path: "/proposal/accept/tok-expired", principal: null },
   ...DASHBOARD.map((p) => ({ path: `/dashboard${p}`, principal: "staff:admin" as const })),
   ...FE17,
+  ...FE18,
 ];
 
 export const caseName = (c: PageCase) => c.label ?? c.path;
@@ -122,8 +146,10 @@ export async function prepare(page: Page, principal: Principal): Promise<void> {
     const headers = { ...req.headers() };
     delete headers.authorization;
     if (principal?.startsWith("staff:")) {
-      headers["x-employee-id"] = `visual-${principal.slice(6)}`;
-      headers["x-employee-role"] = principal.slice(6);
+      const roles = principal.slice(6).split("+");
+      headers["x-employee-id"] = `visual-${roles.join("-")}`;
+      headers["x-employee-role"] = roles[0];
+      if (roles.length > 1) headers["x-employee-roles"] = roles.join(",");
     } else if (principal?.startsWith("associate:")) {
       headers["x-associate-id"] = principal.slice(10);
     }

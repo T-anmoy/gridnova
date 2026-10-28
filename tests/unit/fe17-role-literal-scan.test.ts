@@ -8,8 +8,8 @@ import { readFileSync, readdirSync, statSync } from 'node:fs'
 import path from 'node:path'
 
 const root = path.resolve(__dirname, '../..')
-const ROLE_IDS = ['admin', 'management', 'network_manager', 'sales', 'engineer', 'operations', 'accounts']
-const SCANNED = ['app/(internal)', 'components/dashboard', 'components/auth', 'lib/dashboard', 'lib/access', 'lib/commissions', 'lib/nova', 'lib/proposals', 'lib/auth', 'proxy.ts']
+const ROLE_IDS = ['admin', 'management', 'network_manager', 'sales', 'engineer', 'operations', 'accounts', 'proposal_desk']
+const SCANNED = ['app/(internal)', 'components/dashboard', 'components/auth', 'lib/dashboard', 'lib/access', 'lib/commissions', 'lib/nova', 'lib/proposals', 'lib/auth', 'lib/studio', 'proxy.ts']
 
 /** Files allowed to name roles, and why. Keep this list short. */
 const ALLOWED: Record<string, string> = {

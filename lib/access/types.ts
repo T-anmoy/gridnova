@@ -30,6 +30,8 @@ export interface AlertRoute {
   event: string
   roles: Role[]
   assigned_employee: boolean
+  /** BE-18: the Studio proposal's owner receives it (and no shared mailbox does). */
+  owner?: boolean
   active_holders: Partial<Record<Role, number>>
   fixed_addresses: number
   reaches_someone: boolean

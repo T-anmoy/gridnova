@@ -16,10 +16,11 @@ const FALLBACK_LABELS: Record<Role, string> = {
   engineer: 'Engineer',
   operations: 'Operations',
   accounts: 'Accounts',
+  proposal_desk: 'Proposal Desk',
 }
 
 /** The backend's display order (access_control.md §1: the primary role is the first held in it). */
-export const ROLE_ORDER: readonly Role[] = ['admin', 'management', 'network_manager', 'sales', 'engineer', 'operations', 'accounts']
+export const ROLE_ORDER: readonly Role[] = ['admin', 'management', 'network_manager', 'sales', 'engineer', 'operations', 'accounts', 'proposal_desk']
 
 export function roleLabel(role: string, matrix?: AccessMatrix | null): string {
   const fromMatrix = matrix?.roles.find((r) => r.id === role)?.label

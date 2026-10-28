@@ -16,13 +16,15 @@ const EVERYONE = ['Overview', 'Ask Nova', 'Project archive', 'Equipment', 'Who c
 
 describe('the menu for each role (BE-17 matrix)', () => {
   it.each<[Role, string[]]>([
-    ['admin', ['Overview', 'Leads', 'Onboardings', 'Operations', 'Accounts', 'Commissions', 'Network Command Centre', 'Survey reviews', 'Survey corrections', 'Service requests', 'Attribution Flags', 'Meetings', 'Site Assessments', 'Proposals', 'Analytics', 'Employees', 'Approvals', 'Associate Network', 'Data Checklist', 'Audit Log', 'Ask Nova', 'Project archive', 'Archive import', 'Equipment', 'Price list', 'Agent Control', 'Who can do what']],
-    ['management', ['Overview', 'Leads', 'Onboardings', 'Operations', 'Accounts', 'Commissions', 'Network Command Centre', 'Survey reviews', 'Survey corrections', 'Service requests', 'Meetings', 'Proposals', 'Analytics', 'Data Checklist', 'Audit Log', 'Ask Nova', 'Project archive', 'Equipment', 'Price list', 'Who can do what']],
+    ['admin', ['Overview', 'Leads', 'Onboardings', 'Operations', 'Accounts', 'Commissions', 'Network Command Centre', 'Survey reviews', 'Survey corrections', 'Service requests', 'Attribution Flags', 'Meetings', 'Site Assessments', 'Proposals', 'Studio Home', 'Studio proposals', 'Studio customers', 'Library', 'Import', 'Analytics', 'Employees', 'Approvals', 'Associate Network', 'Data Checklist', 'Audit Log', 'Ask Nova', 'Project archive', 'Archive import', 'Equipment', 'Price list', 'Agent Control', 'Who can do what']],
+    ['management', ['Overview', 'Leads', 'Onboardings', 'Operations', 'Accounts', 'Commissions', 'Network Command Centre', 'Survey reviews', 'Survey corrections', 'Service requests', 'Meetings', 'Proposals', 'Studio Home', 'Studio proposals', 'Studio customers', 'Library', 'Analytics', 'Data Checklist', 'Audit Log', 'Ask Nova', 'Project archive', 'Equipment', 'Price list', 'Who can do what']],
     ['network_manager', ['Overview', 'Leads', 'Onboardings', 'Network Command Centre', 'Survey reviews', 'Survey corrections', 'Attribution Flags', 'Proposals', 'Employees', 'Approvals', 'Associate Network', 'Audit Log', 'Ask Nova', 'Project archive', 'Equipment', 'Price list', 'Who can do what']],
     ['sales', ['Overview', 'Leads', 'Onboardings', 'Survey reviews', 'Survey corrections', 'Service requests', 'Meetings', 'Site Assessments', 'Proposals', 'Analytics', 'Ask Nova', 'Project archive', 'Equipment', 'Price list', 'Who can do what']],
     ['engineer', ['Overview', 'Leads', 'Operations', 'Survey reviews', 'Survey corrections', 'Service requests', 'Proposals', 'Ask Nova', 'Project archive', 'Equipment', 'Who can do what']],
     ['operations', ['Overview', 'Operations', 'Service requests', 'Ask Nova', 'Project archive', 'Equipment', 'Who can do what']],
     ['accounts', ['Overview', 'Accounts', 'Commissions', 'Approvals', 'Ask Nova', 'Project archive', 'Equipment', 'Who can do what']],
+    // BE-18: the Studio and "Who can do what", nothing else.
+    ['proposal_desk', ['Studio Home', 'Studio proposals', 'Studio customers', 'Library', 'Import', 'Who can do what']],
   ])('%s', (role, expected) => {
     expect(menu(role)).toEqual(expected)
   })
@@ -39,6 +41,9 @@ describe('the menu for each role (BE-17 matrix)', () => {
     expect(menu('sales', 'accounts')).toEqual(NAV_ITEMS.map((i) => i.label).filter((l) => menu('sales').includes(l) || menu('accounts').includes(l)))
     expect(menu('engineer', 'network_manager')).toContain('Employees')
     expect(menu('engineer', 'network_manager')).toContain('Operations')
+    // The Proposal Desk with Sales: Sales' menu plus the Studio.
+    expect(menu('sales', 'proposal_desk')).toEqual(NAV_ITEMS.map((i) => i.label).filter((l) => menu('sales').includes(l) || menu('proposal_desk').includes(l)))
+    expect(menu('sales', 'proposal_desk')).toContain('Overview')
   })
 
   it('before the server has answered only the everyone-items show', () => {
@@ -48,7 +53,7 @@ describe('the menu for each role (BE-17 matrix)', () => {
   it('no menu item names a role: each declares permission ids the matrix knows', () => {
     const known = new Set(ACCESS_MATRIX.permissions.map((p) => p.id))
     for (const item of NAV_ITEMS) {
-      const ids = item.needs === 'any_staff' ? [] : typeof item.needs === 'string' ? [item.needs] : [...item.needs]
+      const ids = item.needs === 'any_staff' || item.needs === 'beyond_studio' ? [] : typeof item.needs === 'string' ? [item.needs] : [...item.needs]
       for (const id of ids) expect(known.has(id), `${item.label}: ${id}`).toBe(true)
       expect(Object.keys(item)).not.toContain('roles')
     }
@@ -65,6 +70,8 @@ describe('the typed permission list matches the matrix', () => {
     expect(satisfies(g, ['staff.manage', 'leads.create'])).toBe(true)
     expect(satisfies(g, ['staff.manage'])).toBe(false)
     expect(satisfies(new Set(), 'any_staff')).toBe(true)
+    expect(satisfies(new Set(['studio.view', 'studio.edit']), 'beyond_studio')).toBe(false)
+    expect(satisfies(new Set(['studio.view', 'leads.create']), 'beyond_studio')).toBe(true)
   })
 })
 

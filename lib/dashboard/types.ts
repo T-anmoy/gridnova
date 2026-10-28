@@ -3,7 +3,7 @@ import type { ReverificationReason } from "./survey-review-types"
 // The role ids the backend knows (access_control.md §1). A type only: what a person may do
 // comes from GET /employees/me `permissions`, and role names are shown through
 // lib/access/roles.ts — no screen compares them.
-export type Role = 'admin' | 'sales' | 'management' | 'network_manager' | 'engineer' | 'operations' | 'accounts'
+export type Role = 'admin' | 'sales' | 'management' | 'network_manager' | 'engineer' | 'operations' | 'accounts' | 'proposal_desk'
 
 // ── Equipment / SKU master ───────────────────────────────────────────────────
 
