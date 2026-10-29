@@ -25,7 +25,8 @@ const NOT_A_ROLE: { file: string; line: RegExp; why: string }[] = [
 function files(rel: string): string[] {
   const abs = path.join(root, rel)
   if (statSync(abs).isFile()) return [rel]
-  return readdirSync(abs).flatMap((f) => files(path.join(rel, f)))
+  // posix: the file names below are compared with '/', also on Windows
+  return readdirSync(abs).flatMap((f) => files(path.posix.join(rel, f)))
 }
 
 const LITERAL = new RegExp(`(['"\`])(${ROLE_IDS.join('|')})\\1`)

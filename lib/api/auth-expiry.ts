@@ -41,10 +41,12 @@ export function createAuthExpiryHandler(options: { signInPath: string; getSignOu
     const signOut = (options.getSignOut ?? clerkSignOut)()
     if (!isNotAuthenticatedError(error) && signOut) {
       void signOut({ redirectUrl: target }).catch(() => {
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- runs outside React (QueryClient callback), and a full load clears the expired session's state
         window.location.href = target
       })
       return
     }
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- as above
     window.location.href = target
   }
 }

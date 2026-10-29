@@ -31,7 +31,8 @@ const SCANNED = [
 function files(rel: string): string[] {
   const abs = path.join(root, rel)
   if (statSync(abs).isFile()) return [rel]
-  return readdirSync(abs).flatMap((f) => files(path.join(rel, f)))
+  // posix: the file names below are compared with '/', also on Windows
+  return readdirSync(abs).flatMap((f) => files(path.posix.join(rel, f)))
 }
 
 const MONEY = '(?:total|basic|gst|amount|price|discount|subsidy|saving|cost|unit_rate|rate_per_kwp|tariff|bill|payment|effective|taxable|value)'

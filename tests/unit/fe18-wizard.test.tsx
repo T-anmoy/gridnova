@@ -53,6 +53,8 @@ beforeEach(() => {
   setInline(false)
   URL.createObjectURL = vi.fn(() => 'blob:preview')
   URL.revokeObjectURL = vi.fn()
+  // jsdom has no scrollIntoView; focusStudioField calls it after a step change.
+  Element.prototype.scrollIntoView = vi.fn()
 })
 
 describe('autosave', () => {
