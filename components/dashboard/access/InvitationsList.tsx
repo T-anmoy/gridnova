@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { ManualSignUpNote } from '@/components/dashboard/access/ManualSignUpNote'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -75,8 +76,11 @@ export function InvitationsList() {
                     ) : (
                       <span className="text-xs text-[#111827]/60">Expires {formatDate(inv.expires_at)}</span>
                     )}
-                    {inv.clerk_status === 'skipped' && <span className="text-xs text-amber-800">Email not sent</span>}
+                    {inv.delivery === 'manual' && <span className="text-xs text-amber-800">Email not sent</span>}
                   </div>
+                  {inv.manual_instructions && (
+                    <div className="mt-2"><ManualSignUpNote instructions={inv.manual_instructions} testId={`manual-sign-up-${inv.invitation_id}`} /></div>
+                  )}
                 </div>
                 {mine && (
                   <div className="flex gap-2">

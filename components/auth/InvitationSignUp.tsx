@@ -67,3 +67,11 @@ export function InvitationSignUp({ ticket, path, signInPath, afterUrl, copy }: {
   }
   return <p role="status" data-testid="invitation-checking" className="text-center font-utility text-sm text-white/70">{copy.checking}</p>
 }
+
+/**
+ * BE-21: the sign-up without an invitation link — for a person whose invitation email never
+ * arrived. Clerk's sign-up stays open; the backend decides what the new account may open.
+ */
+export function OpenSignUp({ path, signInPath, afterUrl }: { path: string; signInPath: string; afterUrl: string }) {
+  return <SignUp routing="path" path={path} signInUrl={signInPath} forceRedirectUrl={afterUrl} appearance={DARK_CLERK_APPEARANCE} />
+}

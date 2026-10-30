@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { AlertCircle, Clock, Phone, SearchX, ServerCrash, ShieldOff, WifiOff } from 'lucide-react'
 import { WrongAccountNotice } from '@/components/dashboard/WrongAccountNotice'
+import { ClaimAccountNotice } from '@/components/associate/ClaimAccountNotice'
 import { MissingClaimsNotice } from '@/components/dashboard/DashboardError'
 import { isMissingClaimsError, wrongAccountOf } from '@/lib/dashboard/api-error'
 import { failureOf, inactiveAccountOf, type PortalFailure } from '@/lib/associate/portal-error'
@@ -41,6 +42,9 @@ export function PortalError({ error, onRetry }: { error: unknown; onRetry?: () =
   const locale = useLocale()
   const pathname = usePathname() ?? ''
   const wrong = wrongAccountOf(error)
+  // BE-21: a sign-in with no associate principal may be an approved associate whose
+  // invitation never arrived — offer to link it (signing out stays on the card).
+  if (wrong === 'staff_on_associate') return <ClaimAccountNotice />
   if (wrong) return <WrongAccountNotice kind={wrong} />
   if (isMissingClaimsError(error)) return <MissingClaimsNotice />
 

@@ -9,7 +9,7 @@ export const TICKET_PARAM = '__clerk_ticket'
 export const STATUS_PARAM = '__clerk_status'
 
 export type InvitationEntry =
-  | { kind: 'no_ticket' } // an uninvited visitor: the sign-in page, never an open sign-up form
+  | { kind: 'no_ticket' } // no link: the open sign-up (BE-21 — the backend is the gate)
   | { kind: 'sign_in'; ticket: string } // the invited address already has an account
   | { kind: 'sign_up'; ticket: string }
 

@@ -1589,7 +1589,9 @@
       "checking": "Checking your invitation…",
       "expiredTitle": "This invitation has expired — ask Grid Nova to send a new one",
       "expiredBody": "The link may have been used already, withdrawn, or be past its date. Contact your Grid Nova coordinator or call the helpline and ask for a fresh invitation.",
-      "signInInstead": "Already have an account? Sign in"
+      "signInInstead": "Already have an account? Sign in",
+      "openTitle": "Create your associate sign-in",
+      "openSubtitle": "For approved associates whose invitation email did not arrive. Use the email address on your application."
     },
     "preferredSignIn": {
       "title": "Preferred Associate sign-in",
@@ -4348,6 +4350,17 @@
       "welcome_letter": "Your welcome letter couldn't be opened."
     },
     "unsaved": "Some changes are still being saved. Leave this page anyway?",
-    "noticeVersion": "Notice version: {version}"
+    "noticeVersion": "Notice version: {version}",
+    "claim": {
+      "title": "Link your associate account",
+      "body": "You are signed in, but this sign-in is not linked to a Grid Nova associate yet. If Grid Nova approved your application and the invitation email never arrived, link it now — it works when you signed up with the same email address as on your application, and confirmed it.",
+      "button": "Link my account",
+      "linking": "Linking…",
+      "linked": "Your account is linked. Opening your portal…",
+      "notAllowed": "We could not link this sign-in. Sign up with the email address on your approved application and confirm it, or call the helpline.",
+      "rateLimited": "Too many tries. Wait a minute and try again.",
+      "unavailable": "We could not finish linking right now. Try again in a minute.",
+      "signOut": "Sign out and use another account"
+    }
   }
 }

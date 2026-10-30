@@ -528,3 +528,16 @@ export function useReleaseTerritorySeat() {
     },
   })
 }
+
+// BE-21 (associate_journeys.md §3): an approved associate whose Clerk invitation never
+// arrived signs up themselves, then links that sign-in to their associate account by a
+// verified email match. The token has no associate principal yet; on success the session
+// must be refreshed so it carries the associate claims.
+export interface ClaimResult {
+  associate_id: string
+  refresh_session: true
+}
+
+export function claimAssociateAccount(token: string): Promise<ClaimResult> {
+  return dashboardFetch<ClaimResult>('/api/v1/associate/me/claim', token, { method: 'POST' })
+}

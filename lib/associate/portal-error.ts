@@ -74,3 +74,15 @@ export function portalErrorText(error: unknown, copy: PortalFeedback, specific?:
   if (code && codes[code]) return codes[code]
   return copy.action[failureOf(error)]
 }
+
+/**
+ * BE-21: the sentence for a failed account claim (POST /associate/me/claim) —
+ * claim_not_allowed, rate_limited; anything else (clerk_sync_failed,
+ * identity_check_unavailable, a network failure) is "try again in a minute".
+ */
+export function claimErrorText(error: unknown, copy: PortalFeedback['claim']): string {
+  const code = errorCodeOf(error)
+  if (code === 'claim_not_allowed') return copy.notAllowed
+  if (code === 'rate_limited' || (error instanceof ApiError && error.status === 429)) return copy.rateLimited
+  return copy.unavailable
+}

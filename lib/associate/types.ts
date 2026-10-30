@@ -226,6 +226,8 @@ export interface AdminAssociate {
   seat: AssociateSeatRef | null
   application: { application_type: ApplicationType; application_id: number }
   clerk_invite_status: 'sent' | 'skipped' | 'failed' | null
+  /** BE-21: what to tell an associate whose Clerk invitation failed (sign up and claim), else null. */
+  manual_sign_up?: string | null
   documents: AssociateDocumentsStatus
 }
 
@@ -233,9 +235,13 @@ export interface AdminAssociate {
 // before, plus what happened to their Clerk access and how many customers they still own.
 export interface AssociateAccessChange {
   clerk_banned?: boolean
+  /** BE-21: sessions revoked (Clerk's free plan); null in ban mode or when unknown. */
+  sessions_revoked?: number | null
   invitation_revoked?: boolean
   clerk_unbanned?: boolean
   clerk_error: string | null
+  /** BE-21: `revoke_sessions` (default) or `ban` (Clerk Pro). */
+  clerk_mode?: 'revoke_sessions' | 'ban'
 }
 
 export interface AssociateStatusChange extends AdminAssociate {

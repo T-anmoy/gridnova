@@ -55,6 +55,7 @@ export interface AccessAlerts {
 
 // Staff invitations (§3)
 export type InvitationStatus = 'pending' | 'accepted' | 'revoked' | 'expired'
+export type InvitationDelivery = 'clerk_email' | 'manual'
 
 export interface StaffInvitation {
   invitation_id: string
@@ -63,7 +64,12 @@ export interface StaffInvitation {
   roles: Role[]
   status: InvitationStatus
   invited_by: string
-  clerk_status: 'sent' | 'skipped'
+  /** BE-21: `failed` = Clerk refused to send it; the invitation still stands. */
+  clerk_status: 'sent' | 'skipped' | 'failed'
+  /** BE-21: `clerk_email` when Clerk emailed the link, `manual` when someone must tell the person. */
+  delivery: InvitationDelivery
+  /** BE-21: the sentence to pass on while a manual invitation is pending, else null. */
+  manual_instructions: string | null
   created_at: string
   expires_at: string
   resent_at: string | null
@@ -139,12 +145,21 @@ export interface HandoverResponse extends Handover {
   employee_id: string
 }
 
+/**
+ * BE-21: how Clerk was told. `revoke_sessions` (Clerk's free plan, the default): every open
+ * session ended; `ban` (Clerk Pro, CLERK_BAN_ENABLED): the user is banned.
+ */
+export type ClerkMode = 'revoke_sessions' | 'ban'
+
 export interface DeactivateResponse {
   employee_id: string
   is_active: false
   clerk_banned: boolean
-  sessions_revoked: boolean
+  /** BE-21: how many sessions were revoked; null in ban mode or when unknown. */
+  sessions_revoked: number | null
+  invitation_revoked: boolean
   clerk_error: string | null
+  clerk_mode: ClerkMode
   handover: Handover
   approval_requests_withdrawn?: string[]
 }
@@ -155,6 +170,7 @@ export interface ReactivateResponse {
   roles: Role[]
   clerk_unbanned: boolean
   clerk_error: string | null
+  clerk_mode: ClerkMode
 }
 
 export interface ReassignResponse {

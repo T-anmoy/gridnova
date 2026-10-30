@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import type { Employee } from '@/lib/dashboard/types'
 import { useAccessMatrix, useDeactivateStaff, useHandover, useReassignLeads, useStaff } from '@/lib/access/api'
+import { clerkOutcome } from '@/lib/access/offboarding'
 import { accessErrorMessage } from '@/lib/access/errors'
 import { rolesLine } from '@/lib/access/roles'
 import { usePermissions } from '@/lib/access/use-permissions'
@@ -106,13 +107,13 @@ function DeactivateFlow({ employee, onClose }: { employee: Employee; onClose: ()
       <div data-testid="deactivate-done">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-700" aria-hidden="true" />{employee.name}’s access is turned off</DialogTitle>
-          <DialogDescription>They are refused from their next click{done.result.clerk_banned ? ' and every open session has been ended.' : '.'}</DialogDescription>
+          <DialogDescription>They are refused from their next click{clerkOutcome(done.result)}</DialogDescription>
         </DialogHeader>
         <div className="mt-4 space-y-2 text-sm">
-          {!done.result.clerk_banned && (
-            <p className="flex gap-2 rounded-lg bg-amber-50 px-3 py-2 text-amber-900" data-testid="clerk-not-banned">
+          {done.result.clerk_error && (
+            <p className="flex gap-2 rounded-lg bg-amber-50 px-3 py-2 text-amber-900" data-testid="clerk-not-confirmed">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              The sign-in service didn’t confirm the ban{done.result.clerk_error ? ` (${done.result.clerk_error})` : ''}. The dashboard still refuses them; ask whoever runs Clerk to check the account.
+              The sign-in service didn’t confirm ({done.result.clerk_error}). The dashboard still refuses them; to end their open sessions at once, ask whoever runs Clerk to revoke them (Users → the person → Sessions).
             </p>
           )}
           {done.moved && <p data-testid="leads-moved">{done.moved.moved} {done.moved.moved === 1 ? 'lead' : 'leads'} moved to {takerName}.</p>}

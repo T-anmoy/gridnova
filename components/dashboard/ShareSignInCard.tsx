@@ -16,18 +16,35 @@ export function signInUrl(type: ApplicationType): string {
   return `${SITE_URL}/${type === 'preferred_associate' ? 'preferred' : 'associates'}/sign-in`
 }
 
+/** BE-21: where an associate signs up without an invitation link, then links the account. */
+export function signUpUrl(): string {
+  return `${SITE_URL}/associates/sign-up`
+}
+
 export function signInMessage({
   fullName,
   associateId,
   type,
   email,
+  manualSignUp = false,
 }: {
   fullName: string
   associateId: string
   type: ApplicationType
   email?: string | null
+  /** BE-21: the invitation email was never sent — they sign up themselves and link the account. */
+  manualSignUp?: boolean
 }): string {
   const kind = type === 'preferred_associate' ? 'Preferred Associate' : 'Associate'
+  if (manualSignUp) {
+    const address = email ? ` with ${email}` : ' with the email address on your application'
+    return [
+      `Hello ${fullName}, your Grid Nova ${kind} application is approved.`,
+      `Your Associate ID: ${associateId}`,
+      `Sign up here${address}: ${signUpUrl()}`,
+      'Confirm your email, then tap "Link my account" in the portal.',
+    ].join('\n')
+  }
   const inbox = email ? ` (sent to ${email})` : ''
   return [
     `Hello ${fullName}, your Grid Nova ${kind} application is approved.`,
@@ -48,15 +65,17 @@ export default function ShareSignInCard({
   type,
   mobile,
   email,
+  manualSignUp = false,
 }: {
   fullName: string
   associateId: string
   type: ApplicationType
   mobile: string | null | undefined
   email?: string | null
+  manualSignUp?: boolean
 }) {
   const [copied, setCopied] = useState(false)
-  const message = signInMessage({ fullName, associateId, type, email })
+  const message = signInMessage({ fullName, associateId, type, email, manualSignUp })
   const waNumber = indianWhatsappNumber(mobile)
 
   async function copy() {

@@ -24,8 +24,9 @@ function isDashboardAuthPage(path: string): boolean {
 //
 // `/dashboard/sign-up` (FE-17) is where a staff invitation link lands
 // (STAFF_INVITE_REDIRECT_URL): the invited person has no session yet, so it
-// stays reachable signed out too. Without an invitation ticket it only
-// redirects to sign-in, so it never offers an open sign-up form.
+// stays reachable signed out too. Without an invitation ticket it is an open
+// sign-up (BE-21: for a person whose invitation email never arrived); the backend
+// refuses anyone not invited (403 not_invited).
 const isProtectedRoute = createRouteMatcher((req) => {
   const path = req.nextUrl.pathname
   if (path === '/dashboard' || path.startsWith('/dashboard/')) {

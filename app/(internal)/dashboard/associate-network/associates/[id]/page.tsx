@@ -32,6 +32,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { formatDate } from '@/lib/dashboard/utils'
 import ShareSignInCard from '@/components/dashboard/ShareSignInCard'
+import { ManualSignUpNote } from '@/components/dashboard/access/ManualSignUpNote'
 import AssociateRateCard from '@/components/dashboard/associate-network/AssociateRateCard'
 import AssociatePerformancePanel from '@/components/dashboard/associate-network/AssociatePerformancePanel'
 import { RequirePermission } from '@/components/dashboard/RequirePermission'
@@ -248,6 +249,10 @@ function AssociateDetail() {
             {associate.clerk_invite_status === 'sent' ? 'Send invitation again' : 'Send invitation'}
           </Button>
         )}
+        {/* BE-21: Clerk could not send the invitation — they sign up themselves and link the account. */}
+        {associate.manual_sign_up && (
+          <div className="mt-4"><ManualSignUpNote instructions={associate.manual_sign_up} /></div>
+        )}
       </Card>
 
       {can('associates.applications.review') && associate.status === 'active' && (
@@ -257,6 +262,7 @@ function AssociateDetail() {
           type={associate.associate_type}
           mobile={associate.mobile}
           email={associate.email}
+          manualSignUp={!!associate.manual_sign_up}
         />
       )}
 

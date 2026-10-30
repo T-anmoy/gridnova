@@ -11,6 +11,8 @@ export const INVITATION: StaffInvitation = {
   status: 'pending',
   invited_by: 'user_2ab',
   clerk_status: 'sent',
+  delivery: 'clerk_email',
+  manual_instructions: null,
   created_at: '2026-10-20T06:30:00Z',
   expires_at: '2026-10-27T06:30:00Z',
   resent_at: null,
@@ -56,9 +58,11 @@ export const HANDOVER: HandoverResponse = {
 export const deactivated = (over: Partial<DeactivateResponse> = {}): DeactivateResponse => ({
   employee_id: 'user_raju',
   is_active: false,
-  clerk_banned: true,
-  sessions_revoked: true,
+  clerk_banned: false,
+  sessions_revoked: 2,
+  invitation_revoked: false,
   clerk_error: null,
+  clerk_mode: 'revoke_sessions',
   handover: { open_leads: HANDOVER.open_leads, open_proposals: HANDOVER.open_proposals, pending_invitations: HANDOVER.pending_invitations },
   ...over,
 })

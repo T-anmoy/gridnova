@@ -375,11 +375,11 @@ describe('load, error and ownership states', () => {
     expect(hooks.refetch).toHaveBeenCalled()
   })
 
-  it('a wrong-account 403 shows the wrong-account page, not the owner message', () => {
+  it('a non-associate 403 offers to link the account (BE-21), not the owner message', () => {
     hooks.overview = { error: new ApiError(403, 'x', 'This endpoint is for Grid Nova associates only.') }
     show()
     expect(screen.queryByTestId('not-owner')).toBeNull()
-    expect(screen.getByRole('alert')).toHaveTextContent('Wrong account')
+    expect(screen.getByTestId('claim-account')).toHaveTextContent('Link your associate account')
   })
 })
 

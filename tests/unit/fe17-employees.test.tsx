@@ -288,14 +288,32 @@ describe('Deactivate with handover', () => {
     expect(order).toEqual(['/employees/user_raju/deactivate', '/employees/user_raju/reassign'])
   })
 
-  it('says so when the sign-in service did not confirm the ban', async () => {
-    fakeBackend({ ...baseRoutes(), 'PATCH /employees/user_raju/deactivate': { body: deactivated({ clerk_banned: false, sessions_revoked: false, clerk_error: 'timeout' }) } })
+  it('says so when the sign-in service did not confirm', async () => {
+    fakeBackend({ ...baseRoutes(), 'PATCH /employees/user_raju/deactivate': { body: deactivated({ sessions_revoked: 1, clerk_error: 'Clerk session revoke failed for 1 of 2 session(s)' }) } })
     const user = userEvent.setup()
     show()
     await user.click(within(await screen.findByTestId('staff-user_raju')).getByRole('button', { name: 'Deactivate' }))
     await screen.findByTestId('handover-list')
     await user.click(screen.getByTestId('confirm-deactivate'))
-    expect(await screen.findByTestId('clerk-not-banned')).toHaveTextContent('timeout')
+    expect(await screen.findByTestId('clerk-not-confirmed')).toHaveTextContent('1 of 2 session(s)')
+  })
+
+  // BE-21: Clerk's free plan has no ban — every open session is ended instead, and that is
+  // a success, never the "didn't confirm" warning.
+  it.each([
+    [deactivated({ sessions_revoked: 2 }), 'and all 2 open sessions have been ended.'],
+    [deactivated({ sessions_revoked: 1 }), 'and their open session has been ended.'],
+    [deactivated({ sessions_revoked: 0 }), 'they had no open sessions.'],
+    [deactivated({ clerk_mode: 'ban', clerk_banned: true, sessions_revoked: null }), 'their sign-in is blocked and every open session has ended.'],
+  ])('reports what Clerk did without a warning (%#)', async (body, sentence) => {
+    fakeBackend({ ...baseRoutes(), 'PATCH /employees/user_raju/deactivate': { body } })
+    const user = userEvent.setup()
+    show()
+    await user.click(within(await screen.findByTestId('staff-user_raju')).getByRole('button', { name: 'Deactivate' }))
+    await screen.findByTestId('handover-list')
+    await user.click(screen.getByTestId('confirm-deactivate'))
+    expect(await screen.findByTestId('deactivate-done')).toHaveTextContent(sentence)
+    expect(screen.queryByTestId('clerk-not-confirmed')).not.toBeInTheDocument()
   })
 
   it('a Network Manager (no leads.assign) is told an Admin or Management will move the leads', async () => {
@@ -324,12 +342,28 @@ describe('Deactivate with handover', () => {
 
 describe('Reactivate', () => {
   it('turns access back on with the same roles', async () => {
-    const api = fakeBackend({ ...baseRoutes(), 'PATCH /employees/user_old/reactivate': { body: { employee_id: 'user_old', is_active: true, roles: ['operations'], clerk_unbanned: true, clerk_error: null } } })
+    const api = fakeBackend({ ...baseRoutes(), 'PATCH /employees/user_old/reactivate': { body: { employee_id: 'user_old', is_active: true, roles: ['operations'], clerk_unbanned: true, clerk_error: null, clerk_mode: 'ban' } } })
     const user = userEvent.setup()
     show()
     await user.click(within(await screen.findByTestId('inactive-user_old')).getByRole('button', { name: 'Reactivate' }))
     await waitFor(() => expect(api.called('PATCH', '/employees/user_old/reactivate')).toHaveLength(1))
     expect(h.toast.success).toHaveBeenCalledWith('Meera Iyer’s access is back on, with the same roles as before.')
+  })
+
+  it('with sessions revoked (no ban to undo) it is still a plain success', async () => {
+    fakeBackend({ ...baseRoutes(), 'PATCH /employees/user_old/reactivate': { body: { employee_id: 'user_old', is_active: true, roles: ['operations'], clerk_unbanned: false, clerk_error: null, clerk_mode: 'revoke_sessions' } } })
+    const user = userEvent.setup()
+    show()
+    await user.click(within(await screen.findByTestId('inactive-user_old')).getByRole('button', { name: 'Reactivate' }))
+    await waitFor(() => expect(h.toast.success).toHaveBeenCalledWith('Meera Iyer’s access is back on, with the same roles as before.'))
+  })
+
+  it('a failed unban (ban mode) is reported', async () => {
+    fakeBackend({ ...baseRoutes(), 'PATCH /employees/user_old/reactivate': { body: { employee_id: 'user_old', is_active: true, roles: ['operations'], clerk_unbanned: false, clerk_error: 'Clerk unban failed (HTTP 500)', clerk_mode: 'ban' } } })
+    const user = userEvent.setup()
+    show()
+    await user.click(within(await screen.findByTestId('inactive-user_old')).getByRole('button', { name: 'Reactivate' }))
+    await waitFor(() => expect(h.toast.success).toHaveBeenCalledWith(expect.stringContaining('didn’t confirm the unban (Clerk unban failed (HTTP 500))')))
   })
 })
 

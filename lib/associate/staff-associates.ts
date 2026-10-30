@@ -40,6 +40,13 @@ export function accessChangeLines(access: AssociateAccessChange | null): string[
   if (!access) return ['Their sign-in did not need changing.']
   const lines: string[] = []
   if (access.clerk_banned) lines.push('Their sign-in is blocked and every open session has ended.')
+  // BE-21 (Clerk's free plan): sessions are ended instead of a ban; they may sign in again
+  // and Grid Nova refuses them.
+  if (!access.clerk_banned && typeof access.sessions_revoked === 'number') {
+    lines.push(access.sessions_revoked === 0
+      ? 'They had no open sessions. Grid Nova refuses them from their next request.'
+      : `${access.sessions_revoked === 1 ? 'Their open session was' : `All ${access.sessions_revoked} of their open sessions were`} ended. Grid Nova refuses them from their next request.`)
+  }
   if (access.invitation_revoked) lines.push('Their unused invitation was revoked — a new one has to be sent if they are reinstated.')
   if (access.clerk_unbanned) lines.push('Their sign-in works again.')
   if (access.clerk_error) {

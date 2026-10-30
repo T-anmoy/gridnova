@@ -76,9 +76,11 @@ function Employees() {
     try {
       const res = await reactivate.mutateAsync(e.id)
       toast.success(
-        res.clerk_unbanned
+        // BE-21: only a ban (Clerk Pro) has anything to undo; with sessions revoked the
+        // dashboard alone decides, so there is nothing for Clerk to confirm.
+        !res.clerk_error
           ? `${e.name}’s access is back on, with the same roles as before.`
-          : `${e.name}’s access is back on in the dashboard, but the sign-in service didn’t confirm${res.clerk_error ? ` (${res.clerk_error})` : ''}.`,
+          : `${e.name}’s access is back on in the dashboard, but the sign-in service didn’t confirm the unban (${res.clerk_error}).`,
       )
     } catch (err) {
       toast.error(accessErrorMessage(err, 'Access could not be turned back on.'))

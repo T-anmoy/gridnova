@@ -174,8 +174,14 @@ describe('/dashboard/sign-up', () => {
     return Page({ searchParams: Promise.resolve(searchParams) })
   }
 
-  it('an uninvited visitor is sent to the sign-in page, never an open sign-up form', async () => {
-    await expect(page({})).rejects.toThrow('REDIRECT /dashboard/sign-in')
+  it('BE-21: without a link it is an open sign-up (the backend refuses anyone not invited)', async () => {
+    render(await page({}))
+    const form = await screen.findByTestId('clerk-sign-up')
+    expect(form).toHaveAttribute('data-path', '/dashboard/sign-up')
+    expect(form).toHaveAttribute('data-after', '/dashboard')
+    expect(screen.getByText('Use the email address your invitation was sent to')).toBeInTheDocument()
+    expect(h.redirect).not.toHaveBeenCalled()
+    expect(h.signUp.ticket).not.toHaveBeenCalled()
   })
 
   it('an invited address that already has an account signs in with the ticket', async () => {
@@ -215,8 +221,15 @@ describe('/[lang]/associates/sign-up', () => {
     return Page({ params: Promise.resolve({ lang }), searchParams: Promise.resolve(searchParams) })
   }
 
-  it.each([['en', '/associates/sign-in'], ['hi', '/hi/associates/sign-in'], ['bn', '/bn/associates/sign-in']])('%s: no ticket → the associate sign-in page', async (lang, signIn) => {
-    await expect(page(lang, {})).rejects.toThrow(`REDIRECT ${signIn}`)
+  it.each([
+    ['en', '/associates/portal', 'Create your associate sign-in'],
+    ['hi', '/hi/associates/portal', 'अपना एसोसिएट साइन-इन बनाएँ'],
+    ['bn', '/bn/associates/portal', 'আপনার অ্যাসোসিয়েট সাইন-ইন তৈরি করুন'],
+  ])('%s: no ticket → an open sign-up that lands in the portal (BE-21)', async (lang, portal, title) => {
+    render(await page(lang, {}))
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(title)
+    expect(await screen.findByTestId('clerk-sign-up')).toHaveAttribute('data-after', portal)
+    expect(h.redirect).not.toHaveBeenCalled()
   })
 
   it.each([['en', '/associates/portal', 'Join the Grid Nova Associate portal'], ['hi', '/hi/associates/portal', 'ग्रिड नोवा एसोसिएट पोर्टल से जुड़ें'], ['bn', '/bn/associates/portal', 'গ্রিড নোভা অ্যাসোসিয়েট পোর্টালে যোগ দিন']])('%s: a valid ticket lands in the portal', async (lang, portal, title) => {

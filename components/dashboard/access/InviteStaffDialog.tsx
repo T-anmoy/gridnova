@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { CheckCircle2, Clock, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ManualSignUpNote } from '@/components/dashboard/access/ManualSignUpNote'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -69,18 +70,24 @@ export function InviteStaffDialog() {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   {outcome.kind === 'sent' ? <CheckCircle2 className="h-5 w-5 text-green-700" aria-hidden="true" /> : <Clock className="h-5 w-5 text-amber-600" aria-hidden="true" />}
-                  {outcome.kind === 'sent' ? 'Invitation sent' : 'Waiting for a second Admin'}
+                  {outcome.kind === 'sent' ? (outcome.invitation.delivery === 'manual' ? 'Invitation saved' : 'Invitation sent') : 'Waiting for a second Admin'}
                 </DialogTitle>
                 <DialogDescription asChild>
                   <div className="space-y-2 text-sm">
                     {outcome.kind === 'sent' ? (
                       <>
-                        <p>
-                          {outcome.invitation.clerk_status === 'skipped'
-                            ? `Invitation saved for ${outcome.invitation.email}, but no email was sent (the sign-in service isn’t set up here).`
-                            : `Invitation sent to ${outcome.invitation.email}, expires on ${formatDate(outcome.invitation.expires_at)}.`}
-                        </p>
-                        <p>They open the link in the email, set up their sign-in, and land on the dashboard with the roles you gave.</p>
+                        {outcome.invitation.delivery === 'manual' ? (
+                          <>
+                            <p>Invitation saved for {outcome.invitation.email}, expires on {formatDate(outcome.invitation.expires_at)}.</p>
+                            {outcome.invitation.manual_instructions && <ManualSignUpNote instructions={outcome.invitation.manual_instructions} />}
+                            <p>When they sign up with that address and confirm it, they land on the dashboard with the roles you gave.</p>
+                          </>
+                        ) : (
+                          <>
+                            <p>Invitation sent to {outcome.invitation.email}, expires on {formatDate(outcome.invitation.expires_at)}.</p>
+                            <p>They open the link in the email, set up their sign-in, and land on the dashboard with the roles you gave.</p>
+                          </>
+                        )}
                       </>
                     ) : (
                       <>
