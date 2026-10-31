@@ -44,6 +44,15 @@ export function staffModeLabel(mode: string): string {
 // Held-receipt reasons that come from DUMMY/placeholder company details.
 export const isDummyReason = (reason: string | null | undefined): boolean => !!reason && /dummy|placeholder/i.test(reason)
 
+// BE-22: a receipt (or handover pack) held because an Admin has not approved the wording it prints.
+export const isWordingHold = (reason: string | null | undefined): boolean => reason === 'wording_not_approved'
+
+/** A held reason in words; anything without its own sentence is shown as the API sent it. */
+export function heldReasonText(reason: string | null | undefined): string {
+  if (isWordingHold(reason)) return 'Waiting for an Admin to approve the receipt wording on the Data checklist (P6).'
+  return reason ?? 'Held'
+}
+
 // The second-pair-of-eyes rule, said the same way wherever it applies.
 export const SELF_VERIFICATION_TEXT = 'You recorded this payment, so another Accounts person must verify it.'
 

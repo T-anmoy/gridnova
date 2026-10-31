@@ -29,7 +29,8 @@ export function buildAdjustPricingInput(proposalId: number, kind: PriceInputKind
   if (!reason.trim()) return 'A reason is required'
   if (kind === 'new_value') {
     const n = Number(value)
-    if (!value || !Number.isFinite(n) || n < 0) return 'Enter a valid total value'
+    // BE-22: a zero total is never a price (the API answers 422 for new_value <= 0).
+    if (!value || !Number.isFinite(n) || n <= 0) return 'Enter a total above zero'
     return { proposalId, newValue: n, reason: reason.trim() }
   }
   if (!isAmountShapeValid(value) || Number(value) <= 0) return 'Enter an amount in rupees, up to 2 decimals'

@@ -27,9 +27,39 @@ import {
   usePayoutBatch,
 } from '@/lib/commissions/staff-api-client'
 import { usePermissions } from '@/lib/access/use-permissions'
+import type { TdsReview } from '@/lib/commissions/schemas'
 
-function MarkPaid({ batchId, lines, canAct }: { batchId: number; lines: ReturnType<typeof payableLines>; canAct: boolean }) {
+// BE-22: Grid Nova deducts no TDS for now. Above the financial-year threshold the batch lists the
+// associates, and approving or paying needs this acknowledgement (audited by the API).
+function TdsReviewNotice({ review }: { review: TdsReview[] }) {
+  return (
+    <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" data-testid="tds-review">
+      <p className="font-semibold">TDS review — {review.length} associate{review.length === 1 ? '' : 's'} above the threshold</p>
+      <ul className="mt-2 space-y-2">
+        {review.map((r) => (
+          <li key={r.associate_id}>
+            <p className="font-medium">{r.name ?? r.associate_id} <span className="text-xs font-normal">({r.associate_id})</span></p>
+            <p className="text-xs">Commission this financial year {formatInr(r.fy_to_date)} · threshold {formatInr(r.threshold)}</p>
+            <p className="text-xs">{r.message}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function TdsAcknowledgement({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="flex items-start gap-2 text-sm text-gray-900">
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-[#0e2a63]" data-testid="tds-ack" />
+      <span>I have read the TDS review and confirmed with Grid Nova’s Chartered Accountant that this batch may be paid without deducting TDS.</span>
+    </label>
+  )
+}
+
+function MarkPaid({ batchId, lines, canAct, tdsReview }: { batchId: number; lines: ReturnType<typeof payableLines>; canAct: boolean; tdsReview: TdsReview[] }) {
   const mark = useMarkPayoutPaid()
+  const [tdsAck, setTdsAck] = useState(false)
   const id = useId()
   const [refs, setRefs] = useState<Record<string, string>>({})
   const [missing, setMissing] = useState<string[]>([])
@@ -90,10 +120,14 @@ function MarkPaid({ batchId, lines, canAct }: { batchId: number; lines: ReturnTy
       </CardContent>
       <ConfirmDialog
         open={confirming}
-        onOpenChange={setConfirming}
+        onOpenChange={(o) => {
+          setConfirming(o)
+          if (!o) setTdsAck(false)
+        }}
         title="Mark this batch as paid?"
         description="Every earning in the batch becomes Paid and each associate sees the bank reference. This cannot be undone."
         confirmLabel="Mark paid"
+        confirmDisabled={tdsReview.length > 0 && !tdsAck}
         describeError={(err) => {
           const d = err instanceof ApiError ? err.structuredDetail : undefined
           if (Array.isArray(d?.associate_ids)) setMissing(d.associate_ids.map(String))
@@ -103,9 +137,12 @@ function MarkPaid({ batchId, lines, canAct }: { batchId: number; lines: ReturnTy
           mark.mutateAsync({
             batchId,
             lines: lines.map((l) => ({ associate_id: l.associate!.associate_id, bank_reference: (refs[l.associate!.associate_id] ?? '').trim() })),
+            ...(tdsReview.length > 0 ? { tdsReviewAcknowledged: tdsAck } : {}),
           })
         }
-      />
+      >
+        {tdsReview.length > 0 && <TdsAcknowledgement checked={tdsAck} onChange={setTdsAck} />}
+      </ConfirmDialog>
     </Card>
   )
 }
@@ -120,6 +157,11 @@ export default function PayoutBatchDetail({ batchId }: { batchId: number }) {
   const download = useCommissionExport()
   const [dialog, setDialog] = useState<'approve' | 'override' | 'cancel' | 'bank' | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [tdsAck, setTdsAck] = useState(false)
+  const closeDialog = () => {
+    setDialog(null)
+    setTdsAck(false)
+  }
 
   const back = (
     <Link href="/dashboard/commissions/payouts" className="inline-flex min-h-[44px] items-center gap-1.5 text-sm font-medium text-[#0e2a63]">
@@ -133,6 +175,13 @@ export default function PayoutBatchDetail({ batchId }: { batchId: number }) {
   const lines = batch.lines ?? []
   const payable = payableLines(lines)
   const showBank = canDownloadBankFile(can, batch.status)
+  const tdsReview = batch.tds_review ?? []
+  const ackMissing = tdsReview.length > 0 && !tdsAck
+  // A batch loaded before the threshold was crossed has no review yet: reload it so the list and the tick appear.
+  const describeApproveError = (err: unknown) => {
+    if (err instanceof ApiError && err.structuredDetail?.code === 'tds_review_required') void refetch()
+    return commissionErrorMessage(err)
+  }
 
   return (
     <div className="space-y-4">
@@ -162,6 +211,7 @@ export default function PayoutBatchDetail({ batchId }: { batchId: number }) {
             {batch.cancelled_at && <li>Cancelled {formatDatetime(batch.cancelled_at)}{batch.cancelled_by ? ` by ${batch.cancelled_by}` : ''}{batch.cancel_reason ? ` — ${batch.cancel_reason}` : ''}</li>}
           </ul>
           {notice && <p role="status" className="text-sm text-green-700">{notice}</p>}
+          {tdsReview.length > 0 && <TdsReviewNotice review={tdsReview} />}
 
           <div className="flex flex-wrap items-center gap-3">
             {mode === 'approve' && <Button className="h-11 md:h-9" onClick={() => setDialog('approve')}>Approve batch</Button>}
@@ -227,34 +277,40 @@ export default function PayoutBatchDetail({ batchId }: { batchId: number }) {
         </CardContent>
       </Card>
 
-      {batch.status === 'approved' && <MarkPaid batchId={batch.batch_id} lines={payable} canAct={canAct} />}
+      {batch.status === 'approved' && <MarkPaid batchId={batch.batch_id} lines={payable} canAct={canAct} tdsReview={tdsReview} />}
 
       <ConfirmDialog
         open={dialog === 'approve'}
-        onOpenChange={(o) => !o && setDialog(null)}
+        onOpenChange={(o) => !o && closeDialog()}
         title="Approve this payout batch?"
         description="Once approved the batch can be paid. Someone other than the preparer has to do this."
         confirmLabel="Approve"
-        describeError={commissionErrorMessage}
+        confirmDisabled={ackMissing}
+        describeError={describeApproveError}
         onConfirm={async () => {
-          await approve.mutateAsync({ batchId })
+          await approve.mutateAsync({ batchId, ...(tdsReview.length > 0 ? { tdsReviewAcknowledged: tdsAck } : {}) })
           setNotice('Batch approved.')
         }}
-      />
+      >
+        {tdsReview.length > 0 && <TdsAcknowledgement checked={tdsAck} onChange={setTdsAck} />}
+      </ConfirmDialog>
       <ReasonDialog
         open={dialog === 'override'}
-        onOpenChange={(o) => !o && setDialog(null)}
+        onOpenChange={(o) => !o && closeDialog()}
         title="Approve a batch you prepared"
         description="Normally a different person approves. As an Admin you may approve it yourself with a reason; the override is recorded in the audit log."
         label="Reason for the override"
         required
         confirmLabel="Approve with override"
-        describeError={commissionErrorMessage}
+        confirmDisabled={ackMissing}
+        describeError={describeApproveError}
         onConfirm={async (reason) => {
-          await approve.mutateAsync({ batchId, reason })
+          await approve.mutateAsync({ batchId, reason, ...(tdsReview.length > 0 ? { tdsReviewAcknowledged: tdsAck } : {}) })
           setNotice('Batch approved with an Admin override.')
         }}
-      />
+      >
+        {tdsReview.length > 0 && <TdsAcknowledgement checked={tdsAck} onChange={setTdsAck} />}
+      </ReasonDialog>
       <ReasonDialog
         open={dialog === 'cancel'}
         onOpenChange={(o) => !o && setDialog(null)}

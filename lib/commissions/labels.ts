@@ -57,6 +57,7 @@ export const isReversible = (e: { kind: string; status: string; reversed_by_entr
 const MESSAGES: Record<string, string | ((d: Record<string, unknown>) => string)> = {
   not_found: 'That could not be found.',
   reason_required: 'A reason is required.',
+  tds_review_required: 'Some associates are above the TDS threshold while no TDS is deducted. Read the TDS review, confirm with your Chartered Accountant, then tick the acknowledgement.',
   entries_not_approvable: (d) => {
     const rows = Array.isArray(d.entries) ? (d.entries as { entry_id?: number; reason?: string }[]) : []
     const why: Record<string, string> = {

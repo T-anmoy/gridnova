@@ -19,7 +19,7 @@ import { DashboardError } from '@/components/dashboard/DashboardError'
 import NoAccess from '@/components/dashboard/NoAccess'
 import { downloadExport, useMilestoneQueue, usePaymentList, useReleaseHeldReceipts, useResendReceipt, type ExportKind } from '@/lib/dashboard/accounts-api-client'
 import { useWorkQueues } from '@/lib/dashboard/execution-api-client'
-import { ATTENTION_LABEL, STATUS_LABEL, STATUS_VARIANT, isDummyReason, matchesFilter, staffModeLabel, staffPaymentError } from '@/lib/dashboard/payment-ui'
+import { ATTENTION_LABEL, STATUS_LABEL, STATUS_VARIANT, heldReasonText, isDummyReason, isWordingHold, matchesFilter, staffModeLabel, staffPaymentError } from '@/lib/dashboard/payment-ui'
 import { formatDate, pageCount } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
 import { STAFF_PAYMENT_COPY } from '@/lib/dashboard/staff-copy'
@@ -281,7 +281,7 @@ function ReceiptsTab({ canAct, leadId, clearLead }: { canAct: boolean; leadId?: 
     setNotice(null)
     try {
       const r = await release.mutateAsync()
-      setNotice(`Released ${r.released}; still held ${r.still_held}${r.reason ? ` — ${r.reason}` : ''}.`)
+      setNotice(`Released ${r.released}; still held ${r.still_held}${r.reason ? ` — ${heldReasonText(r.reason)}` : ''}.`)
     } catch (err) {
       setNotice(staffPaymentError(err))
     }
@@ -330,8 +330,9 @@ function ReceiptsTab({ canAct, leadId, clearLead }: { canAct: boolean; leadId?: 
                         <div className="flex flex-wrap gap-1">
                           <AttentionBadges reasons={reasons} />
                           {r?.held && isDummyReason(r.held_reason) && <Badge variant="orange" data-testid="dummy-chip">Dummy / pending Grid Nova</Badge>}
+                          {r?.held && isWordingHold(r.held_reason) && <Badge variant="orange" data-testid="wording-chip">Wording not approved</Badge>}
                         </div>
-                        {r?.held && r.held_reason && <p className="mt-1 text-xs text-gray-500">{r.held_reason}</p>}
+                        {r?.held && r.held_reason && <p className="mt-1 text-xs text-gray-500">{heldReasonText(r.held_reason)}</p>}
                       </TableCell>
                       <TableCell className="text-right">
                         {canAct && r && <Button variant="outline" size="sm" onClick={() => void handleResend(p.payment_id)}>Resend</Button>}

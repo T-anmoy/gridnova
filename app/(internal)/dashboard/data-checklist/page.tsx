@@ -9,8 +9,14 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import NoAccess from '@/components/dashboard/NoAccess'
 import ReasonDialog from '@/components/dashboard/ReasonDialog'
-import { AREA_LABEL, BLOCKING_LABEL, BLOCKING_ORDER, buildGridNovaMessage, isManual } from '@/lib/dashboard/placeholders'
-import { usePlaceholders, useResolvePlaceholder, type PlaceholderItem } from '@/lib/dashboard/placeholders-api-client'
+import ApproveWordingDialog, { ReadWordingDialog } from '@/components/dashboard/ApproveWordingDialog'
+import {
+  APPROVAL_LABEL, APPROVAL_VARIANT, AREA_LABEL, BLOCKING_LABEL, BLOCKING_ORDER, approvalStateOf, buildGridNovaMessage,
+  isManual, isWording, revokeError, shortHash, wordingAwaitingApproval,
+} from '@/lib/dashboard/placeholders'
+import {
+  useApproveWording, usePlaceholders, useResolvePlaceholder, useRevokeWording, type PlaceholderItem,
+} from '@/lib/dashboard/placeholders-api-client'
 import { ApiError } from '@/lib/dashboard/api-error'
 import { formatDatetime } from '@/lib/dashboard/utils'
 import { usePermissions } from '@/lib/access/use-permissions'
@@ -29,7 +35,14 @@ function resolveError(err: unknown): string {
   return 'Something went wrong. Please try again.'
 }
 
-function ItemRow({ item, canResolve, onResolve }: { item: PlaceholderItem; canResolve: boolean; onResolve: () => void }) {
+function ItemRow({ item, canResolve, onResolve, onApprove, onRevoke }: {
+  item: PlaceholderItem
+  canResolve: boolean
+  onResolve: () => void
+  onApprove: () => void
+  onRevoke: () => void
+}) {
+  if (isWording(item)) return <WordingRow item={item} canAct={canResolve} onApprove={onApprove} onRevoke={onRevoke} />
   return (
     <li className="space-y-1 border-b border-gray-100 py-3 last:border-0" data-testid="checklist-item">
       <div className="flex flex-wrap items-center gap-2">
@@ -52,11 +65,55 @@ function ItemRow({ item, canResolve, onResolve }: { item: PlaceholderItem; canRe
   )
 }
 
+// BE-22: drafted wording. Nothing that prints it is sent until an Admin approves it here.
+function WordingRow({ item, canAct, onApprove, onRevoke }: { item: PlaceholderItem; canAct: boolean; onApprove: () => void; onRevoke: () => void }) {
+  const state = approvalStateOf(item)
+  const approval = item.approval
+  return (
+    <li className="space-y-1 border-b border-gray-100 py-3 last:border-0" data-testid="checklist-item">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="outline">{item.id}</Badge>
+        <Badge variant={BLOCKING_VARIANT[item.blocking] ?? 'gray'}>{BLOCKING_LABEL[item.blocking] ?? item.blocking}</Badge>
+        <Badge variant={APPROVAL_VARIANT[state]} data-testid="approval-state">{APPROVAL_LABEL[state]}</Badge>
+        {item.legal_review_required && <Badge variant="outline">Legal review needed</Badge>}
+        <span className="ml-auto flex flex-wrap gap-2">
+          {canAct && state !== 'approved' && item.current_text && (
+            <Button size="sm" onClick={onApprove}>{state === 'lapsed' ? 'Read and approve again…' : 'Read and approve…'}</Button>
+          )}
+          {(state === 'approved' || !canAct) && item.current_text && <Button size="sm" variant="outline" onClick={onApprove}>Read</Button>}
+          {canAct && approval && <Button size="sm" variant="outline" onClick={onRevoke}>Revoke…</Button>}
+        </span>
+      </div>
+      <p className="text-sm text-gray-800">{item.description}</p>
+      <p className="font-mono text-[11px] text-gray-500">{item.location}</p>
+      {state === 'approved' && approval && (
+        <p className="text-xs text-gray-500">
+          Approved by {approval.by} on {formatDatetime(approval.at)}{approval.legal_review_confirmed ? ' · legal review confirmed' : ''}{approval.note ? ` — ${approval.note}` : ''}
+        </p>
+      )}
+      {state === 'lapsed' && approval && (
+        <p className="text-xs text-red-700">
+          {approval.by} approved an earlier version on {formatDatetime(approval.at)} (fingerprint {shortHash(approval.content_sha256)}). The text has changed since, so documents that print it are held until it is approved again.
+        </p>
+      )}
+      {state === 'not_approved' && (
+        <p className="text-xs text-gray-600">Documents that print this text are held until an Admin approves it.</p>
+      )}
+      {item.probe_error && <p className="text-xs text-red-600">Check failed: {item.probe_error}</p>}
+    </li>
+  )
+}
+
 function Checklist({ isAdmin }: { isAdmin: boolean }) {
   const { data, isLoading, error, refetch } = usePlaceholders()
   const resolve = useResolvePlaceholder()
+  const approve = useApproveWording()
+  const revoke = useRevokeWording()
   const [unresolvedOnly, setUnresolvedOnly] = useState(true)
   const [resolving, setResolving] = useState<PlaceholderItem | null>(null)
+  // Ids, not items: the dialogs read the item from the latest list (a 409 text_changed refetches it).
+  const [openId, setOpenId] = useState<string | null>(null)
+  const [revokingId, setRevokingId] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
 
   async function copyMessage() {
@@ -77,6 +134,10 @@ function Checklist({ isAdmin }: { isAdmin: boolean }) {
   const areas = data.areas
     .map((a) => ({ ...a, items: unresolvedOnly ? a.items.filter((i) => !i.resolved) : a.items }))
     .filter((a) => a.items.length > 0)
+  const byId = (id: string | null) => (id ? data.areas.flatMap((a) => a.items).find((i) => i.id === id) ?? null : null)
+  const opened = byId(openId)
+  const revoking = byId(revokingId)
+  const awaiting = wordingAwaitingApproval(data)
 
   return (
     <div className="max-w-4xl space-y-6 p-6 md:p-8">
@@ -99,6 +160,16 @@ function Checklist({ isAdmin }: { isAdmin: boolean }) {
         })}
       </div>
 
+      {awaiting.length > 0 && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900" data-testid="wording-awaiting">
+          <p className="font-semibold">{awaiting.length} drafted text{awaiting.length === 1 ? '' : 's'} waiting for an Admin to approve</p>
+          <p className="mt-1">
+            Proposals, customer agreements, payment receipts and handover packs that print {awaiting.length === 1 ? 'it' : 'them'} are held — never sent — until approved: {awaiting.map((i) => i.id).join(', ')}.
+            {isAdmin ? ' Read each one and approve it below.' : ' Only an Admin can approve them.'}
+          </p>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-3">
         <Button variant={unresolvedOnly ? 'default' : 'outline'} size="sm" aria-pressed={unresolvedOnly} onClick={() => setUnresolvedOnly((v) => !v)}>
           Unresolved only
@@ -116,7 +187,16 @@ function Checklist({ isAdmin }: { isAdmin: boolean }) {
           <CardHeader><CardTitle className="text-base">{AREA_LABEL(a.area)} <span className="text-xs font-normal text-gray-500">({a.items.length})</span></CardTitle></CardHeader>
           <CardContent>
             <ul>
-              {a.items.map((item) => <ItemRow key={item.id} item={item} canResolve={isAdmin} onResolve={() => setResolving(item)} />)}
+              {a.items.map((item) => (
+                <ItemRow
+                  key={item.id}
+                  item={item}
+                  canResolve={isAdmin}
+                  onResolve={() => setResolving(item)}
+                  onApprove={() => setOpenId(item.id)}
+                  onRevoke={() => setRevokingId(item.id)}
+                />
+              ))}
             </ul>
           </CardContent>
         </Card>
@@ -132,6 +212,26 @@ function Checklist({ isAdmin }: { isAdmin: boolean }) {
         confirmLabel="Mark resolved"
         describeError={resolveError}
         onConfirm={(note) => resolve.mutateAsync({ id: resolving!.id, note })}
+      />
+
+      <ApproveWordingDialog
+        item={isAdmin && opened && approvalStateOf(opened) !== 'approved' ? opened : null}
+        onOpenChange={(o) => !o && setOpenId(null)}
+        onApprove={(input) => approve.mutateAsync(input)}
+      />
+      <ReadWordingDialog item={opened && (!isAdmin || approvalStateOf(opened) === 'approved') ? opened : null} onClose={() => setOpenId(null)} />
+
+      <ReasonDialog
+        open={!!revoking}
+        onOpenChange={(o) => !o && setRevokingId(null)}
+        title={revoking ? `Revoke the approval of ${revoking.id}` : 'Revoke approval'}
+        description="Documents that print this text are held again from now on, until an Admin approves it again. Proposals already accepted and agreements already signed are not affected."
+        label="Why"
+        required
+        destructive
+        confirmLabel="Revoke approval"
+        describeError={revokeError}
+        onConfirm={(note) => revoke.mutateAsync({ id: revoking!.id, note })}
       />
     </div>
   )

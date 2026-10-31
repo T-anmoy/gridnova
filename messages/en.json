@@ -2311,7 +2311,9 @@
             "not_approved": "This proposal hasn't been approved yet.",
             "placeholder_content": "This proposal still has placeholder content.",
             "expired": "This proposal has expired.",
-            "missing_required": "Grid Nova still needs a few details on this proposal before it can be accepted. Please ask your Grid Nova contact."
+            "missing_required": "Grid Nova still needs a few details on this proposal before it can be accepted. Please ask your Grid Nova contact.",
+            "unapproved_sections": "Grid Nova is still finalising the wording of this proposal. It can be accepted once that is done — please ask your Grid Nova contact.",
+            "manual_review_required": "Grid Nova needs to review this proposal before it can be accepted. Please ask your Grid Nova contact."
           }
         },
         "genericError": "Something went wrong. Please try again.",
@@ -2329,6 +2331,7 @@
       "agreement": {
         "title": "Agreement",
         "notGeneratedNote": "The agreement hasn't been generated yet.",
+        "updatingNote": "Grid Nova is updating the agreement. The download will appear here once it is ready.",
         "downloadLink": "Download agreement",
         "uploadSigned": {
           "title": "Upload the signed scan",
@@ -2339,7 +2342,8 @@
             "not_generated": "The agreement hasn't been generated yet.",
             "already_signed": "A signed copy has already been uploaded.",
             "invalid_stamp_paper_number": "Please enter a valid stamp paper number.",
-            "invalid_stamp_paper_date": "Please enter a valid stamp paper date."
+            "invalid_stamp_paper_date": "Please enter a valid stamp paper date.",
+            "agreement_wording_not_approved": "Grid Nova is updating the agreement. Please wait for the new copy before uploading the signed scan."
           }
         },
         "genericError": "Something went wrong. Please try again."

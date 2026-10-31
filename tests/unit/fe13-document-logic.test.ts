@@ -162,6 +162,8 @@ describe('adjust pricing takes exactly one input', () => {
     expect(buildAdjustPricingInput(1, 'basic_price', '185000', ' ')).toBe('A reason is required')
     expect(buildAdjustPricingInput(1, 'basic_price', '1.234', 'r')).toMatch(/up to 2 decimals/)
     expect(buildAdjustPricingInput(1, 'rate_per_kwp', '0', 'r')).toMatch(/up to 2 decimals/)
-    expect(buildAdjustPricingInput(1, 'new_value', '-5', 'r')).toBe('Enter a valid total value')
+    expect(buildAdjustPricingInput(1, 'new_value', '-5', 'r')).toBe('Enter a total above zero')
+    // BE-22: zero is never a price.
+    expect(buildAdjustPricingInput(1, 'new_value', '0', 'r')).toBe('Enter a total above zero')
   })
 })

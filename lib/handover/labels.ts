@@ -75,7 +75,7 @@ const MESSAGES: Record<string, string | ((d: Record<string, unknown>) => string)
   invalid_file: 'That file could not be used. Use a PNG image of the signature.',
   file_too_large: 'That file is too large.',
   handover_not_recorded: 'Handover has not been recorded yet.',
-  handover_pdf_held: 'The pack PDF is held while some printed text is still a placeholder.',
+  handover_pdf_held: 'The pack PDF is held while some printed text is still a placeholder or not yet approved by an Admin.',
   no_link: 'There is no customer link yet.',
   not_handed_over: 'This project has not been handed over yet.',
   invalid_category: 'Choose what the problem is.',

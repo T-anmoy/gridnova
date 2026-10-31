@@ -343,11 +343,18 @@ export interface SendProposalResponse {
   customer_email_skipped_reason: CustomerEmailSkippedReason | null
 }
 
-// POST /proposals/{id}/send — 409 structured detail (placeholder content)
+// POST /proposals/{id}/send — 409 structured detail. placeholder_content: placeholder text or
+// no price; unapproved_sections: Grid Nova wording an Admin has not approved (BE-22);
+// manual_review_required: the proposal fell back to the generic scope (BE-22).
+export const SEND_HOLD_CODES = ['placeholder_content', 'unapproved_sections', 'manual_review_required'] as const
+export type SendHoldCode = (typeof SEND_HOLD_CODES)[number]
+
 export interface PlaceholderContentDetail {
-  code: 'placeholder_content'
+  code: SendHoldCode
   message: string
   placeholder_sections: string[]
+  unapproved_sections?: string[]
+  manual_review_required?: boolean
   missing_total_value: boolean
 }
 

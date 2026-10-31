@@ -104,6 +104,17 @@ const totalsSchema = z.looseObject({
   net: z.string(),
   carry_forward: z.string(),
 })
+// BE-22: associates above the financial-year TDS threshold while Grid Nova deducts no TDS.
+// Approve and mark-paid need tds_review_acknowledged while this list is not empty.
+export const tdsReviewSchema = z.looseObject({
+  associate_id: z.string(),
+  name: str,
+  fy_to_date: z.string(),
+  threshold: z.string(),
+  message: z.string(),
+})
+export type TdsReview = z.infer<typeof tdsReviewSchema>
+
 export const payoutBatchSchema = z.looseObject({
   batch_id: z.number(),
   period: z.string(),
@@ -122,6 +133,7 @@ export const payoutBatchSchema = z.looseObject({
   totals: totalsSchema,
   line_count: z.number().nullish(),
   lines: z.array(payoutLineSchema).nullish(),
+  tds_review: z.array(tdsReviewSchema).nullish(),
 })
 export type PayoutBatch = z.infer<typeof payoutBatchSchema>
 export const payoutBatchListSchema = z.looseObject({ items: z.array(payoutBatchSchema) })

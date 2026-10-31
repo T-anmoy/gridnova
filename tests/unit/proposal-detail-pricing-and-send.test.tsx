@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ProposalDetailPage from '@/app/(internal)/dashboard/proposals/[id]/page'
 import { ApiError } from '@/lib/dashboard/api-error'
@@ -112,6 +112,55 @@ describe('ProposalDetailPage — placeholder content banner', () => {
       expect(screen.getByText('This proposal still has placeholder content')).toBeInTheDocument()
     })
     expect(document.body.textContent).not.toContain('[object Object]')
+  })
+
+  // BE-22: Grid Nova's wording an Admin has not approved, and the generic-scope fallback.
+  it('explains unapproved wording and points to the Data checklist', async () => {
+    mockUseProposal.mockReturnValue({ data: BASE_PROPOSAL, isLoading: false, error: null, refetch: vi.fn() })
+    mockSend.mockRejectedValue(
+      new ApiError(409, 'API error 409', 'x', {
+        code: 'unapproved_sections',
+        message: 'This proposal cannot be sent to a customer yet: wording not yet approved by an Admin in section(s): terms_conditions.',
+        placeholder_sections: [],
+        unapproved_sections: ['terms_conditions'],
+        manual_review_required: false,
+        missing_total_value: false,
+      })
+    )
+    const user = userEvent.setup()
+    render(<ProposalDetailPage />)
+    await user.click(screen.getByRole('button', { name: /send to customer/i }))
+    await user.click(screen.getByRole('button', { name: 'Confirm' }))
+
+    const banner = await screen.findByTestId('send-hold-banner')
+    expect(within(banner).getByTestId('hold-unapproved')).toHaveTextContent('Sections: Terms Conditions.')
+    expect(within(banner).getByRole('link', { name: 'Data checklist' })).toHaveAttribute('href', '/dashboard/data-checklist')
+    expect(banner).not.toHaveTextContent('placeholder content')
+    expect(within(banner).queryByTestId('hold-manual-review')).toBeNull()
+  })
+
+  it('explains the generic-scope manual review and a missing price', async () => {
+    mockUseProposal.mockReturnValue({ data: { ...BASE_PROPOSAL, total_value: null }, isLoading: false, error: null, refetch: vi.fn() })
+    mockSend.mockRejectedValue(
+      new ApiError(409, 'API error 409', 'x', {
+        code: 'placeholder_content',
+        message: 'x',
+        placeholder_sections: [],
+        unapproved_sections: [],
+        manual_review_required: true,
+        missing_total_value: true,
+      })
+    )
+    const user = userEvent.setup()
+    render(<ProposalDetailPage />)
+    expect(screen.getByTestId('price-to-be-set')).toHaveTextContent('Price to be set by Grid Nova')
+    expect(document.body.textContent).not.toContain('₹0')
+    await user.click(screen.getByRole('button', { name: /send to customer/i }))
+    await user.click(screen.getByRole('button', { name: 'Confirm' }))
+
+    const banner = await screen.findByTestId('send-hold-banner')
+    expect(within(banner).getByTestId('hold-no-price')).toHaveTextContent('Price to be set by Grid Nova')
+    expect(within(banner).getByTestId('hold-manual-review')).toHaveTextContent('generic one was used')
   })
 })
 

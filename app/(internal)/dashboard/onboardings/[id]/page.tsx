@@ -231,9 +231,22 @@ function AgreementSection({ onboardingId }: { onboardingId: number }) {
   const [stampPaperNumber, setStampPaperNumber] = useState('')
   const [stampPaperDate, setStampPaperDate] = useState('')
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [generateError, setGenerateError] = useState<string | null>(null)
 
   if (isLoading || !agreement) return null
   const links = agreement.links
+  const wordingPending = agreement.wording_approved === false
+
+  async function handleGenerate() {
+    setGenerateError(null)
+    try {
+      await generateMutation.mutateAsync(onboardingId)
+    } catch (err) {
+      setGenerateError(err instanceof ApiError && err.structuredDetail?.code === 'agreement_wording_not_approved'
+        ? 'The customer agreement wording is not approved yet. An Admin approves it (ONB-5) on the Data checklist first.'
+        : errorMessage(err, 'Failed to generate the agreement'))
+    }
+  }
 
   async function handleUpload() {
     if (!file) return
@@ -258,9 +271,21 @@ function AgreementSection({ onboardingId }: { onboardingId: number }) {
         <CardTitle className="text-base">Agreement</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        {wordingPending && !links?.signed_scan && (
+          <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900" data-testid="agreement-wording-pending">
+            The customer agreement wording is not approved yet, so no agreement can be generated or downloaded. An Admin reads and approves it (ONB-5) on the{' '}
+            <Link href="/dashboard/data-checklist" className="underline">Data checklist</Link>.
+          </p>
+        )}
+        {agreement.needs_regeneration && !wordingPending && (
+          <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900" data-testid="agreement-needs-regeneration">
+            This agreement was printed from wording that is not the approved one, so it can’t be downloaded or signed. Regenerate it.
+          </p>
+        )}
+        {generateError && <p role="alert" className="text-xs text-red-600">{generateError}</p>}
         {!links?.agreement_pdf ? (
-          <Button size="sm" disabled={generateMutation.isPending} onClick={() => generateMutation.mutate(onboardingId)}>
-            Generate agreement
+          <Button size="sm" disabled={generateMutation.isPending || wordingPending} onClick={() => void handleGenerate()}>
+            {agreement.needs_regeneration ? 'Regenerate agreement' : 'Generate agreement'}
           </Button>
         ) : (
           <>
@@ -274,7 +299,7 @@ function AgreementSection({ onboardingId }: { onboardingId: number }) {
             ) : (
               <>
                 <div>
-                  <Button size="sm" variant="outline" disabled={generateMutation.isPending} onClick={() => generateMutation.mutate(onboardingId)}>
+                  <Button size="sm" variant="outline" disabled={generateMutation.isPending || wordingPending} onClick={() => void handleGenerate()}>
                     Regenerate
                   </Button>
                 </div>

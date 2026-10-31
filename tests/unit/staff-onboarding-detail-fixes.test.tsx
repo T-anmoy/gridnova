@@ -170,3 +170,37 @@ describe('Staff agreement section — signed-scan upload', () => {
     expect(screen.queryByRole('button', { name: 'Upload signed scan' })).not.toBeInTheDocument()
   })
 })
+
+// BE-22: no agreement is generated or served from wording an Admin has not approved (ONB-5).
+describe('Staff agreement section — approved wording', () => {
+  async function renderPage(agreement: Partial<AgreementResponse>, generate = vi.fn().mockResolvedValue({})) {
+    mockUseStaffOnboardingFormalProposal.mockReturnValue({ data: { prepared: false, missing_fields: [] }, isLoading: false })
+    mockUseStaffOnboardingAgreement.mockReturnValue({ data: { links: {}, ...agreement } as AgreementResponse, isLoading: false })
+    mockUseGenerateAgreement.mockReturnValue({ mutateAsync: generate, isPending: false })
+    const { default: StaffOnboardingDetailPage } = await import('@/app/(internal)/dashboard/onboardings/[id]/page')
+    render(<StaffOnboardingDetailPage />)
+    return generate
+  }
+
+  it('while the wording is not approved: says so, links the Data checklist, and Generate is off', async () => {
+    const generate = await renderPage({ generated: false, wording_approved: false })
+    expect(screen.getByTestId('agreement-wording-pending')).toHaveTextContent('ONB-5')
+    expect(screen.getByRole('link', { name: 'Data checklist' })).toHaveAttribute('href', '/dashboard/data-checklist')
+    expect(screen.getByRole('button', { name: 'Generate agreement' })).toBeDisabled()
+    expect(generate).not.toHaveBeenCalled()
+  })
+
+  it('a copy printed from other wording has no link and is offered for regeneration', async () => {
+    const generate = await renderPage({ generated: true, wording_approved: true, needs_regeneration: true })
+    expect(screen.getByTestId('agreement-needs-regeneration')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'View agreement' })).toBeNull()
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Regenerate agreement' }))
+    await waitFor(() => expect(generate).toHaveBeenCalledWith(77))
+  })
+
+  it('agreement_wording_not_approved from the API is a plain sentence', async () => {
+    await renderPage({ generated: false, wording_approved: true }, vi.fn().mockRejectedValue(new ApiError(409, 'x', 'x', { code: 'agreement_wording_not_approved' })))
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Generate agreement' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('wording is not approved yet')
+  })
+})

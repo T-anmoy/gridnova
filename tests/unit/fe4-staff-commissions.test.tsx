@@ -395,6 +395,51 @@ describe('Payout batch detail (E9)', () => {
     await waitFor(() => expect(h.approveBatch).toHaveBeenCalledWith({ batchId: 3, reason: 'Only Accounts user available' }))
   })
 
+  // BE-22: no TDS is deducted; above the FY threshold the batch lists the associates and needs an acknowledgement.
+  describe('TDS review', () => {
+    const review = [{
+      associate_id: 'GNA-WB-26-00007', name: 'Asha Roy', fy_to_date: '30000.00', threshold: '20000.00',
+      message: "This associate's commission this financial year is above ₹20,000. Grid Nova currently deducts no TDS. Confirm with your Chartered Accountant before paying.",
+    }]
+
+    it('lists the associates and approves only after the acknowledgement', async () => {
+      h.batch = { data: makeBatch({ tds_review: review }) }
+      h.approveBatch.mockResolvedValue(makeBatch({ status: 'approved' }))
+      render(<PayoutBatchDetail batchId={3} />)
+      const notice = screen.getByTestId('tds-review')
+      expect(notice).toHaveTextContent('Asha Roy')
+      expect(notice).toHaveTextContent('Confirm with your Chartered Accountant before paying.')
+      await userEvent.click(screen.getByRole('button', { name: 'Approve batch' }))
+      const dialog = await screen.findByRole('dialog')
+      const go = within(dialog).getByRole('button', { name: 'Approve' })
+      expect(go).toBeDisabled()
+      await userEvent.click(within(dialog).getByTestId('tds-ack'))
+      await userEvent.click(go)
+      await waitFor(() => expect(h.approveBatch).toHaveBeenCalledWith({ batchId: 3, tdsReviewAcknowledged: true }))
+    })
+
+    it('mark-paid needs the acknowledgement too', async () => {
+      h.batch = { data: makeBatch({ status: 'approved', approved_by: 'EMP-ACCOUNTS-9', tds_review: review }) }
+      h.markPaid.mockResolvedValue(makeBatch({ status: 'paid' }))
+      render(<PayoutBatchDetail batchId={3} />)
+      const form = screen.getByRole('form', { name: 'Mark the batch as paid' })
+      await userEvent.type(within(form).getByLabelText('Bank reference'), 'UTR998877')
+      await userEvent.click(within(form).getByRole('button', { name: /Review and mark paid/ }))
+      const dialog = await screen.findByRole('dialog')
+      expect(within(dialog).getByRole('button', { name: 'Mark paid' })).toBeDisabled()
+      await userEvent.click(within(dialog).getByTestId('tds-ack'))
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Mark paid' }))
+      await waitFor(() => expect(h.markPaid).toHaveBeenCalledWith(expect.objectContaining({ batchId: 3, tdsReviewAcknowledged: true })))
+    })
+
+    it('without a review there is no list and no tick', async () => {
+      render(<PayoutBatchDetail batchId={3} />)
+      expect(screen.queryByTestId('tds-review')).toBeNull()
+      await userEvent.click(screen.getByRole('button', { name: 'Approve batch' }))
+      expect(within(await screen.findByRole('dialog')).queryByTestId('tds-ack')).toBeNull()
+    })
+  })
+
   it('Management has no actions at all', () => {
     h.role = { role: 'management', isLoaded: true }
     render(<PayoutBatchDetail batchId={3} />)

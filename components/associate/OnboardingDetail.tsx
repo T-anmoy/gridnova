@@ -243,7 +243,8 @@ function AgreementSection({ onboardingId, copy }: { onboardingId: number; copy: 
     <div>
       <p className="font-display text-base font-semibold text-[#0e2a63]">{copy.title}</p>
       {!agreement.links.agreement_pdf ? (
-        <p className="mt-2 text-sm text-[#111827]/65 font-utility">{copy.notGeneratedNote}</p>
+        // BE-22: a generated copy whose wording is not the approved one has no link until Grid Nova regenerates it.
+        <p className="mt-2 text-sm text-[#111827]/65 font-utility">{agreement.generated && agreement.needs_regeneration ? copy.updatingNote : copy.notGeneratedNote}</p>
       ) : (
         <>
           <a href={agreement.links.agreement_pdf.url} target="_blank" rel="noreferrer" className="mt-2 inline-block text-sm text-[#2f5daa] underline">

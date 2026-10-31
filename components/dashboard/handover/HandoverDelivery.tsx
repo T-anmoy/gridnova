@@ -1,6 +1,7 @@
 'use client'
 
 import { useId, useState } from 'react'
+import Link from 'next/link'
 import { useAuth } from '@clerk/nextjs'
 import { Copy, Download, ExternalLink } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -107,8 +108,14 @@ export default function HandoverDelivery({ onboardingId, pack }: { onboardingId:
         <CardContent className="space-y-3">
           {pdf.status === 'held' && (
             <div className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900" data-testid="pdf-held">
-              <p>The PDF is held, and the customer has not been emailed, while some printed text is still a placeholder (for example the O&amp;M terms after the first year, or company details). It is rendered once Grid Nova supplies them.</p>
-              {pdf.held_reason && <p className="mt-1 text-xs">Reason: {pdf.held_reason}</p>}
+              {pdf.held_reason === 'wording_not_approved' ? (
+                <p data-testid="pdf-held-wording">The PDF is held, and the customer has not been emailed, because an Admin has not yet approved the O&amp;M terms after the first year (HW-OM on the <Link href="/dashboard/data-checklist" className="underline">Data checklist</Link>). Once approved, send the link again and the pack is rendered and emailed.</p>
+              ) : (
+                <>
+                  <p>The PDF is held, and the customer has not been emailed, while some printed text is still a placeholder (for example the O&amp;M terms after the first year, or company details). It is rendered once Grid Nova supplies them.</p>
+                  {pdf.held_reason && <p className="mt-1 text-xs">Reason: {pdf.held_reason}</p>}
+                </>
+              )}
             </div>
           )}
           {pdf.status === 'failed' && <p className="text-sm text-red-700">The PDF could not be rendered. Try regenerating it.</p>}

@@ -2,6 +2,7 @@
 
 import { notAuthenticatedError } from '@/lib/api/http'
 import { useCallback, useState } from 'react'
+import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@clerk/nextjs'
 import { toast } from 'sonner'
@@ -36,7 +37,7 @@ import {
   DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog'
 import { formatCurrency, formatDate, formatDatetime } from '@/lib/dashboard/utils'
-import type { CustomerEmailSkippedReason, PlaceholderContentDetail, ProposalStatus } from '@/lib/dashboard/types'
+import { SEND_HOLD_CODES, type CustomerEmailSkippedReason, type PlaceholderContentDetail, type ProposalStatus, type SendHoldCode } from '@/lib/dashboard/types'
 import { usePermissions } from '@/lib/access/use-permissions'
 import { technicalOnly } from '@/lib/access/permissions'
 import { RequirePermission } from '@/components/dashboard/RequirePermission'
@@ -71,19 +72,62 @@ function errorMessage(err: unknown, fallback: string): string {
   return fallback
 }
 
-function PlaceholderBanner({ sections }: { sections: string[] }) {
+const SEND_HOLD_TOAST: Record<SendHoldCode, string> = {
+  placeholder_content: 'This proposal still has placeholder content',
+  unapproved_sections: 'Some of Grid Nova’s wording in this proposal is not approved yet',
+  manual_review_required: 'This proposal needs a manual review before it can be sent',
+}
+
+const isSendHold = (code: unknown): code is SendHoldCode => SEND_HOLD_CODES.includes(code as SendHoldCode)
+
+/** Why the proposal cannot go to the customer: the GET's placeholder flag, or the send's 409 (`hold`). */
+function PlaceholderBanner({ sections, hold }: { sections: string[]; hold: PlaceholderContentDetail | null }) {
+  const unapproved = hold?.unapproved_sections ?? []
+  const placeholder = sections.length > 0 || !hold || hold.code === 'placeholder_content'
   return (
-    <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 p-4">
-      <div className="flex items-center gap-2">
-        <AlertTriangle className="h-4 w-4 text-amber-600" />
-        <p className="font-utility font-medium text-amber-800 text-sm">This proposal still has placeholder content</p>
-      </div>
-      {sections.length > 0 && (
-        <p className="font-utility text-amber-700 text-xs mt-1">
-          Sections: {sections.map(sectionLabel).join(', ')}
+    <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 p-4" data-testid="send-hold-banner">
+      {placeholder && (
+        <>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <p className="font-utility font-medium text-amber-800 text-sm">This proposal still has placeholder content</p>
+          </div>
+          {sections.length > 0 && (
+            <p className="font-utility text-amber-700 text-xs mt-1">
+              Sections: {sections.map(sectionLabel).join(', ')}
+            </p>
+          )}
+        </>
+      )}
+      {hold?.missing_total_value && (
+        <p className="font-utility text-amber-700 text-xs mt-1" data-testid="hold-no-price">
+          No price is set — Price to be set by Grid Nova. Use Adjust Pricing to enter it.
         </p>
       )}
-      <p className="font-utility text-amber-700 text-xs mt-1">Sending is disabled until this is resolved.</p>
+      {unapproved.length > 0 && (
+        <div className="mt-1" data-testid="hold-unapproved">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <p className="font-utility font-medium text-amber-800 text-sm">Grid Nova’s wording is not approved yet</p>
+          </div>
+          <p className="font-utility text-amber-700 text-xs mt-1">
+            Sections: {unapproved.map(sectionLabel).join(', ')}. An Admin reads and approves each text on the{' '}
+            <Link href="/dashboard/data-checklist" className="underline">Data checklist</Link>; then send again.
+          </p>
+        </div>
+      )}
+      {hold?.manual_review_required && (
+        <div className="mt-1" data-testid="hold-manual-review">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <p className="font-utility font-medium text-amber-800 text-sm">It used the generic scope</p>
+          </div>
+          <p className="font-utility text-amber-700 text-xs mt-1">
+            No scope text matched this project, so the generic one was used. Set the right segment or consumer category so the correct scope applies, then send again.
+          </p>
+        </div>
+      )}
+      <p className="font-utility text-amber-700 text-xs mt-1">It can’t be sent to the customer until this is resolved.</p>
     </div>
   )
 }
@@ -241,9 +285,10 @@ function ProposalDetailPageContent() {
       setSendResult({ customerEmailSent: result.customer_email_sent, skippedReason: result.customer_email_skipped_reason })
       toast.success('Proposal sent to customer')
     } catch (err) {
-      if (err instanceof ApiError && err.status === 409 && err.structuredDetail?.code === 'placeholder_content') {
-        setSend409(err.structuredDetail as unknown as PlaceholderContentDetail)
-        toast.error('This proposal still has placeholder content')
+      const code = err instanceof ApiError && err.status === 409 ? err.structuredDetail?.code : undefined
+      if (isSendHold(code)) {
+        setSend409((err as ApiError).structuredDetail as unknown as PlaceholderContentDetail)
+        toast.error(SEND_HOLD_TOAST[code])
         return
       }
       if (handleMissingRequired(err)) return
@@ -440,7 +485,8 @@ function ProposalDetailPageContent() {
             )}
             {!isEngineer && (
               <p className="font-display text-lg font-semibold text-[#091c3c] mt-1">
-                {formatCurrency(proposal.total_value)}
+                {/* BE-22: no automatic price is ever ₹0 — an unpriced proposal waits for Grid Nova's price. */}
+                {proposal.total_value == null ? <span className="text-base text-amber-700" data-testid="price-to-be-set">Price to be set by Grid Nova</span> : formatCurrency(proposal.total_value)}
               </p>
             )}
             {hasDocument && !isEngineer && (
@@ -619,7 +665,7 @@ function ProposalDetailPageContent() {
         </div>
       )}
 
-      {showPlaceholderBanner && proposal.status !== 'sent' && <PlaceholderBanner sections={placeholderSections} />}
+      {showPlaceholderBanner && proposal.status !== 'sent' && <PlaceholderBanner sections={placeholderSections} hold={send409} />}
 
       {/* A BE-13 proposal shows its price (mode, figures) in the editor's price card instead. */}
       {!isEngineer && !hasDocument && (

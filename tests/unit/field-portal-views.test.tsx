@@ -162,3 +162,36 @@ describe('Phase 3 — customer detail survey card', () => {
     expect(screen.getByTestId('survey-card-not-required')).toHaveTextContent(en.survey.card.notRequired)
   })
 })
+
+// BE-22: an unsigned agreement printed from wording that is not the approved one has no link.
+describe('Portal agreement — wording being updated', () => {
+  function renderDetail() {
+    onboardingQuery.mockReturnValue({ data: makeOnboarding({ onboarding_id: 42 } as Partial<Onboarding>), isLoading: false, error: null, refetch: vi.fn() })
+    me.mockReturnValue({ data: { associate_id: 'GNA-1' } })
+    const m = en.associates.portal
+    return render(
+      withI18n(
+        <OnboardingDetail
+          onboardingId={42}
+          portalBase="/preferred/portal"
+          sharedCopy={m.shared}
+          proposalCopy={m.proposal}
+          agreementCopy={m.agreement}
+          checklistCopy={m.checklist}
+          documentLabels={m.wizard.documents.typeLabels}
+          estimateCopy={m.estimate}
+          executionCopy={m.execution}
+          paymentsCopy={m.payments}
+        />
+      )
+    )
+  }
+
+  it('says Grid Nova is updating it instead of "not generated"', async () => {
+    surveyMocks.status.mockReturnValue({ data: SURVEY_STATUS_EMPTY, isLoading: false, error: null, refetch: vi.fn() })
+    agreementQuery.mockReturnValue({ data: { generated: true, signed: false, needs_regeneration: true, wording_approved: true, links: {} }, isLoading: false })
+    renderDetail()
+    expect(await screen.findByText(en.associates.portal.agreement.updatingNote)).toBeInTheDocument()
+    expect(screen.queryByText(en.associates.portal.agreement.notGeneratedNote)).toBeNull()
+  })
+})

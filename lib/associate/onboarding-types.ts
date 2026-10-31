@@ -588,6 +588,13 @@ export interface AgreementLinks {
 
 export interface AgreementResponse {
   [key: string]: unknown
+  generated?: boolean
+  signed?: boolean
+  // BE-22: is the customer-agreement wording (ONB-5) approved by an Admin? Until it is, no
+  // agreement is generated. needs_regeneration: this unsigned copy was printed from other
+  // wording, so its link is withheld (links: {}) until staff regenerate it.
+  wording_approved?: boolean
+  needs_regeneration?: boolean
   links: AgreementLinks
 }
 

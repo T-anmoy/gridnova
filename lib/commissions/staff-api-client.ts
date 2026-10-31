@@ -183,10 +183,17 @@ function useBatchAction<TInput extends { batchId: number }>(action: string, body
 }
 
 // The body is optional; an Admin approving a batch they prepared themselves must give a reason.
+// tdsReviewAcknowledged (BE-22): required while the batch lists a tds_review, else 409 tds_review_required.
 export const useApprovePayoutBatch = () =>
-  useBatchAction<{ batchId: number; reason?: string }>('approve', ({ reason }) => (reason ? { reason } : {}))
+  useBatchAction<{ batchId: number; reason?: string; tdsReviewAcknowledged?: boolean }>('approve', ({ reason, tdsReviewAcknowledged }) => ({
+    ...(reason ? { reason } : {}),
+    ...(tdsReviewAcknowledged ? { tds_review_acknowledged: true } : {}),
+  }))
 export const useMarkPayoutPaid = () =>
-  useBatchAction<{ batchId: number; lines: { associate_id: string; bank_reference: string }[] }>('mark-paid', ({ lines }) => ({ lines }))
+  useBatchAction<{ batchId: number; lines: { associate_id: string; bank_reference: string }[]; tdsReviewAcknowledged?: boolean }>('mark-paid', ({ lines, tdsReviewAcknowledged }) => ({
+    lines,
+    ...(tdsReviewAcknowledged ? { tds_review_acknowledged: true } : {}),
+  }))
 export const useCancelPayoutBatch = () => useBatchAction<{ batchId: number; reason: string }>('cancel', ({ reason }) => ({ reason }))
 
 // ── Commission queries ─────────────────────────────────────────────────────

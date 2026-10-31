@@ -22,6 +22,8 @@ vi.mock('@/lib/access/use-permissions', async () => {
 vi.mock('@/lib/dashboard/placeholders-api-client', () => ({
   usePlaceholders: () => ((h.calls += 1), { ...h.state, refetch: h.refetch }),
   useResolvePlaceholder: () => ({ mutateAsync: h.resolve }),
+  useApproveWording: () => ({ mutateAsync: vi.fn() }),
+  useRevokeWording: () => ({ mutateAsync: vi.fn() }),
 }))
 vi.mock('@clerk/nextjs', () => ({ useAuth: () => ({ getToken: async () => 't' }), useClerk: () => ({ signOut: vi.fn() }) }))
 

@@ -25,6 +25,7 @@ export default function ReasonDialog({
   onConfirm,
   describeError,
   confirmDisabled,
+  children,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -38,6 +39,8 @@ export default function ReasonDialog({
   describeError: (err: unknown) => string
   // Lets the caller block confirmation outright (e.g. a conflict only someone else can resolve).
   confirmDisabled?: boolean
+  /** Shown under the note box (e.g. an acknowledgement tick). */
+  children?: React.ReactNode
 }) {
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
@@ -80,6 +83,7 @@ export default function ReasonDialog({
           </label>
           <Textarea id="reason-dialog-text" rows={3} value={text} onChange={(e) => setText(e.target.value)} />
         </div>
+        {children}
         {error && (
           <p role="alert" className="text-sm text-red-600">
             {error}

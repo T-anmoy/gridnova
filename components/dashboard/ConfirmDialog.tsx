@@ -19,6 +19,7 @@ export default function ConfirmDialog({
   destructive,
   onConfirm,
   describeError,
+  confirmDisabled,
   children,
 }: {
   open: boolean
@@ -29,6 +30,8 @@ export default function ConfirmDialog({
   destructive?: boolean
   onConfirm: () => Promise<unknown>
   describeError: (err: unknown) => string
+  /** Keeps the confirm button off until something in `children` (e.g. an acknowledgement tick) is done. */
+  confirmDisabled?: boolean
   children?: React.ReactNode
 }) {
   const [busy, setBusy] = useState(false)
@@ -70,7 +73,7 @@ export default function ConfirmDialog({
           <Button variant="outline" className="h-11 sm:h-9" onClick={() => onOpenChange(false)} disabled={busy}>
             Cancel
           </Button>
-          <Button variant={destructive ? 'destructive' : 'default'} className="h-11 sm:h-9" disabled={busy} onClick={() => void confirm()}>
+          <Button variant={destructive ? 'destructive' : 'default'} className="h-11 sm:h-9" disabled={busy || confirmDisabled} onClick={() => void confirm()}>
             {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
             {confirmLabel}
           </Button>

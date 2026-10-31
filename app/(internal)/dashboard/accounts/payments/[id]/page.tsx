@@ -15,7 +15,7 @@ import PaymentActions from '@/components/dashboard/PaymentActions'
 import ProofUpload from '@/components/payments/ProofUpload'
 import { fetchStaffPaymentProofLink, usePaymentDetail, useResendReceipt, type PaymentDetail } from '@/lib/dashboard/accounts-api-client'
 import { useUploadStaffPaymentProof } from '@/lib/dashboard/payments-api-client'
-import { ATTENTION_LABEL, STATUS_LABEL, STATUS_VARIANT, isDummyReason, staffModeLabel, staffPaymentError } from '@/lib/dashboard/payment-ui'
+import { ATTENTION_LABEL, STATUS_LABEL, STATUS_VARIANT, heldReasonText, isDummyReason, isWordingHold, staffModeLabel, staffPaymentError } from '@/lib/dashboard/payment-ui'
 import { STAFF_PAYMENT_COPY } from '@/lib/dashboard/staff-copy'
 import { formatDatetime } from '@/lib/dashboard/utils'
 import { formatInr } from '@/lib/money'
@@ -139,8 +139,9 @@ function PaymentDetailView({ p, canAct, isAdmin }: { p: PaymentDetail; canAct: b
               <Row label="Email">{receipt.email_skipped_reason ? `Not sent: ${receipt.email_skipped_reason}` : receipt.email_status ?? '—'}{receipt.emailed_at ? ` · ${formatDatetime(receipt.emailed_at)}` : ''}</Row>
               {receipt.held && (
                 <Row label="Held">
-                  {receipt.held_reason ?? 'Held'}{' '}
+                  {heldReasonText(receipt.held_reason)}{' '}
                   {isDummyReason(receipt.held_reason) && <Badge variant="orange" data-testid="dummy-chip">Dummy / pending Grid Nova</Badge>}
+                  {isWordingHold(receipt.held_reason) && <Badge variant="orange" data-testid="wording-chip">Wording not approved</Badge>}
                 </Row>
               )}
               {receipt.render_error && <Row label="Render error"><span className="text-red-600">{receipt.render_error}</span></Row>}
