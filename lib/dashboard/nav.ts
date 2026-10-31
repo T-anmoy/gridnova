@@ -53,6 +53,8 @@ export interface NavItem {
   approvals?: boolean
   // Studio proposals awaiting approval (GET /studio/proposals?status=pending_approval), for studio.approve.
   studioApprovals?: boolean
+  // Launch wording still waiting for an Admin's approval (BE-22, from GET /placeholders).
+  wording?: boolean
   // Items of one group are listed together under the group's heading.
   group?: 'studio'
 }
@@ -104,7 +106,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Employees', href: '/dashboard/employees', icon: UserCog, needs: 'staff.manage' },
   { label: 'Approvals', href: '/dashboard/approvals', icon: Stamp, needs: DECIDES_APPROVALS, approvals: true },
   { label: 'Associate Network', href: '/dashboard/associate-network', icon: Handshake, needs: 'associates.applications.review' },
-  { label: 'Data Checklist', href: '/dashboard/data-checklist', icon: Database, needs: 'placeholders.view' },
+  { label: 'Launch readiness', href: '/dashboard/data-checklist', icon: Database, needs: 'placeholders.view', wording: true },
   // Admin and Management read all of it; the Network Manager the associate network's records.
   { label: 'Audit Log', href: '/dashboard/audit-log', icon: ClipboardList, needs: ['audit.view', 'audit.view_associates'] },
   // Nova Records (BE-9): every staff member asks; the backend scopes every answer.

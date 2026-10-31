@@ -112,7 +112,7 @@ function PlaceholderBanner({ sections, hold }: { sections: string[]; hold: Place
           </div>
           <p className="font-utility text-amber-700 text-xs mt-1">
             Sections: {unapproved.map(sectionLabel).join(', ')}. An Admin reads and approves each text on the{' '}
-            <Link href="/dashboard/data-checklist" className="underline">Data checklist</Link>; then send again.
+            <Link href="/dashboard/data-checklist" className="underline">Launch readiness</Link>; then send again.
           </p>
         </div>
       )}

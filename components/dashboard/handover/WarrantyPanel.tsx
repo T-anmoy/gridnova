@@ -49,7 +49,7 @@ export function WarrantyDetails({ warranty }: { warranty: Warranty }) {
               {om.free_months != null ? `${om.free_months} months` : <Unconfirmed />}
               {om.free_until && <span className="block text-xs text-gray-500">until {formatDate(om.free_until)}{om.free_period_active != null ? (om.free_period_active ? ' (running)' : ' (ended)') : ''}</span>}
             </Row>
-            <Row label="O&M after the free period">{om.terms_after_free_period ? om.terms_after_free_period : <Unconfirmed>Grid Nova has not supplied these terms yet.</Unconfirmed>}</Row>
+            <Row label="O&M after the free period">{om.terms_after_free_period ? om.terms_after_free_period : <Unconfirmed>Not shown until an Admin approves the O&amp;M terms (HW-OM on Launch readiness).</Unconfirmed>}</Row>
             <Row label="Expected panel performance life">
               {warranty.panel_performance_life_years != null ? `${warranty.panel_performance_life_years} years` : <Unconfirmed />}
               <span className="block text-xs text-gray-500">A life span, not a warranty.</span>

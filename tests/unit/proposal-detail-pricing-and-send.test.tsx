@@ -115,7 +115,7 @@ describe('ProposalDetailPage — placeholder content banner', () => {
   })
 
   // BE-22: Grid Nova's wording an Admin has not approved, and the generic-scope fallback.
-  it('explains unapproved wording and points to the Data checklist', async () => {
+  it('explains unapproved wording and points to the Launch readiness', async () => {
     mockUseProposal.mockReturnValue({ data: BASE_PROPOSAL, isLoading: false, error: null, refetch: vi.fn() })
     mockSend.mockRejectedValue(
       new ApiError(409, 'API error 409', 'x', {
@@ -134,7 +134,7 @@ describe('ProposalDetailPage — placeholder content banner', () => {
 
     const banner = await screen.findByTestId('send-hold-banner')
     expect(within(banner).getByTestId('hold-unapproved')).toHaveTextContent('Sections: Terms Conditions.')
-    expect(within(banner).getByRole('link', { name: 'Data checklist' })).toHaveAttribute('href', '/dashboard/data-checklist')
+    expect(within(banner).getByRole('link', { name: 'Launch readiness' })).toHaveAttribute('href', '/dashboard/data-checklist')
     expect(banner).not.toHaveTextContent('placeholder content')
     expect(within(banner).queryByTestId('hold-manual-review')).toBeNull()
   })

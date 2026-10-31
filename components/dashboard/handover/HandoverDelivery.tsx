@@ -109,7 +109,7 @@ export default function HandoverDelivery({ onboardingId, pack }: { onboardingId:
           {pdf.status === 'held' && (
             <div className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900" data-testid="pdf-held">
               {pdf.held_reason === 'wording_not_approved' ? (
-                <p data-testid="pdf-held-wording">The PDF is held, and the customer has not been emailed, because an Admin has not yet approved the O&amp;M terms after the first year (HW-OM on the <Link href="/dashboard/data-checklist" className="underline">Data checklist</Link>). Once approved, send the link again and the pack is rendered and emailed.</p>
+                <p data-testid="pdf-held-wording">The PDF is held, and the customer has not been emailed, because an Admin has not yet approved the O&amp;M terms after the first year (HW-OM on the <Link href="/dashboard/data-checklist" className="underline">Launch readiness</Link>). Once approved, send the link again and the pack is rendered and emailed.</p>
               ) : (
                 <>
                   <p>The PDF is held, and the customer has not been emailed, while some printed text is still a placeholder (for example the O&amp;M terms after the first year, or company details). It is rendered once Grid Nova supplies them.</p>

@@ -8,19 +8,19 @@ const labels = (role: Role | undefined) => visibleNavItems(permissionsFor(role ?
 
 describe('role gating of the new nav items', () => {
   it.each([
-    ['admin', ['Operations', 'Accounts', 'Data Checklist']],
-    ['management', ['Operations', 'Accounts', 'Data Checklist']],
+    ['admin', ['Operations', 'Accounts', 'Launch readiness']],
+    ['management', ['Operations', 'Accounts', 'Launch readiness']],
     ['operations', ['Operations']],
     ['engineer', ['Operations']],
     ['accounts', ['Accounts']],
     ['sales', []],
   ] as const)('%s sees %j of the new items', (role, expected) => {
-    const newOnes = ['Operations', 'Accounts', 'Data Checklist']
+    const newOnes = ['Operations', 'Accounts', 'Launch readiness']
     expect(labels(role).filter((l) => newOnes.includes(l))).toEqual(expected)
   })
 
   it('shows no new item when the role is unknown', () => {
-    expect(labels(undefined).filter((l) => ['Operations', 'Accounts', 'Data Checklist'].includes(l))).toEqual([])
+    expect(labels(undefined).filter((l) => ['Operations', 'Accounts', 'Launch readiness'].includes(l))).toEqual([])
   })
 
   it('Operations and engineers never get an Accounts nav item', () => {

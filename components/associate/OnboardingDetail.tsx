@@ -21,7 +21,7 @@ import SurveyCard from '@/components/associate/survey/SurveyCard'
 import EstimateSection from '@/components/associate/EstimateSection'
 import FileUploadSlot from '@/components/associate/FileUploadSlot'
 import EstimatedCommissionNote from '@/components/associate/EstimatedCommissionNote'
-import { portalErrorText } from '@/lib/associate/portal-error'
+import { errorCodeOf, portalErrorText } from '@/lib/associate/portal-error'
 import { useMessages, useOptionalMessages } from '@/lib/i18n/client'
 import { useSurveyStatus } from '@/lib/associate/survey-api-client'
 import { isNeedsReverification, proposalGateCode, proposalGateRefuses } from '@/lib/associate/survey-review'
@@ -81,6 +81,9 @@ function ProposalSection({
       if (isNeedsReverification(err)) {
         // The associate never sees internal field names — just the plain reason.
         setError(survey.gate.needsReverification)
+      } else if (errorCodeOf(err) === 'placeholder_content' && formalProposal.total_value == null) {
+        // BE-22: the in-person route sends no missing_total_value; no total means the price is what is missing.
+        setError(copy.acceptance.errors.price_to_be_set)
       } else {
         setError(portalErrorText(err, feedback, copy.acceptance.errors))
       }

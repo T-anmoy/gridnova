@@ -54,7 +54,7 @@ function WarrantyCard({ warranty, copy }: { warranty: Warranty; copy: Copy['warr
         </div>
         <div>
           <dt className="font-utility text-xs text-[#111827]/65">{copy.omAfter}</dt>
-          <dd>{om.terms_after_free_period ? om.terms_after_free_period : unconfirmed}</dd>
+          <dd>{om.terms_after_free_period ? om.terms_after_free_period : <span className="font-utility text-sm text-[#111827]/65">{copy.omAfterPending}</span>}</dd>
         </div>
         <div>
           <dt className="font-utility text-xs text-[#111827]/65">{copy.panelLife}</dt>

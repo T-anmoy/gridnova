@@ -69,7 +69,7 @@ beforeEach(() => {
   h.refetch.mockReset()
 })
 
-describe('Data checklist page', () => {
+describe('Launch readiness page', () => {
   it('is only for admin and management; other roles make no request', () => {
     h.role = { role: 'sales', isLoaded: true }
     render(withI18n(<DataChecklistPage />))

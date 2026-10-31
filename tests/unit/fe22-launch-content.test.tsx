@@ -1,5 +1,5 @@
 // FE-22 (BE-22 launch content): an Admin reads each drafted text and approves it exactly as written
-// on the Data checklist; the holds it lifts are explained in plain words; the contract the screens
+// on the Launch readiness; the holds it lifts are explained in plain words; the contract the screens
 // rely on (routes, bodies, codes) is the one docs/api/launch_content.md publishes.
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { readFileSync } from 'node:fs'
@@ -88,7 +88,7 @@ async function showAll(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('button', { name: 'Unresolved only' }))
 }
 
-describe('Data checklist — drafted wording (BE-22)', () => {
+describe('Launch readiness — drafted wording (BE-22)', () => {
   it('says how many texts wait for approval, and that documents printing them are held', () => {
     render(withI18n(<DataChecklistPage />))
     const banner = screen.getByTestId('wording-awaiting')
@@ -145,6 +145,14 @@ describe('Data checklist — drafted wording (BE-22)', () => {
     expect(await within(dialog).findByRole('alert')).toHaveTextContent('The text changed while you were reading it')
   })
 
+  it('after approving, the next step is named (HW-OM: send the handover link again)', async () => {
+    const user = userEvent.setup()
+    render(withI18n(<DataChecklistPage />))
+    await user.click(within(row('HW-OM')).getByRole('button', { name: 'Read and approve again…' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Approve this text' }))
+    expect(await screen.findByTestId('approved-notice')).toHaveTextContent('HW-OM approved. Handover packs that were waiting go out when staff send the handover link again.')
+  })
+
   it('a lapsed text says who approved the earlier version and is approved again', async () => {
     const user = userEvent.setup()
     render(withI18n(<DataChecklistPage />))
@@ -196,7 +204,7 @@ describe('wording helpers', () => {
   it('a receipt held for its wording reads in words, and is not mistaken for dummy details', () => {
     expect(isWordingHold('wording_not_approved')).toBe(true)
     expect(isDummyReason('wording_not_approved')).toBe(false)
-    expect(heldReasonText('wording_not_approved')).toMatch(/approve the receipt wording/)
+    expect(heldReasonText('wording_not_approved')).toBe('Held until the receipt wording is approved.')
     expect(heldReasonText('placeholder_content')).toBe('placeholder_content')
   })
 

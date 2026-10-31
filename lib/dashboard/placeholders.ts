@@ -29,11 +29,22 @@ export const APPROVAL_VARIANT: Record<ApprovalState, 'green' | 'orange' | 'red'>
   lapsed: 'red',
 }
 
+/** What staff do next once a wording that held documents is approved (the holds are not lifted by themselves). */
+export const APPROVAL_FOLLOW_UP: Record<string, string> = {
+  P6: 'Receipts that were waiting can now be released: Accounts → Receipts → Release held receipts.',
+  'HW-OM': 'Handover packs that were waiting go out when staff send the handover link again.',
+  'ONB-5': 'Agreements printed from older wording must be generated again.',
+}
+
+/** The notice after an approval: the entry, and the follow-up step when there is one. */
+export const approvalNotice = (id: string): string => [`${id} approved.`, APPROVAL_FOLLOW_UP[id]].filter(Boolean).join(' ')
+
 export const approvalStateOf = (item: PlaceholderItem): ApprovalState => item.approval_state ?? 'not_approved'
 
 /** Wording entries whose text an Admin still has to read and approve (never approved, or lapsed). */
 export function wordingAwaitingApproval(data: PlaceholdersResponse): PlaceholderItem[] {
-  return data.areas.flatMap((a) => a.items).filter((i) => isWording(i) && approvalStateOf(i) !== 'approved')
+  // Defensive: the sidebar badge reads this on every page, so a malformed body counts as nothing.
+  return (data.areas ?? []).flatMap((a) => a.items ?? []).filter((i) => isWording(i) && approvalStateOf(i) !== 'approved')
 }
 
 /** The first 12 hex characters — enough for a person to compare two hashes by eye. */

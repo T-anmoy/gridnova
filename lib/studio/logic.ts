@@ -135,7 +135,7 @@ const CODE_MESSAGES: Record<string, string> = {
   approval_required: 'This proposal needs approval before it can be issued. Use “Send for approval”.',
   proof_check_failed: 'The proof-check found problems. Fix the items in red, then try again.',
   warnings_unacknowledged: 'Tick “I have checked this” on each amber warning first.',
-  content_not_ready: 'Grid Nova’s wording for this project type is missing or not yet approved by an Admin (Data checklist). You can draft and preview, but not issue yet.',
+  content_not_ready: 'Grid Nova’s wording for this project type is missing or not yet approved by an Admin (Launch readiness). You can draft and preview, but not issue yet.',
   not_list_priceable: 'The price master has no price for this package, phase and size. Enter the price yourself.',
   reason_required: 'The price is below the price master. Give the reason.',
   payment_terms_total: 'The payment percentages must add up to 100%.',

@@ -70,7 +70,9 @@ describe('Associate: handover pack and warranty (W7)', () => {
     expect(card).toHaveTextContent('5 years: 12 Oct 2026 to 12 Oct 2031')
     expect(card).toHaveTextContent('In warranty')
     expect(card).toHaveTextContent('12 months, until 12 Oct 2027')
-    expect(within(card).getAllByTestId('unconfirmed').length).toBeGreaterThanOrEqual(2) // O&M after year 1, panel life
+    expect(within(card).getAllByTestId('unconfirmed').length).toBeGreaterThanOrEqual(1) // panel life
+    // FE-22b: O&M after year 1 not yet given → a promise of details, never an empty or "unconfirmed" box.
+    expect(card).toHaveTextContent('Details will be shared by Grid Nova.')
     expect(card).toHaveTextContent('Serial MOD-001')
     expect(card).toHaveTextContent('No warranty date') // the inverter
     expect(card).not.toHaveTextContent(/20 years|25 years/)

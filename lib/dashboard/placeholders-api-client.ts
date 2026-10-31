@@ -3,7 +3,7 @@ import { useAuth } from '@clerk/nextjs'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardFetch } from '@/lib/dashboard/api-client'
 
-// Data checklist (placeholder registry). Read: admin, management. Resolve: admin,
+// Launch readiness (placeholder registry). Read: admin, management. Resolve: admin,
 // manual entries only (probe === 'manual'). Approve / revoke: admin, wording entries only
 // (probe === 'approved_text', BE-22 — docs/api/launch_content.md §2).
 export type Blocking = 'blocks_launch' | 'blocks_feature' | 'tunable'
@@ -43,10 +43,12 @@ export interface PlaceholdersResponse {
   areas: { area: string; items: PlaceholderItem[] }[]
 }
 
-export function usePlaceholders() {
+// `enabled`: the home reminder and the nav badge ask only for people who may read the list.
+export function usePlaceholders(options: { enabled?: boolean } = {}) {
   const { getToken } = useAuth()
   return useQuery({
     queryKey: ['placeholders'],
+    enabled: options.enabled ?? true,
     queryFn: async () => {
       const token = await getToken()
       if (!token) throw notAuthenticatedError()

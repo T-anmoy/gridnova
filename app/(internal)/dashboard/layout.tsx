@@ -40,6 +40,8 @@ import { decidableCount } from '@/lib/access/approvals'
 import { AccessGate } from '@/components/dashboard/access/AccessGate'
 import { TwoStepBanner } from '@/components/dashboard/access/TwoStep'
 import { useStudioPendingApprovals } from '@/lib/studio/api'
+import { usePlaceholders } from '@/lib/dashboard/placeholders-api-client'
+import { wordingAwaitingApproval } from '@/lib/dashboard/placeholders'
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname()
@@ -60,6 +62,10 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   // Second-approval requests this person could decide (not their own).
   const approvals = useApprovals('pending', { enabled: can(DECIDES_APPROVALS), refetchInterval: 120_000 })
   const approvalsCount = decidableCount(approvals.data, employeeId, canAssignRoles)
+
+  // Launch wording not yet approved (BE-22): everyone who reads Launch readiness sees the count.
+  const placeholders = usePlaceholders({ enabled: can('placeholders.view') })
+  const wordingCount = can('placeholders.view') && placeholders.data ? wordingAwaitingApproval(placeholders.data).length : 0
 
   // Warm the destination's list cache on hover so the click feels instant.
   function prefetchFor(href: string) {
@@ -171,6 +177,11 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
               {item.badge && pendingCount > 0 && (
                 <Badge variant={active ? 'default' : 'amber'} className="min-w-[1.25rem] justify-center px-1.5 text-[10px]">
                   {pendingCount}
+                </Badge>
+              )}
+              {item.wording && wordingCount > 0 && (
+                <Badge variant={active ? 'default' : 'amber'} className="min-w-[1.25rem] justify-center px-1.5 text-[10px]" data-testid="wording-badge" aria-label={`${wordingCount} wording${wordingCount === 1 ? '' : 's'} waiting for approval`}>
+                  {wordingCount}
                 </Badge>
               )}
               {item.studioApprovals && studioPendingCount > 0 && (

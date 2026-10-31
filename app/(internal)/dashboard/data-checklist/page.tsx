@@ -12,7 +12,7 @@ import ReasonDialog from '@/components/dashboard/ReasonDialog'
 import ApproveWordingDialog, { ReadWordingDialog } from '@/components/dashboard/ApproveWordingDialog'
 import {
   APPROVAL_LABEL, APPROVAL_VARIANT, AREA_LABEL, BLOCKING_LABEL, BLOCKING_ORDER, approvalStateOf, buildGridNovaMessage,
-  isManual, isWording, revokeError, shortHash, wordingAwaitingApproval,
+  approvalNotice, isManual, isWording, revokeError, shortHash, wordingAwaitingApproval,
 } from '@/lib/dashboard/placeholders'
 import {
   useApproveWording, usePlaceholders, useResolvePlaceholder, useRevokeWording, type PlaceholderItem,
@@ -114,6 +114,7 @@ function Checklist({ isAdmin }: { isAdmin: boolean }) {
   // Ids, not items: the dialogs read the item from the latest list (a 409 text_changed refetches it).
   const [openId, setOpenId] = useState<string | null>(null)
   const [revokingId, setRevokingId] = useState<string | null>(null)
+  const [approvedNotice, setApprovedNotice] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
 
   async function copyMessage() {
@@ -142,7 +143,7 @@ function Checklist({ isAdmin }: { isAdmin: boolean }) {
   return (
     <div className="max-w-4xl space-y-6 p-6 md:p-8">
       <div>
-        <h1 className="text-2xl font-bold text-[#091c3c]">Data checklist</h1>
+        <h1 className="text-2xl font-bold text-[#091c3c]">Launch readiness</h1>
         <p className="mt-1 text-sm text-gray-500">Everything running on dummy or placeholder values until Grid Nova provides the real data.</p>
       </div>
 
@@ -180,6 +181,7 @@ function Checklist({ isAdmin }: { isAdmin: boolean }) {
         <span className="text-xs text-gray-500">{data.summary.unresolved} of {data.summary.total} unresolved</span>
       </div>
       {copied && <p role="status" className="text-sm text-gray-700">{copied}</p>}
+      {approvedNotice && <p role="status" className="rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm text-green-900" data-testid="approved-notice">{approvedNotice}</p>}
 
       {areas.length === 0 && <p className="py-8 text-center text-sm text-gray-500">Nothing to show — every item is resolved.</p>}
       {areas.map((a) => (
@@ -217,7 +219,10 @@ function Checklist({ isAdmin }: { isAdmin: boolean }) {
       <ApproveWordingDialog
         item={isAdmin && opened && approvalStateOf(opened) !== 'approved' ? opened : null}
         onOpenChange={(o) => !o && setOpenId(null)}
-        onApprove={(input) => approve.mutateAsync(input)}
+        onApprove={async (input) => {
+          await approve.mutateAsync(input)
+          setApprovedNotice(approvalNotice(input.id))
+        }}
       />
       <ReadWordingDialog item={opened && (!isAdmin || approvalStateOf(opened) === 'approved') ? opened : null} onClose={() => setOpenId(null)} />
 

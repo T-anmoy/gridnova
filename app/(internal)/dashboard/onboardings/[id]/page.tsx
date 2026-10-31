@@ -38,6 +38,7 @@ import type { SiteLocation } from '@/lib/associate/onboarding-types'
 import DateField from '@/components/forms/DateField'
 import { todayIso } from '@/lib/date-field'
 import { usePermissions } from '@/lib/access/use-permissions'
+import { inPersonHold, type InPersonHold } from '@/lib/dashboard/launch-wording'
 
 function errorMessage(err: unknown, fallback: string): string {
   if (err instanceof ApiError) return err.detail || err.message
@@ -124,6 +125,9 @@ function FormalProposalSection({ onboardingId, blocked }: { onboardingId: number
   const [deliveredOn, setDeliveredOn] = useState('')
   const [note, setNote] = useState('')
   const [reference, setReference] = useState('')
+  // BE-22: a refusal because of the proposal's content stays on screen, in words, with the way out.
+  const [hold, setHold] = useState<InPersonHold | null>(null)
+  const { can } = usePermissions()
 
   async function handlePrepare() {
     try {
@@ -136,11 +140,17 @@ function FormalProposalSection({ onboardingId, blocked }: { onboardingId: number
 
   async function handleAccept() {
     if (!fp?.prepared) return
+    setHold(null)
     try {
       await acceptMutation.mutateAsync({ id: onboardingId, input: { proposal_id: fp.proposal_id, delivered_on: deliveredOn, note, reference } })
       toast.success('In-person acceptance recorded')
       setAcceptOpen(false)
     } catch (err) {
+      const why = inPersonHold(err, fp.total_value)
+      if (why) {
+        setHold(why)
+        return
+      }
       toast.error(err instanceof ApiError && err.structuredDetail ? surveyReviewError(err, 'Failed to record acceptance') : errorMessage(err, 'Failed to record acceptance'))
     }
   }
@@ -174,12 +184,10 @@ function FormalProposalSection({ onboardingId, blocked }: { onboardingId: number
                 <dt className="text-xs text-gray-500">Status</dt>
                 <dd>{fp.status}</dd>
               </div>
-              {fp.total_value != null && (
-                <div>
-                  <dt className="text-xs text-gray-500">Total value</dt>
-                  <dd>{formatCurrency(fp.total_value)}</dd>
-                </div>
-              )}
+              <div>
+                <dt className="text-xs text-gray-500">Total value</dt>
+                <dd>{fp.total_value != null ? formatCurrency(fp.total_value) : <span className="text-amber-700">Price to be set by Grid Nova</span>}</dd>
+              </div>
               {fp.date_sent && (
                 <div>
                   <dt className="text-xs text-gray-500">Sent</dt>
@@ -209,6 +217,14 @@ function FormalProposalSection({ onboardingId, blocked }: { onboardingId: number
                     <DateField id="accept-delivered-on" variant="dashboard" label="Delivered on" max={todayIso()} value={deliveredOn} onChange={setDeliveredOn} />
                     <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Note (required)" />
                     <Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Reference (required)" />
+                    {hold && (
+                      <p role="alert" className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900" data-testid="in-person-hold">
+                        {hold.message}
+                        {hold.approvalPending && can('placeholders.view') && (
+                          <> <Link href="/dashboard/data-checklist" className="underline">Open Launch readiness</Link></>
+                        )}
+                      </p>
+                    )}
                     <Button size="sm" disabled={acceptMutation.isPending} onClick={() => void handleAccept()}>
                       Confirm acceptance
                     </Button>
@@ -243,7 +259,7 @@ function AgreementSection({ onboardingId }: { onboardingId: number }) {
       await generateMutation.mutateAsync(onboardingId)
     } catch (err) {
       setGenerateError(err instanceof ApiError && err.structuredDetail?.code === 'agreement_wording_not_approved'
-        ? 'The customer agreement wording is not approved yet. An Admin approves it (ONB-5) on the Data checklist first.'
+        ? 'The customer agreement wording is not approved yet. An Admin approves it (ONB-5) on the Launch readiness first.'
         : errorMessage(err, 'Failed to generate the agreement'))
     }
   }
@@ -274,7 +290,7 @@ function AgreementSection({ onboardingId }: { onboardingId: number }) {
         {wordingPending && !links?.signed_scan && (
           <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900" data-testid="agreement-wording-pending">
             The customer agreement wording is not approved yet, so no agreement can be generated or downloaded. An Admin reads and approves it (ONB-5) on the{' '}
-            <Link href="/dashboard/data-checklist" className="underline">Data checklist</Link>.
+            <Link href="/dashboard/data-checklist" className="underline">Launch readiness</Link>.
           </p>
         )}
         {agreement.needs_regeneration && !wordingPending && (

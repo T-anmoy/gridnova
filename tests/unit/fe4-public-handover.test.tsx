@@ -51,7 +51,9 @@ describe('public handover page (W9)', () => {
   it('labels unconfirmed warranty values “To be confirmed” and never invents them', () => {
     show()
     const w = screen.getByTestId('public-warranty')
-    expect(within(w).getAllByText('To be confirmed').length).toBeGreaterThanOrEqual(2)
+    expect(within(w).getAllByText('To be confirmed').length).toBeGreaterThanOrEqual(1)
+    // FE-22b: the O&M terms after the free year, not yet given.
+    expect(w).toHaveTextContent('Details will be shared by Grid Nova.')
     expect(w).toHaveTextContent('Warranty date to be confirmed')
     expect(w).not.toHaveTextContent(/25 years/)
   })

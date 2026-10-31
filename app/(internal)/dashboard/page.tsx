@@ -26,6 +26,7 @@ import type { ActivityItem, StatTrend } from '@/lib/dashboard/types'
 import { usePermissions } from '@/lib/access/use-permissions'
 import { studioOnly } from '@/lib/dashboard/nav'
 import { PageSkeleton } from '@/components/dashboard/RequirePermission'
+import WordingReminder from '@/components/dashboard/WordingReminder'
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
 
@@ -246,6 +247,8 @@ function Overview() {
           {formatLongDate()}
         </p>
       </div>
+
+      <WordingReminder />
 
       {isLoading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

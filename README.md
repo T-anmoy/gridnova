@@ -22,6 +22,8 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 Variables are read in one place each: the backend URL in `lib/config.ts` (an ESLint rule forbids reading `NEXT_PUBLIC_API_URL` anywhere else) and the server-only secrets in `lib/env.ts`. `.env.example` lists every variable with a comment and **no real value**.
 
+`.env.example` is documentation only; real values go in `.env.local` (git-ignored) and in Vercel. `tests/unit/env-example.test.ts` fails if it ever holds a value or anything shaped like a secret.
+
 `NEXT_PUBLIC_*` values are public and inlined at **build** time (change → rebuild); everything else is server-only. **Secret** = never commit, never prefix with `NEXT_PUBLIC_`.
 
 | Variable | Secret | Production | Preview | Development |

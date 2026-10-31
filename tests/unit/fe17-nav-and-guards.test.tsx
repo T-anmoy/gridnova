@@ -16,8 +16,8 @@ const EVERYONE = ['Overview', 'Ask Nova', 'Project archive', 'Equipment', 'Who c
 
 describe('the menu for each role (BE-17 matrix)', () => {
   it.each<[Role, string[]]>([
-    ['admin', ['Overview', 'Leads', 'Onboardings', 'Operations', 'Accounts', 'Commissions', 'Network Command Centre', 'Survey reviews', 'Survey corrections', 'Service requests', 'Attribution Flags', 'Meetings', 'Site Assessments', 'Proposals', 'Studio Home', 'Studio proposals', 'Studio customers', 'Library', 'Import', 'Analytics', 'Employees', 'Approvals', 'Associate Network', 'Data Checklist', 'Audit Log', 'Ask Nova', 'Project archive', 'Archive import', 'Equipment', 'Price list', 'Agent Control', 'Who can do what']],
-    ['management', ['Overview', 'Leads', 'Onboardings', 'Operations', 'Accounts', 'Commissions', 'Network Command Centre', 'Survey reviews', 'Survey corrections', 'Service requests', 'Meetings', 'Proposals', 'Studio Home', 'Studio proposals', 'Studio customers', 'Library', 'Analytics', 'Data Checklist', 'Audit Log', 'Ask Nova', 'Project archive', 'Equipment', 'Price list', 'Who can do what']],
+    ['admin', ['Overview', 'Leads', 'Onboardings', 'Operations', 'Accounts', 'Commissions', 'Network Command Centre', 'Survey reviews', 'Survey corrections', 'Service requests', 'Attribution Flags', 'Meetings', 'Site Assessments', 'Proposals', 'Studio Home', 'Studio proposals', 'Studio customers', 'Library', 'Import', 'Analytics', 'Employees', 'Approvals', 'Associate Network', 'Launch readiness', 'Audit Log', 'Ask Nova', 'Project archive', 'Archive import', 'Equipment', 'Price list', 'Agent Control', 'Who can do what']],
+    ['management', ['Overview', 'Leads', 'Onboardings', 'Operations', 'Accounts', 'Commissions', 'Network Command Centre', 'Survey reviews', 'Survey corrections', 'Service requests', 'Meetings', 'Proposals', 'Studio Home', 'Studio proposals', 'Studio customers', 'Library', 'Analytics', 'Launch readiness', 'Audit Log', 'Ask Nova', 'Project archive', 'Equipment', 'Price list', 'Who can do what']],
     ['network_manager', ['Overview', 'Leads', 'Onboardings', 'Network Command Centre', 'Survey reviews', 'Survey corrections', 'Attribution Flags', 'Proposals', 'Employees', 'Approvals', 'Associate Network', 'Audit Log', 'Ask Nova', 'Project archive', 'Equipment', 'Price list', 'Who can do what']],
     ['sales', ['Overview', 'Leads', 'Onboardings', 'Survey reviews', 'Survey corrections', 'Service requests', 'Meetings', 'Site Assessments', 'Proposals', 'Analytics', 'Ask Nova', 'Project archive', 'Equipment', 'Price list', 'Who can do what']],
     ['engineer', ['Overview', 'Leads', 'Operations', 'Survey reviews', 'Survey corrections', 'Service requests', 'Proposals', 'Ask Nova', 'Project archive', 'Equipment', 'Who can do what']],
@@ -32,7 +32,7 @@ describe('the menu for each role (BE-17 matrix)', () => {
   it('the Network Manager gets the associate-network pages and Employees, but no money, settings or approvals of proposals', () => {
     const nm = menu('network_manager')
     for (const l of ['Associate Network', 'Employees', 'Attribution Flags', 'Network Command Centre', 'Onboardings']) expect(nm).toContain(l)
-    for (const l of ['Accounts', 'Commissions', 'Agent Control', 'Data Checklist', 'Archive import']) expect(nm).not.toContain(l)
+    for (const l of ['Accounts', 'Commissions', 'Agent Control', 'Launch readiness', 'Archive import']) expect(nm).not.toContain(l)
   })
 
   it('roles combine: the menu is the union of each role’s menu', () => {

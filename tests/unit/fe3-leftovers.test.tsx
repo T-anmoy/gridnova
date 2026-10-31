@@ -95,6 +95,8 @@ vi.mock('@/lib/dashboard/api-client', async (orig) => ({
 }))
 const workQueues = vi.fn((): { data: unknown } => ({ data: undefined }))
 // The shell's second-approval badge (GET /approvals).
+// The Launch readiness badge and the home reminder (FE-22b): nothing waiting.
+vi.mock('@/lib/dashboard/placeholders-api-client', () => ({ usePlaceholders: () => ({ data: undefined }) }))
 vi.mock('@/lib/access/api', () => ({ useApprovals: () => ({ data: [] }) }))
 vi.mock('@/lib/studio/api', () => ({ useStudioPendingApprovals: () => ({ data: undefined }) }))
 vi.mock('@/lib/dashboard/execution-api-client', () => ({ useWorkQueues: () => workQueues() }))

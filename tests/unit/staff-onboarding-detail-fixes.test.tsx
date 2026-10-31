@@ -182,10 +182,10 @@ describe('Staff agreement section — approved wording', () => {
     return generate
   }
 
-  it('while the wording is not approved: says so, links the Data checklist, and Generate is off', async () => {
+  it('while the wording is not approved: says so, links the Launch readiness, and Generate is off', async () => {
     const generate = await renderPage({ generated: false, wording_approved: false })
     expect(screen.getByTestId('agreement-wording-pending')).toHaveTextContent('ONB-5')
-    expect(screen.getByRole('link', { name: 'Data checklist' })).toHaveAttribute('href', '/dashboard/data-checklist')
+    expect(screen.getByRole('link', { name: 'Launch readiness' })).toHaveAttribute('href', '/dashboard/data-checklist')
     expect(screen.getByRole('button', { name: 'Generate agreement' })).toBeDisabled()
     expect(generate).not.toHaveBeenCalled()
   })
@@ -202,5 +202,36 @@ describe('Staff agreement section — approved wording', () => {
     await renderPage({ generated: false, wording_approved: true }, vi.fn().mockRejectedValue(new ApiError(409, 'x', 'x', { code: 'agreement_wording_not_approved' })))
     await userEvent.setup().click(screen.getByRole('button', { name: 'Generate agreement' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('wording is not approved yet')
+  })
+})
+
+// FE-22b: a hand-over refused for the proposal's content is said in words, with the way out.
+describe('Staff in-person acceptance — content holds', () => {
+  async function refuseWith(detail: Record<string, unknown>, total: number | null = 250000) {
+    mockUseStaffOnboardingFormalProposal.mockReturnValue({
+      data: { prepared: true, proposal_id: 4242, version: 1, status: 'sent', total_value: total, approved_at: null, date_sent: null, accepted_at: null, ready_to_hand_over: false, pdf: null } as FormalProposalReadResponse,
+      isLoading: false,
+    })
+    mockUseStaffInPersonAcceptance.mockReturnValue({ mutateAsync: vi.fn().mockRejectedValue(new ApiError(409, 'x', 'raw backend text', detail)), isPending: false })
+    mockUseStaffOnboardingAgreement.mockReturnValue({ data: { links: {} } as AgreementResponse, isLoading: false })
+    const { default: StaffOnboardingDetailPage } = await import('@/app/(internal)/dashboard/onboardings/[id]/page')
+    const user = userEvent.setup()
+    render(<StaffOnboardingDetailPage />)
+    await user.click(screen.getByRole('button', { name: 'Record in-person acceptance' }))
+    await user.click(screen.getByRole('button', { name: 'Confirm acceptance' }))
+    return screen.findByTestId('in-person-hold')
+  }
+
+  it('unapproved wording: names the sections and links Launch readiness', async () => {
+    const hold = await refuseWith({ code: 'unapproved_sections', unapproved_sections: ['standard_terms'] })
+    expect(hold).toHaveTextContent('This proposal can’t be handed over yet. The wording for Terms and conditions (PRO-2) is waiting for an Admin’s approval.')
+    expect(screen.getByRole('link', { name: 'Open Launch readiness' })).toHaveAttribute('href', '/dashboard/data-checklist')
+    expect(hold.textContent).not.toMatch(/unapproved_sections|standard_terms|raw backend text/)
+  })
+
+  it('no price: "Price to be set by Grid Nova."', async () => {
+    const hold = await refuseWith({ code: 'placeholder_content' }, null)
+    expect(hold).toHaveTextContent('Price to be set by Grid Nova.')
+    expect(screen.queryByRole('link', { name: 'Open Launch readiness' })).toBeNull()
   })
 })

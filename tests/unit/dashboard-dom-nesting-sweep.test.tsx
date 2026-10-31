@@ -95,6 +95,8 @@ vi.mock('@/lib/proposals/document-api-client', () => ({
   useEditDocumentSection: () => ({ mutateAsync: () => Promise.resolve(), isPending: false }),
   fetchPreviewPdf: () => Promise.reject(new Error('not used')),
 }))
+// The Launch readiness badge and the home reminder (FE-22b): nothing waiting.
+vi.mock('@/lib/dashboard/placeholders-api-client', () => ({ usePlaceholders: () => ({ data: undefined }) }))
 vi.mock('@/lib/access/api', async () => {
   const { ACCESS_MATRIX } = await import('./fixtures/access-matrix')
   return { useAccessMatrix: () => ({ data: ACCESS_MATRIX }), useAccessAdmins: () => ({ data: undefined }) }

@@ -311,7 +311,7 @@ describe('Warranty register (W4)', () => {
     expect(details).toHaveTextContent('5 years')
     expect(details).toHaveTextContent('12 Oct 2026 → 12 Oct 2031')
     expect(within(details).getAllByTestId('unconfirmed').length).toBeGreaterThanOrEqual(3) // O&M terms, panel life, inverter end date
-    expect(details).toHaveTextContent('Grid Nova has not supplied these terms yet.')
+    expect(details).toHaveTextContent('Not shown until an Admin approves the O&M terms (HW-OM on Launch readiness).')
     expect(details).not.toHaveTextContent(/25 years|20 years/)
   })
 

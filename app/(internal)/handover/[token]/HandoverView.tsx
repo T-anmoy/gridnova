@@ -90,7 +90,7 @@ export default function HandoverView({ token, view, initialRequests }: { token: 
               {w.system.active != null && <span className={`ml-2 inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ${w.system.active ? 'bg-emerald-100 text-emerald-800' : 'bg-[#111827]/10 text-[#111827]/70'}`}>{w.system.active ? 'In warranty' : 'Warranty ended'}</span>}
             </Row>
             <Row label="Free operations & maintenance">{w.om.free_months != null && w.om.free_until ? `${w.om.free_months} months, until ${formatDate(w.om.free_until)}` : 'To be confirmed'}</Row>
-            <Row label="Maintenance after the free period">{w.om.terms_after_free_period ?? 'To be confirmed'}</Row>
+            <Row label="Maintenance after the free period">{w.om.terms_after_free_period || 'Details will be shared by Grid Nova.'}</Row>
             <Row label="Expected panel performance life">{w.panel_performance_life_years != null ? `${w.panel_performance_life_years} years (a life span, not a warranty)` : 'To be confirmed'}</Row>
           </dl>
           {w.units.length > 0 && (

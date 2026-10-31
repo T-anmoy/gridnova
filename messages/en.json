@@ -2313,7 +2313,8 @@
             "expired": "This proposal has expired.",
             "missing_required": "Grid Nova still needs a few details on this proposal before it can be accepted. Please ask your Grid Nova contact.",
             "unapproved_sections": "Grid Nova is still finalising the wording of this proposal. It can be accepted once that is done — please ask your Grid Nova contact.",
-            "manual_review_required": "Grid Nova needs to review this proposal before it can be accepted. Please ask your Grid Nova contact."
+            "manual_review_required": "Grid Nova needs to review this proposal before it can be accepted. Please ask your Grid Nova contact.",
+            "price_to_be_set": "Price to be set by Grid Nova."
           }
         },
         "genericError": "Something went wrong. Please try again.",
@@ -2944,6 +2945,7 @@
           "om": "Free O&M",
           "omRange": "{months} months, until {date}",
           "omAfter": "O&M after the free period",
+          "omAfterPending": "Details will be shared by Grid Nova.",
           "panelLife": "Expected panel performance life",
           "panelLifeValue": "{years} years (a life span, not a warranty)",
           "unconfirmed": "Not confirmed yet",

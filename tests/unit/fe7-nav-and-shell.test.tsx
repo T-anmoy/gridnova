@@ -10,7 +10,7 @@ import { navState } from './helpers/mock-navigation'
 import type { Role } from '@/lib/dashboard/types'
 import { canFor, permissionsFor } from './helpers/permissions-bridge'
 
-const h = vi.hoisted(() => ({ role: 'admin' as string | undefined }))
+const h = vi.hoisted(() => ({ role: 'admin' as string | undefined, placeholders: undefined as unknown }))
 vi.mock('@clerk/nextjs', () => ({
   ClerkProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useUser: () => ({ user: { firstName: 'Asha', lastName: 'Roy', emailAddresses: [{ emailAddress: 'a@gridnova.in' }], publicMetadata: { role: h.role } }, isLoaded: true }),
@@ -31,6 +31,10 @@ vi.mock('@/lib/access/api', () => ({ useApprovals: () => ({ data: [] }) }))
 vi.mock('@/lib/dashboard/execution-api-client', () => ({ useWorkQueues: () => ({ data: undefined }) }))
 vi.mock('@/components/ui/sonner', () => ({ Toaster: () => null }))
 vi.mock('@/lib/config', () => ({ API_BASE_URL: 'https://api.test' }))
+// The Launch readiness badge (BE-22 wording waiting for approval).
+vi.mock('@/lib/dashboard/placeholders-api-client', () => ({
+  usePlaceholders: (o: { enabled?: boolean } = {}) => ({ data: o.enabled === false ? undefined : h.placeholders }),
+}))
 
 const ROLES: Role[] = ['admin', 'management', 'accounts', 'operations', 'engineer', 'sales']
 const labels = (role: Role | undefined) => visibleNavItems(permissionsFor(role ? [role] : [])).map((i) => i.label)
@@ -67,6 +71,7 @@ async function mountLayout() {
 beforeEach(() => {
   h.role = 'admin'
   navState.reset('/dashboard')
+  h.placeholders = undefined
   Element.prototype.scrollIntoView = vi.fn()
   vi.stubGlobal(
     'fetch',
@@ -107,6 +112,28 @@ describe('the Ask Nova header button', () => {
     await screen.findByTestId('nova-panel')
     await user.click(screen.getByRole('button', { name: 'Close Ask Nova' }))
     await waitFor(() => expect(screen.queryByTestId('nova-panel')).toBeNull())
+  })
+})
+
+describe('Launch readiness badge (FE-22b)', () => {
+  const wording = (id: string, approval_state: string) => ({ id, probe: 'approved_text', approval_state, resolved: approval_state === 'approved' })
+  const nine = (waiting: string[]) => ({
+    summary: { total: 9, unresolved: waiting.length, by_blocking: {} },
+    areas: [{ area: 'launch', items: ['PRO-2', 'PRO-7', 'PRO-8', 'PRO-10', 'PRO-11', 'PRO-12', 'ONB-5', 'P6', 'HW-OM'].map((id) => wording(id, waiting.includes(id) ? 'not_approved' : 'approved')) }],
+  })
+  const launchLink = () => within(screen.getAllByRole('navigation')[0]).getByRole('link', { name: /Launch readiness/ })
+
+  it.each(['admin', 'management'] as const)('%s sees how many wordings wait', async (role) => {
+    h.role = role
+    h.placeholders = nine(['PRO-2', 'ONB-5', 'P6'])
+    await mountLayout()
+    expect(within(launchLink()).getByTestId('wording-badge')).toHaveTextContent('3')
+  })
+
+  it('disappears once all nine are approved', async () => {
+    h.placeholders = nine([])
+    await mountLayout()
+    expect(within(launchLink()).queryByTestId('wording-badge')).toBeNull()
   })
 })
 

@@ -49,7 +49,7 @@ export const isWordingHold = (reason: string | null | undefined): boolean => rea
 
 /** A held reason in words; anything without its own sentence is shown as the API sent it. */
 export function heldReasonText(reason: string | null | undefined): string {
-  if (isWordingHold(reason)) return 'Waiting for an Admin to approve the receipt wording on the Data checklist (P6).'
+  if (isWordingHold(reason)) return 'Held until the receipt wording is approved.'
   return reason ?? 'Held'
 }
 
